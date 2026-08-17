@@ -23,14 +23,14 @@ class AttendanceHistoryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('attendance.history'),
-        subtitle: 'Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù Ø§Ù„ÙƒØ§Ù…Ù„',
+        subtitle: 'سجل الحضور والانصراف',
       ),
       body: historyAsync.when(
         data: (logs) {
           if (logs.isEmpty) {
             return const EmptyState(
-              title: 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø³Ø¬Ù„ Ø­Ø¶ÙˆØ± Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†',
-              subtitle: 'Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ø¬Ù…ÙŠØ¹ Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© Ù…Ø¹ Ø§Ù„ØªÙØ§ØµÙŠÙ„',
+              title: 'لا يوجد سجل حضور حتى الآن',
+              subtitle: 'سجل الحضور والانصراف',
               icon: Icons.calendar_month_outlined,
             );
           }
@@ -82,7 +82,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               StatusBadge(
                                 label: log.isOffline
                                     ? context.tr('attendance.pending_hr_verification')
-                                    : (isCheckIn ? 'Ø­Ø¶ÙˆØ± Ù…ÙˆØ«Ù‚' : 'Ø§Ù†ØµØ±Ø§Ù Ù…ÙˆØ«Ù‚'),
+                                    : (isCheckIn ? 'حضور موثق' : 'انصراف موثق'),
                                 status: log.isOffline ? BadgeStatus.offline : BadgeStatus.approved,
                               ),
                             ],
@@ -105,7 +105,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Ø§Ù„Ù…Ø³Ø§ÙØ©: ${log.distanceFromOffice.toStringAsFixed(1)} Ù… â€¢ Ø¨ØµÙ…Ø© Ù…ÙˆØ«Ù‚Ø©',
+                                'المسافة: ${log.distanceFromOffice.toStringAsFixed(1)} م • بصمة موثقة',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
@@ -122,8 +122,8 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ±...'),
-        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
+        loading: () => const LoadingState(message: 'جاري تحميل سجل الحضور...'),
+        error: (err, _) => Center(child: Text('خطأ: $err')),
       ),
     );
   }
