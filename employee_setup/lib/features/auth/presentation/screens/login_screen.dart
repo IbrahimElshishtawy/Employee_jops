@@ -76,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     child: const Icon(
                       Icons.badge_outlined,
-                      size: 40,
+                      size: 65,
                       color: Colors.white,
                     ),
                   ),

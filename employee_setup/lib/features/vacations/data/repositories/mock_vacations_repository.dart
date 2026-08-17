@@ -58,6 +58,6 @@ class MockVacationsRepository implements VacationsRepository {
 
   @override
   Future<void> resetToDefaultMock() async {
-    // Handled by MockDatabaseNotifier.resetDataKeepSession()
+    _db.resetDataKeepSession();
   }
 }

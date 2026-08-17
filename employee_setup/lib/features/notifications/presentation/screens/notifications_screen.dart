@@ -20,7 +20,7 @@ class NotificationsScreen extends ConsumerWidget {
       appBar: AppHeader(
         title: context.tr('notifications.title'),
         subtitle:
-            'Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§ØªØŒ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ø¨Ø´Ø±ÙŠØ©ØŒ ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
+            'التحديثات، رسائل الموارد البشرية، والخصومات',
         showBackButton: false,
         actions: [
           TextButton(
@@ -34,7 +34,7 @@ class NotificationsScreen extends ConsumerWidget {
               ref.invalidate(unreadNotificationsCountProvider);
               if (context.mounted) {
                 context.showSnackBar(
-                  'ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ÙƒÙ…Ù‚Ø±ÙˆØ¡Ø©',
+                  'تم تحديد جميع التنبيهات كمقروءة',
                 );
               }
             },

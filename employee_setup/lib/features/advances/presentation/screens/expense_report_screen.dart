@@ -33,13 +33,13 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
   void _addItem() {
     if (_descController.text.trim().isEmpty || _amountController.text.trim().isEmpty) {
-      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙˆØµÙ ÙˆÙ…Ø¨Ù„Øº Ø§Ù„Ø¨Ù†Ø¯ Ø£ÙˆÙ„Ø§Ù‹', isError: true);
+      context.showSnackBar('يرجى إدخال وصف ومبلغ البند أولاً', isError: true);
       return;
     }
 
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     if (amount <= 0) {
-      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ù…Ø¨Ù„Øº ØµØ­ÙŠØ­', isError: true);
+      context.showSnackBar('يرجى إدخال مبلغ صحيح', isError: true);
       return;
     }
 
@@ -60,7 +60,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
   Future<void> _submitReport() async {
     if (_items.isEmpty) {
-      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¶Ø§ÙØ© Ø¨Ù†Ø¯ Ù…ØµØ±ÙˆÙØ§Øª ÙˆØ§Ø­Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„', isError: true);
+      context.showSnackBar('يرجى إضافة بند مصروفات واحد على الأقل ', isError: true);
       return;
     }
 
@@ -86,7 +86,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
-    context.showSnackBar('ØªÙ… ØªÙ‚Ø¯ÙŠÙ… ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª Ø¨Ù†Ø¬Ø§Ø­');
+    context.showSnackBar('تم تقديم تقرير المصروفات بنجاح');
     context.pop();
   }
 
@@ -98,7 +98,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('advances.expense_report'),
-        subtitle: 'ØªØ³ÙˆÙŠØ© Ø¨Ù†ÙˆØ¯ ÙˆÙÙˆØ§ØªÙŠØ± Ø§Ù„Ø³ÙÙ„ÙØ© Ø§Ù„Ù…Ø§Ù„ÙŠØ©',
+        subtitle: 'تسوية بنود وفواتير السلفة المالية',
       ),
       body: SingleChildScrollView(
         padding: AppDimensions.pagePadding,
@@ -109,7 +109,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
             children: [
               // Add Item Form
               Text(
-                'Ø¥Ø¶Ø§ÙØ© Ø¨Ù†Ø¯ Ù…ØµØ±ÙˆÙ',
+                'إضافة بند مصروفات ',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -121,20 +121,20 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                 child: Column(
                   children: [
                     AppTextField(
-                      label: 'Ø¨ÙŠØ§Ù† Ø§Ù„Ù…ØµØ±ÙˆÙ / Ø§Ù„Ø¨Ù†Ø¯',
-                      hintText: 'Ù…Ø«Ø§Ù„: ÙØ§ØªÙˆØ±Ø© Ø­Ø¬Ø² ÙÙ†Ø¯Ù‚ØŒ ØªØ°Ø§ÙƒØ± Ù‚Ø·Ø§Ø±...',
+                      label: 'بيان المصروف / البند',
+                      hintText: 'مثال: فاتورة حجز فندق، تذاكر قطار...',
                       controller: _descController,
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
-                      label: 'Ø§Ù„Ù…Ø¨Ù„Øº (Ø¬Ù†ÙŠÙ‡)',
-                      hintText: 'Ù…Ø«Ø§Ù„: 750',
+                      label: 'المبلغ (جنيه)',
+                      hintText: 'مثال: 750',
                       controller: _amountController,
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 16),
                     AppButton.secondary(
-                      label: 'Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¨Ù†Ø¯ Ù„Ù„ØªÙ‚Ø±ÙŠØ±',
+                      label: 'إضافة البند للتقرير',
                       icon: Icons.add_circle_outline_rounded,
                       onPressed: _addItem,
                     ),
@@ -148,7 +148,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Ø¨Ù†ÙˆØ¯ Ø§Ù„ØªÙ‚Ø±ÙŠØ± (${_items.length})',
+                    'بنود التقرير (${_items.length})',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -156,7 +156,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                     ),
                   ),
                   Text(
-                    'Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ: ${total.toStringAsFixed(2)} Ø¬.Ù…',
+                    'الإجمالي: ${total.toStringAsFixed(2)} جنيه',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -177,7 +177,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      'Ù„Ù… ØªÙ‚Ù… Ø¨Ø¥Ø¶Ø§ÙØ© Ø¨Ù†ÙˆØ¯ Ù…ØµØ±ÙˆÙØ§Øª Ø¨Ø¹Ø¯',
+                      'لم تقم بإضافة بنود مصروفات بعد',
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
@@ -211,7 +211,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø©: ${item.invoiceNumber ?? "--"}',
+                                  'رقم الفاتورة: ${item.invoiceNumber ?? "--"}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
@@ -237,8 +237,8 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
               // Notes
               AppTextField(
-                label: 'Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ© Ø¹Ù„Ù‰ Ø§Ù„ØªÙ‚Ø±ÙŠØ±',
-                hintText: 'Ø£ÙŠ ØªÙØ§ØµÙŠÙ„ ØªØ±ØºØ¨ ÙÙŠ Ø¥ÙŠØ¶Ø§Ø­Ù‡Ø§ Ù„Ù„Ù…Ø¯ÙŠØ± Ø§Ù„Ù…Ø§Ù„ÙŠ...',
+                label: 'ملاحظات إضافية على التقرير',
+                hintText: 'أي تفاصيل ترغب في إيضاحها للمدير المالي...',
                 controller: _notesController,
                 maxLines: 2,
               ),
@@ -246,7 +246,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
               // Submit Button
               AppButton.primary(
-                label: 'Ø§Ø¹ØªÙ…Ø§Ø¯ ÙˆØ¥Ø±Ø³Ø§Ù„ ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
+                label: 'اعتماد وإرسال تقرير المصروفات',
                 isLoading: _isSubmitting,
                 onPressed: _isSubmitting ? null : _submitReport,
               ),
