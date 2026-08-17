@@ -1,9 +1,8 @@
+import 'package:employee_setup/app/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:employee_setup/features/auth/domain/models/employee.dart';
-import 'package:employee_setup/features/auth/application/providers/auth_provider.dart';
+
 import 'package:employee_setup/core/mock/seeds/onboarding_catalog.dart';
 import 'package:employee_setup/core/constants/app_constants.dart';
-import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 
 /// Onboarding form state holding in-progress data across 3 steps
 class OnboardingFormState {
@@ -123,32 +122,44 @@ class OnboardingNotifier extends StateNotifier<OnboardingFormState> {
 
     if (currentEmployee == null) return;
 
-    // Create updated employee with onboarding completed flag
+    // Create updated employee with all onboarding fields set
     final updatedEmployee = currentEmployee.copyWith(
-      nationalId: state.nationalId,
-      jobTitle: state.jobTitle,
-      department: state.department,
-      region: state.region,
-      managerId: state.managerId,
-      managerName: state.managerName,
-      workLocationId: state.workLocationId,
+      nationalId: state.nationalId.isNotEmpty
+          ? state.nationalId
+          : currentEmployee.nationalId,
+      phone: state.phone.isNotEmpty ? state.phone : currentEmployee.phone,
+      jobTitle: state.jobTitle.isNotEmpty
+          ? state.jobTitle
+          : currentEmployee.jobTitle,
+      department: state.department.isNotEmpty
+          ? state.department
+          : currentEmployee.department,
+      region: state.region.isNotEmpty ? state.region : currentEmployee.region,
+      managerId: state.managerId.isNotEmpty
+          ? state.managerId
+          : currentEmployee.managerId,
+      managerName: state.managerName.isNotEmpty
+          ? state.managerName
+          : currentEmployee.managerName,
+      workLocationId: state.workLocationId.isNotEmpty
+          ? state.workLocationId
+          : currentEmployee.workLocationId,
       biometricEnabled: state.biometricEnabled,
       onboardingCompleted: true,
     );
 
-    // Save to storage
-    final localStorage = SharedPrefsStorage();
-    await localStorage.init();
+    // Persist onboarding completion flags
+    final localStorage = ref.read(localStorageProvider);
     await localStorage.setString(AppConstants.keyOnboardingCompleted, 'true');
     await localStorage.setString(
       AppConstants.keyBiometricEnabled,
       state.biometricEnabled.toString(),
     );
 
-    // Update in auth notifier
+    // Update auth state — this triggers router redirect to home
     authNotifier.updateEmployee(updatedEmployee);
 
-    // Reset form
+    // Reset form state
     state = const OnboardingFormState();
   }
 }

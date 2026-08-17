@@ -21,12 +21,12 @@ class _WorkLocationScreenState extends ConsumerState<WorkLocationScreen> {
   @override
   void initState() {
     super.initState();
-    // Work location is predefined, so we can set it directly
+    // Work location is predefined by company HR — employee cannot change it
     ref
         .read(onboardingProvider.notifier)
         .setStep3Data(
-          AppConstants.mockWorkLocationId,
-          false, // Initially not enabled, user can enable on biometric screen
+          workLocationId: AppConstants.mockWorkLocationId,
+          biometricEnabled: false,
         );
   }
 
@@ -122,7 +122,7 @@ class _WorkLocationScreenState extends ConsumerState<WorkLocationScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -216,7 +216,7 @@ class _WorkLocationScreenState extends ConsumerState<WorkLocationScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.success.withOpacity(0.1),
+                            color: AppColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(

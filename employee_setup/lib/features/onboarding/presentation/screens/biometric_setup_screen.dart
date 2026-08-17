@@ -1,3 +1,4 @@
+import 'package:employee_setup/app/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,8 +8,8 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routing/app_routes.dart';
-import '../../../../core/services/biometric_service.dart';
 import '../../domain/onboarding_provider.dart';
+import '../../../../features/attendance/domain/services/biometric_service.dart';
 
 class BiometricSetupScreen extends ConsumerStatefulWidget {
   const BiometricSetupScreen({super.key});
@@ -22,37 +23,44 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
   bool _isAuthenticating = false;
   bool _biometricEnabled = false;
 
-  void _handleEnableBiometric() async {
+  Future<void> _handleEnableBiometric() async {
     setState(() => _isAuthenticating = true);
 
     try {
       final biometricService = ref.read(biometricServiceProvider);
-      final isAuthenticated = await biometricService.authenticate();
+      final result = await biometricService.authenticate(
+        reason: 'تأكيد هويتك لتفعيل المصادقة البيومترية للحضور',
+      );
 
       if (!mounted) return;
       setState(() => _isAuthenticating = false);
 
-      if (isAuthenticated) {
+      if (result == BiometricAuthResult.success) {
         setState(() => _biometricEnabled = true);
         context.showSnackBar('تم تفعيل المصادقة البيومترية بنجاح');
 
-        // Complete onboarding with biometric enabled
+        // Mark biometric enabled in onboarding state
         ref
             .read(onboardingProvider.notifier)
             .setStep3Data(
-              ref.read(onboardingProvider).workLocationId ?? '',
-              true,
+              workLocationId: ref.read(onboardingProvider).workLocationId,
+              biometricEnabled: true,
             );
 
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            _completeOnboarding();
-          }
-        });
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          _completeOnboarding();
+        }
       } else {
-        context.showSnackBar('فشلت المصادقة البيومترية', isError: true);
+        final msg = result == BiometricAuthResult.cancelled
+            ? 'تم إلغاء المصادقة البيومترية'
+            : result == BiometricAuthResult.notAvailable
+                ? 'المصادقة البيومترية غير متاحة على هذا الجهاز'
+                : 'فشلت المصادقة البيومترية، يرجى المحاولة مجددًا';
+        if (mounted) context.showSnackBar(msg, isError: true);
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isAuthenticating = false);
       context.showSnackBar('حدث خطأ: $e', isError: true);
     }
@@ -62,16 +70,19 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
     // Complete onboarding without biometric
     ref
         .read(onboardingProvider.notifier)
-        .setStep3Data(ref.read(onboardingProvider).workLocationId ?? '', false);
+        .setStep3Data(
+          workLocationId: ref.read(onboardingProvider).workLocationId,
+          biometricEnabled: false,
+        );
 
     _completeOnboarding();
   }
 
   void _completeOnboarding() {
-    // This triggers the notifier to save to storage and update auth state
-    ref.read(onboardingProvider.notifier).completeOnboarding(ref);
+    // Triggers notifier to save to storage and update auth state
+    ref.read(onboardingProvider.notifier).completeOnboarding();
 
-    // Navigate to home
+    // Navigate to home — router redirect will confirm onboardingCompleted = true
     context.go(AppRoutes.home);
   }
 
@@ -93,10 +104,10 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Progress Indicator (Complete)
+              // Progress Indicator (Complete — full width)
               Container(
                 height: 4,
-                width: MediaQuery.of(context).size.width * 1.0,
+                width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(2),
@@ -134,10 +145,10 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.fingerprint_rounded,
                         size: 60,
                         color: AppColors.primary,
@@ -151,18 +162,18 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.1),
+                          color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.check_circle_rounded,
                               size: 16,
                               color: AppColors.success,
                             ),
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6),
                             Text(
                               'تم التفعيل',
                               style: TextStyle(
@@ -188,9 +199,7 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                       : AppColors.surfaceVariantLight,
                   borderRadius: AppDimensions.borderRadiusLarge,
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.borderDark
-                        : AppColors.borderLight,
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
                   ),
                 ),
                 child: Column(
@@ -221,7 +230,7 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Action Buttons
+              // Enable Biometric Button
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -244,7 +253,7 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                   label: Text(
                     _biometricEnabled
                         ? 'تم التفعيل'
-                        : (localizations.onboardingEnableBiometric),
+                        : localizations.onboardingEnableBiometric,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -253,7 +262,8 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+                    disabledBackgroundColor:
+                        AppColors.primary.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: AppDimensions.borderRadiusLarge,
                     ),
@@ -261,6 +271,8 @@ class _BiometricSetupScreenState extends ConsumerState<BiometricSetupScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Skip Button
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -312,7 +324,7 @@ class _BenefitItem extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, size: 20, color: AppColors.primary),

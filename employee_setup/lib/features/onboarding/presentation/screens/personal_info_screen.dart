@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
@@ -23,6 +24,16 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   @override
   void initState() {
     super.initState();
+    // Pre-seed onboarding form with employee data from Google login
+    final employee = ref.read(authProvider).employee;
+    if (employee != null) {
+      ref.read(onboardingProvider.notifier).setStep1Data(
+        fullName: employee.name,
+        email: employee.email,
+        nationalId: employee.nationalId ?? ref.read(onboardingProvider).nationalId,
+        phone: employee.phone.isNotEmpty ? employee.phone : ref.read(onboardingProvider).phone,
+      );
+    }
     final formState = ref.read(onboardingProvider);
     _nationalIdController = TextEditingController(text: formState.nationalId);
     _phoneController = TextEditingController(text: formState.phone);

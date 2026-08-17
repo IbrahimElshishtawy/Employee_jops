@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
@@ -26,10 +27,37 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
   void initState() {
     super.initState();
     final formState = ref.read(onboardingProvider);
-    _selectedJobTitle = formState.jobTitle;
-    _selectedDepartment = formState.department;
-    _selectedRegion = formState.region;
-    _selectedManagerId = formState.managerId;
+    // Use onboarding state if set, otherwise fall back to auth employee
+    // Only use employee values that are present in the catalog to avoid dropdown assertion errors
+    final employee = ref.read(authProvider).employee;
+    final catalog = ref.read(onboardingCatalogProvider);
+
+    final empJobTitle = employee?.jobTitle;
+    final empDept = employee?.department;
+    final empRegion = employee?.region;
+    final empManagerId = employee?.managerId;
+
+    _selectedJobTitle = formState.jobTitle.isNotEmpty
+        ? formState.jobTitle
+        : (empJobTitle != null && catalog.jobTitles.contains(empJobTitle)
+            ? empJobTitle
+            : null);
+    _selectedDepartment = formState.department.isNotEmpty
+        ? formState.department
+        : (empDept != null && catalog.departments.contains(empDept)
+            ? empDept
+            : null);
+    _selectedRegion = formState.region.isNotEmpty
+        ? formState.region
+        : (empRegion != null && catalog.regions.contains(empRegion)
+            ? empRegion
+            : null);
+    _selectedManagerId = formState.managerId.isNotEmpty
+        ? formState.managerId
+        : (empManagerId != null &&
+                catalog.managers.any((m) => m.id == empManagerId)
+            ? empManagerId
+            : null);
   }
 
   void _handleNext() {
@@ -131,7 +159,7 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedJobTitle,
+                initialValue: _selectedJobTitle,
                 hint: Text(localizations.onboardingJobTitle),
                 items: catalog.jobTitles.map((title) {
                   return DropdownMenuItem(value: title, child: Text(title));
@@ -178,7 +206,7 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedDepartment,
+                initialValue: _selectedDepartment,
                 hint: Text(localizations.onboardingDepartment),
                 items: catalog.departments.map((dept) {
                   return DropdownMenuItem(value: dept, child: Text(dept));
@@ -226,7 +254,7 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedRegion,
+                initialValue: _selectedRegion,
                 hint: Text(localizations.onboardingRegion),
                 items: catalog.regions.map((region) {
                   return DropdownMenuItem(value: region, child: Text(region));
@@ -273,7 +301,7 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedManagerId,
+                initialValue: _selectedManagerId,
                 hint: Text(localizations.onboardingManager),
                 items: catalog.managers.map((manager) {
                   return DropdownMenuItem(

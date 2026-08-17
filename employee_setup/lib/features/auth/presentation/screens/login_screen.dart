@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../widgets/google_sign_in_button.dart';
 
@@ -24,8 +23,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isSigningIn = false);
 
     if (success) {
-      // Router redirect logic will handle onboarding check automatically
-      context.go('/home');
+      // Let the router redirect handle the routing:
+      // • If onboardingCompleted == false → /onboarding/personal
+      // • If onboardingCompleted == true  → /home
+      final employee = ref.read(authProvider).employee;
+      if (employee != null && employee.onboardingCompleted) {
+        context.go('/home');
+      } else {
+        context.go('/onboarding/personal');
+      }
     } else {
       context.showSnackBar(
         'فشل تسجيل الدخول، يرجى إعادة المحاولة',
