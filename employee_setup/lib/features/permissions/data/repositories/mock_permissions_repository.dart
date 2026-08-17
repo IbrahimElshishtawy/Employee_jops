@@ -5,19 +5,19 @@ import '../../domain/models/permission_request.dart';
 import '../../domain/repositories/permissions_repository.dart';
 
 class MockPermissionsRepository implements PermissionsRepository {
-  final Ref _ref;
+  final Ref? _ref;
   final _uuid = const Uuid();
 
-  MockPermissionsRepository(this._ref);
+  MockPermissionsRepository([Ref? ref]) : _ref = ref;
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
-  MockDatabase get _state => _ref.read(mockDatabaseProvider);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+  MockDatabase get _state =>
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.state;
 
   @override
   Future<List<PermissionRequest>> getPermissions(String employeeId) async {
-    return _state.permissions
-        .where((p) => p.employeeId == employeeId)
-        .toList()
+    return _state.permissions.where((p) => p.employeeId == employeeId).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 

@@ -5,17 +5,23 @@ import '../../domain/models/app_notification.dart';
 import '../../domain/repositories/notifications_repository.dart';
 
 class MockNotificationsRepository implements NotificationsRepository {
-  final Ref _ref;
+  final Ref? _ref;
 
-  MockNotificationsRepository(this._ref);
+  MockNotificationsRepository([Object? source])
+    : _ref = source is Ref ? source : null {
+    if (_ref == null) {
+      fallbackMockDatabaseNotifier.resetAll();
+    }
+  }
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
-  MockDatabase get _state => _ref.read(mockDatabaseProvider);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+  MockDatabase get _state =>
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
 
   @override
   Future<List<AppNotification>> getNotifications(String employeeId) async {
-    return _state.notifications
-        .toList()
+    return _state.notifications.toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 

@@ -26,22 +26,32 @@ class AdvanceDetailsScreen extends ConsumerWidget {
       appBar: const AppHeader(
         title: 'تفاصيل السُلفة المالية',
       ),
-      body: advancesAsync.when(
-        data: (list) {
-          final adv = list.firstWhere(
-            (e) => e.id == advanceId,
-            orElse: () => AdvanceRequest(
-              id: advanceId,
-              employeeId: 'EMP-1024',
-              amount: 2500,
-              reason: 'سُلفة مالية',
-              createdAt: DateTime.now(),
-              status: AdvanceStatus.pending,
-            ),
-          );
+      body: Builder(
+        builder: (context) {
+          final list = advancesAsync;
+          final adv = list.isEmpty
+              ? AdvanceRequest(
+                  id: advanceId,
+                  employeeId: 'EMP-1024',
+                  amount: 2500,
+                  reason: 'سُلفة مالية',
+                  createdAt: DateTime.now(),
+                  status: AdvanceStatus.pending,
+                )
+              : list.firstWhere(
+                  (e) => e.id == advanceId,
+                  orElse: () => AdvanceRequest(
+                    id: advanceId,
+                    employeeId: 'EMP-1024',
+                    amount: 2500,
+                    reason: 'سُلفة مالية',
+                    createdAt: DateTime.now(),
+                    status: AdvanceStatus.pending,
+                  ),
+                );
 
-          BadgeStatus badge;
-          String label;
+          BadgeStatus badge = BadgeStatus.pending;
+          String label = 'قيد المراجعة';
           switch (adv.status) {
             case AdvanceStatus.pending:
               badge = BadgeStatus.pending;
@@ -156,10 +166,8 @@ class AdvanceDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildInfoRow(String label, String value, bool isDark, {bool isLink = false}) {

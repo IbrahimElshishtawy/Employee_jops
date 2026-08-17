@@ -5,13 +5,22 @@ import '../../domain/models/attendance.dart';
 import '../../domain/repositories/attendance_repository.dart';
 
 class MockAttendanceRepository implements AttendanceRepository {
-  final Ref _ref;
+  final Ref? _ref;
   final _uuid = const Uuid();
 
-  MockAttendanceRepository(this._ref);
+  MockAttendanceRepository([Object? source])
+    : _ref = source is Ref ? source : null {
+    if (_ref == null) {
+      fallbackMockDatabaseNotifier.state = MockDatabase.seed().copyWith(
+        attendance: const [],
+      );
+    }
+  }
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
-  MockDatabase get _state => _ref.read(mockDatabaseProvider);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+  MockDatabase get _state =>
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
 
   @override
   Future<TodayAttendanceSummary> getTodayStatus(String employeeId) async {
@@ -20,9 +29,7 @@ class MockAttendanceRepository implements AttendanceRepository {
 
   @override
   Future<List<Attendance>> getHistory(String employeeId) async {
-    return _state.attendance
-        .where((a) => a.employeeId == employeeId)
-        .toList()
+    return _state.attendance.where((a) => a.employeeId == employeeId).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
@@ -45,7 +52,9 @@ class MockAttendanceRepository implements AttendanceRepository {
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
-      status: isOffline ? AttendanceStatus.offlinePending : AttendanceStatus.success,
+      status: isOffline
+          ? AttendanceStatus.offlinePending
+          : AttendanceStatus.success,
     );
     _db.addAttendance(record);
     return record;
@@ -70,7 +79,9 @@ class MockAttendanceRepository implements AttendanceRepository {
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
-      status: isOffline ? AttendanceStatus.offlinePending : AttendanceStatus.success,
+      status: isOffline
+          ? AttendanceStatus.offlinePending
+          : AttendanceStatus.success,
     );
     _db.addAttendance(record);
     return record;
@@ -83,8 +94,18 @@ class MockAttendanceRepository implements AttendanceRepository {
 
   @override
   Future<int> syncPendingAttendance() async {
-    // Simulate sync in mock — returns count of synced records
     final pending = _state.attendance.where((a) => a.isOffline).toList();
+    if (pending.isEmpty) return 0;
+
+    final synced = _state.attendance
+        .map(
+          (a) => a.isOffline
+              ? a.copyWith(isOffline: false, status: AttendanceStatus.success)
+              : a,
+        )
+        .toList();
+
+    _db.state = _db.state.copyWith(attendance: synced);
     await Future.delayed(const Duration(milliseconds: 400));
     return pending.length;
   }

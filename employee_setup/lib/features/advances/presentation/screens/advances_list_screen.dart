@@ -22,14 +22,17 @@ class AdvancesListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('advances.title'),
-        subtitle: 'Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙÙ„Ù ÙˆØ§Ù„Ø¹Ù‡Ø¯ Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
+        subtitle:
+            'Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙÙ„Ù ÙˆØ§Ù„Ø¹Ù‡Ø¯ Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
       ),
-      body: listAsync.when(
-        data: (advances) {
+      body: Builder(
+        builder: (context) {
+          final advances = listAsync;
           if (advances.isEmpty) {
             return EmptyState(
               title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙÙ„Ù Ù…Ø§Ù„ÙŠØ© Ø­Ø§Ù„ÙŠØ©',
-              subtitle: 'ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ù†Ø´Ø§Ø¡ Ø·Ù„Ø¨ Ø³ÙÙ„ÙØ© Ø£Ùˆ Ø¹Ù‡Ø¯Ø© Ø¬Ø¯ÙŠØ¯Ø© Ø¨ÙƒÙ„ Ø¨Ø³Ø§Ø·Ø©',
+              subtitle:
+                  'ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ù†Ø´Ø§Ø¡ Ø·Ù„Ø¨ Ø³ÙÙ„ÙØ© Ø£Ùˆ Ø¹Ù‡Ø¯Ø© Ø¬Ø¯ÙŠØ¯Ø© Ø¨ÙƒÙ„ Ø¨Ø³Ø§Ø·Ø©',
               actionLabel: context.tr('advances.new'),
               onAction: () => context.push('/requests/advances/new'),
             );
@@ -43,8 +46,8 @@ class AdvancesListScreen extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final adv = advances[index];
-                BadgeStatus statusBadge;
-                String statusLabel;
+                BadgeStatus statusBadge = BadgeStatus.pending;
+                String statusLabel = 'قيد المراجعة';
 
                 switch (adv.status) {
                   case AdvanceStatus.pending:
@@ -74,7 +77,8 @@ class AdvancesListScreen extends ConsumerWidget {
                 }
 
                 return RequestCard(
-                  title: 'Ø³ÙÙ„ÙØ© Ù…Ø§Ù„ÙŠØ©: ${adv.amount.toInt()} Ø¬Ù†ÙŠÙ‡',
+                  title:
+                      'Ø³ÙÙ„ÙØ© Ù…Ø§Ù„ÙŠØ©: ${adv.amount.toInt()} Ø¬Ù†ÙŠÙ‡',
                   subtitle: adv.reason,
                   date: adv.createdAt,
                   badgeStatus: statusBadge,
@@ -86,8 +90,6 @@ class AdvancesListScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙÙ„Ù...'),
-        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(

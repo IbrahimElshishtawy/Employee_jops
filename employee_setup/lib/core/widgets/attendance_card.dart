@@ -11,14 +11,11 @@ import 'app_card.dart';
 class AttendanceCard extends ConsumerWidget {
   final VoidCallback? onHistoryTap;
 
-  const AttendanceCard({
-    super.key,
-    this.onHistoryTap,
-  });
+  const AttendanceCard({super.key, this.onHistoryTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(attendanceSummaryProvider);
+    final summary = ref.watch(attendanceSummaryProvider);
     final flowState = ref.watch(attendanceFlowProvider);
     final demoState = ref.watch(demoControlsProvider);
     final isDark = context.isDark;
@@ -36,7 +33,9 @@ class AttendanceCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -89,10 +88,14 @@ class AttendanceCard extends ConsumerWidget {
                     ? context.tr('attendance.pending_hr_verification')
                     : context.tr('attendance.checked_in');
                 statusColor = isPending ? AppColors.warning : AppColors.success;
-                statusIcon = isPending ? Icons.hourglass_top_rounded : Icons.check_circle_rounded;
+                statusIcon = isPending
+                    ? Icons.hourglass_top_rounded
+                    : Icons.check_circle_rounded;
               } else {
                 mainStatusText = context.tr('attendance.not_checked_in');
-                statusColor = isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight;
+                statusColor = isDark
+                    ? AppColors.textMutedDark
+                    : AppColors.textSecondaryLight;
                 statusIcon = Icons.radio_button_unchecked_rounded;
               }
 
@@ -114,9 +117,14 @@ class AttendanceCard extends ConsumerWidget {
                       const Spacer(),
                       if (!demoState.isOnline)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF78350F) : AppColors.warningLight,
+                            color: isDark
+                                ? const Color(0xFF78350F)
+                                : AppColors.warningLight,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -124,7 +132,9 @@ class AttendanceCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? const Color(0xFFFDE68A) : AppColors.warningDark,
+                              color: isDark
+                                  ? const Color(0xFFFDE68A)
+                                  : AppColors.warningDark,
                             ),
                           ),
                         ),
@@ -135,12 +145,19 @@ class AttendanceCard extends ConsumerWidget {
                   // Location and Distance Status Box
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.surfaceVariantLight,
                       borderRadius: AppDimensions.borderRadiusMedium,
                       border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                       ),
                     ),
                     child: Row(
@@ -164,8 +181,12 @@ class AttendanceCard extends ConsumerWidget {
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: demoState.simulatedDistance <= 4.0
-                                  ? (isDark ? const Color(0xFFA7F3D0) : AppColors.successDark)
-                                  : (isDark ? const Color(0xFFFECACA) : AppColors.errorDark),
+                                  ? (isDark
+                                        ? const Color(0xFFA7F3D0)
+                                        : AppColors.successDark)
+                                  : (isDark
+                                        ? const Color(0xFFFECACA)
+                                        : AppColors.errorDark),
                             ),
                           ),
                         ),
@@ -181,7 +202,9 @@ class AttendanceCard extends ConsumerWidget {
                       color: isDark ? AppColors.surfaceDark : Colors.white,
                       borderRadius: AppDimensions.borderRadiusMedium,
                       border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                       ),
                     ),
                     child: Row(
@@ -194,18 +217,23 @@ class AttendanceCard extends ConsumerWidget {
                                 context.tr('attendance.check_in_time'),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                                  color: isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 summary.checkIn != null
-                                    ? summary.checkIn!.timestamp.toFormattedTime()
+                                    ? summary.checkIn!.timestamp
+                                          .toFormattedTime()
                                     : '--:--',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimaryLight,
                                 ),
                               ),
                             ],
@@ -214,7 +242,9 @@ class AttendanceCard extends ConsumerWidget {
                         Container(
                           width: 1,
                           height: 32,
-                          color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -225,18 +255,23 @@ class AttendanceCard extends ConsumerWidget {
                                 context.tr('attendance.check_out_time'),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                                  color: isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 summary.checkOut != null
-                                    ? summary.checkOut!.timestamp.toFormattedTime()
+                                    ? summary.checkOut!.timestamp
+                                          .toFormattedTime()
                                     : '--:--',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimaryLight,
                                 ),
                               ),
                             ],
@@ -254,19 +289,28 @@ class AttendanceCard extends ConsumerWidget {
                       padding: const EdgeInsets.all(10),
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: flowState.processState == AttendanceProcessState.error
-                            ? (isDark ? const Color(0xFF7F1D1D) : AppColors.errorLight)
-                            : (isDark ? const Color(0xFF064E3B) : AppColors.successLight),
+                        color:
+                            flowState.processState ==
+                                AttendanceProcessState.error
+                            ? (isDark
+                                  ? const Color(0xFF7F1D1D)
+                                  : AppColors.errorLight)
+                            : (isDark
+                                  ? const Color(0xFF064E3B)
+                                  : AppColors.successLight),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            flowState.processState == AttendanceProcessState.error
+                            flowState.processState ==
+                                    AttendanceProcessState.error
                                 ? Icons.info_outline_rounded
                                 : Icons.check_circle_outline_rounded,
                             size: 16,
-                            color: flowState.processState == AttendanceProcessState.error
+                            color:
+                                flowState.processState ==
+                                    AttendanceProcessState.error
                                 ? AppColors.error
                                 : AppColors.success,
                           ),
@@ -277,9 +321,15 @@ class AttendanceCard extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: flowState.processState == AttendanceProcessState.error
-                                    ? (isDark ? Colors.white : AppColors.errorDark)
-                                    : (isDark ? Colors.white : AppColors.successDark),
+                                color:
+                                    flowState.processState ==
+                                        AttendanceProcessState.error
+                                    ? (isDark
+                                          ? Colors.white
+                                          : AppColors.errorDark)
+                                    : (isDark
+                                          ? Colors.white
+                                          : AppColors.successDark),
                               ),
                             ),
                           ),
@@ -298,7 +348,9 @@ class AttendanceCard extends ConsumerWidget {
                           isLoading: flowState.isLoading && !isCheckedIn,
                           onPressed: isCheckedIn || flowState.isLoading
                               ? null
-                              : () => ref.read(attendanceFlowProvider.notifier).executeCheckIn(),
+                              : () => ref
+                                    .read(attendanceFlowProvider.notifier)
+                                    .executeCheckIn(),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -306,10 +358,18 @@ class AttendanceCard extends ConsumerWidget {
                         child: AppButton.secondary(
                           label: context.tr('attendance.check_out'),
                           icon: Icons.logout_rounded,
-                          isLoading: flowState.isLoading && isCheckedIn && !isCheckedOut,
-                          onPressed: !isCheckedIn || isCheckedOut || flowState.isLoading
+                          isLoading:
+                              flowState.isLoading &&
+                              isCheckedIn &&
+                              !isCheckedOut,
+                          onPressed:
+                              !isCheckedIn ||
+                                  isCheckedOut ||
+                                  flowState.isLoading
                               ? null
-                              : () => ref.read(attendanceFlowProvider.notifier).executeCheckOut(),
+                              : () => ref
+                                    .read(attendanceFlowProvider.notifier)
+                                    .executeCheckOut(),
                         ),
                       ),
                     ],
@@ -323,9 +383,8 @@ class AttendanceCard extends ConsumerWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            error: (err, _) => Center(
-              child: Text('خطأ في جلب بيانات الحضور: $err'),
-            ),
+            error: (err, _) =>
+                Center(child: Text('خطأ في جلب بيانات الحضور: $err')),
           ),
         ],
       ),

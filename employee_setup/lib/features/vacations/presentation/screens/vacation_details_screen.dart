@@ -24,25 +24,38 @@ class VacationDetailsScreen extends ConsumerWidget {
       appBar: const AppHeader(
         title: 'تفاصيل طلب الإجازة',
       ),
-      body: vacAsync.when(
-        data: (list) {
-          final vac = list.firstWhere(
-            (e) => e.id == vacationId,
-            orElse: () => VacationRequest(
-              id: vacationId,
-              employeeId: 'EMP-1024',
-              type: VacationType.annual,
-              fromDate: DateTime.now(),
-              toDate: DateTime.now(),
-              daysCount: 1,
-              reason: 'إجازة',
-              status: VacationStatus.pending,
-              createdAt: DateTime.now(),
-            ),
-          );
+      body: Builder(
+        builder: (context) {
+          final list = vacAsync;
+          final vac = list.isEmpty
+              ? VacationRequest(
+                  id: vacationId,
+                  employeeId: 'EMP-1024',
+                  type: VacationType.annual,
+                  fromDate: DateTime.now(),
+                  toDate: DateTime.now(),
+                  daysCount: 1,
+                  reason: 'إجازة',
+                  status: VacationStatus.pending,
+                  createdAt: DateTime.now(),
+                )
+              : list.firstWhere(
+                  (e) => e.id == vacationId,
+                  orElse: () => VacationRequest(
+                    id: vacationId,
+                    employeeId: 'EMP-1024',
+                    type: VacationType.annual,
+                    fromDate: DateTime.now(),
+                    toDate: DateTime.now(),
+                    daysCount: 1,
+                    reason: 'إجازة',
+                    status: VacationStatus.pending,
+                    createdAt: DateTime.now(),
+                  ),
+                );
 
-          BadgeStatus badge;
-          String label;
+          BadgeStatus badge = BadgeStatus.pending;
+          String label = 'قيد المراجعة';
           switch (vac.status) {
             case VacationStatus.pending:
               badge = BadgeStatus.pending;
@@ -62,7 +75,7 @@ class VacationDetailsScreen extends ConsumerWidget {
               break;
           }
 
-          String typeName;
+          String typeName = 'إجازة';
           switch (vac.type) {
             case VacationType.annual:
               typeName = 'إجازة سنوية';
@@ -141,10 +154,8 @@ class VacationDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildInfoRow(String label, String value, bool isDark, {bool isLink = false}) {

@@ -25,8 +25,9 @@ class AttendanceHistoryScreen extends ConsumerWidget {
         title: context.tr('attendance.history'),
         subtitle: 'سجل الحضور والانصراف',
       ),
-      body: historyAsync.when(
-        data: (logs) {
+      body: Builder(
+        builder: (context) {
+          final logs = historyAsync;
           if (logs.isEmpty) {
             return const EmptyState(
               title: 'لا يوجد سجل حضور حتى الآن',
@@ -51,13 +52,19 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: isCheckIn
-                            ? (isDark ? const Color(0xFF064E3B) : AppColors.successLight)
-                            : (isDark ? const Color(0xFF1E3A8A) : AppColors.primaryLight),
+                            ? (isDark
+                                  ? const Color(0xFF064E3B)
+                                  : AppColors.successLight)
+                            : (isDark
+                                  ? const Color(0xFF1E3A8A)
+                                  : AppColors.primaryLight),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         isCheckIn ? Icons.login_rounded : Icons.logout_rounded,
-                        color: isCheckIn ? AppColors.success : AppColors.primary,
+                        color: isCheckIn
+                            ? AppColors.success
+                            : AppColors.primary,
                         size: 20,
                       ),
                     ),
@@ -76,14 +83,20 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimaryLight,
                                 ),
                               ),
                               StatusBadge(
                                 label: log.isOffline
-                                    ? context.tr('attendance.pending_hr_verification')
+                                    ? context.tr(
+                                        'attendance.pending_hr_verification',
+                                      )
                                     : (isCheckIn ? 'حضور موثق' : 'انصراف موثق'),
-                                status: log.isOffline ? BadgeStatus.offline : BadgeStatus.approved,
+                                status: log.isOffline
+                                    ? BadgeStatus.offline
+                                    : BadgeStatus.approved,
                               ),
                             ],
                           ),
@@ -92,7 +105,9 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                             log.timestamp.toFormattedDateTime(),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -101,14 +116,18 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               Icon(
                                 Icons.location_on_outlined,
                                 size: 14,
-                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                                color: isDark
+                                    ? AppColors.textMutedDark
+                                    : AppColors.textMutedLight,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'المسافة: ${log.distanceFromOffice.toStringAsFixed(1)} م • بصمة موثقة',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                                  color: isDark
+                                      ? AppColors.textMutedDark
+                                      : AppColors.textMutedLight,
                                 ),
                               ),
                             ],
@@ -122,8 +141,6 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل سجل الحضور...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
       ),
     );
   }

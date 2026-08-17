@@ -16,8 +16,7 @@ class AppBottomNavigation extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unreadCountAsync = ref.watch(unreadNotificationsCountProvider);
-    final unreadCount = unreadCountAsync.value ?? 0;
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     final isDark = context.isDark;
 
     return Container(
@@ -34,12 +33,22 @@ class AppBottomNavigation extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        backgroundColor: isDark
+            ? AppColors.surfaceDark
+            : AppColors.surfaceLight,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+        unselectedItemColor: isDark
+            ? AppColors.textMutedDark
+            : AppColors.textSecondaryLight,
         elevation: 0,
-        selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-        unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        selectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),

@@ -8,6 +8,12 @@ extension DateTimeExtensions on DateTime {
   String toFormattedShortDate([String? locale]) {
     return DateFormat.yMd(locale ?? 'ar').format(this);
   }
+  String toFormattedMonthYear([String? locale]) {
+    return DateFormat.yMMMM(locale ?? 'ar').format(this);
+  }
+  String toFormattedYear([String? locale]) {
+    return DateFormat.y(locale ?? 'ar').format(this);
+  }
 
   String toFormattedTime([String? locale]) {
     return DateFormat.jm(locale ?? 'ar').format(this);

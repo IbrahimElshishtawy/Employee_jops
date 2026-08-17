@@ -5,19 +5,19 @@ import '../../domain/models/vacation_request.dart';
 import '../../domain/repositories/vacations_repository.dart';
 
 class MockVacationsRepository implements VacationsRepository {
-  final Ref _ref;
+  final Ref? _ref;
   final _uuid = const Uuid();
 
-  MockVacationsRepository(this._ref);
+  MockVacationsRepository([Ref? ref]) : _ref = ref;
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
-  MockDatabase get _state => _ref.read(mockDatabaseProvider);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+  MockDatabase get _state =>
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.state;
 
   @override
   Future<List<VacationRequest>> getVacations(String employeeId) async {
-    return _state.vacations
-        .where((v) => v.employeeId == employeeId)
-        .toList()
+    return _state.vacations.where((v) => v.employeeId == employeeId).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 

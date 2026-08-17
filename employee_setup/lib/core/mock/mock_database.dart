@@ -131,27 +131,31 @@ class MockDatabase {
 
   /// Returns the canonical seed state — used for Reset.
   static MockDatabase seed() => MockDatabase(
-        employee: EmployeeSeed.employee,
-        company: CompanySeed.company,
-        companyLocation: CompanySeed.location,
-        session: null,
-        attendance: List.from(AttendanceSeeds.records),
-        advances: List.from(AdvanceSeeds.advances),
-        expenseReports: List.from(AdvanceSeeds.expenseReports),
-        permissions: List.from(PermissionSeeds.permissions),
-        vacations: List.from(VacationSeeds.vacations),
-        notifications: List.from(NotificationSeeds.notifications),
-        deductions: List.from(DeductionSeeds.deductions),
-        hrMessages: List.from(HRMessageSeeds.messages),
-      );
+    employee: EmployeeSeed.employee,
+    company: CompanySeed.company,
+    companyLocation: CompanySeed.location,
+    session: null,
+    attendance: List.from(AttendanceSeeds.records),
+    advances: List.from(AdvanceSeeds.advances),
+    expenseReports: List.from(AdvanceSeeds.expenseReports),
+    permissions: List.from(PermissionSeeds.permissions),
+    vacations: List.from(VacationSeeds.vacations),
+    notifications: List.from(NotificationSeeds.notifications),
+    deductions: List.from(DeductionSeeds.deductions),
+    hrMessages: List.from(HRMessageSeeds.messages),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────
 // MockDatabaseNotifier
 // ─────────────────────────────────────────────────────────────
 
+final fallbackMockDatabaseNotifier = MockDatabaseNotifier();
+
 class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
   MockDatabaseNotifier() : super(MockDatabase.seed());
+
+  MockDatabase get snapshot => state;
 
   // ── Session ───────────────────────────────────────────────
 
@@ -181,7 +185,9 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
 
   void updateAdvanceStatus(String id, AdvanceStatus status) {
     state = state.copyWith(
-      advances: state.advances.map((a) => a.id == id ? a.copyWith(status: status) : a).toList(),
+      advances: state.advances
+          .map((a) => a.id == id ? a.copyWith(status: status) : a)
+          .toList(),
     );
   }
 
@@ -220,7 +226,9 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
   // ── Notifications ─────────────────────────────────────────
 
   void addNotification(AppNotification notification) {
-    state = state.copyWith(notifications: [notification, ...state.notifications]);
+    state = state.copyWith(
+      notifications: [notification, ...state.notifications],
+    );
   }
 
   void markNotificationRead(String id) {
@@ -233,7 +241,9 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
 
   void markAllNotificationsRead() {
     state = state.copyWith(
-      notifications: state.notifications.map((n) => n.copyWith(isRead: true)).toList(),
+      notifications: state.notifications
+          .map((n) => n.copyWith(isRead: true))
+          .toList(),
     );
   }
 
@@ -267,5 +277,5 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
 
 final mockDatabaseProvider =
     StateNotifierProvider<MockDatabaseNotifier, MockDatabase>((ref) {
-  return MockDatabaseNotifier();
-});
+      return MockDatabaseNotifier();
+    });

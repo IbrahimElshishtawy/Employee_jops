@@ -9,13 +9,14 @@ import '../datasources/mock_auth_datasource.dart';
 
 class MockAuthRepository implements AuthRepository {
   final MockAuthDataSource _dataSource;
-  final Ref _ref;
+  final Ref? _ref;
   final StreamController<Employee?> _authStreamController =
       StreamController<Employee?>.broadcast();
 
-  MockAuthRepository(this._dataSource, this._ref);
+  MockAuthRepository(this._dataSource, [Ref? ref]) : _ref = ref;
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
 
   @override
   Stream<Employee?> get authStateChanges => _authStreamController.stream;

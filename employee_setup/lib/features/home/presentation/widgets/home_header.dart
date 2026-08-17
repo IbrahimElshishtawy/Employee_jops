@@ -13,7 +13,7 @@ class HomeHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final employee = ref.watch(currentEmployeeProvider);
-    final unreadCountAsync = ref.watch(unreadNotificationsCountProvider);
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     final isDark = context.isDark;
 
     final now = DateTime.now();
@@ -71,7 +71,9 @@ class HomeHeader extends ConsumerWidget {
                 now.toFormattedDate(context.l10n.locale.languageCode),
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -80,7 +82,7 @@ class HomeHeader extends ConsumerWidget {
 
         // Notification Bell Icon with Badge
         NotificationBadge(
-          count: unreadCountAsync.value ?? 0,
+          count: unreadCount,
           onTap: () => context.go('/notifications'),
         ),
       ],

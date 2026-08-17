@@ -20,7 +20,8 @@ class RequestsHubScreen extends ConsumerStatefulWidget {
 }
 
 class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
-  int _selectedFilterIndex = 0; // 0: All, 1: Advances, 2: Permissions, 3: Vacations
+  int _selectedFilterIndex =
+      0; // 0: All, 1: Advances, 2: Permissions, 3: Vacations
 
   @override
   Widget build(BuildContext context) {
@@ -107,51 +108,52 @@ class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
               ),
               const SizedBox(height: 12),
 
-              requestsAsync.when(
-                data: (items) {
-                  final filtered = items.where((item) {
-                    if (_selectedFilterIndex == 1) return item.category == RequestCategory.advance;
-                    if (_selectedFilterIndex == 2) return item.category == RequestCategory.permission;
-                    if (_selectedFilterIndex == 3) return item.category == RequestCategory.vacation;
-                    return true;
-                  }).toList();
+              () {
+                final items = requestsAsync;
+                final filtered = items.where((item) {
+                  if (_selectedFilterIndex == 1)
+                    return item.category == RequestCategory.advance;
+                  if (_selectedFilterIndex == 2)
+                    return item.category == RequestCategory.permission;
+                  if (_selectedFilterIndex == 3)
+                    return item.category == RequestCategory.vacation;
+                  return true;
+                }).toList();
 
-                  if (filtered.isEmpty) {
-                    return const EmptyState(
-                      title: 'لا توجد طلبات في هذا القسم',
-                      subtitle: 'اضغط على أحد الأقسام أعلاه لإنشاء طلب جديد بكل سهولة',
-                    );
-                  }
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final req = filtered[index];
-                      return RequestCard(
-                        title: req.title,
-                        subtitle: req.subtitle,
-                        date: req.date,
-                        badgeStatus: req.badgeStatus,
-                        statusLabel: req.statusLabel,
-                        onTap: () {
-                          if (req.category == RequestCategory.advance) {
-                            context.push('/requests/advances/${req.id}');
-                          } else if (req.category == RequestCategory.permission) {
-                            context.push('/requests/permissions/${req.id}');
-                          } else {
-                            context.push('/requests/vacations/${req.id}');
-                          }
-                        },
-                      );
-                    },
+                if (filtered.isEmpty) {
+                  return const EmptyState(
+                    title: 'لا توجد طلبات في هذا القسم',
+                    subtitle:
+                        'اضغط على أحد الأقسام أعلاه لإنشاء طلب جديد بكل سهولة',
                   );
-                },
-                loading: () => const LoadingState(message: 'جاري تحميل الطلبات...'),
-                error: (err, _) => Center(child: Text('خطأ: $err')),
-              ),
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final req = filtered[index];
+                    return RequestCard(
+                      title: req.title,
+                      subtitle: req.subtitle,
+                      date: req.date,
+                      badgeStatus: req.badgeStatus,
+                      statusLabel: req.statusLabel,
+                      onTap: () {
+                        if (req.category == RequestCategory.advance) {
+                          context.push('/requests/advances/${req.id}');
+                        } else if (req.category == RequestCategory.permission) {
+                          context.push('/requests/permissions/${req.id}');
+                        } else {
+                          context.push('/requests/vacations/${req.id}');
+                        }
+                      },
+                    );
+                  },
+                );
+              }(),
             ],
           ),
         ),
@@ -204,13 +206,17 @@ class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
       selected: isSelected,
       onSelected: (_) => setState(() => _selectedFilterIndex = index),
       selectedColor: AppColors.primary,
-      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceVariantLight,
+      backgroundColor: isDark
+          ? AppColors.surfaceDark
+          : AppColors.surfaceVariantLight,
       labelStyle: TextStyle(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
         color: isSelected
             ? Colors.white
-            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+            : (isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight),
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),

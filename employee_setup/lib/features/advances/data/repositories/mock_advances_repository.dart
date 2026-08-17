@@ -6,19 +6,19 @@ import '../../domain/models/expense_report.dart';
 import '../../domain/repositories/advances_repository.dart';
 
 class MockAdvancesRepository implements AdvancesRepository {
-  final Ref _ref;
+  final Ref? _ref;
   final _uuid = const Uuid();
 
-  MockAdvancesRepository(this._ref);
+  MockAdvancesRepository([Ref? ref]) : _ref = ref;
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
-  MockDatabase get _state => _ref.read(mockDatabaseProvider);
+  MockDatabaseNotifier get _db =>
+      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+  MockDatabase get _state =>
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.state;
 
   @override
   Future<List<AdvanceRequest>> getAdvances(String employeeId) async {
-    return _state.advances
-        .where((a) => a.employeeId == employeeId)
-        .toList()
+    return _state.advances.where((a) => a.employeeId == employeeId).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 

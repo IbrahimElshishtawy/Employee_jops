@@ -24,24 +24,36 @@ class PermissionDetailsScreen extends ConsumerWidget {
       appBar: const AppHeader(
         title: 'تفاصيل إذن الاستئذان',
       ),
-      body: permsAsync.when(
-        data: (list) {
-          final perm = list.firstWhere(
-            (e) => e.id == permissionId,
-            orElse: () => PermissionRequest(
-              id: permissionId,
-              employeeId: 'EMP-1024',
-              type: PermissionType.earlyLeave,
-              date: DateTime.now(),
-              durationOrTime: 'ساعتان',
-              reason: 'استئذان',
-              status: PermissionStatus.pending,
-              createdAt: DateTime.now(),
-            ),
-          );
+      body: Builder(
+        builder: (context) {
+          final list = permsAsync;
+          final perm = list.isEmpty
+              ? PermissionRequest(
+                  id: permissionId,
+                  employeeId: 'EMP-1024',
+                  type: PermissionType.earlyLeave,
+                  date: DateTime.now(),
+                  durationOrTime: 'ساعتان',
+                  reason: 'استئذان',
+                  status: PermissionStatus.pending,
+                  createdAt: DateTime.now(),
+                )
+              : list.firstWhere(
+                  (e) => e.id == permissionId,
+                  orElse: () => PermissionRequest(
+                    id: permissionId,
+                    employeeId: 'EMP-1024',
+                    type: PermissionType.earlyLeave,
+                    date: DateTime.now(),
+                    durationOrTime: 'ساعتان',
+                    reason: 'استئذان',
+                    status: PermissionStatus.pending,
+                    createdAt: DateTime.now(),
+                  ),
+                );
 
-          BadgeStatus badge;
-          String label;
+          BadgeStatus badge = BadgeStatus.pending;
+          String label = 'قيد المراجعة';
           switch (perm.status) {
             case PermissionStatus.pending:
               badge = BadgeStatus.pending;
@@ -61,7 +73,7 @@ class PermissionDetailsScreen extends ConsumerWidget {
               break;
           }
 
-          String typeName;
+          String typeName = 'إذن';
           switch (perm.type) {
             case PermissionType.morningDelay:
               typeName = 'إذن تأخير صباحي';
@@ -133,10 +145,8 @@ class PermissionDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildInfoRow(String label, String value, bool isDark) {
