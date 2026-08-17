@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../app/app_providers.dart';
+import '../../features/advances/presentation/screens/advance_details_screen.dart';
+import '../../features/advances/presentation/screens/advances_list_screen.dart';
+import '../../features/advances/presentation/screens/expense_report_screen.dart';
+import '../../features/advances/presentation/screens/new_advance_screen.dart';
+import '../../features/attendance/presentation/screens/attendance_history_screen.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/notifications/domain/models/app_notification.dart';
+import '../../features/notifications/presentation/screens/notification_details_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/permissions/presentation/screens/new_permission_screen.dart';
+import '../../features/permissions/presentation/screens/permission_details_screen.dart';
+import '../../features/permissions/presentation/screens/permissions_list_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/requests/presentation/screens/requests_hub_screen.dart';
+import '../../features/settings/presentation/screens/developer_demo_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/vacations/presentation/screens/new_vacation_screen.dart';
+import '../../features/vacations/presentation/screens/vacation_details_screen.dart';
+import '../../features/vacations/presentation/screens/vacations_list_screen.dart';
+import 'app_routes.dart';
+import 'main_shell_screen.dart';
+
+final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _requestsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'requests');
+final _notificationsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'notifications');
+final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: AppRoutes.splash,
+    redirect: (context, state) {
+      final isSplash = state.matchedLocation == AppRoutes.splash;
+      final isLogin = state.matchedLocation == AppRoutes.login;
+
+      if (!authState.isInitialized) {
+        return null;
+      }
+
+      if (!authState.isAuthenticated) {
+        if (!isLogin && !isSplash) {
+          return AppRoutes.login;
+        }
+      } else {
+        if (isLogin || isSplash) {
+          return AppRoutes.home;
+        }
+      }
+      return null;
+    },
+    routes: [
+      // Splash & Login
+      GoRoute(
+        path: AppRoutes.splash,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LoginScreen(),
+      ),
+
+      // Main Shell Route with Persistent Bottom Navigation
+      StatefulShellRoute.indexedStack(
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state, navigationShell) {
+          return MainShellScreen(navigationShell: navigationShell);
+        },
+        branches: [
+          // 1. Home Branch
+          StatefulShellBranch(
+            navigatorKey: _homeNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+
+          // 2. Requests Branch
+          StatefulShellBranch(
+            navigatorKey: _requestsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.requests,
+                builder: (context, state) => const RequestsHubScreen(),
+              ),
+            ],
+          ),
+
+          // 3. Notifications Branch
+          StatefulShellBranch(
+            navigatorKey: _notificationsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.notifications,
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+
+          // 4. Profile Branch
+          StatefulShellBranch(
+            navigatorKey: _profileNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Global Pushed Sub-routes
+      GoRoute(
+        path: AppRoutes.attendanceHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AttendanceHistoryScreen(),
+      ),
+
+      // Advances Sub-routes
+      GoRoute(
+        path: AppRoutes.advances,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdvancesListScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NewAdvanceScreen(),
+          ),
+          GoRoute(
+            path: ':id',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return AdvanceDetailsScreen(advanceId: id);
+            },
+            routes: [
+              GoRoute(
+                path: 'report',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return ExpenseReportScreen(advanceId: id);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Permissions Sub-routes
+      GoRoute(
+        path: AppRoutes.permissions,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PermissionsListScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NewPermissionScreen(),
+          ),
+          GoRoute(
+            path: ':id',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return PermissionDetailsScreen(permissionId: id);
+            },
+          ),
+        ],
+      ),
+
+      // Vacations Sub-routes
+      GoRoute(
+        path: AppRoutes.vacations,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const VacationsListScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NewVacationScreen(),
+          ),
+          GoRoute(
+            path: ':id',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return VacationDetailsScreen(vacationId: id);
+            },
+          ),
+        ],
+      ),
+
+      // Notification Details
+      GoRoute(
+        path: AppRoutes.notificationDetails,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final notif = state.extra as AppNotification?;
+          return NotificationDetailsScreen(notificationId: id, notification: notif);
+        },
+      ),
+
+      // Settings & Demo
+      GoRoute(
+        path: AppRoutes.settings,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'demo',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const DeveloperDemoScreen(),
+          ),
+        ],
+      ),
+    ],
+  );
+});

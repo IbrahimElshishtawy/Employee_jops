@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('EmployeeApp initial load test', (WidgetTester tester) async {
+  testWidgets('App boots up, displays splash and navigates to login/home', (WidgetTester tester) async {
     final storage = SharedPrefsStorage();
     await storage.init();
     await storage.clear();
@@ -19,6 +19,13 @@ void main() {
       ),
     );
 
+    // Initial Splash Screen Render
     expect(find.text('Employee App'), findsOneWidget);
+
+    // Settle splash timer
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
+    // Should transition to Login screen
+    expect(find.text('تسجيل الدخول باستخدام Google'), findsOneWidget);
   });
 }
