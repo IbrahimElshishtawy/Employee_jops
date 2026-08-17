@@ -27,12 +27,15 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     // Pre-seed onboarding form with employee data from Google login
     final employee = ref.read(authProvider).employee;
     if (employee != null) {
-      ref.read(onboardingProvider.notifier).setStep1Data(
-        fullName: employee.name,
-        email: employee.email,
-        nationalId: employee.nationalId ?? ref.read(onboardingProvider).nationalId,
-        phone: employee.phone.isNotEmpty ? employee.phone : ref.read(onboardingProvider).phone,
-      );
+      // Delay the state update until after the first frame to avoid modifying provider during build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(onboardingProvider.notifier).setStep1Data(
+          fullName: employee.name,
+          email: employee.email,
+          nationalId: employee.nationalId ?? ref.read(onboardingProvider).nationalId,
+          phone: employee.phone.isNotEmpty ? employee.phone : ref.read(onboardingProvider).phone,
+        );
+      });
     }
     final formState = ref.read(onboardingProvider);
     _nationalIdController = TextEditingController(text: formState.nationalId);

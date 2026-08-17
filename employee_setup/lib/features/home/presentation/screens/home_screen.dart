@@ -27,9 +27,10 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      // No AppBar — the gradient HomeHeader serves as the visual top section.
+      // HomeHeader implements PreferredSizeWidget — used directly as the AppBar.
+      appBar: const HomeHeader(),
       body: SafeArea(
-        top: true,
+        top: false,
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _onRefresh(ref),
@@ -39,19 +40,15 @@ class HomeScreen extends ConsumerWidget {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Hero Header ───────────────────────────
-                const HomeHeader(),
-
                 const SizedBox(height: 20),
 
                 // ── 2. Attendance Card ───────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: AttendanceCard(
-                    onHistoryTap: () =>
-                        context.push('/attendance/history'),
+                    onHistoryTap: () => context.push('/attendance/history'),
                   ),
                 ),
 

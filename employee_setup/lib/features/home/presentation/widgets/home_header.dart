@@ -23,8 +23,12 @@ import 'home_stats_row.dart';
 ///   │  │  check-in │ pending reqs │ notifications│    │
 ///   │  └────────────────────────────────────────┘    │
 ///   └─────────────────────────────────────────────────┘
-class HomeHeader extends ConsumerWidget {
+class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
   const HomeHeader({super.key});
+
+  /// Fixed height: top row (~70) + stats strip (~52) + padding (32) + status bar.
+  @override
+  Size get preferredSize => const Size.fromHeight(190);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,14 +54,10 @@ class HomeHeader extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? const [
-                  Color(0xFF1A5CB5),
-                  Color(0xFF1043A0),
-                  Color(0xFF0A2D6E),
-                ]
+              ? const [Color(0xFF1A5CB5), Color(0xFF1043A0), Color(0xFF0A2D6E)]
               : const [
-                  AppColors.primary,       // #1A73E8
-                  AppColors.primaryDark,   // #1557B0
+                  AppColors.primary, // #1A73E8
+                  AppColors.primaryDark, // #1557B0
                   Color(0xFF0F3D8A),
                 ],
           stops: const [0.0, 0.55, 1.0],
@@ -66,11 +66,7 @@ class HomeHeader extends ConsumerWidget {
       child: Stack(
         children: [
           // ── Decorative background circles ──────────────────
-          Positioned(
-            top: -40,
-            right: -40,
-            child: _DecorativeCircle(size: 150),
-          ),
+          Positioned(top: -40, right: -40, child: _DecorativeCircle(size: 120)),
           Positioned(
             bottom: -25,
             left: -25,
@@ -84,7 +80,7 @@ class HomeHeader extends ConsumerWidget {
 
           // ── Main content ───────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 75, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -275,14 +271,8 @@ class _BellButton extends StatelessWidget {
               top: -5,
               end: -5,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 2,
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 decoration: BoxDecoration(
                   color: AppColors.error,
                   borderRadius: BorderRadius.circular(10),

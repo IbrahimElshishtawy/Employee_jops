@@ -22,12 +22,14 @@ class _WorkLocationScreenState extends ConsumerState<WorkLocationScreen> {
   void initState() {
     super.initState();
     // Work location is predefined by company HR — employee cannot change it
-    ref
-        .read(onboardingProvider.notifier)
-        .setStep3Data(
-          workLocationId: AppConstants.mockWorkLocationId,
-          biometricEnabled: false,
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(onboardingProvider.notifier)
+          .setStep3Data(
+            workLocationId: AppConstants.mockWorkLocationId,
+            biometricEnabled: false,
+          );
+    });
   }
 
   void _handleNext() {
