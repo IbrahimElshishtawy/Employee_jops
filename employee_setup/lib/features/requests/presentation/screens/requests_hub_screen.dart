@@ -110,12 +110,15 @@ class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
               () {
                 final items = requestsAsync;
                 final filtered = items.where((item) {
-                  if (_selectedFilterIndex == 1)
+                  if (_selectedFilterIndex == 1) {
                     return item.category == RequestCategory.advance;
-                  if (_selectedFilterIndex == 2)
+                  }
+                  if (_selectedFilterIndex == 2) {
                     return item.category == RequestCategory.permission;
-                  if (_selectedFilterIndex == 3)
+                  }
+                  if (_selectedFilterIndex == 3) {
                     return item.category == RequestCategory.vacation;
+                  }
                   return true;
                 }).toList();
 
@@ -143,12 +146,10 @@ class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
                       onTap: () {
                         if (req.category == RequestCategory.advance) {
                           context.push('/requests/advances/${req.id}');
+                        } else if (req.category == RequestCategory.permission) {
+                          context.push('/requests/permissions/${req.id}');
                         } else {
-                          if (req.category == RequestCategory.permission) {
-                            context.push('/requests/permissions/${req.id}');
-                          } else {
-                            context.push('/requests/vacations/${req.id}');
-                          }
+                          context.push('/requests/vacations/${req.id}');
                         }
                       },
                     );
