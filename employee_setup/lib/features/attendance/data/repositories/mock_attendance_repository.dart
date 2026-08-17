@@ -11,8 +11,8 @@ class MockAttendanceRepository implements AttendanceRepository {
   MockAttendanceRepository([Object? source])
     : _ref = source is Ref ? source : null {
     if (_ref == null) {
-      fallbackMockDatabaseNotifier.state = MockDatabase.seed().copyWith(
-        attendance: const [],
+      fallbackMockDatabaseNotifier.replaceState(
+        MockDatabase.seed().copyWith(attendance: const []),
       );
     }
   }
@@ -105,7 +105,7 @@ class MockAttendanceRepository implements AttendanceRepository {
         )
         .toList();
 
-    _db.state = _db.state.copyWith(attendance: synced);
+    _db.replaceAttendance(synced);
     await Future.delayed(const Duration(milliseconds: 400));
     return pending.length;
   }

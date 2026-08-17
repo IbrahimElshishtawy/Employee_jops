@@ -169,6 +169,14 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
 
   // ── Attendance ────────────────────────────────────────────
 
+  void replaceState(MockDatabase nextState) {
+    state = nextState;
+  }
+
+  void replaceAttendance(List<Attendance> attendance) {
+    state = state.copyWith(attendance: attendance);
+  }
+
   void addAttendance(Attendance record) {
     state = state.copyWith(attendance: [...state.attendance, record]);
   }

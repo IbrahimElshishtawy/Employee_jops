@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/mock/mock_database.dart';
-import '../../../../core/mock/seeds/notification_seeds.dart';
 import '../../domain/models/app_notification.dart';
 import '../../domain/repositories/notifications_repository.dart';
 

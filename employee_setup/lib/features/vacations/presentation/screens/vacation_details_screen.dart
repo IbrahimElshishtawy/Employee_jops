@@ -21,9 +21,7 @@ class VacationDetailsScreen extends ConsumerWidget {
     final isDark = context.isDark;
 
     return Scaffold(
-      appBar: const AppHeader(
-        title: 'تفاصيل طلب الإجازة',
-      ),
+      appBar: const AppHeader(title: 'تفاصيل طلب الإجازة'),
       body: Builder(
         builder: (context) {
           final list = vacAsync;
@@ -108,7 +106,9 @@ class VacationDetailsScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -132,20 +132,45 @@ class VacationDetailsScreen extends ConsumerWidget {
                     children: [
                       _buildInfoRow('رقم الطلب', vac.id, isDark),
                       const Divider(),
-                      _buildInfoRow('من تاريخ', vac.fromDate.toFormattedDate(context.l10n.locale.languageCode), isDark),
+                      _buildInfoRow(
+                        'من تاريخ',
+                        vac.fromDate.toFormattedDate(
+                          context.l10n.locale.languageCode,
+                        ),
+                        isDark,
+                      ),
                       const Divider(),
-                      _buildInfoRow('إلى تاريخ', vac.toDate.toFormattedDate(context.l10n.locale.languageCode), isDark),
+                      _buildInfoRow(
+                        'إلى تاريخ',
+                        vac.toDate.toFormattedDate(
+                          context.l10n.locale.languageCode,
+                        ),
+                        isDark,
+                      ),
                       const Divider(),
                       _buildInfoRow('سبب الإجازة', vac.reason, isDark),
                       const Divider(),
-                      _buildInfoRow('تاريخ التقديم', vac.createdAt.toFormattedDateTime(), isDark),
+                      _buildInfoRow(
+                        'تاريخ التقديم',
+                        vac.createdAt.toFormattedDateTime(),
+                        isDark,
+                      ),
                       if (vac.approvedAt != null) ...[
                         const Divider(),
-                        _buildInfoRow('تاريخ الاعتماد', vac.approvedAt!.toFormattedDateTime(), isDark),
+                        _buildInfoRow(
+                          'تاريخ الاعتماد',
+                          vac.approvedAt!.toFormattedDateTime(),
+                          isDark,
+                        ),
                       ],
                       if (vac.attachmentName != null) ...[
                         const Divider(),
-                        _buildInfoRow('المرفق', vac.attachmentName!, isDark, isLink: true),
+                        _buildInfoRow(
+                          'المرفق',
+                          vac.attachmentName!,
+                          isDark,
+                          isLink: true,
+                        ),
                       ],
                     ],
                   ),
@@ -154,11 +179,16 @@ class VacationDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-      );
-    }
+      ),
+    );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark, {bool isLink = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    bool isDark, {
+    bool isLink = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -169,7 +199,9 @@ class VacationDetailsScreen extends ConsumerWidget {
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(width: 16),
@@ -180,7 +212,9 @@ class VacationDetailsScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isLink ? AppColors.primary : (isDark ? Colors.white : AppColors.textPrimaryLight),
+                color: isLink
+                    ? AppColors.primary
+                    : (isDark ? Colors.white : AppColors.textPrimaryLight),
               ),
             ),
           ),

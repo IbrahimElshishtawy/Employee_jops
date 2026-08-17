@@ -13,7 +13,7 @@ class MockVacationsRepository implements VacationsRepository {
   MockDatabaseNotifier get _db =>
       _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
   MockDatabase get _state =>
-      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.state;
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
 
   @override
   Future<List<VacationRequest>> getVacations(String employeeId) async {

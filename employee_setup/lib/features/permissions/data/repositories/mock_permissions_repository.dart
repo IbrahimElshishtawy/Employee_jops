@@ -13,7 +13,7 @@ class MockPermissionsRepository implements PermissionsRepository {
   MockDatabaseNotifier get _db =>
       _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
   MockDatabase get _state =>
-      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.state;
+      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
 
   @override
   Future<List<PermissionRequest>> getPermissions(String employeeId) async {

@@ -8,7 +8,6 @@ import '../../../../core/extensions/date_extensions.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../domain/models/attendance.dart';
 

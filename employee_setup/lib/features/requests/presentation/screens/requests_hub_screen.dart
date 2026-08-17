@@ -8,7 +8,6 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../../../core/widgets/request_card.dart';
 import '../../domain/models/unified_request.dart';
 
@@ -144,10 +143,12 @@ class _RequestsHubScreenState extends ConsumerState<RequestsHubScreen> {
                       onTap: () {
                         if (req.category == RequestCategory.advance) {
                           context.push('/requests/advances/${req.id}');
-                        } else if (req.category == RequestCategory.permission) {
-                          context.push('/requests/permissions/${req.id}');
                         } else {
-                          context.push('/requests/vacations/${req.id}');
+                          if (req.category == RequestCategory.permission) {
+                            context.push('/requests/permissions/${req.id}');
+                          } else {
+                            context.push('/requests/vacations/${req.id}');
+                          }
                         }
                       },
                     );

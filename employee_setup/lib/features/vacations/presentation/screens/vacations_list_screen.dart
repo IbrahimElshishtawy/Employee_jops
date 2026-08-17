@@ -8,7 +8,6 @@ import '../../../../core/extensions/date_extensions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../../../../core/widgets/request_card.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../domain/models/vacation_request.dart';
@@ -54,7 +53,8 @@ class VacationsListScreen extends ConsumerWidget {
                     VacationStatus.cancelled => 'ملغي',
                   };
                   final typeName = switch (vac.type) {
-                    VacationType.annual => 'إجازة سنوية (${vac.daysCount} أيام)',
+                    VacationType.annual =>
+                      'إجازة سنوية (${vac.daysCount} أيام)',
                     VacationType.sick => 'إجازة مرضية (${vac.daysCount} أيام)',
                     VacationType.casual => 'إجازة عارضة (${vac.daysCount} يوم)',
                     VacationType.unpaid => 'إجازة بدون راتب',
@@ -62,7 +62,8 @@ class VacationsListScreen extends ConsumerWidget {
 
                   return RequestCard(
                     title: typeName,
-                    subtitle: '${vac.fromDate.toFormattedShortDate()} إلى ${vac.toDate.toFormattedShortDate()} • ${vac.reason}',
+                    subtitle:
+                        '${vac.fromDate.toFormattedShortDate()} إلى ${vac.toDate.toFormattedShortDate()} • ${vac.reason}',
                     date: vac.createdAt,
                     badgeStatus: badge,
                     statusLabel: label,

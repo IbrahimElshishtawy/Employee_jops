@@ -7,7 +7,6 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../../core/widgets/loading_state.dart';
 import '../widgets/notification_tile.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -20,18 +19,23 @@ class NotificationsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('notifications.title'),
-        subtitle: 'Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§ØªØŒ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ø¨Ø´Ø±ÙŠØ©ØŒ ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
+        subtitle:
+            'Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§ØªØŒ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ø¨Ø´Ø±ÙŠØ©ØŒ ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
         showBackButton: false,
         actions: [
           TextButton(
             onPressed: () async {
               final emp = ref.read(currentEmployeeProvider);
               final empId = emp?.id ?? AppConstants.mockEmployeeId;
-              await ref.read(notificationsRepositoryProvider).markAllAsRead(empId);
+              await ref
+                  .read(notificationsRepositoryProvider)
+                  .markAllAsRead(empId);
               ref.invalidate(notificationsListProvider);
               ref.invalidate(unreadNotificationsCountProvider);
               if (context.mounted) {
-                context.showSnackBar('ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ÙƒÙ…Ù‚Ø±ÙˆØ¡Ø©');
+                context.showSnackBar(
+                  'ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ÙƒÙ…Ù‚Ø±ÙˆØ¡Ø©',
+                );
               }
             },
             child: Text(
@@ -44,7 +48,8 @@ class NotificationsScreen extends ConsumerWidget {
       body: notifications.isEmpty
           ? EmptyState(
               title: context.tr('notifications.empty'),
-              subtitle: 'ستتلقى هنا جميع الإشعارات الخاصة بالطلبات والحضور والخصومات',
+              subtitle:
+                  'ستتلقى هنا جميع الإشعارات الخاصة بالطلبات والحضور والخصومات',
               icon: Icons.notifications_none_rounded,
             )
           : RefreshIndicator(
@@ -58,9 +63,14 @@ class NotificationsScreen extends ConsumerWidget {
                   return NotificationTile(
                     notification: notif,
                     onTap: () async {
-                      await ref.read(notificationsRepositoryProvider).markAsRead(notif.id);
+                      await ref
+                          .read(notificationsRepositoryProvider)
+                          .markAsRead(notif.id);
                       if (context.mounted) {
-                        context.push('/notifications/${notif.id}', extra: notif);
+                        context.push(
+                          '/notifications/${notif.id}',
+                          extra: notif,
+                        );
                       }
                     },
                   );

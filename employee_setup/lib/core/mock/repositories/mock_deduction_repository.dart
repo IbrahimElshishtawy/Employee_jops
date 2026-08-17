@@ -7,7 +7,6 @@ class MockDeductionRepository implements DeductionRepository {
   final Ref _ref;
   MockDeductionRepository(this._ref);
 
-  MockDatabaseNotifier get _db => _ref.read(mockDatabaseProvider.notifier);
   MockDatabase get _state => _ref.read(mockDatabaseProvider);
 
   @override

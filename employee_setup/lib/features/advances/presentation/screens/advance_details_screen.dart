@@ -23,9 +23,7 @@ class AdvanceDetailsScreen extends ConsumerWidget {
     final isDark = context.isDark;
 
     return Scaffold(
-      appBar: const AppHeader(
-        title: 'تفاصيل السُلفة المالية',
-      ),
+      appBar: const AppHeader(title: 'تفاصيل السُلفة المالية'),
       body: Builder(
         builder: (context) {
           final list = advancesAsync;
@@ -84,7 +82,6 @@ class AdvanceDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Summary Card
                 AppCard(
                   child: Column(
                     children: [
@@ -95,7 +92,9 @@ class AdvanceDetailsScreen extends ConsumerWidget {
                             'المبلغ المطلوب',
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                           StatusBadge(label: label, status: badge),
@@ -111,13 +110,19 @@ class AdvanceDetailsScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           const SizedBox(width: 6),
                           const Text(
                             'جنيه مصري',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -125,8 +130,6 @@ class AdvanceDetailsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Details List
                 AppCard(
                   child: Column(
                     children: [
@@ -138,39 +141,61 @@ class AdvanceDetailsScreen extends ConsumerWidget {
                         _buildInfoRow('تفاصيل إضافية', adv.details!, isDark),
                       ],
                       const Divider(),
-                      _buildInfoRow('أقساط السداد', '${adv.installments} أشهر', isDark),
+                      _buildInfoRow(
+                        'أقساط السداد',
+                        '${adv.installments} أشهر',
+                        isDark,
+                      ),
                       const Divider(),
-                      _buildInfoRow('تاريخ التقديم', adv.createdAt.toFormattedDateTime(), isDark),
+                      _buildInfoRow(
+                        'تاريخ التقديم',
+                        adv.createdAt.toFormattedDateTime(),
+                        isDark,
+                      ),
                       if (adv.approvedAt != null) ...[
                         const Divider(),
-                        _buildInfoRow('تاريخ الموافقة', adv.approvedAt!.toFormattedDateTime(), isDark),
+                        _buildInfoRow(
+                          'تاريخ الموافقة',
+                          adv.approvedAt!.toFormattedDateTime(),
+                          isDark,
+                        ),
                       ],
                       if (adv.attachmentName != null) ...[
                         const Divider(),
-                        _buildInfoRow('المرفق', adv.attachmentName!, isDark, isLink: true),
+                        _buildInfoRow(
+                          'المرفق',
+                          adv.attachmentName!,
+                          isDark,
+                          isLink: true,
+                        ),
                       ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Action if report is required
-                if (adv.status == AdvanceStatus.reportRequired || adv.status == AdvanceStatus.approved) ...[
+                if (adv.status == AdvanceStatus.reportRequired ||
+                    adv.status == AdvanceStatus.approved) ...[
                   AppButton.primary(
                     label: context.tr('advances.submit_report'),
                     icon: Icons.receipt_long_rounded,
-                    onPressed: () => context.push('/requests/advances/${adv.id}/report'),
+                    onPressed: () =>
+                        context.push('/requests/advances/${adv.id}/report'),
                   ),
                 ],
               ],
             ),
           );
         },
-      );
-    }
+      ),
+    );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark, {bool isLink = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    bool isDark, {
+    bool isLink = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -181,7 +206,9 @@ class AdvanceDetailsScreen extends ConsumerWidget {
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(width: 16),

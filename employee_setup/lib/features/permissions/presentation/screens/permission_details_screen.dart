@@ -21,9 +21,7 @@ class PermissionDetailsScreen extends ConsumerWidget {
     final isDark = context.isDark;
 
     return Scaffold(
-      appBar: const AppHeader(
-        title: 'تفاصيل إذن الاستئذان',
-      ),
+      appBar: const AppHeader(title: 'تفاصيل إذن الاستئذان'),
       body: Builder(
         builder: (context) {
           final list = permsAsync;
@@ -106,15 +104,21 @@ class PermissionDetailsScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            perm.date.toFormattedDate(context.l10n.locale.languageCode),
+                            perm.date.toFormattedDate(
+                              context.l10n.locale.languageCode,
+                            ),
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ],
@@ -129,14 +133,26 @@ class PermissionDetailsScreen extends ConsumerWidget {
                     children: [
                       _buildInfoRow('رقم الطلب', perm.id, isDark),
                       const Divider(),
-                      _buildInfoRow('الوقت / المدة', perm.durationOrTime, isDark),
+                      _buildInfoRow(
+                        'الوقت / المدة',
+                        perm.durationOrTime,
+                        isDark,
+                      ),
                       const Divider(),
                       _buildInfoRow('سبب الاستئذان', perm.reason, isDark),
                       const Divider(),
-                      _buildInfoRow('تاريخ الإنشاء', perm.createdAt.toFormattedDateTime(), isDark),
+                      _buildInfoRow(
+                        'تاريخ الإنشاء',
+                        perm.createdAt.toFormattedDateTime(),
+                        isDark,
+                      ),
                       if (perm.approvedAt != null) ...[
                         const Divider(),
-                        _buildInfoRow('تاريخ الاعتماد', perm.approvedAt!.toFormattedDateTime(), isDark),
+                        _buildInfoRow(
+                          'تاريخ الاعتماد',
+                          perm.approvedAt!.toFormattedDateTime(),
+                          isDark,
+                        ),
                       ],
                     ],
                   ),
@@ -145,8 +161,8 @@ class PermissionDetailsScreen extends ConsumerWidget {
             ),
           );
         },
-      );
-    }
+      ),
+    );
   }
 
   Widget _buildInfoRow(String label, String value, bool isDark) {
@@ -160,7 +176,9 @@ class PermissionDetailsScreen extends ConsumerWidget {
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(width: 16),
