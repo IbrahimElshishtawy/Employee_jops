@@ -7,7 +7,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_header.dart';
@@ -34,13 +33,13 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
   void _addItem() {
     if (_descController.text.trim().isEmpty || _amountController.text.trim().isEmpty) {
-      context.showSnackBar('يرجى إدخال وصف ومبلغ البند أولاً', isError: true);
+      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙˆØµÙ ÙˆÙ…Ø¨Ù„Øº Ø§Ù„Ø¨Ù†Ø¯ Ø£ÙˆÙ„Ø§Ù‹', isError: true);
       return;
     }
 
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     if (amount <= 0) {
-      context.showSnackBar('يرجى إدخال مبلغ صحيح', isError: true);
+      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ù…Ø¨Ù„Øº ØµØ­ÙŠØ­', isError: true);
       return;
     }
 
@@ -61,7 +60,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
   Future<void> _submitReport() async {
     if (_items.isEmpty) {
-      context.showSnackBar('يرجى إضافة بند مصروفات واحد على الأقل', isError: true);
+      context.showSnackBar('ÙŠØ±Ø¬Ù‰ Ø¥Ø¶Ø§ÙØ© Ø¨Ù†Ø¯ Ù…ØµØ±ÙˆÙØ§Øª ÙˆØ§Ø­Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„', isError: true);
       return;
     }
 
@@ -87,7 +86,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
-    context.showSnackBar('تم تقديم تقرير المصروفات بنجاح');
+    context.showSnackBar('ØªÙ… ØªÙ‚Ø¯ÙŠÙ… ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª Ø¨Ù†Ø¬Ø§Ø­');
     context.pop();
   }
 
@@ -99,7 +98,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('advances.expense_report'),
-        subtitle: 'تسوية بنود وفواتير السُلفة المالية',
+        subtitle: 'ØªØ³ÙˆÙŠØ© Ø¨Ù†ÙˆØ¯ ÙˆÙÙˆØ§ØªÙŠØ± Ø§Ù„Ø³ÙÙ„ÙØ© Ø§Ù„Ù…Ø§Ù„ÙŠØ©',
       ),
       body: SingleChildScrollView(
         padding: AppDimensions.pagePadding,
@@ -110,7 +109,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
             children: [
               // Add Item Form
               Text(
-                'إضافة بند مصروف',
+                'Ø¥Ø¶Ø§ÙØ© Ø¨Ù†Ø¯ Ù…ØµØ±ÙˆÙ',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -122,20 +121,20 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                 child: Column(
                   children: [
                     AppTextField(
-                      label: 'بيان المصروف / البند',
-                      hintText: 'مثال: فاتورة حجز فندق، تذاكر قطار...',
+                      label: 'Ø¨ÙŠØ§Ù† Ø§Ù„Ù…ØµØ±ÙˆÙ / Ø§Ù„Ø¨Ù†Ø¯',
+                      hintText: 'Ù…Ø«Ø§Ù„: ÙØ§ØªÙˆØ±Ø© Ø­Ø¬Ø² ÙÙ†Ø¯Ù‚ØŒ ØªØ°Ø§ÙƒØ± Ù‚Ø·Ø§Ø±...',
                       controller: _descController,
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
-                      label: 'المبلغ (جنيه)',
-                      hintText: 'مثال: 750',
+                      label: 'Ø§Ù„Ù…Ø¨Ù„Øº (Ø¬Ù†ÙŠÙ‡)',
+                      hintText: 'Ù…Ø«Ø§Ù„: 750',
                       controller: _amountController,
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 16),
                     AppButton.secondary(
-                      label: 'إضافة البند للتقرير',
+                      label: 'Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¨Ù†Ø¯ Ù„Ù„ØªÙ‚Ø±ÙŠØ±',
                       icon: Icons.add_circle_outline_rounded,
                       onPressed: _addItem,
                     ),
@@ -149,7 +148,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'بنود التقرير (${_items.length})',
+                    'Ø¨Ù†ÙˆØ¯ Ø§Ù„ØªÙ‚Ø±ÙŠØ± (${_items.length})',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -157,7 +156,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                     ),
                   ),
                   Text(
-                    'الإجمالي: ${total.toStringAsFixed(2)} ج.م',
+                    'Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ: ${total.toStringAsFixed(2)} Ø¬.Ù…',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -178,7 +177,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      'لم تقم بإضافة بنود مصروفات بعد',
+                      'Ù„Ù… ØªÙ‚Ù… Ø¨Ø¥Ø¶Ø§ÙØ© Ø¨Ù†ÙˆØ¯ Ù…ØµØ±ÙˆÙØ§Øª Ø¨Ø¹Ø¯',
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
@@ -191,7 +190,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final item = _items[index];
                     return AppCard(
@@ -212,7 +211,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'رقم الفاتورة: ${item.invoiceNumber ?? "--"}',
+                                  'Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø©: ${item.invoiceNumber ?? "--"}',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
@@ -222,7 +221,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                             ),
                           ),
                           Text(
-                            '${item.amount.toInt()} ج.م',
+                            '${item.amount.toInt()} Ø¬.Ù…',
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
                           ),
                           IconButton(
@@ -238,8 +237,8 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
               // Notes
               AppTextField(
-                label: 'ملاحظات إضافية على التقرير',
-                hintText: 'أي تفاصيل ترغب في إيضاحها للمدير المالي...',
+                label: 'Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ© Ø¹Ù„Ù‰ Ø§Ù„ØªÙ‚Ø±ÙŠØ±',
+                hintText: 'Ø£ÙŠ ØªÙØ§ØµÙŠÙ„ ØªØ±ØºØ¨ ÙÙŠ Ø¥ÙŠØ¶Ø§Ø­Ù‡Ø§ Ù„Ù„Ù…Ø¯ÙŠØ± Ø§Ù„Ù…Ø§Ù„ÙŠ...',
                 controller: _notesController,
                 maxLines: 2,
               ),
@@ -247,7 +246,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
 
               // Submit Button
               AppButton.primary(
-                label: 'اعتماد وإرسال تقرير المصروفات',
+                label: 'Ø§Ø¹ØªÙ…Ø§Ø¯ ÙˆØ¥Ø±Ø³Ø§Ù„ ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
                 isLoading: _isSubmitting,
                 onPressed: _isSubmitting ? null : _submitReport,
               ),
@@ -258,3 +257,4 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
     );
   }
 }
+

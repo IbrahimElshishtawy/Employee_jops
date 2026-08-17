@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/extensions/date_extensions.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -134,3 +133,4 @@ class NotificationTile extends StatelessWidget {
     );
   }
 }
+

@@ -22,14 +22,14 @@ class AdvancesListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('advances.title'),
-        subtitle: 'قائمة السُلف والعهد المالية وتقارير المصروفات',
+        subtitle: 'Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙÙ„Ù ÙˆØ§Ù„Ø¹Ù‡Ø¯ Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
       ),
       body: listAsync.when(
         data: (advances) {
           if (advances.isEmpty) {
             return EmptyState(
-              title: 'لا توجد سُلف مالية حالية',
-              subtitle: 'يمكنك إنشاء طلب سُلفة أو عهدة جديدة بكل بساطة',
+              title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙÙ„Ù Ù…Ø§Ù„ÙŠØ© Ø­Ø§Ù„ÙŠØ©',
+              subtitle: 'ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ù†Ø´Ø§Ø¡ Ø·Ù„Ø¨ Ø³ÙÙ„ÙØ© Ø£Ùˆ Ø¹Ù‡Ø¯Ø© Ø¬Ø¯ÙŠØ¯Ø© Ø¨ÙƒÙ„ Ø¨Ø³Ø§Ø·Ø©',
               actionLabel: context.tr('advances.new'),
               onAction: () => context.push('/requests/advances/new'),
             );
@@ -40,7 +40,7 @@ class AdvancesListScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: AppDimensions.pagePadding,
               itemCount: advances.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final adv = advances[index];
                 BadgeStatus statusBadge;
@@ -49,32 +49,32 @@ class AdvancesListScreen extends ConsumerWidget {
                 switch (adv.status) {
                   case AdvanceStatus.pending:
                     statusBadge = BadgeStatus.pending;
-                    statusLabel = 'قيد المراجعة';
+                    statusLabel = 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©';
                     break;
                   case AdvanceStatus.approved:
                     statusBadge = BadgeStatus.approved;
-                    statusLabel = 'تمت الموافقة';
+                    statusLabel = 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©';
                     break;
                   case AdvanceStatus.paid:
                     statusBadge = BadgeStatus.paid;
-                    statusLabel = 'تم الصرف';
+                    statusLabel = 'ØªÙ… Ø§Ù„ØµØ±Ù';
                     break;
                   case AdvanceStatus.rejected:
                     statusBadge = BadgeStatus.rejected;
-                    statusLabel = 'مرفوض';
+                    statusLabel = 'Ù…Ø±ÙÙˆØ¶';
                     break;
                   case AdvanceStatus.reportRequired:
                     statusBadge = BadgeStatus.pending;
-                    statusLabel = 'مطلوب تقرير مصروفات';
+                    statusLabel = 'Ù…Ø·Ù„ÙˆØ¨ ØªÙ‚Ø±ÙŠØ± Ù…ØµØ±ÙˆÙØ§Øª';
                     break;
                   case AdvanceStatus.reportSubmitted:
                     statusBadge = BadgeStatus.completed;
-                    statusLabel = 'تم تقديم التقرير';
+                    statusLabel = 'ØªÙ… ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„ØªÙ‚Ø±ÙŠØ±';
                     break;
                 }
 
                 return RequestCard(
-                  title: 'سُلفة مالية: ${adv.amount.toInt()} جنيه',
+                  title: 'Ø³ÙÙ„ÙØ© Ù…Ø§Ù„ÙŠØ©: ${adv.amount.toInt()} Ø¬Ù†ÙŠÙ‡',
                   subtitle: adv.reason,
                   date: adv.createdAt,
                   badgeStatus: statusBadge,
@@ -86,8 +86,8 @@ class AdvancesListScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل السُلف...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
+        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙÙ„Ù...'),
+        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(

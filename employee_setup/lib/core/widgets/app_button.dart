@@ -76,7 +76,7 @@ class AppButton extends StatelessWidget {
 
     Color bg;
     Color fg;
-    BorderSide? borderSide;
+    BorderSide borderSide;
 
     switch (variant) {
       case AppButtonVariant.primary:
@@ -149,7 +149,7 @@ class AppButton extends StatelessWidget {
         color: bg,
         shape: RoundedRectangleBorder(
           borderRadius: AppDimensions.borderRadiusLarge,
-          side: borderSide ?? BorderSide.none,
+          side: borderSide,
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(

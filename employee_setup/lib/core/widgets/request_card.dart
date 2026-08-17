@@ -94,7 +94,7 @@ class RequestCard extends StatelessWidget {
                   color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 ),
               ),
-              if (trailing != null) trailing!,
+              ?trailing,
             ],
           ),
         ],

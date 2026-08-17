@@ -20,7 +20,7 @@ class NotificationsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('notifications.title'),
-        subtitle: 'التحديثات، رسائل الموارد البشرية، والخصومات',
+        subtitle: 'Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§ØªØŒ Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ø¨Ø´Ø±ÙŠØ©ØŒ ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
         showBackButton: false,
         actions: [
           TextButton(
@@ -31,7 +31,7 @@ class NotificationsScreen extends ConsumerWidget {
               ref.invalidate(notificationsListProvider);
               ref.invalidate(unreadNotificationsCountProvider);
               if (context.mounted) {
-                context.showSnackBar('تم تحديد جميع التنبيهات كمقروءة');
+                context.showSnackBar('ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø¬Ù…ÙŠØ¹ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ÙƒÙ…Ù‚Ø±ÙˆØ¡Ø©');
               }
             },
             child: Text(
@@ -46,7 +46,7 @@ class NotificationsScreen extends ConsumerWidget {
           if (notifications.isEmpty) {
             return EmptyState(
               title: context.tr('notifications.empty'),
-              subtitle: 'ستتلقى هنا جميع الإشعارات الخاصة بالطلبات والحضور والخصومات',
+              subtitle: 'Ø³ØªØªÙ„Ù‚Ù‰ Ù‡Ù†Ø§ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙˆØ§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
               icon: Icons.notifications_none_rounded,
             );
           }
@@ -59,7 +59,7 @@ class NotificationsScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: AppDimensions.pagePadding,
               itemCount: notifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final notif = notifications[index];
                 return NotificationTile(
@@ -78,8 +78,8 @@ class NotificationsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل التنبيهات...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
+        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª...'),
+        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
     );
   }

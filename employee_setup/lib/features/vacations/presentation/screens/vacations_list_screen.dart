@@ -23,14 +23,14 @@ class VacationsListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('vacations.title'),
-        subtitle: 'الإجازات السنوية، المرضية، والعارضة',
+        subtitle: 'Ø§Ù„Ø¥Ø¬Ø§Ø²Ø§Øª Ø§Ù„Ø³Ù†ÙˆÙŠØ©ØŒ Ø§Ù„Ù…Ø±Ø¶ÙŠØ©ØŒ ÙˆØ§Ù„Ø¹Ø§Ø±Ø¶Ø©',
       ),
       body: listAsync.when(
         data: (vacations) {
           if (vacations.isEmpty) {
             return EmptyState(
-              title: 'لا توجد طلبات إجازة سابقة',
-              subtitle: 'يمكنك التخطيط لإجازتك القادمة وتقديم طلب جديد',
+              title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø¥Ø¬Ø§Ø²Ø© Ø³Ø§Ø¨Ù‚Ø©',
+              subtitle: 'ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„ØªØ®Ø·ÙŠØ· Ù„Ø¥Ø¬Ø§Ø²ØªÙƒ Ø§Ù„Ù‚Ø§Ø¯Ù…Ø© ÙˆØªÙ‚Ø¯ÙŠÙ… Ø·Ù„Ø¨ Ø¬Ø¯ÙŠØ¯',
               actionLabel: context.tr('vacations.new'),
               onAction: () => context.push('/requests/vacations/new'),
             );
@@ -41,7 +41,7 @@ class VacationsListScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: AppDimensions.pagePadding,
               itemCount: vacations.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final vac = vacations[index];
                 BadgeStatus badge;
@@ -50,41 +50,41 @@ class VacationsListScreen extends ConsumerWidget {
                 switch (vac.status) {
                   case VacationStatus.pending:
                     badge = BadgeStatus.pending;
-                    label = 'قيد المراجعة';
+                    label = 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©';
                     break;
                   case VacationStatus.approved:
                     badge = BadgeStatus.approved;
-                    label = 'تمت الموافقة';
+                    label = 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©';
                     break;
                   case VacationStatus.rejected:
                     badge = BadgeStatus.rejected;
-                    label = 'مرفوض';
+                    label = 'Ù…Ø±ÙÙˆØ¶';
                     break;
                   case VacationStatus.cancelled:
                     badge = BadgeStatus.cancelled;
-                    label = 'ملغي';
+                    label = 'Ù…Ù„ØºÙŠ';
                     break;
                 }
 
                 String typeName;
                 switch (vac.type) {
                   case VacationType.annual:
-                    typeName = 'إجازة سنوية (${vac.daysCount} أيام)';
+                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø³Ù†ÙˆÙŠØ© (${vac.daysCount} Ø£ÙŠØ§Ù…)';
                     break;
                   case VacationType.sick:
-                    typeName = 'إجازة مرضية (${vac.daysCount} أيام)';
+                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ù…Ø±Ø¶ÙŠØ© (${vac.daysCount} Ø£ÙŠØ§Ù…)';
                     break;
                   case VacationType.casual:
-                    typeName = 'إجازة عارضة (${vac.daysCount} يوم)';
+                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø¹Ø§Ø±Ø¶Ø© (${vac.daysCount} ÙŠÙˆÙ…)';
                     break;
                   case VacationType.unpaid:
-                    typeName = 'إجازة بدون راتب';
+                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø¨Ø¯ÙˆÙ† Ø±Ø§ØªØ¨';
                     break;
                 }
 
                 return RequestCard(
                   title: typeName,
-                  subtitle: '${vac.fromDate.toFormattedShortDate()} إلى ${vac.toDate.toFormattedShortDate()} • ${vac.reason}',
+                  subtitle: '${vac.fromDate.toFormattedShortDate()} Ø¥Ù„Ù‰ ${vac.toDate.toFormattedShortDate()} â€¢ ${vac.reason}',
                   date: vac.createdAt,
                   badgeStatus: badge,
                   statusLabel: label,
@@ -95,8 +95,8 @@ class VacationsListScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل الإجازات...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
+        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¬Ø§Ø²Ø§Øª...'),
+        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(

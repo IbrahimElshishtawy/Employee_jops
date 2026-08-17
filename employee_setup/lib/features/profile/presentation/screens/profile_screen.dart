@@ -65,7 +65,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final employee = ref.watch(currentEmployeeProvider) ?? Employee.defaultMock;
-    final isDark = context.isDark;
 
     return Scaffold(
       appBar: AppHeader(
@@ -148,3 +147,4 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 }
+

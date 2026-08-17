@@ -1,4 +1,4 @@
-import 'package:uuid/uuid.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../domain/models/app_notification.dart';
@@ -6,7 +6,7 @@ import '../../domain/repositories/notifications_repository.dart';
 
 class MockNotificationsRepository implements NotificationsRepository {
   final LocalStorage storage;
-  final Uuid _uuid = const Uuid();
+
   final List<AppNotification> _notifications = [];
 
   MockNotificationsRepository(this.storage) {
@@ -123,3 +123,4 @@ class MockNotificationsRepository implements NotificationsRepository {
     _initMockData();
   }
 }
+

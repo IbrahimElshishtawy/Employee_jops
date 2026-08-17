@@ -1,7 +1,7 @@
-import '../../../core/widgets/status_badge.dart';
-import '../../advances/domain/models/advance_request.dart';
-import '../../permissions/domain/models/permission_request.dart';
-import '../../vacations/domain/models/vacation_request.dart';
+import '../../../../core/widgets/status_badge.dart';
+import '../../../advances/domain/models/advance_request.dart';
+import '../../../permissions/domain/models/permission_request.dart';
+import '../../../vacations/domain/models/vacation_request.dart';
 
 enum RequestCategory {
   advance,

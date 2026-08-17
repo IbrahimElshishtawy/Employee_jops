@@ -22,14 +22,14 @@ class PermissionsListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('permissions.title'),
-        subtitle: 'أذونات التأخير، الانصراف المبكر، ونصف اليوم',
+        subtitle: 'Ø£Ø°ÙˆÙ†Ø§Øª Ø§Ù„ØªØ£Ø®ÙŠØ±ØŒ Ø§Ù„Ø§Ù†ØµØ±Ø§Ù Ø§Ù„Ù…Ø¨ÙƒØ±ØŒ ÙˆÙ†ØµÙ Ø§Ù„ÙŠÙˆÙ…',
       ),
       body: listAsync.when(
         data: (perms) {
           if (perms.isEmpty) {
             return EmptyState(
-              title: 'لا توجد أذونات استئذان سابقة',
-              subtitle: 'يمكنك تقديم طلب إذن تأخير أو انصراف مبكر بسهولة',
+              title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø°ÙˆÙ†Ø§Øª Ø§Ø³ØªØ¦Ø°Ø§Ù† Ø³Ø§Ø¨Ù‚Ø©',
+              subtitle: 'ÙŠÙ…ÙƒÙ†Ùƒ ØªÙ‚Ø¯ÙŠÙ… Ø·Ù„Ø¨ Ø¥Ø°Ù† ØªØ£Ø®ÙŠØ± Ø£Ùˆ Ø§Ù†ØµØ±Ø§Ù Ù…Ø¨ÙƒØ± Ø¨Ø³Ù‡ÙˆÙ„Ø©',
               actionLabel: context.tr('permissions.new'),
               onAction: () => context.push('/requests/permissions/new'),
             );
@@ -40,7 +40,7 @@ class PermissionsListScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: AppDimensions.pagePadding,
               itemCount: perms.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final perm = perms[index];
                 BadgeStatus badge;
@@ -49,41 +49,41 @@ class PermissionsListScreen extends ConsumerWidget {
                 switch (perm.status) {
                   case PermissionStatus.pending:
                     badge = BadgeStatus.pending;
-                    label = 'قيد المراجعة';
+                    label = 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©';
                     break;
                   case PermissionStatus.approved:
                     badge = BadgeStatus.approved;
-                    label = 'تمت الموافقة';
+                    label = 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©';
                     break;
                   case PermissionStatus.rejected:
                     badge = BadgeStatus.rejected;
-                    label = 'مرفوض';
+                    label = 'Ù…Ø±ÙÙˆØ¶';
                     break;
                   case PermissionStatus.cancelled:
                     badge = BadgeStatus.cancelled;
-                    label = 'ملغي';
+                    label = 'Ù…Ù„ØºÙŠ';
                     break;
                 }
 
                 String typeName;
                 switch (perm.type) {
                   case PermissionType.morningDelay:
-                    typeName = 'إذن تأخير صباحي';
+                    typeName = 'Ø¥Ø°Ù† ØªØ£Ø®ÙŠØ± ØµØ¨Ø§Ø­ÙŠ';
                     break;
                   case PermissionType.earlyLeave:
-                    typeName = 'إذن انصراف مبكر';
+                    typeName = 'Ø¥Ø°Ù† Ø§Ù†ØµØ±Ø§Ù Ù…Ø¨ÙƒØ±';
                     break;
                   case PermissionType.fullDayAbsence:
-                    typeName = 'إذن غياب يوم';
+                    typeName = 'Ø¥Ø°Ù† ØºÙŠØ§Ø¨ ÙŠÙˆÙ…';
                     break;
                   case PermissionType.halfDay:
-                    typeName = 'إذن نصف يوم';
+                    typeName = 'Ø¥Ø°Ù† Ù†ØµÙ ÙŠÙˆÙ…';
                     break;
                 }
 
                 return RequestCard(
                   title: typeName,
-                  subtitle: '${perm.durationOrTime} • ${perm.reason}',
+                  subtitle: '${perm.durationOrTime} â€¢ ${perm.reason}',
                   date: perm.date,
                   badgeStatus: badge,
                   statusLabel: label,
@@ -94,8 +94,8 @@ class PermissionsListScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل أذونات الاستئذان...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
+        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø£Ø°ÙˆÙ†Ø§Øª Ø§Ù„Ø§Ø³ØªØ¦Ø°Ø§Ù†...'),
+        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(

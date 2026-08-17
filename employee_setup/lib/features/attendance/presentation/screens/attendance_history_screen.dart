@@ -23,14 +23,14 @@ class AttendanceHistoryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('attendance.history'),
-        subtitle: 'سجل الحضور والانصراف الكامل',
+        subtitle: 'Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù Ø§Ù„ÙƒØ§Ù…Ù„',
       ),
       body: historyAsync.when(
         data: (logs) {
           if (logs.isEmpty) {
             return const EmptyState(
-              title: 'لا يوجد سجل حضور حتى الآن',
-              subtitle: 'ستظهر هنا جميع سجلات الحضور والانصراف السابقة مع التفاصيل',
+              title: 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø³Ø¬Ù„ Ø­Ø¶ÙˆØ± Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†',
+              subtitle: 'Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ø¬Ù…ÙŠØ¹ Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© Ù…Ø¹ Ø§Ù„ØªÙØ§ØµÙŠÙ„',
               icon: Icons.calendar_month_outlined,
             );
           }
@@ -38,7 +38,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
           return ListView.separated(
             padding: AppDimensions.pagePadding,
             itemCount: logs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final log = logs[index];
               final isCheckIn = log.type == AttendanceType.checkIn;
@@ -82,7 +82,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               StatusBadge(
                                 label: log.isOffline
                                     ? context.tr('attendance.pending_hr_verification')
-                                    : (isCheckIn ? 'حضور موثق' : 'انصراف موثق'),
+                                    : (isCheckIn ? 'Ø­Ø¶ÙˆØ± Ù…ÙˆØ«Ù‚' : 'Ø§Ù†ØµØ±Ø§Ù Ù…ÙˆØ«Ù‚'),
                                 status: log.isOffline ? BadgeStatus.offline : BadgeStatus.approved,
                               ),
                             ],
@@ -105,7 +105,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'المسافة: ${log.distanceFromOffice.toStringAsFixed(1)} م • بصمة موثقة',
+                                'Ø§Ù„Ù…Ø³Ø§ÙØ©: ${log.distanceFromOffice.toStringAsFixed(1)} Ù… â€¢ Ø¨ØµÙ…Ø© Ù…ÙˆØ«Ù‚Ø©',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
@@ -122,8 +122,8 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const LoadingState(message: 'جاري تحميل سجل الحضور...'),
-        error: (err, _) => Center(child: Text('خطأ: $err')),
+        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ±...'),
+        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
       ),
     );
   }
