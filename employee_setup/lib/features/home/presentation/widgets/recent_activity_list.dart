@@ -13,7 +13,7 @@ class RecentActivityList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final requestsAsync = ref.watch(allRequestsProvider);
+    final items = ref.watch(allRequestsProvider);
     final isDark = context.isDark;
 
     return Column(
@@ -40,91 +40,77 @@ class RecentActivityList extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 8),
-        requestsAsync.when(
-          data: (items) {
-            if (items.isEmpty) {
-              return AppCard(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      context.tr('requests.empty'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
-                      ),
-                    ),
+        if (items.isEmpty)
+          AppCard(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  context.tr('requests.empty'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
                   ),
                 ),
-              );
-            }
-
-            final displayItems = items.take(3).toList();
-
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: displayItems.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final item = displayItems[index];
-                return AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  onTap: () => context.go('/requests'),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.subtitle,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.date.timeAgo(context.l10n.locale.languageCode),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      StatusBadge(
-                        label: item.statusLabel,
-                        status: item.badgeStatus,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(strokeWidth: 2),
+              ),
             ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.take(3).length,
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final item = items.take(3).toList()[index];
+              return AppCard(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                onTap: () => context.go('/requests'),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.subtitle,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.date.timeAgo(context.l10n.locale.languageCode),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(
+                      label: item.statusLabel,
+                      status: item.badgeStatus,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          error: (err, _) => const SizedBox.shrink(),
-        ),
       ],
     );
   }

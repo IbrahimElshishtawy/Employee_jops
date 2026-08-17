@@ -15,7 +15,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifsAsync = ref.watch(notificationsListProvider);
+    final notifications = ref.watch(notificationsListProvider);
 
     return Scaffold(
       appBar: AppHeader(
@@ -41,46 +41,32 @@ class NotificationsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: notifsAsync.when(
-        data: (notifications) {
-          if (notifications.isEmpty) {
-            return EmptyState(
+      body: notifications.isEmpty
+          ? EmptyState(
               title: context.tr('notifications.empty'),
-              subtitle: 'Ø³ØªØªÙ„Ù‚Ù‰ Ù‡Ù†Ø§ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙˆØ§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø®ØµÙˆÙ…Ø§Øª',
+              subtitle: 'ستتلقى هنا جميع الإشعارات الخاصة بالطلبات والحضور والخصومات',
               icon: Icons.notifications_none_rounded,
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(notificationsListProvider);
-              ref.invalidate(unreadNotificationsCountProvider);
-            },
-            child: ListView.separated(
-              padding: AppDimensions.pagePadding,
-              itemCount: notifications.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final notif = notifications[index];
-                return NotificationTile(
-                  notification: notif,
-                  onTap: () async {
-                    await ref.read(notificationsRepositoryProvider).markAsRead(notif.id);
-                    ref.invalidate(notificationsListProvider);
-                    ref.invalidate(unreadNotificationsCountProvider);
-
-                    if (context.mounted) {
-                      context.push('/notifications/${notif.id}', extra: notif);
-                    }
-                  },
-                );
-              },
+            )
+          : RefreshIndicator(
+              onRefresh: () async {},
+              child: ListView.separated(
+                padding: AppDimensions.pagePadding,
+                itemCount: notifications.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final notif = notifications[index];
+                  return NotificationTile(
+                    notification: notif,
+                    onTap: () async {
+                      await ref.read(notificationsRepositoryProvider).markAsRead(notif.id);
+                      if (context.mounted) {
+                        context.push('/notifications/${notif.id}', extra: notif);
+                      }
+                    },
+                  );
+                },
+              ),
             ),
-          );
-        },
-        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª...'),
-        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
-      ),
     );
   }
 }

@@ -18,86 +18,60 @@ class VacationsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final listAsync = ref.watch(vacationsListProvider);
+    final vacations = ref.watch(vacationsListProvider);
 
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('vacations.title'),
-        subtitle: 'Ø§Ù„Ø¥Ø¬Ø§Ø²Ø§Øª Ø§Ù„Ø³Ù†ÙˆÙŠØ©ØŒ Ø§Ù„Ù…Ø±Ø¶ÙŠØ©ØŒ ÙˆØ§Ù„Ø¹Ø§Ø±Ø¶Ø©',
+        subtitle: 'الإجازات السنوية، المرضية، والعارضة',
       ),
-      body: listAsync.when(
-        data: (vacations) {
-          if (vacations.isEmpty) {
-            return EmptyState(
-              title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø¥Ø¬Ø§Ø²Ø© Ø³Ø§Ø¨Ù‚Ø©',
-              subtitle: 'ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„ØªØ®Ø·ÙŠØ· Ù„Ø¥Ø¬Ø§Ø²ØªÙƒ Ø§Ù„Ù‚Ø§Ø¯Ù…Ø© ÙˆØªÙ‚Ø¯ÙŠÙ… Ø·Ù„Ø¨ Ø¬Ø¯ÙŠØ¯',
+      body: vacations.isEmpty
+          ? EmptyState(
+              title: 'لا توجد طلبات إجازة سابقة',
+              subtitle: 'يمكنك التخطيط لإجازتك القادمة وتقديم طلب جديد',
               actionLabel: context.tr('vacations.new'),
               onAction: () => context.push('/requests/vacations/new'),
-            );
-          }
+            )
+          : RefreshIndicator(
+              onRefresh: () async {},
+              child: ListView.separated(
+                padding: AppDimensions.pagePadding,
+                itemCount: vacations.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final vac = vacations[index];
 
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(vacationsListProvider),
-            child: ListView.separated(
-              padding: AppDimensions.pagePadding,
-              itemCount: vacations.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final vac = vacations[index];
-                BadgeStatus badge;
-                String label;
+                  final badge = switch (vac.status) {
+                    VacationStatus.pending => BadgeStatus.pending,
+                    VacationStatus.approved => BadgeStatus.approved,
+                    VacationStatus.rejected => BadgeStatus.rejected,
+                    VacationStatus.cancelled => BadgeStatus.cancelled,
+                  };
+                  final label = switch (vac.status) {
+                    VacationStatus.pending => 'قيد المراجعة',
+                    VacationStatus.approved => 'تمت الموافقة',
+                    VacationStatus.rejected => 'مرفوض',
+                    VacationStatus.cancelled => 'ملغي',
+                  };
+                  final typeName = switch (vac.type) {
+                    VacationType.annual => 'إجازة سنوية (${vac.daysCount} أيام)',
+                    VacationType.sick => 'إجازة مرضية (${vac.daysCount} أيام)',
+                    VacationType.casual => 'إجازة عارضة (${vac.daysCount} يوم)',
+                    VacationType.unpaid => 'إجازة بدون راتب',
+                  };
 
-                switch (vac.status) {
-                  case VacationStatus.pending:
-                    badge = BadgeStatus.pending;
-                    label = 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©';
-                    break;
-                  case VacationStatus.approved:
-                    badge = BadgeStatus.approved;
-                    label = 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©';
-                    break;
-                  case VacationStatus.rejected:
-                    badge = BadgeStatus.rejected;
-                    label = 'Ù…Ø±ÙÙˆØ¶';
-                    break;
-                  case VacationStatus.cancelled:
-                    badge = BadgeStatus.cancelled;
-                    label = 'Ù…Ù„ØºÙŠ';
-                    break;
-                }
-
-                String typeName;
-                switch (vac.type) {
-                  case VacationType.annual:
-                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø³Ù†ÙˆÙŠØ© (${vac.daysCount} Ø£ÙŠØ§Ù…)';
-                    break;
-                  case VacationType.sick:
-                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ù…Ø±Ø¶ÙŠØ© (${vac.daysCount} Ø£ÙŠØ§Ù…)';
-                    break;
-                  case VacationType.casual:
-                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø¹Ø§Ø±Ø¶Ø© (${vac.daysCount} ÙŠÙˆÙ…)';
-                    break;
-                  case VacationType.unpaid:
-                    typeName = 'Ø¥Ø¬Ø§Ø²Ø© Ø¨Ø¯ÙˆÙ† Ø±Ø§ØªØ¨';
-                    break;
-                }
-
-                return RequestCard(
-                  title: typeName,
-                  subtitle: '${vac.fromDate.toFormattedShortDate()} Ø¥Ù„Ù‰ ${vac.toDate.toFormattedShortDate()} â€¢ ${vac.reason}',
-                  date: vac.createdAt,
-                  badgeStatus: badge,
-                  statusLabel: label,
-                  icon: Icons.beach_access_outlined,
-                  onTap: () => context.push('/requests/vacations/${vac.id}'),
-                );
-              },
+                  return RequestCard(
+                    title: typeName,
+                    subtitle: '${vac.fromDate.toFormattedShortDate()} إلى ${vac.toDate.toFormattedShortDate()} • ${vac.reason}',
+                    date: vac.createdAt,
+                    badgeStatus: badge,
+                    statusLabel: label,
+                    icon: Icons.beach_access_outlined,
+                    onTap: () => context.push('/requests/vacations/${vac.id}'),
+                  );
+                },
+              ),
             ),
-          );
-        },
-        loading: () => const LoadingState(message: 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¬Ø§Ø²Ø§Øª...'),
-        error: (err, _) => Center(child: Text('Ø®Ø·Ø£: $err')),
-      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/mock/mock_database.dart';
+import '../core/mock/models/app_session.dart';
+import '../core/mock/models/deduction.dart';
+import '../core/mock/models/hr_message.dart';
+import '../core/mock/repositories/deduction_repository.dart';
+import '../core/mock/repositories/hr_message_repository.dart';
+import '../core/mock/repositories/mock_deduction_repository.dart';
+import '../core/mock/repositories/mock_hr_message_repository.dart';
 import '../core/network/connectivity_service.dart';
 import '../core/network/mock_connectivity_service.dart';
 import '../core/storage/local_storage.dart';
@@ -9,7 +17,6 @@ import '../core/storage/shared_prefs_storage.dart';
 
 import '../features/advances/data/repositories/mock_advances_repository.dart';
 import '../features/advances/domain/models/advance_request.dart';
-
 import '../features/advances/domain/repositories/advances_repository.dart';
 
 import '../features/attendance/data/repositories/mock_attendance_repository.dart';
@@ -43,9 +50,16 @@ import '../features/vacations/data/repositories/mock_vacations_repository.dart';
 import '../features/vacations/domain/models/vacation_request.dart';
 import '../features/vacations/domain/repositories/vacations_repository.dart';
 
-// ==========================================
-// 1. Core Service Providers
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 0. MockDatabase Provider  (Single Source of Truth)
+// ══════════════════════════════════════════════════════════════════
+// Re-exported so screens can import from one place
+export '../core/mock/mock_database.dart' show mockDatabaseProvider;
+
+// ══════════════════════════════════════════════════════════════════
+// 1. Core Infrastructure Providers
+// ══════════════════════════════════════════════════════════════════
+
 final localStorageProvider = Provider<LocalStorage>((ref) {
   return SharedPrefsStorage();
 });
@@ -60,9 +74,10 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
   return ref.watch(mockConnectivityServiceProvider);
 });
 
-// ==========================================
-// 2. Demo Controls Provider
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 2. Demo Controls
+// ══════════════════════════════════════════════════════════════════
+
 class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
   final Ref _ref;
 
@@ -91,16 +106,14 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
   }
 
   Future<void> resetAllData() async {
-    await _ref.read(attendanceRepositoryProvider).resetToDefaultMock();
-    await _ref.read(advancesRepositoryProvider).resetToDefaultMock();
-    await _ref.read(permissionsRepositoryProvider).resetToDefaultMock();
-    await _ref.read(vacationsRepositoryProvider).resetToDefaultMock();
-    await _ref.read(notificationsRepositoryProvider).resetToDefaultMock();
+    // Reset all data but keep the current session
+    _ref.read(mockDatabaseProvider.notifier).resetDataKeepSession();
 
     setLocationMode(MockLocationMode.insideRange, 2.3);
     setBiometricMode(MockBiometricMode.alwaysSuccess);
     setNetworkOnline(true);
 
+    // Invalidate all derived providers
     _ref.invalidate(attendanceSummaryProvider);
     _ref.invalidate(attendanceHistoryProvider);
     _ref.invalidate(advancesListProvider);
@@ -117,9 +130,10 @@ final demoControlsProvider =
   return DemoControlsNotifier(ref);
 });
 
-// ==========================================
-// 3. Location & Biometrics Services
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 3. Location & Biometric Services
+// ══════════════════════════════════════════════════════════════════
+
 final mockLocationServiceProvider = Provider<MockLocationService>((ref) {
   return MockLocationService();
 });
@@ -136,9 +150,10 @@ final biometricServiceProvider = Provider<BiometricService>((ref) {
   return ref.watch(mockBiometricServiceProvider);
 });
 
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
 // 4. Auth & Employee Providers
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+
 final authDataSourceProvider = Provider<MockAuthDataSource>((ref) {
   final storage = ref.watch(localStorageProvider);
   return MockAuthDataSource(storage);
@@ -146,9 +161,21 @@ final authDataSourceProvider = Provider<MockAuthDataSource>((ref) {
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final ds = ref.watch(authDataSourceProvider);
-  return MockAuthRepository(ds);
+  return MockAuthRepository(ds, ref);
 });
 
+/// The current authenticated Employee — derived from MockDatabase.
+/// This is the primary source for all screens that need employee info.
+final employeeProvider = Provider<Employee>((ref) {
+  return ref.watch(mockDatabaseProvider).employee;
+});
+
+/// The current AppSession — null if logged out.
+final sessionProvider = Provider<AppSession?>((ref) {
+  return ref.watch(mockDatabaseProvider).session;
+});
+
+// AuthState — tracks authentication flow (loading, error, user)
 class AuthState {
   final Employee? employee;
   final bool isLoading;
@@ -215,35 +242,39 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(repo);
 });
 
+/// Convenience alias — nullable employee from auth state.
 final currentEmployeeProvider = Provider<Employee?>((ref) {
   return ref.watch(authProvider).employee;
 });
 
-// ==========================================
-// 5. Attendance Providers
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 5. Attendance Providers — all derived from MockDatabase
+// ══════════════════════════════════════════════════════════════════
+
 final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final storage = ref.watch(localStorageProvider);
-  return MockAttendanceRepository(storage);
+  return MockAttendanceRepository(ref);
 });
 
+/// Today's check-in / check-out summary — auto-updates when MockDatabase changes.
 final attendanceSummaryProvider =
-    FutureProvider.autoDispose<TodayAttendanceSummary>((ref) async {
-  final repo = ref.watch(attendanceRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getTodayStatus(empId);
+    Provider<TodayAttendanceSummary>((ref) {
+  // Watch MockDatabase directly for reactive updates
+  return ref.watch(mockDatabaseProvider).todaySummary;
 });
 
+/// Full attendance history — sorted descending by timestamp.
 final attendanceHistoryProvider =
-    FutureProvider.autoDispose<List<Attendance>>((ref) async {
-  final repo = ref.watch(attendanceRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getHistory(empId);
+    Provider<List<Attendance>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.attendance
+      .where((a) => a.employeeId == empId)
+      .toList()
+    ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 });
 
-// Attendance Action State & Controller
+// ─── Attendance Action State ──────────────────────────────────────
+
 enum AttendanceProcessState {
   idle,
   checkingLocation,
@@ -305,8 +336,8 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     final attendanceRepo = _ref.read(attendanceRepositoryProvider);
     final connectivity = _ref.read(connectivityServiceProvider);
     final notifRepo = _ref.read(notificationsRepositoryProvider);
-    final emp = _ref.read(currentEmployeeProvider);
-    final empId = emp?.id ?? AppConstants.mockEmployeeId;
+    final db = _ref.read(mockDatabaseProvider);
+    final empId = db.session?.employeeId ?? db.employee.id;
 
     final isOnline = await connectivity.isConnected;
 
@@ -321,10 +352,10 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     state = state.copyWith(locationResult: locResult);
 
     if (!locResult.isInsideRange) {
-      String err = locResult.errorMessage ?? 'أنت خارج نطاق الشركة المسموح به (أقصى مسافة 4 أمتار)';
       state = state.copyWith(
         processState: AttendanceProcessState.error,
-        message: err,
+        message: locResult.errorMessage ??
+            'أنت خارج نطاق الشركة المسموح به (أقصى مسافة ${db.companyLocation.radiusMeters.toInt()} أمتار)',
       );
       return false;
     }
@@ -340,12 +371,11 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     );
 
     if (bioResult != BiometricAuthResult.success) {
-      String bioErr = bioResult == BiometricAuthResult.cancelled
-          ? 'تم إلغاء المصادقة البيومترية'
-          : 'فشلت المصادقة البيومترية، يرجى المحاولة مجددًا';
       state = state.copyWith(
         processState: AttendanceProcessState.error,
-        message: bioErr,
+        message: bioResult == BiometricAuthResult.cancelled
+            ? 'تم إلغاء المصادقة البيومترية'
+            : 'فشلت المصادقة البيومترية، يرجى المحاولة مجددًا',
       );
       return false;
     }
@@ -353,7 +383,9 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     // 3. Submit Attendance
     state = state.copyWith(
       processState: AttendanceProcessState.submitting,
-      message: isOnline ? 'جاري تسجيل العملية...' : 'جاري الحفظ المحلي (وضع بدون اتصال)...',
+      message: isOnline
+          ? 'جاري تسجيل العملية...'
+          : 'جاري الحفظ المحلي (وضع بدون اتصال)...',
     );
 
     if (isCheckIn) {
@@ -376,25 +408,19 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
       );
     }
 
-    // Add immediate notification
+    // 4. Push notification — MockDatabase auto-notifies all watchers
     await notifRepo.addNotification(
       AppNotification(
         id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
-        title: isCheckIn ? 'تسجيل الحضور الذاتي' : 'تسجيل الانصراف الذاتي',
+        title: isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف',
         message: isOnline
-            ? 'تم ${isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف'} بنجاح داخل النطاق (${locResult.distanceFromOfficeMeters.toStringAsFixed(1)} م)'
-            : 'تم حفظ عملية ${isCheckIn ? 'الحضور' : 'الانصراف'} محليًا لعدم وجود اتصال (في انتظار مراجعة HR).',
+            ? 'تم ${isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف'} بنجاح (${locResult.distanceFromOfficeMeters.toStringAsFixed(1)} م)'
+            : 'تم الحفظ محليًا — في انتظار مراجعة HR',
         category: NotificationCategory.attendance,
         createdAt: DateTime.now(),
         isRead: false,
       ),
     );
-
-    // Invalidate queries to refresh UI
-    _ref.invalidate(attendanceSummaryProvider);
-    _ref.invalidate(attendanceHistoryProvider);
-    _ref.invalidate(notificationsListProvider);
-    _ref.invalidate(unreadNotificationsCountProvider);
 
     state = state.copyWith(
       processState: AttendanceProcessState.success,
@@ -416,43 +442,50 @@ final attendanceFlowProvider =
   return AttendanceFlowNotifier(ref);
 });
 
-// ==========================================
-// 6. Requests (Advances, Permissions, Vacations)
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 6. Requests (Advances / Permissions / Vacations)
+// ══════════════════════════════════════════════════════════════════
+
 final advancesRepositoryProvider = Provider<AdvancesRepository>((ref) {
-  return MockAdvancesRepository();
+  return MockAdvancesRepository(ref);
 });
 
-final advancesListProvider =
-    FutureProvider.autoDispose<List<AdvanceRequest>>((ref) async {
-  final repo = ref.watch(advancesRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getAdvances(empId);
+/// Advances — reactive: rebuilds when MockDatabase.advances changes.
+final advancesListProvider = Provider<List<AdvanceRequest>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.advances
+      .where((a) => a.employeeId == empId)
+      .toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
 final permissionsRepositoryProvider = Provider<PermissionsRepository>((ref) {
-  return MockPermissionsRepository();
+  return MockPermissionsRepository(ref);
 });
 
-final permissionsListProvider =
-    FutureProvider.autoDispose<List<PermissionRequest>>((ref) async {
-  final repo = ref.watch(permissionsRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getPermissions(empId);
+/// Permissions list — reactive.
+final permissionsListProvider = Provider<List<PermissionRequest>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.permissions
+      .where((p) => p.employeeId == empId)
+      .toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
 final vacationsRepositoryProvider = Provider<VacationsRepository>((ref) {
-  return MockVacationsRepository();
+  return MockVacationsRepository(ref);
 });
 
-final vacationsListProvider =
-    FutureProvider.autoDispose<List<VacationRequest>>((ref) async {
-  final repo = ref.watch(vacationsRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getVacations(empId);
+/// Vacations list — reactive.
+final vacationsListProvider = Provider<List<VacationRequest>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.vacations
+      .where((v) => v.employeeId == empId)
+      .toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
 final requestsRepositoryProvider = Provider<RequestsRepository>((ref) {
@@ -466,43 +499,77 @@ final requestsRepositoryProvider = Provider<RequestsRepository>((ref) {
   );
 });
 
-final allRequestsProvider =
-    FutureProvider.autoDispose<List<UnifiedRequestItem>>((ref) async {
-  final repo = ref.watch(requestsRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final settings = ref.watch(settingsProvider);
-  final isArabic = settings.locale.languageCode == 'ar';
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getAllRequests(empId, isArabic);
+/// Unified requests list — reactive, sorted by date descending.
+final allRequestsProvider = Provider<List<UnifiedRequestItem>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  final isArabic = ref.watch(settingsProvider).locale.languageCode == 'ar';
+
+  final list = <UnifiedRequestItem>[
+    ...db.advances
+        .where((a) => a.employeeId == empId)
+        .map((a) => UnifiedRequestItem.fromAdvance(a, isArabic)),
+    ...db.permissions
+        .where((p) => p.employeeId == empId)
+        .map((p) => UnifiedRequestItem.fromPermission(p, isArabic)),
+    ...db.vacations
+        .where((v) => v.employeeId == empId)
+        .map((v) => UnifiedRequestItem.fromVacation(v, isArabic)),
+  ];
+  list.sort((a, b) => b.date.compareTo(a.date));
+  return list;
 });
 
-// ==========================================
-// 7. Notifications Providers
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 7. Notifications — reactive, direct from MockDatabase
+// ══════════════════════════════════════════════════════════════════
+
 final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
-  final storage = ref.watch(localStorageProvider);
-  return MockNotificationsRepository(storage);
+  return MockNotificationsRepository(ref);
 });
 
-final notificationsListProvider =
-    FutureProvider.autoDispose<List<AppNotification>>((ref) async {
-  final repo = ref.watch(notificationsRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getNotifications(empId);
+/// All notifications sorted newest first.
+final notificationsListProvider = Provider<List<AppNotification>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  return db.notifications.toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
-final unreadNotificationsCountProvider =
-    FutureProvider.autoDispose<int>((ref) async {
-  final repo = ref.watch(notificationsRepositoryProvider);
-  final emp = ref.watch(currentEmployeeProvider);
-  final empId = emp?.id ?? AppConstants.mockEmployeeId;
-  return repo.getUnreadCount(empId);
+/// Unread count — drives the badge on the bottom nav.
+final unreadNotificationsCountProvider = Provider<int>((ref) {
+  return ref.watch(mockDatabaseProvider).unreadNotificationsCount;
 });
 
-// ==========================================
-// 8. Settings Provider
-// ==========================================
+// ══════════════════════════════════════════════════════════════════
+// 8. Deductions & HR Messages
+// ══════════════════════════════════════════════════════════════════
+
+final deductionRepositoryProvider = Provider<DeductionRepository>((ref) {
+  return MockDeductionRepository(ref);
+});
+
+final deductionsListProvider = Provider<List<Deduction>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.deductions.where((d) => d.employeeId == empId).toList()
+    ..sort((a, b) => b.date.compareTo(a.date));
+});
+
+final hrMessageRepositoryProvider = Provider<HRMessageRepository>((ref) {
+  return MockHRMessageRepository(ref);
+});
+
+final hrMessagesListProvider = Provider<List<HRMessage>>((ref) {
+  final db = ref.watch(mockDatabaseProvider);
+  final empId = db.session?.employeeId ?? db.employee.id;
+  return db.hrMessages.where((m) => m.employeeId == empId).toList()
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+});
+
+// ══════════════════════════════════════════════════════════════════
+// 9. Settings Provider
+// ══════════════════════════════════════════════════════════════════
+
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final LocalStorage _storage;
 
