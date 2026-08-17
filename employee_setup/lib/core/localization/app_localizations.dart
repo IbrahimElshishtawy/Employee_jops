@@ -1,0 +1,461 @@
+import 'package:flutter/material.dart';
+
+/// AppLocalizations handles bilingual support (Arabic RTL default, English LTR ready).
+/// It provides structured key lookups with full type-safety and fallback support.
+class AppLocalizations {
+  final Locale locale;
+
+  AppLocalizations(this.locale);
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
+        AppLocalizations(const Locale('ar'));
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  static const List<Locale> supportedLocales = [
+    Locale('ar'),
+    Locale('en'),
+  ];
+
+  bool get isArabic => locale.languageCode == 'ar';
+
+  late Map<String, String> _localizedStrings;
+
+  Future<bool> load() async {
+    _localizedStrings = _translations[locale.languageCode] ?? _translations['ar']!;
+    return true;
+  }
+
+  String translate(String key) {
+    return _localizedStrings[key] ?? _translations['ar']?[key] ?? key;
+  }
+
+  // Common Key Accessors
+  String get appTitle => translate('app.title');
+  String get welcome => translate('home.welcome');
+  String get morningGreeting => translate('home.greeting_morning');
+  String get eveningGreeting => translate('home.greeting_evening');
+  
+  // Navigation
+  String get navHome => translate('nav.home');
+  String get navRequests => translate('nav.requests');
+  String get navNotifications => translate('nav.notifications');
+  String get navProfile => translate('nav.profile');
+
+  // Attendance
+  String get attendanceTitle => translate('attendance.title');
+  String get checkIn => translate('attendance.check_in');
+  String get checkOut => translate('attendance.check_out');
+  String get checkedIn => translate('attendance.checked_in');
+  String get checkedOut => translate('attendance.checked_out');
+  String get notCheckedIn => translate('attendance.not_checked_in');
+  String get insideRange => translate('attendance.inside_range');
+  String get outsideRange => translate('attendance.outside_range');
+  String get distanceToOffice => translate('attendance.distance_to_office');
+  String get checkInTime => translate('attendance.check_in_time');
+  String get checkOutTime => translate('attendance.check_out_time');
+  String get pendingHrVerification => translate('attendance.pending_hr_verification');
+  String get offlineModeNotice => translate('attendance.offline_notice');
+
+  // Requests
+  String get requestsTitle => translate('requests.title');
+  String get advancesTitle => translate('requests.advances');
+  String get permissionsTitle => translate('requests.permissions');
+  String get vacationsTitle => translate('requests.vacations');
+  String get newRequest => translate('requests.new');
+  String get requestHistory => translate('requests.history');
+
+  // General & Buttons
+  String get save => translate('common.save');
+  String get cancel => translate('common.cancel');
+  String get retry => translate('common.retry');
+  String get submit => translate('common.submit');
+  String get success => translate('common.success');
+  String get error => translate('common.error');
+  String get settings => translate('common.settings');
+  String get logout => translate('auth.logout');
+
+  static final Map<String, Map<String, String>> _translations = {
+    'ar': {
+      // App
+      'app.title': 'Employee App',
+
+      // Navigation
+      'nav.home': 'الرئيسية',
+      'nav.requests': 'الطلبات',
+      'nav.notifications': 'التنبيهات',
+      'nav.profile': 'حسابي',
+
+      // Auth
+      'auth.welcome_title': 'مرحبًا بك في Employee App',
+      'auth.welcome_subtitle': 'بوابتك الرقمية لإدارة الحضور والطلبات وخدمات الموظفين بكل سهولة وأمان.',
+      'auth.sign_in_google': 'تسجيل الدخول باستخدام Google',
+      'auth.signing_in': 'جاري تسجيل الدخول...',
+      'auth.logout': 'تسجيل الخروج',
+      'auth.logout_confirm': 'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
+
+      // Home
+      'home.greeting_morning': 'صباح الخير',
+      'home.greeting_evening': 'مساء الخير',
+      'home.welcome': 'أهلاً بك',
+      'home.today_status': 'حالة اليوم',
+      'home.quick_actions': 'الوصول السريع',
+      'home.recent_activity': 'النشاط الأخير',
+      'home.view_all': 'عرض الكل',
+
+      // Attendance
+      'attendance.title': 'الحضور والانصراف',
+      'attendance.status': 'حالة الحضور',
+      'attendance.check_in': 'تسجيل الحضور',
+      'attendance.check_out': 'تسجيل الانصراف',
+      'attendance.checked_in': 'تم تسجيل الحضور',
+      'attendance.checked_out': 'تم تسجيل الانصراف',
+      'attendance.not_checked_in': 'لم يتم تسجيل الحضور اليوم',
+      'attendance.inside_range': 'داخل نطاق الشركة',
+      'attendance.outside_range': 'أنت خارج نطاق تسجيل الحضور',
+      'attendance.outside_range_desc': 'يجب أن تكون داخل نطاق الشركة بمسافة لا تتجاوز 4 أمتار لتسجيل الحضور.',
+      'attendance.distance_to_office': 'أنت على بعد {dist} من موقع العمل',
+      'attendance.check_in_time': 'وقت الدخول',
+      'attendance.check_out_time': 'وقت الانصراف',
+      'attendance.working_hours': 'ساعات العمل',
+      'attendance.checking_location': 'جاري التحقق من الموقع الجغرافي...',
+      'attendance.authenticating_biometric': 'يرجى تأكيد بصمة الإصبع أو الوجه...',
+      'attendance.submitting': 'جاري تسجيل الحضور...',
+      'attendance.success_msg': 'تم تسجيل الحضور بنجاح!',
+      'attendance.checkout_success_msg': 'تم تسجيل الانصراف بنجاح!',
+      'attendance.pending_hr_verification': 'في انتظار مراجعة الـ HR',
+      'attendance.offline_notice': 'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
+      'attendance.history': 'سجل الحضور الأخير',
+
+      // Requests Hub
+      'requests.title': 'مركز الطلبات',
+      'requests.advances': 'السُلف والتقارير',
+      'requests.permissions': 'الاستئذان',
+      'requests.vacations': 'الإجازات',
+      'requests.new': 'طلب جديد',
+      'requests.history': 'طلبات سابقة',
+      'requests.all': 'الكل',
+      'requests.empty': 'لا توجد طلبات حتى الآن',
+      'requests.filter': 'تصفية حسب الحالة',
+
+      // Advances
+      'advances.title': 'السُلف المالية',
+      'advances.new': 'طلب سُلفة جديدة',
+      'advances.amount': 'المبلغ المطلوب',
+      'advances.reason': 'سبب السلفة',
+      'advances.details': 'تفاصيل إضافية',
+      'advances.installments': 'عدد أقساط السداد',
+      'advances.expense_report': 'تقرير المصروفات',
+      'advances.submit_report': 'تقديم تقرير المصروفات',
+      'advances.attachment': 'المرفقات / الفواتير',
+      'advances.report_required': 'مطلوب تقديم تقرير',
+      'advances.report_submitted': 'تم تقديم التقرير',
+
+      // Permissions
+      'permissions.title': 'أذونات الاستئذان',
+      'permissions.new': 'طلب إذن جديد',
+      'permissions.type': 'نوع الاستئذان',
+      'permissions.type_delay': 'تأخير صباحي',
+      'permissions.type_early_leave': 'انصراف مبكر',
+      'permissions.type_absence': 'غياب يوم',
+      'permissions.type_half_day': 'نصف يوم عمل',
+      'permissions.date': 'تاريخ الإذن',
+      'permissions.time': 'الوقت / المدة',
+      'permissions.reason': 'السبب',
+
+      // Vacations
+      'vacations.title': 'الإجازات',
+      'vacations.new': 'طلب إجازة جديدة',
+      'vacations.type': 'نوع الإجازة',
+      'vacations.type_annual': 'إجازة سنوية',
+      'vacations.type_sick': 'إجازة مرضية',
+      'vacations.type_casual': 'إجازة عارضة',
+      'vacations.type_unpaid': 'إجازة بدون راتب',
+      'vacations.from_date': 'من تاريخ',
+      'vacations.to_date': 'إلى تاريخ',
+      'vacations.days_count': 'عدد الأيام',
+      'vacations.reason': 'سبب الإجازة',
+      'vacations.attachment': 'مرفق (تقرير طبي إن وجد)',
+
+      // Statuses
+      'status.pending': 'قيد المراجعة',
+      'status.approved': 'تمت الموافقة',
+      'status.rejected': 'مرفوض',
+      'status.paid': 'تم الصرف',
+      'status.cancelled': 'ملغي',
+      'status.completed': 'مكتمل',
+
+      // Notifications
+      'notifications.title': 'التنبيهات',
+      'notifications.empty': 'لا توجد تنبيهات جديدة',
+      'notifications.mark_all_read': 'تحديد الكل كمقروء',
+      'notifications.category_hr': 'رسائل الإدارة (HR)',
+      'notifications.category_requests': 'تحديثات الطلبات',
+      'notifications.category_deductions': 'الخصومات والمستحقات',
+      'notifications.category_attendance': 'حالة الحضور',
+      'notifications.category_system': 'النظام',
+
+      // Profile
+      'profile.title': 'الملف الشخصي',
+      'profile.employee_id': 'الرقم الوظيفي',
+      'profile.department': 'القسم / الإدارة',
+      'profile.job_title': 'المسمى الوظيفي',
+      'profile.email': 'البريد الإلكتروني',
+      'profile.settings': 'الإعدادات العامة',
+      'profile.help': 'المساعدة والدعم',
+      'profile.privacy': 'سياسة الخصوصية',
+      'profile.about': 'عن التطبيق',
+
+      // Settings
+      'settings.title': 'الإعدادات',
+      'settings.account': 'الحساب',
+      'settings.appearance': 'المظهر',
+      'settings.theme': 'الوضع',
+      'settings.theme_system': 'حسب النظام',
+      'settings.theme_light': 'الوضع الفاتح',
+      'settings.theme_dark': 'الوضع الداكن',
+      'settings.language': 'اللغة',
+      'settings.language_ar': 'العربية (Arabic)',
+      'settings.language_en': 'الإنجليزية (English)',
+      'settings.developer_demo': 'أدوات المطور والمحاكاة (Demo Controls)',
+      'settings.demo_desc': 'تحكم في الموقع الجغرافي، البصمة، والاتصال لتجربة جميع السيناريوهات.',
+
+      // Demo Controls
+      'demo.title': 'لوحة المحاكاة والتجربة',
+      'demo.location_heading': 'محاكاة الموقع الجغرافي (GPS Location)',
+      'demo.location_inside': 'داخل النطاق (أقل من 4 أمتار)',
+      'demo.location_outside': 'خارج النطاق (أكثر من 4 أمتار)',
+      'demo.location_denied': 'تم رفض إذن الوصول للموقع',
+      'demo.biometric_heading': 'محاكاة المصادقة البيومترية (Biometrics)',
+      'demo.biometric_success': 'بصمة ناجحة',
+      'demo.biometric_failed': 'فشل مطابقة البصمة',
+      'demo.biometric_cancelled': 'إلغاء من قبل المستخدم',
+      'demo.network_heading': 'حالة الاتصال (Network Connection)',
+      'demo.network_online': 'متصل بالإنترنت (Online)',
+      'demo.network_offline': 'غير متصل (Offline - وضع الحفظ المؤقت)',
+      'demo.reset_data': 'إعادة ضبط البيانات الافتراضية',
+      'demo.data_reset_success': 'تمت استعادة البيانات الافتراضية بنجاح',
+
+      // Common
+      'common.save': 'حفظ',
+      'common.cancel': 'إلغاء',
+      'common.retry': 'إعادة المحاولة',
+      'common.submit': 'إرسال الطلب',
+      'common.success': 'تم بنجاح',
+      'common.error': 'حدث خطأ',
+      'common.settings': 'الإعدادات',
+      'common.confirm': 'تأكيد',
+      'common.back': 'رجوع',
+      'common.egp': 'جنيه',
+      'common.days': 'أيام',
+      'common.day': 'يوم',
+      'common.hours': 'ساعات',
+      'common.meters': 'أمتار',
+      'common.meter': 'متر',
+      'common.loading': 'جاري التحميل...',
+      'common.no_data': 'لا توجد بيانات متاحة',
+    },
+    'en': {
+      // App
+      'app.title': 'Employee App',
+
+      // Navigation
+      'nav.home': 'Home',
+      'nav.requests': 'Requests',
+      'nav.notifications': 'Notifications',
+      'nav.profile': 'Profile',
+
+      // Auth
+      'auth.welcome_title': 'Welcome to Employee App',
+      'auth.welcome_subtitle': 'Your enterprise portal for attendance, requests, and HR services with maximum simplicity.',
+      'auth.sign_in_google': 'Sign in with Google',
+      'auth.signing_in': 'Signing in...',
+      'auth.logout': 'Sign Out',
+      'auth.logout_confirm': 'Are you sure you want to sign out?',
+
+      // Home
+      'home.greeting_morning': 'Good morning',
+      'home.greeting_evening': 'Good evening',
+      'home.welcome': 'Welcome',
+      'home.today_status': 'Today\'s Status',
+      'home.quick_actions': 'Quick Actions',
+      'home.recent_activity': 'Recent Activity',
+      'home.view_all': 'View all',
+
+      // Attendance
+      'attendance.title': 'Attendance',
+      'attendance.status': 'Attendance Status',
+      'attendance.check_in': 'Check In',
+      'attendance.check_out': 'Check Out',
+      'attendance.checked_in': 'Checked In',
+      'attendance.checked_out': 'Checked Out',
+      'attendance.not_checked_in': 'Not checked in today',
+      'attendance.inside_range': 'Inside Office Geofence',
+      'attendance.outside_range': 'Outside Attendance Geofence',
+      'attendance.outside_range_desc': 'You must be within 4 meters of the workplace location to log attendance.',
+      'attendance.distance_to_office': 'You are {dist} away from workplace',
+      'attendance.check_in_time': 'Check-in Time',
+      'attendance.check_out_time': 'Check-out Time',
+      'attendance.working_hours': 'Working Hours',
+      'attendance.checking_location': 'Verifying GPS location...',
+      'attendance.authenticating_biometric': 'Please verify fingerprint or face...',
+      'attendance.submitting': 'Recording attendance...',
+      'attendance.success_msg': 'Check-in recorded successfully!',
+      'attendance.checkout_success_msg': 'Check-out recorded successfully!',
+      'attendance.pending_hr_verification': 'Pending HR Verification',
+      'attendance.offline_notice': 'Saved locally - will sync when online',
+      'attendance.history': 'Recent Attendance Logs',
+
+      // Requests Hub
+      'requests.title': 'Requests Center',
+      'requests.advances': 'Advances & Expenses',
+      'requests.permissions': 'Permissions',
+      'requests.vacations': 'Vacations',
+      'requests.new': 'New Request',
+      'requests.history': 'Past Requests',
+      'requests.all': 'All',
+      'requests.empty': 'No requests found',
+      'requests.filter': 'Filter by status',
+
+      // Advances
+      'advances.title': 'Financial Advances',
+      'advances.new': 'New Advance Request',
+      'advances.amount': 'Requested Amount',
+      'advances.reason': 'Advance Reason',
+      'advances.details': 'Additional Details',
+      'advances.installments': 'Installments Count',
+      'advances.expense_report': 'Expense Report',
+      'advances.submit_report': 'Submit Expense Report',
+      'advances.attachment': 'Attachments / Receipts',
+      'advances.report_required': 'Report Required',
+      'advances.report_submitted': 'Report Submitted',
+
+      // Permissions
+      'permissions.title': 'Permission Requests',
+      'permissions.new': 'New Permission',
+      'permissions.type': 'Permission Type',
+      'permissions.type_delay': 'Morning Delay',
+      'permissions.type_early_leave': 'Early Departure',
+      'permissions.type_absence': 'One Day Absence',
+      'permissions.type_half_day': 'Half Day',
+      'permissions.date': 'Permission Date',
+      'permissions.time': 'Time / Duration',
+      'permissions.reason': 'Reason',
+
+      // Vacations
+      'vacations.title': 'Vacations',
+      'vacations.new': 'New Vacation Request',
+      'vacations.type': 'Vacation Type',
+      'vacations.type_annual': 'Annual Leave',
+      'vacations.type_sick': 'Sick Leave',
+      'vacations.type_casual': 'Casual Leave',
+      'vacations.type_unpaid': 'Unpaid Leave',
+      'vacations.from_date': 'From Date',
+      'vacations.to_date': 'To Date',
+      'vacations.days_count': 'Total Days',
+      'vacations.reason': 'Reason',
+      'vacations.attachment': 'Attachment (Medical report if any)',
+
+      // Statuses
+      'status.pending': 'Pending Review',
+      'status.approved': 'Approved',
+      'status.rejected': 'Rejected',
+      'status.paid': 'Paid',
+      'status.cancelled': 'Cancelled',
+      'status.completed': 'Completed',
+
+      // Notifications
+      'notifications.title': 'Notifications',
+      'notifications.empty': 'No notifications yet',
+      'notifications.mark_all_read': 'Mark all as read',
+      'notifications.category_hr': 'HR Messages',
+      'notifications.category_requests': 'Request Updates',
+      'notifications.category_deductions': 'Deductions & Payroll',
+      'notifications.category_attendance': 'Attendance Alerts',
+      'notifications.category_system': 'System Alerts',
+
+      // Profile
+      'profile.title': 'Profile',
+      'profile.employee_id': 'Employee ID',
+      'profile.department': 'Department',
+      'profile.job_title': 'Job Title',
+      'profile.email': 'Email',
+      'profile.settings': 'Settings',
+      'profile.help': 'Help & Support',
+      'profile.privacy': 'Privacy Policy',
+      'profile.about': 'About App',
+
+      // Settings
+      'settings.title': 'Settings',
+      'settings.account': 'Account',
+      'settings.appearance': 'Appearance',
+      'settings.theme': 'Theme Mode',
+      'settings.theme_system': 'System Default',
+      'settings.theme_light': 'Light Mode',
+      'settings.theme_dark': 'Dark Mode',
+      'settings.language': 'Language',
+      'settings.language_ar': 'Arabic (العربية)',
+      'settings.language_en': 'English (الإنجليزية)',
+      'settings.developer_demo': 'Developer & Demo Controls',
+      'settings.demo_desc': 'Control GPS simulation, biometrics, and offline connectivity for testing.',
+
+      // Demo Controls
+      'demo.title': 'Demo & Simulation Controls',
+      'demo.location_heading': 'GPS Location Simulation',
+      'demo.location_inside': 'Inside Geofence (< 4 meters)',
+      'demo.location_outside': 'Outside Geofence (> 4 meters)',
+      'demo.location_denied': 'Location Permission Denied',
+      'demo.biometric_heading': 'Biometrics Simulation',
+      'demo.biometric_success': 'Authentication Success',
+      'demo.biometric_failed': 'Biometric Mismatch / Failed',
+      'demo.biometric_cancelled': 'Cancelled by User',
+      'demo.network_heading': 'Connectivity Simulation',
+      'demo.network_online': 'Online Mode',
+      'demo.network_offline': 'Offline Mode (Local Queue)',
+      'demo.reset_data': 'Reset to Default Mock Data',
+      'demo.data_reset_success': 'Mock data has been reset to defaults',
+
+      // Common
+      'common.save': 'Save',
+      'common.cancel': 'Cancel',
+      'common.retry': 'Retry',
+      'common.submit': 'Submit Request',
+      'common.success': 'Success',
+      'common.error': 'Error',
+      'common.settings': 'Settings',
+      'common.confirm': 'Confirm',
+      'common.back': 'Back',
+      'common.egp': 'EGP',
+      'common.days': 'days',
+      'common.day': 'day',
+      'common.hours': 'hours',
+      'common.meters': 'meters',
+      'common.meter': 'meter',
+      'common.loading': 'Loading...',
+      'common.no_data': 'No data available',
+    }
+  };
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) {
+    return ['ar', 'en'].contains(locale.languageCode);
+  }
+
+  @override
+  Future<AppLocalizations> load(Locale locale) async {
+    final localizations = AppLocalizations(locale);
+    await localizations.load();
+    return localizations;
+  }
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
