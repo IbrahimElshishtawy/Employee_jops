@@ -15,17 +15,15 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('ar'),
-    Locale('en'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('ar'), Locale('en')];
 
   bool get isArabic => locale.languageCode == 'ar';
 
   late Map<String, String> _localizedStrings;
 
   Future<bool> load() async {
-    _localizedStrings = _translations[locale.languageCode] ?? _translations['ar']!;
+    _localizedStrings =
+        _translations[locale.languageCode] ?? _translations['ar']!;
     return true;
   }
 
@@ -38,7 +36,7 @@ class AppLocalizations {
   String get welcome => translate('home.welcome');
   String get morningGreeting => translate('home.greeting_morning');
   String get eveningGreeting => translate('home.greeting_evening');
-  
+
   // Navigation
   String get navHome => translate('nav.home');
   String get navRequests => translate('nav.requests');
@@ -57,7 +55,8 @@ class AppLocalizations {
   String get distanceToOffice => translate('attendance.distance_to_office');
   String get checkInTime => translate('attendance.check_in_time');
   String get checkOutTime => translate('attendance.check_out_time');
-  String get pendingHrVerification => translate('attendance.pending_hr_verification');
+  String get pendingHrVerification =>
+      translate('attendance.pending_hr_verification');
   String get offlineModeNotice => translate('attendance.offline_notice');
 
   // Requests
@@ -67,6 +66,40 @@ class AppLocalizations {
   String get vacationsTitle => translate('requests.vacations');
   String get newRequest => translate('requests.new');
   String get requestHistory => translate('requests.history');
+
+  // Onboarding
+  String get onboardingStep1Title => translate('onboarding.step1_title');
+  String get onboardingStep1Subtitle => translate('onboarding.step1_subtitle');
+  String get onboardingStep2Title => translate('onboarding.step2_title');
+  String get onboardingStep2Subtitle => translate('onboarding.step2_subtitle');
+  String get onboardingStep3Title => translate('onboarding.step3_title');
+  String get onboardingStep3Subtitle => translate('onboarding.step3_subtitle');
+  String get onboardingFullName => translate('onboarding.full_name');
+  String get onboardingEmail => translate('onboarding.email');
+  String get onboardingNationalId => translate('onboarding.national_id');
+  String get onboardingPhone => translate('onboarding.phone');
+  String get onboardingJobTitle => translate('onboarding.job_title');
+  String get onboardingDepartment => translate('onboarding.department');
+  String get onboardingRegion => translate('onboarding.region');
+  String get onboardingManager => translate('onboarding.manager');
+  String get onboardingWorkLocation => translate('onboarding.work_location');
+  String get onboardingHrContact => translate('onboarding.hr_contact');
+  String get onboardingNext => translate('onboarding.next');
+  String get onboardingComplete => translate('onboarding.complete');
+  String get onboardingBack => translate('onboarding.back');
+  String get onboardingVerifiedByGoogle =>
+      translate('onboarding.verified_by_google');
+  String get onboardingBiometricTitle =>
+      translate('onboarding.biometric_title');
+  String get onboardingBiometricSubtitle =>
+      translate('onboarding.biometric_subtitle');
+  String get onboardingEnableBiometric =>
+      translate('onboarding.enable_biometric');
+  String get onboardingSkipBiometric => translate('onboarding.skip_biometric');
+  String get onboardingHrCall => translate('onboarding.hr_call');
+  String get onboardingHrContactEmail =>
+      translate('onboarding.hr_contact_email');
+  String get onboardingHrContacting => translate('onboarding.hr_contacting');
 
   // General & Buttons
   String get save => translate('common.save');
@@ -91,7 +124,8 @@ class AppLocalizations {
 
       // Auth
       'auth.welcome_title': 'مرحبًا بك في Employee App',
-      'auth.welcome_subtitle': 'بوابتك الرقمية لإدارة الحضور والطلبات وخدمات الموظفين بكل سهولة وأمان.',
+      'auth.welcome_subtitle':
+          'بوابتك الرقمية لإدارة الحضور والطلبات وخدمات الموظفين بكل سهولة وأمان.',
       'auth.sign_in_google': 'تسجيل الدخول باستخدام Google',
       'auth.signing_in': 'جاري تسجيل الدخول...',
       'auth.logout': 'تسجيل الخروج',
@@ -116,18 +150,21 @@ class AppLocalizations {
       'attendance.not_checked_in': 'لم يتم تسجيل الحضور اليوم',
       'attendance.inside_range': 'داخل نطاق الشركة',
       'attendance.outside_range': 'أنت خارج نطاق تسجيل الحضور',
-      'attendance.outside_range_desc': 'يجب أن تكون داخل نطاق الشركة بمسافة لا تتجاوز 4 أمتار لتسجيل الحضور.',
+      'attendance.outside_range_desc':
+          'يجب أن تكون داخل نطاق الشركة بمسافة لا تتجاوز 4 أمتار لتسجيل الحضور.',
       'attendance.distance_to_office': 'أنت على بعد {dist} من موقع العمل',
       'attendance.check_in_time': 'وقت الدخول',
       'attendance.check_out_time': 'وقت الانصراف',
       'attendance.working_hours': 'ساعات العمل',
       'attendance.checking_location': 'جاري التحقق من الموقع الجغرافي...',
-      'attendance.authenticating_biometric': 'يرجى تأكيد بصمة الإصبع أو الوجه...',
+      'attendance.authenticating_biometric':
+          'يرجى تأكيد بصمة الإصبع أو الوجه...',
       'attendance.submitting': 'جاري تسجيل الحضور...',
       'attendance.success_msg': 'تم تسجيل الحضور بنجاح!',
       'attendance.checkout_success_msg': 'تم تسجيل الانصراف بنجاح!',
       'attendance.pending_hr_verification': 'في انتظار مراجعة الـ HR',
-      'attendance.offline_notice': 'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
+      'attendance.offline_notice':
+          'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
       'attendance.history': 'سجل الحضور الأخير',
 
       // Requests Hub
@@ -221,7 +258,8 @@ class AppLocalizations {
       'settings.language_ar': 'العربية (Arabic)',
       'settings.language_en': 'الإنجليزية (English)',
       'settings.developer_demo': 'أدوات المطور والمحاكاة (Demo Controls)',
-      'settings.demo_desc': 'تحكم في الموقع الجغرافي، البصمة، والاتصال لتجربة جميع السيناريوهات.',
+      'settings.demo_desc':
+          'تحكم في الموقع الجغرافي، البصمة، والاتصال لتجربة جميع السيناريوهات.',
 
       // Demo Controls
       'demo.title': 'لوحة المحاكاة والتجربة',
@@ -238,6 +276,35 @@ class AppLocalizations {
       'demo.network_offline': 'غير متصل (Offline - وضع الحفظ المؤقت)',
       'demo.reset_data': 'إعادة ضبط البيانات الافتراضية',
       'demo.data_reset_success': 'تمت استعادة البيانات الافتراضية بنجاح',
+
+      // Onboarding
+      'onboarding.step1_title': 'البيانات الشخصية',
+      'onboarding.step1_subtitle': 'أكمل ملفك الشخصي ببيانات دقيقة',
+      'onboarding.step2_title': 'معلومات العمل',
+      'onboarding.step2_subtitle': 'أخبرنا عن دورك وفريقك',
+      'onboarding.step3_title': 'الموقع وجهات الاتصال',
+      'onboarding.step3_subtitle': 'حدد موقع عملك وجهة الاتصال بـ HR',
+      'onboarding.full_name': 'الاسم الكامل',
+      'onboarding.email': 'البريد الإلكتروني',
+      'onboarding.national_id': 'رقم البطاقة الشخصية',
+      'onboarding.phone': 'رقم الهاتف',
+      'onboarding.job_title': 'المسمى الوظيفي',
+      'onboarding.department': 'القسم / الإدارة',
+      'onboarding.region': 'المنطقة',
+      'onboarding.manager': 'مدير مباشر',
+      'onboarding.work_location': 'موقع العمل',
+      'onboarding.hr_contact': 'جهة اتصال HR',
+      'onboarding.next': 'التالي',
+      'onboarding.complete': 'إكمال التسجيل',
+      'onboarding.back': 'رجوع',
+      'onboarding.verified_by_google': 'تم التحقق بواسطة Google',
+      'onboarding.biometric_title': 'تفعيل المصادقة البيومترية',
+      'onboarding.biometric_subtitle': 'أمّن سجل الحضور ببصمة الإصبع أو الوجه',
+      'onboarding.enable_biometric': 'تفعيل المصادقة البيومترية',
+      'onboarding.skip_biometric': 'تخطي الآن',
+      'onboarding.hr_call': 'اتصل بـ HR',
+      'onboarding.hr_contact_email': 'راسل HR',
+      'onboarding.hr_contacting': 'جاري التوصيل بـ HR...',
 
       // Common
       'common.save': 'حفظ',
@@ -270,7 +337,8 @@ class AppLocalizations {
 
       // Auth
       'auth.welcome_title': 'Welcome to Employee App',
-      'auth.welcome_subtitle': 'Your enterprise portal for attendance, requests, and HR services with maximum simplicity.',
+      'auth.welcome_subtitle':
+          'Your enterprise portal for attendance, requests, and HR services with maximum simplicity.',
       'auth.sign_in_google': 'Sign in with Google',
       'auth.signing_in': 'Signing in...',
       'auth.logout': 'Sign Out',
@@ -295,13 +363,15 @@ class AppLocalizations {
       'attendance.not_checked_in': 'Not checked in today',
       'attendance.inside_range': 'Inside Office Geofence',
       'attendance.outside_range': 'Outside Attendance Geofence',
-      'attendance.outside_range_desc': 'You must be within 4 meters of the workplace location to log attendance.',
+      'attendance.outside_range_desc':
+          'You must be within 4 meters of the workplace location to log attendance.',
       'attendance.distance_to_office': 'You are {dist} away from workplace',
       'attendance.check_in_time': 'Check-in Time',
       'attendance.check_out_time': 'Check-out Time',
       'attendance.working_hours': 'Working Hours',
       'attendance.checking_location': 'Verifying GPS location...',
-      'attendance.authenticating_biometric': 'Please verify fingerprint or face...',
+      'attendance.authenticating_biometric':
+          'Please verify fingerprint or face...',
       'attendance.submitting': 'Recording attendance...',
       'attendance.success_msg': 'Check-in recorded successfully!',
       'attendance.checkout_success_msg': 'Check-out recorded successfully!',
@@ -400,7 +470,8 @@ class AppLocalizations {
       'settings.language_ar': 'Arabic (العربية)',
       'settings.language_en': 'English (الإنجليزية)',
       'settings.developer_demo': 'Developer & Demo Controls',
-      'settings.demo_desc': 'Control GPS simulation, biometrics, and offline connectivity for testing.',
+      'settings.demo_desc':
+          'Control GPS simulation, biometrics, and offline connectivity for testing.',
 
       // Demo Controls
       'demo.title': 'Demo & Simulation Controls',
@@ -417,6 +488,38 @@ class AppLocalizations {
       'demo.network_offline': 'Offline Mode (Local Queue)',
       'demo.reset_data': 'Reset to Default Mock Data',
       'demo.data_reset_success': 'Mock data has been reset to defaults',
+
+      // Onboarding
+      'onboarding.step1_title': 'Personal Information',
+      'onboarding.step1_subtitle':
+          'Complete your profile with accurate personal details',
+      'onboarding.step2_title': 'Work Information',
+      'onboarding.step2_subtitle': 'Tell us about your role and team',
+      'onboarding.step3_title': 'Location & HR',
+      'onboarding.step3_subtitle':
+          'Configure your work location and HR contact',
+      'onboarding.full_name': 'Full Name',
+      'onboarding.email': 'Email',
+      'onboarding.national_id': 'National ID',
+      'onboarding.phone': 'Phone Number',
+      'onboarding.job_title': 'Job Title',
+      'onboarding.department': 'Department',
+      'onboarding.region': 'Region',
+      'onboarding.manager': 'Direct Manager',
+      'onboarding.work_location': 'Work Location',
+      'onboarding.hr_contact': 'HR Contact',
+      'onboarding.next': 'Next',
+      'onboarding.complete': 'Complete Onboarding',
+      'onboarding.back': 'Back',
+      'onboarding.verified_by_google': 'Verified by Google',
+      'onboarding.biometric_title': 'Enable Biometric Authentication',
+      'onboarding.biometric_subtitle':
+          'Secure your attendance with fingerprint or face recognition',
+      'onboarding.enable_biometric': 'Enable Biometric',
+      'onboarding.skip_biometric': 'Skip for Now',
+      'onboarding.hr_call': 'Call HR',
+      'onboarding.hr_contact_email': 'Contact HR',
+      'onboarding.hr_contacting': 'Connecting with HR...',
 
       // Common
       'common.save': 'Save',
@@ -436,7 +539,7 @@ class AppLocalizations {
       'common.meter': 'meter',
       'common.loading': 'Loading...',
       'common.no_data': 'No data available',
-    }
+    },
   };
 }
 

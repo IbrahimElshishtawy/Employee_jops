@@ -17,7 +17,10 @@ class AppConstants {
   static const String mockEmployeeEmail = 'employee@company.com';
   static const String mockEmployeeDepartment = 'الهندسة البرمجية (Engineering)';
   static const String mockEmployeeJobTitle = 'Software Developer';
-  static const String mockEmployeeAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+  static const String mockEmployeeAvatar =
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+  static const String mockWorkLocationId = 'LOC-CAIRO-HQ';
+  static const String mockWorkLocationName = 'مقر العمل الرئيسي';
 
   // Storage Keys
   static const String keyAuthToken = 'auth_token';
@@ -26,4 +29,7 @@ class AppConstants {
   static const String keyLocale = 'locale';
   static const String keyPendingAttendance = 'pending_attendance_queue';
   static const String keyReadNotifications = 'read_notifications_ids';
+  static const String keyOnboardingCompleted = 'onboarding_completed';
+  static const String keyBiometricEnabled = 'biometric_enabled';
+  static const String keyEmployeeProfile = 'employee_profile';
 }

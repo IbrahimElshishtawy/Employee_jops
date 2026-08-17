@@ -14,6 +14,10 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/notifications/domain/models/app_notification.dart';
 import '../../features/notifications/presentation/screens/notification_details_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/onboarding/presentation/screens/personal_info_screen.dart';
+import '../../features/onboarding/presentation/screens/work_info_screen.dart';
+import '../../features/onboarding/presentation/screens/work_location_screen.dart';
+import '../../features/onboarding/presentation/screens/biometric_setup_screen.dart';
 import '../../features/permissions/presentation/screens/new_permission_screen.dart';
 import '../../features/permissions/presentation/screens/permission_details_screen.dart';
 import '../../features/permissions/presentation/screens/permissions_list_screen.dart';
@@ -30,7 +34,9 @@ import 'main_shell_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _requestsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'requests');
-final _notificationsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'notifications');
+final _notificationsNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'notifications',
+);
 final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -42,6 +48,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isSplash = state.matchedLocation == AppRoutes.splash;
       final isLogin = state.matchedLocation == AppRoutes.login;
+      final isOnboarding = state.matchedLocation.startsWith('/onboarding');
 
       if (!authState.isInitialized) {
         return null;
@@ -52,7 +59,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           return AppRoutes.login;
         }
       } else {
+        // User is authenticated
         if (isLogin || isSplash) {
+          // Check if onboarding is needed
+          if (!(authState.employee?.onboardingCompleted ?? false)) {
+            return AppRoutes.onboardingPersonal;
+          }
+          return AppRoutes.home;
+        }
+
+        // If on onboarding and already completed, go to home
+        if (isOnboarding &&
+            (authState.employee?.onboardingCompleted ?? false)) {
           return AppRoutes.home;
         }
       }
@@ -69,6 +87,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.login,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const LoginScreen(),
+      ),
+
+      // Onboarding Routes (full-screen, not in shell)
+      GoRoute(
+        path: AppRoutes.onboardingPersonal,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PersonalInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingWork,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WorkInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingLocation,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WorkLocationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingBiometric,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BiometricSetupScreen(),
       ),
 
       // Main Shell Route with Persistent Bottom Navigation
@@ -214,7 +254,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final notif = state.extra as AppNotification?;
-          return NotificationDetailsScreen(notificationId: id, notification: notif);
+          return NotificationDetailsScreen(
+            notificationId: id,
+            notification: notif,
+          );
         },
       ),
 

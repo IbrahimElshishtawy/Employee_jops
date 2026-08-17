@@ -64,7 +64,9 @@ final localStorageProvider = Provider<LocalStorage>((ref) {
   return SharedPrefsStorage();
 });
 
-final mockConnectivityServiceProvider = Provider<MockConnectivityService>((ref) {
+final mockConnectivityServiceProvider = Provider<MockConnectivityService>((
+  ref,
+) {
   final service = MockConnectivityService(initialConnected: true);
   ref.onDispose(() => service.dispose());
   return service;
@@ -86,7 +88,8 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
   void setLocationMode(MockLocationMode mode, [double? distance]) {
     state = state.copyWith(
       locationMode: mode,
-      simulatedDistance: distance ?? (mode == MockLocationMode.insideRange ? 2.3 : 48.5),
+      simulatedDistance:
+          distance ?? (mode == MockLocationMode.insideRange ? 2.3 : 48.5),
     );
     final locService = _ref.read(mockLocationServiceProvider);
     locService.mode = mode;
@@ -127,8 +130,8 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
 
 final demoControlsProvider =
     StateNotifierProvider<DemoControlsNotifier, DemoControlsState>((ref) {
-  return DemoControlsNotifier(ref);
-});
+      return DemoControlsNotifier(ref);
+    });
 
 // ══════════════════════════════════════════════════════════════════
 // 3. Location & Biometric Services
@@ -235,6 +238,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _repo.signOut();
     state = state.copyWith(clearUser: true);
   }
+
+  /// Update employee profile (for onboarding completion)
+  void updateEmployee(Employee updatedEmployee) {
+    state = state.copyWith(employee: updatedEmployee);
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
@@ -256,20 +264,16 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
 });
 
 /// Today's check-in / check-out summary — auto-updates when MockDatabase changes.
-final attendanceSummaryProvider =
-    Provider<TodayAttendanceSummary>((ref) {
+final attendanceSummaryProvider = Provider<TodayAttendanceSummary>((ref) {
   // Watch MockDatabase directly for reactive updates
   return ref.watch(mockDatabaseProvider).todaySummary;
 });
 
 /// Full attendance history — sorted descending by timestamp.
-final attendanceHistoryProvider =
-    Provider<List<Attendance>>((ref) {
+final attendanceHistoryProvider = Provider<List<Attendance>>((ref) {
   final db = ref.watch(mockDatabaseProvider);
   final empId = db.session?.employeeId ?? db.employee.id;
-  return db.attendance
-      .where((a) => a.employeeId == empId)
-      .toList()
+  return db.attendance.where((a) => a.employeeId == empId).toList()
     ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 });
 
@@ -354,7 +358,8 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     if (!locResult.isInsideRange) {
       state = state.copyWith(
         processState: AttendanceProcessState.error,
-        message: locResult.errorMessage ??
+        message:
+            locResult.errorMessage ??
             'أنت خارج نطاق الشركة المسموح به (أقصى مسافة ${db.companyLocation.radiusMeters.toInt()} أمتار)',
       );
       return false;
@@ -367,7 +372,9 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     );
 
     final bioResult = await biometricService.authenticate(
-      reason: isCheckIn ? 'تأكيد الحضور ببصمة الموظف' : 'تأكيد الانصراف ببصمة الموظف',
+      reason: isCheckIn
+          ? 'تأكيد الحضور ببصمة الموظف'
+          : 'تأكيد الانصراف ببصمة الموظف',
     );
 
     if (bioResult != BiometricAuthResult.success) {
@@ -439,8 +446,8 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
 
 final attendanceFlowProvider =
     StateNotifierProvider<AttendanceFlowNotifier, AttendanceFlowState>((ref) {
-  return AttendanceFlowNotifier(ref);
-});
+      return AttendanceFlowNotifier(ref);
+    });
 
 // ══════════════════════════════════════════════════════════════════
 // 6. Requests (Advances / Permissions / Vacations)
@@ -454,9 +461,7 @@ final advancesRepositoryProvider = Provider<AdvancesRepository>((ref) {
 final advancesListProvider = Provider<List<AdvanceRequest>>((ref) {
   final db = ref.watch(mockDatabaseProvider);
   final empId = db.session?.employeeId ?? db.employee.id;
-  return db.advances
-      .where((a) => a.employeeId == empId)
-      .toList()
+  return db.advances.where((a) => a.employeeId == empId).toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
@@ -468,9 +473,7 @@ final permissionsRepositoryProvider = Provider<PermissionsRepository>((ref) {
 final permissionsListProvider = Provider<List<PermissionRequest>>((ref) {
   final db = ref.watch(mockDatabaseProvider);
   final empId = db.session?.employeeId ?? db.employee.id;
-  return db.permissions
-      .where((p) => p.employeeId == empId)
-      .toList()
+  return db.permissions.where((p) => p.employeeId == empId).toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
@@ -482,9 +485,7 @@ final vacationsRepositoryProvider = Provider<VacationsRepository>((ref) {
 final vacationsListProvider = Provider<List<VacationRequest>>((ref) {
   final db = ref.watch(mockDatabaseProvider);
   final empId = db.session?.employeeId ?? db.employee.id;
-  return db.vacations
-      .where((v) => v.employeeId == empId)
-      .toList()
+  return db.vacations.where((v) => v.employeeId == empId).toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
@@ -524,7 +525,9 @@ final allRequestsProvider = Provider<List<UnifiedRequestItem>>((ref) {
 // 7. Notifications — reactive, direct from MockDatabase
 // ══════════════════════════════════════════════════════════════════
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((
+  ref,
+) {
   return MockNotificationsRepository(ref);
 });
 
@@ -605,8 +608,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 }
 
-final settingsProvider =
-    StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
+  ref,
+) {
   final storage = ref.watch(localStorageProvider);
   return SettingsNotifier(storage);
 });

@@ -10,6 +10,15 @@ class Employee {
   final bool isActive;
   final String? managerName;
 
+  // Onboarding fields
+  final String? nationalId;
+  final String? googleId;
+  final bool onboardingCompleted;
+  final bool biometricEnabled;
+  final String? region;
+  final String? managerId;
+  final String? workLocationId;
+
   const Employee({
     required this.id,
     required this.name,
@@ -21,6 +30,13 @@ class Employee {
     required this.joinDate,
     this.isActive = true,
     this.managerName,
+    this.nationalId,
+    this.googleId,
+    this.onboardingCompleted = false,
+    this.biometricEnabled = false,
+    this.region,
+    this.managerId,
+    this.workLocationId,
   });
 
   Employee copyWith({
@@ -34,6 +50,13 @@ class Employee {
     DateTime? joinDate,
     bool? isActive,
     String? managerName,
+    String? nationalId,
+    String? googleId,
+    bool? onboardingCompleted,
+    bool? biometricEnabled,
+    String? region,
+    String? managerId,
+    String? workLocationId,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -46,47 +69,69 @@ class Employee {
       joinDate: joinDate ?? this.joinDate,
       isActive: isActive ?? this.isActive,
       managerName: managerName ?? this.managerName,
+      nationalId: nationalId ?? this.nationalId,
+      googleId: googleId ?? this.googleId,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      region: region ?? this.region,
+      managerId: managerId ?? this.managerId,
+      workLocationId: workLocationId ?? this.workLocationId,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'department': department,
-        'jobTitle': jobTitle,
-        'avatarUrl': avatarUrl,
-        'phone': phone,
-        'joinDate': joinDate.toIso8601String(),
-        'isActive': isActive,
-        'managerName': managerName,
-      };
+    'id': id,
+    'name': name,
+    'email': email,
+    'department': department,
+    'jobTitle': jobTitle,
+    'avatarUrl': avatarUrl,
+    'phone': phone,
+    'joinDate': joinDate.toIso8601String(),
+    'isActive': isActive,
+    'managerName': managerName,
+    'nationalId': nationalId,
+    'googleId': googleId,
+    'onboardingCompleted': onboardingCompleted,
+    'biometricEnabled': biometricEnabled,
+    'region': region,
+    'managerId': managerId,
+    'workLocationId': workLocationId,
+  };
 
   factory Employee.fromJson(Map<String, dynamic> json) => Employee(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        email: json['email'] as String,
-        department: json['department'] as String,
-        jobTitle: json['jobTitle'] as String,
-        avatarUrl: json['avatarUrl'] as String? ?? '',
-        phone: json['phone'] as String? ?? '',
-        joinDate: json['joinDate'] != null
-            ? DateTime.parse(json['joinDate'] as String)
-            : DateTime(2023, 1, 1),
-        isActive: json['isActive'] as bool? ?? true,
-        managerName: json['managerName'] as String?,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    department: json['department'] as String,
+    jobTitle: json['jobTitle'] as String,
+    avatarUrl: json['avatarUrl'] as String? ?? '',
+    phone: json['phone'] as String? ?? '',
+    joinDate: json['joinDate'] != null
+        ? DateTime.parse(json['joinDate'] as String)
+        : DateTime(2023, 1, 1),
+    isActive: json['isActive'] as bool? ?? true,
+    managerName: json['managerName'] as String?,
+    nationalId: json['nationalId'] as String?,
+    googleId: json['googleId'] as String?,
+    onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+    biometricEnabled: json['biometricEnabled'] as bool? ?? false,
+    region: json['region'] as String?,
+    managerId: json['managerId'] as String?,
+    workLocationId: json['workLocationId'] as String?,
+  );
 
   // Default Mock Employee (delegates to EmployeeSeed — kept for backward compat)
   static Employee get defaultMock => Employee(
-        id: 'EMP-1024',
-        name: 'إبراهيم الششتاوي',
-        email: 'employee@company.com',
-        department: 'الهندسة البرمجية',
-        jobTitle: 'Senior Software Developer',
-        avatarUrl: '',
-        phone: '01000000000',
-        joinDate: DateTime(2025, 1, 15),
-        managerName: 'Ahmed Mohamed',
-      );
+    id: 'EMP-1024',
+    name: 'إبراهيم الششتاوي',
+    email: 'employee@company.com',
+    department: 'الهندسة البرمجية',
+    jobTitle: 'Senior Software Developer',
+    avatarUrl: '',
+    phone: '01000000000',
+    joinDate: DateTime(2025, 1, 15),
+    managerName: 'Ahmed Mohamed',
+    onboardingCompleted: false,
+  );
 }

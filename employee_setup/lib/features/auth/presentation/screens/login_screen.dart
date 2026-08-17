@@ -24,9 +24,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isSigningIn = false);
 
     if (success) {
+      // Router redirect logic will handle onboarding check automatically
       context.go('/home');
     } else {
-      context.showSnackBar('فشل تسجيل الدخول، يرجى إعادة المحاولة', isError: true);
+      context.showSnackBar(
+        'فشل تسجيل الدخول، يرجى إعادة المحاولة',
+        isError: true,
+      );
     }
   }
 
@@ -39,7 +43,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
@@ -86,56 +93,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       height: 1.5,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(height: 36),
-
-                  // Mock Employee Preview Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : AppColors.surfaceVariantLight,
-                      borderRadius: AppDimensions.borderRadiusLarge,
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppColors.primaryLight,
-                          child: const Icon(Icons.person_rounded, color: AppColors.primary),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'إبراهيم الششتاوي',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'employee@company.com • EMP-1024',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
 
                   // Google Sign-In Action
                   GoogleSignInButton(
@@ -152,7 +115,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Icon(
                         Icons.shield_outlined,
                         size: 16,
-                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                        color: isDark
+                            ? AppColors.textMutedDark
+                            : AppColors.textMutedLight,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -160,7 +125,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          color: isDark
+                              ? AppColors.textMutedDark
+                              : AppColors.textMutedLight,
                         ),
                       ),
                     ],

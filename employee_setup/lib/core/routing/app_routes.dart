@@ -4,6 +4,12 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
 
+  // Onboarding
+  static const String onboardingPersonal = '/onboarding/personal';
+  static const String onboardingWork = '/onboarding/work';
+  static const String onboardingLocation = '/onboarding/location';
+  static const String onboardingBiometric = '/onboarding/biometric';
+
   // Shell Tabs
   static const String home = '/home';
   static const String requests = '/requests';
