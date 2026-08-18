@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires location access to verify physical presence within the company workplace for attendance check-in and check-out.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app requires Face ID / Biometrics to authenticate employee identity when registering attendance.</string>
 </dict>
 </plist>

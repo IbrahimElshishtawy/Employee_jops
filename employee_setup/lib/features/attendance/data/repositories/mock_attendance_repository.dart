@@ -39,22 +39,32 @@ class MockAttendanceRepository implements AttendanceRepository {
     required double latitude,
     required double longitude,
     required double distance,
+    double accuracy = 3.0,
+    String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
   }) async {
+    final now = DateTime.now();
     final record = Attendance(
       id: _uuid.v4(),
       employeeId: employeeId,
+      workLocationId: workLocationId,
+      date: DateTime(now.year, now.month, now.day),
       type: AttendanceType.checkIn,
-      timestamp: DateTime.now(),
+      timestamp: now,
       latitude: latitude,
       longitude: longitude,
+      accuracy: accuracy,
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
+      method: isOffline ? AttendanceMethod.offlineBiometric : AttendanceMethod.biometric,
+      syncStatus: isOffline ? AttendanceSyncStatus.pending : AttendanceSyncStatus.synced,
       status: isOffline
           ? AttendanceStatus.offlinePending
           : AttendanceStatus.success,
+      createdAt: now,
+      updatedAt: now,
     );
     _db.addAttendance(record);
     return record;
@@ -66,22 +76,32 @@ class MockAttendanceRepository implements AttendanceRepository {
     required double latitude,
     required double longitude,
     required double distance,
+    double accuracy = 3.0,
+    String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
   }) async {
+    final now = DateTime.now();
     final record = Attendance(
       id: _uuid.v4(),
       employeeId: employeeId,
+      workLocationId: workLocationId,
+      date: DateTime(now.year, now.month, now.day),
       type: AttendanceType.checkOut,
-      timestamp: DateTime.now(),
+      timestamp: now,
       latitude: latitude,
       longitude: longitude,
+      accuracy: accuracy,
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
+      method: isOffline ? AttendanceMethod.offlineBiometric : AttendanceMethod.biometric,
+      syncStatus: isOffline ? AttendanceSyncStatus.pending : AttendanceSyncStatus.synced,
       status: isOffline
           ? AttendanceStatus.offlinePending
           : AttendanceStatus.success,
+      createdAt: now,
+      updatedAt: now,
     );
     _db.addAttendance(record);
     return record;
@@ -100,7 +120,12 @@ class MockAttendanceRepository implements AttendanceRepository {
     final synced = _state.attendance
         .map(
           (a) => a.isOffline
-              ? a.copyWith(isOffline: false, status: AttendanceStatus.success)
+              ? a.copyWith(
+                  isOffline: false,
+                  status: AttendanceStatus.success,
+                  syncStatus: AttendanceSyncStatus.synced,
+                  updatedAt: DateTime.now(),
+                )
               : a,
         )
         .toList();

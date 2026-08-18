@@ -7,6 +7,7 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../data/services/mock_location_service.dart';
+import '../../domain/models/location_result.dart';
 
 class LocationStatusCard extends ConsumerWidget {
   const LocationStatusCard({super.key});
@@ -20,9 +21,12 @@ class LocationStatusCard extends ConsumerWidget {
 
     final locResult = flowState.locationResult;
     final distanceMeters = locResult?.distanceFromOfficeMeters ?? demo.simulatedDistance;
+    final accuracyMeters = locResult?.accuracyMeters ?? 3.5;
     final isInside = locResult?.isInsideRange ?? (demo.simulatedDistance <= 4.0);
     final isPermissionDenied = locResult?.isPermissionDenied ?? (demo.locationMode == MockLocationMode.permissionDenied);
     final isGpsDisabled = locResult?.isGpsDisabled ?? (demo.locationMode == MockLocationMode.gpsDisabled);
+    final isLowAccuracy = locResult?.status == LocationStatus.lowAccuracy || !((locResult?.isAccuracyValid) ?? true);
+    final isMockLocation = locResult?.isMockLocation == true || locResult?.status == LocationStatus.mockLocationDetected;
     final isUpdating = flowState.isLocationUpdating;
 
     return AppCard(
@@ -98,51 +102,102 @@ class LocationStatusCard extends ConsumerWidget {
                 color: isDark ? AppColors.borderDark : AppColors.borderLight,
               ),
             ),
-            child: Row(
+            child: Column(
               children: [
-                Icon(
-                  Icons.business_rounded,
-                  size: 20,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        db.companyLocation.label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${db.company.name} • ${db.company.address}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${context.tr('attendance.allowed_radius_label')}: ${db.companyLocation.radiusMeters.toInt()} ${context.tr('common.meters')}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.business_rounded,
+                      size: 20,
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            db.companyLocation.label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${db.company.name} • ${db.company.address}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${context.tr('attendance.allowed_radius_label')}: ${db.companyLocation.radiusMeters.toInt()} ${context.tr('common.meters')}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1),
+                const SizedBox(height: 10),
+                // GPS Telemetry Strip: Distance & Accuracy
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.straighten_rounded,
+                          size: 15,
+                          color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${context.tr('attendance.distance_label')}: ${distanceMeters.toStringAsFixed(1)} ${context.tr('common.meters')}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.gps_fixed_rounded,
+                          size: 15,
+                          color: isLowAccuracy ? AppColors.warning : AppColors.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${context.tr('attendance.accuracy_label')}: ${accuracyMeters.toStringAsFixed(1)} ${context.tr('common.meters')}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isLowAccuracy
+                                ? AppColors.warning
+                                : (isDark ? Colors.white70 : AppColors.textPrimaryLight),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -170,7 +225,7 @@ class LocationStatusCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'إذن الموقع الجغرافي مطلوب',
+                          context.tr('attendance.permission_required_title'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -179,7 +234,7 @@ class LocationStatusCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'يلزم تفعيل إذن الموقع للتحقق من وجودك في مقر العمل.',
+                          context.tr('attendance.permission_required_desc'),
                           style: TextStyle(
                             fontSize: 11,
                             color: isDark ? const Color(0xFFFDE68A) : AppColors.warningDark,
@@ -223,12 +278,81 @@ class LocationStatusCard extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'خدمة تحديد المواقع (GPS) معطلة. يرجى تفعيلها للمتابعة.',
+                      context.tr('attendance.gps_disabled_alert'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: isDark ? const Color(0xFFFEE2E2) : AppColors.errorDark,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (isMockLocation) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF7F1D1D) : AppColors.errorLight,
+                borderRadius: AppDimensions.borderRadiusMedium,
+                border: Border.all(
+                  color: isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.security_update_warning_rounded, color: AppColors.error, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      context.tr('attendance.mock_location_alert'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFFFEE2E2) : AppColors.errorDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (isLowAccuracy) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF78350F) : AppColors.warningLight,
+                borderRadius: AppDimensions.borderRadiusMedium,
+                border: Border.all(
+                  color: isDark ? const Color(0xFFD97706) : const Color(0xFFFDE68A),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.gps_not_fixed_rounded, color: AppColors.warning, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr('attendance.low_accuracy_title'),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFFFEF3C7) : AppColors.warningDark,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.tr('attendance.low_accuracy_desc'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? const Color(0xFFFDE68A) : AppColors.warningDark,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

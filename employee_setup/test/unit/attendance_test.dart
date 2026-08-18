@@ -41,6 +41,23 @@ void main() {
         expect(AttendanceLocationPolicy.isWithinAllowedRadius(-1.0), isFalse);
       });
 
+      test('GPS Accuracy <= 20.0m is acceptable, > 20m is rejected', () {
+        expect(AttendanceLocationPolicy.isAccuracyAcceptable(3.5), isTrue);
+        expect(AttendanceLocationPolicy.isAccuracyAcceptable(20.0), isTrue);
+        expect(AttendanceLocationPolicy.isAccuracyAcceptable(20.1), isFalse);
+        expect(AttendanceLocationPolicy.isAccuracyAcceptable(45.0), isFalse);
+        expect(AttendanceLocationPolicy.isAccuracyAcceptable(0.0), isFalse);
+      });
+
+      test('Location age > 60 seconds is considered stale', () {
+        final now = DateTime.now();
+        final fresh = now.subtract(const Duration(seconds: 10));
+        final stale = now.subtract(const Duration(seconds: 65));
+
+        expect(AttendanceLocationPolicy.isLocationStale(fresh, now), isFalse);
+        expect(AttendanceLocationPolicy.isLocationStale(stale, now), isTrue);
+      });
+
       test('LocationService inside range reports distance <= 4m', () async {
         locationService.mode = MockLocationMode.insideRange;
         locationService.customDistance = 2.3;
@@ -63,6 +80,20 @@ void main() {
         final loc = await locationService.getCurrentLocation();
         expect(loc.isPermissionDenied, isTrue);
         expect(loc.isInsideRange, isFalse);
+      });
+
+      test('Low accuracy mode reports isAccuracyValid = false', () async {
+        locationService.mode = MockLocationMode.lowAccuracy;
+        final loc = await locationService.getCurrentLocation();
+        expect(loc.status, equals(LocationStatus.lowAccuracy));
+        expect(loc.isAccuracyValid, isFalse);
+      });
+
+      test('Mock location mode reports isMockLocation = true', () async {
+        locationService.mode = MockLocationMode.mockLocationDetected;
+        final loc = await locationService.getCurrentLocation();
+        expect(loc.isMockLocation, isTrue);
+        expect(loc.status, equals(LocationStatus.mockLocationDetected));
       });
     });
 
@@ -97,8 +128,10 @@ void main() {
       test('CheckIn online updates today status and adds to history', () async {
         final checkIn = await attendanceRepo.checkIn(
           employeeId: 'EMP-1024',
+          workLocationId: 'LOC-CAIRO-HQ',
           latitude: 30.0444,
           longitude: 31.2357,
+          accuracy: 3.5,
           distance: 2.1,
           biometricVerified: true,
           isOffline: false,
@@ -106,6 +139,8 @@ void main() {
 
         expect(checkIn.type, equals(AttendanceType.checkIn));
         expect(checkIn.status, equals(AttendanceStatus.success));
+        expect(checkIn.accuracy, equals(3.5));
+        expect(checkIn.workLocationId, equals('LOC-CAIRO-HQ'));
 
         final today = await attendanceRepo.getTodayStatus('EMP-1024');
         expect(today.hasCheckedIn, isTrue);
@@ -120,6 +155,7 @@ void main() {
           employeeId: 'EMP-1024',
           latitude: 30.0444,
           longitude: 31.2357,
+          accuracy: 3.5,
           distance: 2.1,
           biometricVerified: true,
           isOffline: true,
@@ -127,6 +163,7 @@ void main() {
 
         expect(checkIn.isOffline, isTrue);
         expect(checkIn.status, equals(AttendanceStatus.offlinePending));
+        expect(checkIn.syncStatus, equals(AttendanceSyncStatus.pending));
 
         final pending = await attendanceRepo.getPendingOfflineQueue();
         expect(pending.length, equals(1));

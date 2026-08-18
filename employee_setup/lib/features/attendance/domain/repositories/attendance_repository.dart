@@ -7,6 +7,8 @@ abstract class AttendanceRepository {
     required double latitude,
     required double longitude,
     required double distance,
+    double accuracy = 3.0,
+    String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
   });
@@ -15,6 +17,8 @@ abstract class AttendanceRepository {
     required double latitude,
     required double longitude,
     required double distance,
+    double accuracy = 3.0,
+    String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
   });

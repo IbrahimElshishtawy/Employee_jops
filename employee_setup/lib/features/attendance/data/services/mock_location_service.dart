@@ -9,22 +9,30 @@ enum MockLocationMode {
   permissionDenied,
   permissionDeniedForever,
   gpsDisabled,
+  lowAccuracy,
+  staleLocation,
+  mockLocationDetected,
   error,
 }
 
 class MockLocationService implements LocationService {
   MockLocationMode mode;
   double customDistance;
+  double customAccuracy;
+  DateTime? simulatedTimestamp;
 
   MockLocationService({
     this.mode = MockLocationMode.insideRange,
     this.customDistance = 2.3, // default: 2.3m from workplace
+    this.customAccuracy = 3.5, // default: 3.5m high accuracy
+    this.simulatedTimestamp,
   });
 
   @override
   Future<LocationResult> getCurrentLocation() async {
     // Artificial small delay for realistic UI loading states
     await Future.delayed(const Duration(milliseconds: 350));
+    final now = DateTime.now();
 
     switch (mode) {
       case MockLocationMode.insideRange:
@@ -33,6 +41,8 @@ class MockLocationService implements LocationService {
           latitude: AppConstants.officeLatitude + 0.00001,
           longitude: AppConstants.officeLongitude + 0.00001,
           distanceFromOfficeMeters: distance,
+          accuracyMeters: customAccuracy <= 20.0 ? customAccuracy : 3.5,
+          timestamp: simulatedTimestamp ?? now,
           status: LocationStatus.insideRange,
         );
       case MockLocationMode.outsideRange:
@@ -41,38 +51,79 @@ class MockLocationService implements LocationService {
           latitude: AppConstants.officeLatitude + 0.005,
           longitude: AppConstants.officeLongitude + 0.005,
           distanceFromOfficeMeters: distance,
+          accuracyMeters: customAccuracy,
+          timestamp: simulatedTimestamp ?? now,
           status: LocationStatus.outsideRange,
           errorMessage: 'أنت خارج نطاق تسجيل الحضور (${distance.toStringAsFixed(1)} متر)',
         );
+      case MockLocationMode.lowAccuracy:
+        return LocationResult(
+          latitude: AppConstants.officeLatitude,
+          longitude: AppConstants.officeLongitude,
+          distanceFromOfficeMeters: 2.0,
+          accuracyMeters: 45.0, // poor accuracy > 20m
+          timestamp: simulatedTimestamp ?? now,
+          status: LocationStatus.lowAccuracy,
+          errorMessage: 'دقة الموقع غير كافية (${45} م). يرجى الانتقال لمكان مكشوف وإعادة المحاولة.',
+        );
+      case MockLocationMode.staleLocation:
+        return LocationResult(
+          latitude: AppConstants.officeLatitude,
+          longitude: AppConstants.officeLongitude,
+          distanceFromOfficeMeters: 2.0,
+          accuracyMeters: 3.0,
+          timestamp: now.subtract(const Duration(minutes: 5)), // 5 mins old
+          status: LocationStatus.staleLocation,
+          errorMessage: 'بيانات الموقع الجغرافي قديمة، جاري إعادة التحديث.',
+        );
+      case MockLocationMode.mockLocationDetected:
+        return LocationResult(
+          latitude: AppConstants.officeLatitude,
+          longitude: AppConstants.officeLongitude,
+          distanceFromOfficeMeters: 2.0,
+          accuracyMeters: 3.0,
+          timestamp: simulatedTimestamp ?? now,
+          isMockLocation: true,
+          status: LocationStatus.mockLocationDetected,
+          errorMessage: 'تم رصد استخدام موقع وهمي (Mock Location). تم رفض العملية لأسباب أمنية.',
+        );
       case MockLocationMode.permissionDenied:
-        return const LocationResult(
+        return LocationResult(
           latitude: 0,
           longitude: 0,
           distanceFromOfficeMeters: 9999,
+          accuracyMeters: 999,
+          timestamp: now,
           status: LocationStatus.permissionDenied,
           errorMessage: 'تم رفض إذن الوصول إلى الموقع الجغرافي',
         );
       case MockLocationMode.permissionDeniedForever:
-        return const LocationResult(
+        return LocationResult(
           latitude: 0,
           longitude: 0,
           distanceFromOfficeMeters: 9999,
+          accuracyMeters: 999,
+          timestamp: now,
           status: LocationStatus.permissionDeniedForever,
           errorMessage: 'تم رفض إذن الموقع بشكل دائم. يرجى تفعيله من إعدادات الجهاز.',
         );
       case MockLocationMode.gpsDisabled:
-        return const LocationResult(
+        return LocationResult(
           latitude: 0,
           longitude: 0,
           distanceFromOfficeMeters: 9999,
+          accuracyMeters: 999,
+          timestamp: now,
           status: LocationStatus.gpsDisabled,
           errorMessage: 'خدمة تحديد المواقع GPS معطلة على هذا الجهاز',
         );
       case MockLocationMode.error:
-        return const LocationResult(
+        return LocationResult(
           latitude: 0,
           longitude: 0,
           distanceFromOfficeMeters: 9999,
+          accuracyMeters: 999,
+          timestamp: now,
           status: LocationStatus.error,
           errorMessage: 'تعذر الاتصال بخدمة الخرائط وتحديد المواقع',
         );

@@ -1,17 +1,25 @@
 import 'dart:math' as math;
 import '../../../../core/constants/app_constants.dart';
 
-/// Business policy for validating attendance geofence rules.
+/// Business policy for validating attendance geofence and GPS rules.
 ///
-/// Business Rule:
+/// Business Rules:
 /// - Maximum allowed distance from workplace = 4.0 meters.
 /// - Distance <= 4.0 meters -> Inside allowed attendance zone.
 /// - Distance > 4.0 meters -> Outside allowed attendance zone.
+/// - Maximum acceptable GPS accuracy = 20.0 meters.
+/// - Maximum acceptable location age (staleness) = 60 seconds.
 class AttendanceLocationPolicy {
   AttendanceLocationPolicy._();
 
   /// Maximum allowed radius in meters for workplace attendance check-in/out.
   static const double maxAllowedRadiusMeters = AppConstants.maxAllowedDistanceMeters; // 4.0m
+
+  /// Maximum acceptable GPS accuracy in meters.
+  static const double maxAcceptableAccuracyMeters = 20.0;
+
+  /// Maximum allowed age of GPS fix before being considered stale.
+  static const Duration maxLocationAge = Duration(seconds: 60);
 
   /// Calculates geodesic distance between two GPS coordinates using Haversine formula.
   /// Returns distance in meters.
@@ -40,6 +48,17 @@ class AttendanceLocationPolicy {
   /// Verifies if a given distance is strictly within the allowed workplace radius.
   static bool isWithinAllowedRadius(double distanceInMeters, [double allowedRadius = maxAllowedRadiusMeters]) {
     return distanceInMeters >= 0 && distanceInMeters <= allowedRadius;
+  }
+
+  /// Verifies if the GPS accuracy is acceptable for attendance.
+  static bool isAccuracyAcceptable(double accuracyMeters) {
+    return accuracyMeters > 0 && accuracyMeters <= maxAcceptableAccuracyMeters;
+  }
+
+  /// Verifies if a location timestamp is fresh enough.
+  static bool isLocationStale(DateTime timestamp, [DateTime? currentTime]) {
+    final now = currentTime ?? DateTime.now();
+    return now.difference(timestamp).abs() > maxLocationAge;
   }
 
   /// Validates whether the employee's current GPS coordinates are within the workplace radius.

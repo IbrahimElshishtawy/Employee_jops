@@ -13,14 +13,16 @@ import '../widgets/biometric_status_card.dart';
 import '../widgets/employee_header_card.dart';
 import '../widgets/location_status_card.dart';
 import '../widgets/today_attendance_status_card.dart';
+import '../widgets/work_schedule_card.dart';
 
-/// Full-featured, production-ready Attendance Screen for:
-/// 1. Check-In
-/// 2. Check-Out
-/// 3. Biometric Authentication
-/// 4. GPS Geofence Verification (4-meter rule)
-/// 5. Offline Attendance & Sync
-/// 6. Live Timeline & Status
+/// Full-featured, enterprise-grade Attendance Screen integrating:
+/// 1. Authenticated Employee Profile & Session Verification
+/// 2. Work Schedule Detection & Shift Status
+/// 3. Device Location, Geofence (4-meter radius rule) & GPS Accuracy
+/// 4. Biometric Identity Verification (Fingerprint / Face ID)
+/// 5. Check-In & Check-Out State Management
+/// 6. Offline Mode & Local Cache Synchronization
+/// 7. Today's Attendance Timeline & Live Telemetry
 class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
 
@@ -29,7 +31,7 @@ class AttendanceScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('attendance.title'),
-        subtitle: 'تسجيل الحضور والانصراف الذكي',
+        subtitle: context.tr('attendance.header_subtitle'),
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded),
@@ -45,6 +47,7 @@ class AttendanceScreen extends ConsumerWidget {
             await ref.read(attendanceFlowProvider.notifier).refreshLocation();
             ref.invalidate(attendanceSummaryProvider);
             ref.invalidate(attendanceHistoryProvider);
+            ref.invalidate(workScheduleShiftStatusProvider);
           },
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(
@@ -54,31 +57,35 @@ class AttendanceScreen extends ConsumerWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Employee Header
+                // 1. Authenticated Employee Header
                 EmployeeHeaderCard(),
                 SizedBox(height: 14),
 
-                // 2. Today's Attendance Overview
+                // 2. Today's Attendance Status Overview
                 TodayAttendanceStatusCard(),
                 SizedBox(height: 14),
 
-                // 3. Location & 4-Meter Geofence Card
+                // 3. Work Schedule & Shift Timing Card
+                WorkScheduleCard(),
+                SizedBox(height: 14),
+
+                // 4. Location, GPS Accuracy & 4-Meter Geofence Card
                 LocationStatusCard(),
                 SizedBox(height: 14),
 
-                // 4. Biometric Status Card
+                // 5. Biometric Identity Verification Status
                 BiometricStatusCard(),
                 SizedBox(height: 18),
 
-                // 5. Main Attendance Action Button & State Messages
+                // 6. Primary Attendance Action Button & Live Feedback
                 AttendanceActionSection(),
                 SizedBox(height: 18),
 
-                // 6. Today's Attendance Timeline
+                // 7. Today's Attendance Timeline (Milestones)
                 AttendanceTodayTimeline(),
                 SizedBox(height: 14),
 
-                // 7. Security & Offline Info
+                // 8. Security & Offline Policy Information
                 AttendanceSecurityInfoCard(),
                 SizedBox(height: 24),
               ],

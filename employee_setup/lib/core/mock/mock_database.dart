@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/advances/domain/models/advance_request.dart';
 import '../../features/advances/domain/models/expense_report.dart';
 import '../../features/attendance/domain/models/attendance.dart';
+import '../../features/attendance/domain/models/work_schedule.dart';
 import '../../features/auth/domain/models/employee.dart';
 import '../../features/notifications/domain/models/app_notification.dart';
 import '../../features/permissions/domain/models/permission_request.dart';
@@ -42,11 +43,14 @@ class MockDatabase {
   final List<Deduction> deductions;
   final List<HRMessage> hrMessages;
 
+  final WorkSchedule workSchedule;
+
   const MockDatabase({
     required this.employee,
     required this.company,
     required this.companyLocation,
     this.session,
+    required this.workSchedule,
     required this.attendance,
     required this.advances,
     required this.expenseReports,
@@ -104,6 +108,7 @@ class MockDatabase {
     Company? company,
     CompanyLocation? companyLocation,
     AppSession? Function()? session,
+    WorkSchedule? workSchedule,
     List<Attendance>? attendance,
     List<AdvanceRequest>? advances,
     List<ExpenseReport>? expenseReports,
@@ -118,6 +123,7 @@ class MockDatabase {
       company: company ?? this.company,
       companyLocation: companyLocation ?? this.companyLocation,
       session: session != null ? session() : this.session,
+      workSchedule: workSchedule ?? this.workSchedule,
       attendance: attendance ?? this.attendance,
       advances: advances ?? this.advances,
       expenseReports: expenseReports ?? this.expenseReports,
@@ -135,6 +141,7 @@ class MockDatabase {
     company: CompanySeed.company,
     companyLocation: CompanySeed.location,
     session: null,
+    workSchedule: WorkSchedule.defaultSchedule(),
     attendance: List.from(AttendanceSeeds.records),
     advances: List.from(AdvanceSeeds.advances),
     expenseReports: List.from(AdvanceSeeds.expenseReports),
