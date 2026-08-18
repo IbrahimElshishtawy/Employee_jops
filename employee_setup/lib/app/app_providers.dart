@@ -293,12 +293,18 @@ class AttendanceFlowState {
   final LocationResult? locationResult;
   final String? message;
   final bool isOffline;
+  final bool isLocationUpdating;
+  final bool isSyncing;
+  final DateTime? lastLocationUpdateTime;
 
   const AttendanceFlowState({
     this.processState = AttendanceProcessState.idle,
     this.locationResult,
     this.message,
     this.isOffline = false,
+    this.isLocationUpdating = false,
+    this.isSyncing = false,
+    this.lastLocationUpdateTime,
   });
 
   bool get isLoading =>
@@ -311,12 +317,19 @@ class AttendanceFlowState {
     LocationResult? locationResult,
     String? message,
     bool? isOffline,
+    bool? isLocationUpdating,
+    bool? isSyncing,
+    DateTime? lastLocationUpdateTime,
   }) {
     return AttendanceFlowState(
       processState: processState ?? this.processState,
       locationResult: locationResult ?? this.locationResult,
       message: message,
       isOffline: isOffline ?? this.isOffline,
+      isLocationUpdating: isLocationUpdating ?? this.isLocationUpdating,
+      isSyncing: isSyncing ?? this.isSyncing,
+      lastLocationUpdateTime:
+          lastLocationUpdateTime ?? this.lastLocationUpdateTime,
     );
   }
 }
@@ -324,7 +337,46 @@ class AttendanceFlowState {
 class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
   final Ref _ref;
 
-  AttendanceFlowNotifier(this._ref) : super(const AttendanceFlowState());
+  AttendanceFlowNotifier(this._ref) : super(const AttendanceFlowState()) {
+    // Initial silent location query
+    refreshLocation();
+  }
+
+  /// Refreshes current GPS position and distance without triggering attendance submission.
+  Future<LocationResult> refreshLocation() async {
+    state = state.copyWith(isLocationUpdating: true);
+    try {
+      final locationService = _ref.read(locationServiceProvider);
+      final result = await locationService.getCurrentLocation();
+      state = state.copyWith(
+        locationResult: result,
+        isLocationUpdating: false,
+        lastLocationUpdateTime: DateTime.now(),
+      );
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        isLocationUpdating: false,
+        message: 'تعذر تحديد الموقع الجغرافي حاليًا',
+      );
+      return const LocationResult(
+        latitude: 0,
+        longitude: 0,
+        distanceFromOfficeMeters: 9999,
+        status: LocationStatus.error,
+      );
+    }
+  }
+
+  /// Requests location permission from the device
+  Future<bool> requestLocationPermission() async {
+    final locationService = _ref.read(locationServiceProvider);
+    final granted = await locationService.requestPermission();
+    if (granted) {
+      await refreshLocation();
+    }
+    return granted;
+  }
 
   Future<bool> executeCheckIn() async {
     return _executeAttendanceAction(isCheckIn: true);
@@ -348,12 +400,15 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     // 1. Check Location
     state = state.copyWith(
       processState: AttendanceProcessState.checkingLocation,
-      message: 'جاري التحقق من الموقع الجغرافي...',
+      message: 'جاري التحقق من الموقع الجغرافي والمسافة...',
       isOffline: !isOnline,
     );
 
     final locResult = await locationService.getCurrentLocation();
-    state = state.copyWith(locationResult: locResult);
+    state = state.copyWith(
+      locationResult: locResult,
+      lastLocationUpdateTime: DateTime.now(),
+    );
 
     if (!locResult.isInsideRange) {
       state = state.copyWith(
@@ -368,7 +423,7 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     // 2. Biometric Authentication
     state = state.copyWith(
       processState: AttendanceProcessState.authenticatingBiometric,
-      message: 'يرجى تأكيد بصمة الإصبع أو الوجه...',
+      message: 'يرجى تأكيد بصمة الإصبع أو Face ID...',
     );
 
     final bioResult = await biometricService.authenticate(
@@ -382,7 +437,9 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
         processState: AttendanceProcessState.error,
         message: bioResult == BiometricAuthResult.cancelled
             ? 'تم إلغاء المصادقة البيومترية'
-            : 'فشلت المصادقة البيومترية، يرجى المحاولة مجددًا',
+            : bioResult == BiometricAuthResult.notAvailable
+                ? 'المصادقة البيومترية غير مفعلة على الجهاز'
+                : 'فشلت المصادقة بالبصمة، يرجى المحاولة مجددًا',
       );
       return false;
     }
@@ -422,7 +479,7 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
         title: isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف',
         message: isOnline
             ? 'تم ${isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف'} بنجاح (${locResult.distanceFromOfficeMeters.toStringAsFixed(1)} م)'
-            : 'تم الحفظ محليًا — في انتظار مراجعة HR',
+            : 'تم الحفظ محليًا — سيتم المزامنة تلقائيًا',
         category: NotificationCategory.attendance,
         createdAt: DateTime.now(),
         isRead: false,
@@ -433,10 +490,32 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
       processState: AttendanceProcessState.success,
       message: isOnline
           ? (isCheckIn ? 'تم تسجيل الحضور بنجاح!' : 'تم تسجيل الانصراف بنجاح!')
-          : 'تم الحفظ محليًا - في انتظار مراجعة الـ HR',
+          : 'تم تسجيل الحضور بدون اتصال وسيتم المزامنة لاحقًا.',
     );
 
     return true;
+  }
+
+  /// Syncs offline pending records when connectivity is restored
+  Future<int> syncPendingAttendance() async {
+    state = state.copyWith(isSyncing: true);
+    try {
+      final attendanceRepo = _ref.read(attendanceRepositoryProvider);
+      final count = await attendanceRepo.syncPendingAttendance();
+      state = state.copyWith(
+        isSyncing: false,
+        message: count > 0
+            ? 'تمت مزامنة $count سجلات بنجاح'
+            : 'لا توجد سجلات معلقة للمزامنة',
+      );
+      return count;
+    } catch (e) {
+      state = state.copyWith(
+        isSyncing: false,
+        message: 'فشلت المزامنة، يرجى إعادة المحاولة',
+      );
+      return 0;
+    }
   }
 
   void resetState() {

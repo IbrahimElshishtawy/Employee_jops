@@ -17,6 +17,7 @@ class AppRoutes {
   static const String profile = '/profile';
 
   // Attendance
+  static const String attendance = '/attendance';
   static const String attendanceHistory = '/attendance/history';
 
   // Advances

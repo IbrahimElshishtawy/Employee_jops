@@ -8,6 +8,7 @@ import '../../features/advances/presentation/screens/advances_list_screen.dart';
 import '../../features/advances/presentation/screens/expense_report_screen.dart';
 import '../../features/advances/presentation/screens/new_advance_screen.dart';
 import '../../features/attendance/presentation/screens/attendance_history_screen.dart';
+import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -165,6 +166,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Global Pushed Sub-routes
+      GoRoute(
+        path: AppRoutes.attendance,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AttendanceScreen(),
+      ),
       GoRoute(
         path: AppRoutes.attendanceHistory,
         parentNavigatorKey: _rootNavigatorKey,
