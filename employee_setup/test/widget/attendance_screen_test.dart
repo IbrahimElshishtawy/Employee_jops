@@ -74,6 +74,7 @@ void main() {
       expect(find.text('الحضور والانصراف'), findsWidgets);
       expect(find.text('تسجيل الحضور'), findsWidgets);
       expect(find.text('حالة اليوم'), findsOneWidget);
+      expect(find.text('جدول الدوام ومواعيد العمل'), findsOneWidget);
       expect(find.text('أكّد هويتك للمتابعة'), findsOneWidget);
       expect(find.text('الجدول الزمني لليوم'), findsOneWidget);
     });
