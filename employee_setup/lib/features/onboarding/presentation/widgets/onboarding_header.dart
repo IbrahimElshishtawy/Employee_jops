@@ -43,7 +43,14 @@ class OnboardingHeader extends StatelessWidget {
           children: [
             if (showBack)
               InkWell(
-                onTap: onBack ?? () => context.pop(),
+                onTap: onBack ??
+                    () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/login');
+                      }
+                    },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.all(8),

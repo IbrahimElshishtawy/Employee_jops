@@ -77,7 +77,13 @@ class _WorkLocationScreenState extends ConsumerState<WorkLocationScreen> {
                       title: context.tr('onboarding.step3_title'),
                       subtitle: context.tr('onboarding.step3_subtitle'),
                       showBack: true,
-                      onBack: () => context.pop(),
+                      onBack: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(AppRoutes.onboardingWork);
+                        }
+                      },
                     ),
                     const SizedBox(height: 28),
 

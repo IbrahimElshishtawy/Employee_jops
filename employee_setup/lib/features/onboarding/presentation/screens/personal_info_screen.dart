@@ -116,7 +116,13 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         title: context.tr('onboarding.step1_title'),
                         subtitle: context.tr('onboarding.step1_subtitle'),
                         showBack: true,
-                        onBack: () => context.pop(),
+                        onBack: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go(AppRoutes.login);
+                          }
+                        },
                       ),
                       const SizedBox(height: 28),
 

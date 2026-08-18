@@ -207,7 +207,13 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
                       title: context.tr('onboarding.step2_title'),
                       subtitle: context.tr('onboarding.step2_subtitle'),
                       showBack: true,
-                      onBack: () => context.pop(),
+                      onBack: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(AppRoutes.onboardingPersonal);
+                        }
+                      },
                     ),
                     const SizedBox(height: 32),
 
