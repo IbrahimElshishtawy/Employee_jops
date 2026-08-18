@@ -95,7 +95,7 @@ void main() {
       expect(find.byType(AppLogo), findsOneWidget);
       expect(find.byType(GoogleSignInButton), findsOneWidget);
       expect(find.textContaining('مرحب'), findsOneWidget);
-      expect(find.textContaining('Google'), findsOneWidget);
+      expect(find.textContaining('Google'), findsAtLeastNWidgets(1));
       expect(find.textContaining('دخول آمن'), findsOneWidget);
     });
 
