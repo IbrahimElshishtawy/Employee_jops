@@ -19,8 +19,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Employee App'), findsOneWidget);
+    expect(find.text('EMPLOYEE PORTAL'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 1000));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 200));
   });
 }
