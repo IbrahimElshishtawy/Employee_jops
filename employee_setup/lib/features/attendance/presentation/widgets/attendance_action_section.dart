@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_button.dart';
-import '../../domain/models/location_result.dart';
+import '../../data/services/mock_location_service.dart';
 import 'checkout_confirm_dialog.dart';
 
 class AttendanceActionSection extends ConsumerWidget {

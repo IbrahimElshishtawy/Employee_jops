@@ -40,11 +40,11 @@ class QuickActionsGrid extends StatelessWidget {
         route: '/requests/vacations',
       ),
       _QuickActionItem(
-        title: context.tr('attendance.history'),
-        icon: Icons.calendar_month_rounded,
+        title: context.tr('attendance.title'),
+        icon: Icons.fingerprint_rounded,
         color: const Color(0xFF8B5CF6),
         gradientColors: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-        route: '/attendance/history',
+        route: '/attendance',
       ),
     ];
 

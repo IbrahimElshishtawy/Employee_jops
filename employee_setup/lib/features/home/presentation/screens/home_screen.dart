@@ -48,6 +48,7 @@ class HomeScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: AttendanceCard(
+                    onDetailsTap: () => context.push('/attendance'),
                     onHistoryTap: () => context.push('/attendance/history'),
                   ),
                 ),

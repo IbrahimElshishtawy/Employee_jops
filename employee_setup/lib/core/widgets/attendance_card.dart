@@ -10,8 +10,9 @@ import 'app_card.dart';
 
 class AttendanceCard extends ConsumerWidget {
   final VoidCallback? onHistoryTap;
+  final VoidCallback? onDetailsTap;
 
-  const AttendanceCard({super.key, this.onHistoryTap});
+  const AttendanceCard({super.key, this.onHistoryTap, this.onDetailsTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,32 +29,48 @@ class AttendanceCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.surfaceVariantDark
-                          : AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+              InkWell(
+                onTap: onDetailsTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.access_time_filled_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.access_time_filled_rounded,
-                      color: AppColors.primary,
-                      size: 20,
+                    const SizedBox(width: 10),
+                    Text(
+                      context.tr('home.today_status'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    context.tr('home.today_status'),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                    ),
-                  ),
-                ],
+                    if (onDetailsTap != null) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        context.isRtl
+                            ? Icons.arrow_back_ios_new_rounded
+                            : Icons.arrow_forward_ios_rounded,
+                        size: 12,
+                        color: isDark
+                            ? AppColors.textMutedDark
+                            : AppColors.textMutedLight,
+                      ),
+                    ],
+                  ],
+                ),
               ),
               if (onHistoryTap != null)
                 TextButton.icon(
