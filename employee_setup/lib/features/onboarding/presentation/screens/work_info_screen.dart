@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../domain/onboarding_provider.dart';
+import '../widgets/onboarding_header.dart';
+import '../widgets/selection_bottom_sheet.dart';
+import '../widgets/selection_field.dart';
 
 class WorkInfoScreen extends ConsumerStatefulWidget {
   const WorkInfoScreen({super.key});
@@ -22,13 +24,14 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
   String? _selectedDepartment;
   String? _selectedRegion;
   String? _selectedManagerId;
+  String? _selectedManagerName;
+
+  bool _submitted = false;
 
   @override
   void initState() {
     super.initState();
     final formState = ref.read(onboardingProvider);
-    // Use onboarding state if set, otherwise fall back to auth employee
-    // Only use employee values that are present in the catalog to avoid dropdown assertion errors
     final employee = ref.read(authProvider).employee;
     final catalog = ref.read(onboardingCatalogProvider);
 
@@ -41,39 +44,136 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
         ? formState.jobTitle
         : (empJobTitle != null && catalog.jobTitles.contains(empJobTitle)
             ? empJobTitle
-            : null);
+            : (catalog.jobTitles.isNotEmpty ? catalog.jobTitles.first : null));
+
     _selectedDepartment = formState.department.isNotEmpty
         ? formState.department
         : (empDept != null && catalog.departments.contains(empDept)
             ? empDept
-            : null);
+            : (catalog.departments.isNotEmpty ? catalog.departments.first : null));
+
     _selectedRegion = formState.region.isNotEmpty
         ? formState.region
         : (empRegion != null && catalog.regions.contains(empRegion)
             ? empRegion
-            : null);
+            : (catalog.regions.isNotEmpty ? catalog.regions.first : null));
+
     _selectedManagerId = formState.managerId.isNotEmpty
         ? formState.managerId
         : (empManagerId != null &&
                 catalog.managers.any((m) => m.id == empManagerId)
             ? empManagerId
-            : null);
+            : (catalog.managers.isNotEmpty ? catalog.managers.first.id : null));
+
+    _selectedManagerName = formState.managerName.isNotEmpty
+        ? formState.managerName
+        : (catalog.managers.isNotEmpty ? catalog.managers.first.name : null);
   }
 
-  void _handleNext() {
+  void _openJobTitlePicker() async {
+    final catalog = ref.read(onboardingCatalogProvider);
+    final items = catalog.jobTitles
+        .map((t) => SelectionItem(id: t, title: t, icon: Icons.work_outline_rounded))
+        .toList();
+
+    final result = await SelectionBottomSheet.show(
+      context: context,
+      title: context.tr('onboarding.select_job_title'),
+      items: items,
+      selectedId: _selectedJobTitle,
+    );
+
+    if (result != null) {
+      setState(() => _selectedJobTitle = result.id);
+    }
+  }
+
+  void _openDepartmentPicker() async {
+    final catalog = ref.read(onboardingCatalogProvider);
+    final items = catalog.departments
+        .map((d) => SelectionItem(id: d, title: d, icon: Icons.domain_rounded))
+        .toList();
+
+    final result = await SelectionBottomSheet.show(
+      context: context,
+      title: context.tr('onboarding.select_department'),
+      items: items,
+      selectedId: _selectedDepartment,
+    );
+
+    if (result != null) {
+      setState(() => _selectedDepartment = result.id);
+    }
+  }
+
+  void _openRegionPicker() async {
+    final catalog = ref.read(onboardingCatalogProvider);
+    final items = catalog.regions
+        .map((r) => SelectionItem(id: r, title: r, icon: Icons.location_city_rounded))
+        .toList();
+
+    final result = await SelectionBottomSheet.show(
+      context: context,
+      title: context.tr('onboarding.select_region'),
+      items: items,
+      selectedId: _selectedRegion,
+    );
+
+    if (result != null) {
+      setState(() => _selectedRegion = result.id);
+    }
+  }
+
+  void _openManagerPicker() async {
+    final catalog = ref.read(onboardingCatalogProvider);
+    final items = catalog.managers
+        .map((m) => SelectionItem(
+              id: m.id,
+              title: m.name,
+              subtitle: m.department,
+              icon: Icons.person_outline_rounded,
+            ))
+        .toList();
+
+    final result = await SelectionBottomSheet.show(
+      context: context,
+      title: context.tr('onboarding.select_manager'),
+      items: items,
+      selectedId: _selectedManagerId,
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedManagerId = result.id;
+        _selectedManagerName = result.title;
+      });
+    }
+  }
+
+  void _handleContinue() {
+    setState(() => _submitted = true);
+
     if (_selectedJobTitle == null ||
         _selectedDepartment == null ||
         _selectedRegion == null ||
         _selectedManagerId == null) {
-      context.showSnackBar('يرجى ملء جميع الحقول', isError: true);
+      context.showSnackBar(
+        context.tr('onboarding.required_fields_error'),
+        isError: true,
+      );
       return;
     }
 
-    final managerName = _getManagerName(_selectedManagerId!);
+    final catalog = ref.read(onboardingCatalogProvider);
+    final managerName = _selectedManagerName ??
+        catalog.managers
+            .firstWhere(
+              (m) => m.id == _selectedManagerId,
+              orElse: () => catalog.managers.first,
+            )
+            .name;
 
-    ref
-        .read(onboardingProvider.notifier)
-        .setStep2Data(
+    ref.read(onboardingProvider.notifier).setStep2Data(
           jobTitle: _selectedJobTitle!,
           department: _selectedDepartment!,
           region: _selectedRegion!,
@@ -84,315 +184,100 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
     context.push(AppRoutes.onboardingLocation);
   }
 
-  String _getManagerName(String managerId) {
-    final catalog = ref.read(onboardingCatalogProvider);
-    final manager = catalog.managers.firstWhere(
-      (m) => m.id == managerId,
-      orElse: () => catalog.managers.first,
-    );
-    return manager.name;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final catalog = ref.watch(onboardingCatalogProvider);
-    final localizations = AppLocalizations.of(context);
+    final isDark = context.isDark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-      appBar: AppBar(
-        backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Progress Indicator
-              Container(
-                height: 4,
-                width: MediaQuery.of(context).size.width * 0.5,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 28),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Unified Header
+                    OnboardingHeader(
+                      currentStep: 2,
+                      totalSteps: 3,
+                      title: context.tr('onboarding.step2_title'),
+                      subtitle: context.tr('onboarding.step2_subtitle'),
+                      showBack: true,
+                      onBack: () => context.pop(),
+                    ),
+                    const SizedBox(height: 32),
 
-              // Title
-              Text(
-                localizations.onboardingStep2Title,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                localizations.onboardingStep2Subtitle,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
+                    // 1. Job Title Selection
+                    SelectionField(
+                      label: context.tr('onboarding.job_title'),
+                      value: _selectedJobTitle,
+                      placeholder: context.tr('onboarding.select_job_title'),
+                      icon: Icons.work_outline_rounded,
+                      hasError: _submitted && _selectedJobTitle == null,
+                      onTap: _openJobTitlePicker,
+                    ),
+                    const SizedBox(height: 18),
 
-              // Job Title Dropdown
-              Text(
-                localizations.onboardingJobTitle,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedJobTitle,
-                hint: Text(localizations.onboardingJobTitle),
-                items: catalog.jobTitles.map((title) {
-                  return DropdownMenuItem(value: title, child: Text(title));
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedJobTitle = value),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
+                    // 2. Department Selection
+                    SelectionField(
+                      label: context.tr('onboarding.department'),
+                      value: _selectedDepartment,
+                      placeholder: context.tr('onboarding.select_department'),
+                      icon: Icons.domain_rounded,
+                      hasError: _submitted && _selectedDepartment == null,
+                      onTap: _openDepartmentPicker,
                     ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
-              // Department Dropdown
-              Text(
-                localizations.onboardingDepartment,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedDepartment,
-                hint: Text(localizations.onboardingDepartment),
-                items: catalog.departments.map((dept) {
-                  return DropdownMenuItem(value: dept, child: Text(dept));
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedDepartment = value),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
+                    // 3. Region Selection
+                    SelectionField(
+                      label: context.tr('onboarding.region'),
+                      value: _selectedRegion,
+                      placeholder: context.tr('onboarding.select_region'),
+                      icon: Icons.location_city_rounded,
+                      hasError: _submitted && _selectedRegion == null,
+                      onTap: _openRegionPicker,
                     ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
-              // Region Dropdown
-              Text(
-                localizations.onboardingRegion,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    // 4. Direct Manager Selection
+                    SelectionField(
+                      label: context.tr('onboarding.manager'),
+                      value: _selectedManagerName,
+                      placeholder: context.tr('onboarding.select_manager'),
+                      icon: Icons.person_pin_circle_outlined,
+                      hasError: _submitted && _selectedManagerId == null,
+                      onTap: _openManagerPicker,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedRegion,
-                hint: Text(localizations.onboardingRegion),
-                items: catalog.regions.map((region) {
-                  return DropdownMenuItem(value: region, child: Text(region));
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedRegion = value),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 20),
+            ),
 
-              // Manager Dropdown
-              Text(
-                localizations.onboardingManager,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+            // Bottom Action Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedManagerId,
-                hint: Text(localizations.onboardingManager),
-                items: catalog.managers.map((manager) {
-                  return DropdownMenuItem(
-                    value: manager.id,
-                    child: Text('${manager.name} (${manager.department})'),
-                  );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedManagerId = value),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
+              child: AppButton(
+                label: context.tr('onboarding.continue_action'),
+                onPressed: _handleContinue,
+                isFullWidth: true,
+                height: 52,
               ),
-              const SizedBox(height: 32),
-
-              // Navigation Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () => context.pop(),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppDimensions.borderRadiusLarge,
-                          ),
-                        ),
-                        child: Text(
-                          localizations.onboardingBack,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _handleNext,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppDimensions.borderRadiusLarge,
-                          ),
-                        ),
-                        child: Text(
-                          localizations.onboardingNext,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -99,6 +99,7 @@ class AppLocalizations {
   String get onboardingBack => translate('onboarding.back');
   String get onboardingVerifiedByGoogle =>
       translate('onboarding.verified_by_google');
+  String get onboardingVerified => translate('onboarding.verified');
   String get onboardingBiometricTitle =>
       translate('onboarding.biometric_title');
   String get onboardingBiometricSubtitle =>
@@ -110,6 +111,22 @@ class AppLocalizations {
   String get onboardingHrContactEmail =>
       translate('onboarding.hr_contact_email');
   String get onboardingHrContacting => translate('onboarding.hr_contacting');
+  String get onboardingLocationAccessTitle =>
+      translate('onboarding.location_access_title');
+  String get onboardingLocationAccessDesc =>
+      translate('onboarding.location_access_desc');
+  String get onboardingLocationPermissionEnabled =>
+      translate('onboarding.location_permission_enabled');
+  String get onboardingLocationPermissionRequired =>
+      translate('onboarding.location_permission_required');
+  String get onboardingAllowLocation =>
+      translate('onboarding.allow_location');
+  String get onboardingWorkplaceAssigned =>
+      translate('onboarding.workplace_assigned');
+  String get onboardingHrSupportTitle =>
+      translate('onboarding.hr_support_title');
+  String get onboardingRequiredFieldsError =>
+      translate('onboarding.required_fields_error');
 
   // General & Buttons
   String get save => translate('common.save');
@@ -178,25 +195,13 @@ class AppLocalizations {
       'attendance.allow_location_permission': 'السماح بالوصول للموقع',
       'attendance.open_location_settings': 'فتح الإعدادات',
       'attendance.verify_identity': 'أكّد هويتك للمتابعة',
-      'attendance.biometric_desc': 'استخدم بصمة الإصبع أو Face ID لتسجيل حضورك بأمان.',
-      'attendance.biometric_ready': 'المصادقة البيومترية جاهزة',
-      'attendance.biometric_verifying': 'جاري التحقق من البصمة...',
-      'attendance.biometric_failed': 'فشل التحقق بالبصمة',
-      'attendance.biometric_try_again': 'إعادة المحاولة',
-      'attendance.biometric_unavailable': 'المصادقة البيومترية غير متوفرة على هذا الجهاز',
+      'attendance.action_completed': 'تم إكمال حضور اليوم',
       'attendance.check_in_time': 'وقت الدخول',
       'attendance.check_out_time': 'وقت الانصراف',
-      'attendance.working_hours': 'ساعات العمل',
-      'attendance.checking_location': 'جاري التحقق من الموقع الجغرافي...',
-      'attendance.authenticating_biometric': 'يرجى تأكيد بصمة الإصبع أو الوجه...',
-      'attendance.submitting': 'جاري تسجيل الحضور...',
-      'attendance.success_msg': 'تم تسجيل الحضور بنجاح!',
-      'attendance.checkout_success_msg': 'تم تسجيل الانصراف بنجاح!',
       'attendance.pending_hr_verification': 'في انتظار مراجعة الـ HR',
       'attendance.offline_notice': 'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
-      'attendance.offline_alert': 'تم تسجيل الحضور بدون اتصال وسيتم المزامنة تلقائيًا لاحقًا.',
-      'attendance.offline_badge': 'وضع بدون اتصال',
-      'attendance.sync_now': 'مزامنة السجلات الآن',
+      'attendance.offline_alert': 'تم تسجيل الحضور محليًا لعدم توفر اتصال بالإنترنت.',
+      'attendance.sync_now': 'مزامنة الآن',
       'attendance.syncing': 'جاري المزامنة...',
       'attendance.synced_success': 'تمت مزامنة جميع السجلات بنجاح',
       'attendance.history': 'سجل الحضور الأخير',
@@ -204,9 +209,6 @@ class AppLocalizations {
       'attendance.timeline_checkin': 'تسجيل الحضور',
       'attendance.timeline_checkout': 'تسجيل الانصراف',
       'attendance.timeline_working': 'جلسة العمل الحالية',
-      'attendance.checkout_confirm_title': 'تأكيد تسجيل الانصراف',
-      'attendance.checkout_confirm_msg': 'هل أنت متأكد من رغبتك في تسجيل الانصراف وإنهاء يوم العمل؟',
-      'attendance.security_note': 'عملية الحضور مؤمّنة وتعتمد على الموقع الجغرافي الدقيق ومصادقة النظام البيومترية.',
 
       // Requests Hub
       'requests.title': 'مركز الطلبات',
@@ -269,20 +271,20 @@ class AppLocalizations {
       // Notifications
       'notifications.title': 'التنبيهات',
       'notifications.empty': 'لا توجد تنبيهات جديدة',
-      'notifications.mark_all_read': 'تحديد الكل كمقروء',
-      'notifications.category_hr': 'رسائل الإدارة (HR)',
-      'notifications.category_requests': 'تحديثات الطلبات',
-      'notifications.category_deductions': 'الخصومات والمستحقات',
-      'notifications.category_attendance': 'حالة الحضور',
-      'notifications.category_system': 'النظام',
+      'notifications.mark_all_read': 'تعيين الكل كمقروء',
+      'notifications.category_advances': 'تنبيهات السُلف',
+      'notifications.category_permissions': 'تنبيهات الاستئذان',
+      'notifications.category_vacations': 'تنبيهات الإجازات',
+      'notifications.category_attendance': 'تنبيهات الحضور',
+      'notifications.category_system': 'تنبيهات النظام',
 
       // Profile
       'profile.title': 'الملف الشخصي',
       'profile.employee_id': 'الرقم الوظيفي',
-      'profile.department': 'القسم / الإدارة',
+      'profile.department': 'القسم',
       'profile.job_title': 'المسمى الوظيفي',
       'profile.email': 'البريد الإلكتروني',
-      'profile.settings': 'الإعدادات العامة',
+      'profile.settings': 'الإعدادات',
       'profile.help': 'المساعدة والدعم',
       'profile.privacy': 'سياسة الخصوصية',
       'profile.about': 'عن التطبيق',
@@ -290,12 +292,12 @@ class AppLocalizations {
       // Settings
       'settings.title': 'الإعدادات',
       'settings.account': 'الحساب',
-      'settings.appearance': 'المظهر',
-      'settings.theme': 'الوضع',
-      'settings.theme_system': 'حسب النظام',
-      'settings.theme_light': 'الوضع الفاتح',
-      'settings.theme_dark': 'الوضع الداكن',
-      'settings.language': 'اللغة',
+      'settings.appearance': 'المظهر والسمات',
+      'settings.theme': 'وضع السمة',
+      'settings.theme_system': 'تلقائي (حسب النظام)',
+      'settings.theme_light': 'الوضع الفاتح (Light)',
+      'settings.theme_dark': 'الوضع الداكن (Dark)',
+      'settings.language': 'اللغة (Language)',
       'settings.language_ar': 'العربية (Arabic)',
       'settings.language_en': 'الإنجليزية (English)',
       'settings.developer_demo': 'أدوات المطور والمحاكاة (Demo Controls)',
@@ -319,11 +321,6 @@ class AppLocalizations {
       'demo.data_reset_success': 'تمت استعادة البيانات الافتراضية بنجاح',
 
       // Onboarding
-      'onboarding.step1_title': 'البيانات الشخصية',
-      'onboarding.step1_subtitle': 'أكمل ملفك الشخصي ببيانات دقيقة',
-      'onboarding.step2_title': 'معلومات العمل',
-      'onboarding.step2_subtitle': 'أخبرنا عن دورك وفريقك',
-      'onboarding.step3_title': 'الموقع وجهات الاتصال',
       'onboarding.step3_subtitle': 'حدد موقع عملك وجهة الاتصال بـ HR',
       'onboarding.full_name': 'الاسم الكامل',
       'onboarding.email': 'البريد الإلكتروني',
@@ -378,10 +375,16 @@ class AppLocalizations {
 
       // Auth
       'auth.welcome_title': 'Welcome to Employee App',
+      'auth.welcome_back': 'Welcome Back',
       'auth.welcome_subtitle':
           'Your enterprise portal for attendance, requests, and HR services with maximum simplicity.',
+      'auth.sign_in_subtitle':
+          'Sign in to access your employee account.',
       'auth.sign_in_google': 'Sign in with Google',
+      'auth.continue_google': 'Continue with Google',
       'auth.signing_in': 'Signing in...',
+      'auth.secure_access': 'Secure employee access',
+      'auth.error_generic': 'Unable to sign in. Please try again.',
       'auth.logout': 'Sign Out',
       'auth.logout_confirm': 'Are you sure you want to sign out?',
 
@@ -563,36 +566,52 @@ class AppLocalizations {
       'demo.data_reset_success': 'Mock data has been reset to defaults',
 
       // Onboarding
-      'onboarding.step1_title': 'Personal Information',
+      'onboarding.step1_title': 'Confirm your information',
       'onboarding.step1_subtitle':
-          'Complete your profile with accurate personal details',
-      'onboarding.step2_title': 'Work Information',
-      'onboarding.step2_subtitle': 'Tell us about your role and team',
-      'onboarding.step3_title': 'Location & HR',
+          'Make sure your basic information is correct.',
+      'onboarding.step2_title': 'Your work information',
+      'onboarding.step2_subtitle': 'Select your role and team.',
+      'onboarding.step3_title': 'Your workplace',
       'onboarding.step3_subtitle':
-          'Configure your work location and HR contact',
+          'Confirm your assigned workplace and know who to contact.',
       'onboarding.full_name': 'Full Name',
       'onboarding.email': 'Email',
-      'onboarding.national_id': 'National ID',
+      'onboarding.national_id': 'National ID / Civil ID',
       'onboarding.phone': 'Phone Number',
       'onboarding.job_title': 'Job Title',
       'onboarding.department': 'Department',
       'onboarding.region': 'Region',
       'onboarding.manager': 'Direct Manager',
-      'onboarding.work_location': 'Work Location',
-      'onboarding.hr_contact': 'HR Contact',
-      'onboarding.next': 'Next',
-      'onboarding.complete': 'Complete Onboarding',
+      'onboarding.work_location': 'Assigned Workplace',
+      'onboarding.hr_contact': 'HR Support',
+      'onboarding.next': 'Continue',
+      'onboarding.continue_action': 'Continue',
+      'onboarding.complete': 'Complete Setup',
+      'onboarding.complete_setup': 'Complete Setup',
       'onboarding.back': 'Back',
       'onboarding.verified_by_google': 'Verified by Google',
+      'onboarding.verified': 'Verified',
       'onboarding.biometric_title': 'Enable Biometric Authentication',
       'onboarding.biometric_subtitle':
           'Secure your attendance with fingerprint or face recognition',
       'onboarding.enable_biometric': 'Enable Biometric',
       'onboarding.skip_biometric': 'Skip for Now',
       'onboarding.hr_call': 'Call HR',
-      'onboarding.hr_contact_email': 'Contact HR',
+      'onboarding.hr_contact_email': 'Email HR',
       'onboarding.hr_contacting': 'Connecting with HR...',
+      'onboarding.location_access_title': 'Location Access',
+      'onboarding.location_access_desc': 'Your location is required to verify attendance at your assigned workplace (4m radius).',
+      'onboarding.location_permission_enabled': 'Location permission enabled',
+      'onboarding.location_permission_required': 'Location permission required',
+      'onboarding.allow_location': 'Allow Location',
+      'onboarding.workplace_assigned': 'Workplace assigned',
+      'onboarding.hr_support_title': 'HR Support',
+      'onboarding.select_job_title': 'Select Job Title',
+      'onboarding.select_department': 'Select Department',
+      'onboarding.select_region': 'Select Region',
+      'onboarding.select_manager': 'Select Direct Manager',
+      'onboarding.search_placeholder': 'Search...',
+      'onboarding.required_fields_error': 'Please fill in all required fields to continue.',
 
       // Common
       'common.save': 'Save',

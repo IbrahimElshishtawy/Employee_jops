@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/widgets/app_logo.dart';
 import '../widgets/google_sign_in_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -15,119 +18,162 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isSigningIn = false;
+  String? _errorMessage;
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() => _isSigningIn = true);
-    final success = await ref.read(authProvider.notifier).signInWithGoogle();
-    if (!mounted) return;
-    setState(() => _isSigningIn = false);
+    setState(() {
+      _isSigningIn = true;
+      _errorMessage = null;
+    });
 
-    if (success) {
-      // Let the router redirect handle the routing:
-      // • If onboardingCompleted == false → /onboarding/personal
-      // • If onboardingCompleted == true  → /home
-      final employee = ref.read(authProvider).employee;
-      if (employee != null && employee.onboardingCompleted) {
-        context.go('/home');
+    try {
+      final success = await ref.read(authProvider.notifier).signInWithGoogle();
+      if (!mounted) return;
+
+      setState(() => _isSigningIn = false);
+
+      if (success) {
+        final employee = ref.read(authProvider).employee;
+        if (employee != null && employee.onboardingCompleted) {
+          context.go('/home');
+        } else {
+          context.go('/onboarding/personal');
+        }
       } else {
-        context.go('/onboarding/personal');
+        setState(() {
+          _errorMessage = context.tr('auth.error_generic');
+        });
       }
-    } else {
-      context.showSnackBar(
-        'فشل تسجيل الدخول، يرجى إعادة المحاولة',
-        isError: true,
-      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSigningIn = false;
+        _errorMessage = context.tr('auth.error_generic');
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 32.0,
-            ),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // App Icon
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x2E1A73E8),
-                          blurRadius: 16,
-                          offset: Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.badge_outlined,
-                      size: 65,
-                      color: Colors.white,
-                    ),
+                  // 1. App Logo Mark
+                  const AppLogo(
+                    size: 80,
+                    iconSize: 42,
+                    borderRadius: 24,
+                    showShadow: true,
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
 
-                  // Titles
+                  // 2. Welcome Back Title
                   Text(
-                    context.tr('auth.welcome_title'),
+                    context.tr('auth.welcome_back'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
                       color: isDark ? Colors.white : AppColors.textPrimaryLight,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    context.tr('auth.welcome_subtitle'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
+                  const SizedBox(height: 10),
+
+                  // 3. Supporting Subtitle
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      context.tr('auth.sign_in_subtitle'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 36),
 
-                  // Google Sign-In Action
+                  // 4. Inline Error Banner (if error occurred)
+                  if (_errorMessage != null) ...[
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF450A0A) : AppColors.errorLight,
+                        borderRadius: AppDimensions.borderRadiusMedium,
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 18,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? const Color(0xFFFCA5A5) : AppColors.errorDark,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => setState(() => _errorMessage = null),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: isDark ? const Color(0xFFFCA5A5) : AppColors.errorDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // 5. Google Sign-In Action
                   GoogleSignInButton(
                     isLoading: _isSigningIn,
                     onPressed: _isSigningIn ? null : _handleGoogleSignIn,
-                    label: context.tr('auth.sign_in_google'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
-                  // Security Badge Footer
+                  // 6. Security Badge Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.shield_outlined,
-                        size: 16,
+                        size: 15,
                         color: isDark
                             ? AppColors.textMutedDark
                             : AppColors.textMutedLight,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'دخول آمن ومشفر للمؤسسة',
+                        context.tr('auth.secure_access'),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

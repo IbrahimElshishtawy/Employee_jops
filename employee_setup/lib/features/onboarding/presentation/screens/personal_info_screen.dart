@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_text_field.dart';
 import '../../domain/onboarding_provider.dart';
+import '../widgets/onboarding_header.dart';
+import '../widgets/verified_field.dart';
 
 class PersonalInfoScreen extends ConsumerStatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -18,28 +20,40 @@ class PersonalInfoScreen extends ConsumerStatefulWidget {
 }
 
 class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nationalIdController;
   late TextEditingController _phoneController;
 
   @override
   void initState() {
     super.initState();
-    // Pre-seed onboarding form with employee data from Google login
     final employee = ref.read(authProvider).employee;
-    if (employee != null) {
-      // Delay the state update until after the first frame to avoid modifying provider during build.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(onboardingProvider.notifier).setStep1Data(
-          fullName: employee.name,
-          email: employee.email,
-          nationalId: employee.nationalId ?? ref.read(onboardingProvider).nationalId,
-          phone: employee.phone.isNotEmpty ? employee.phone : ref.read(onboardingProvider).phone,
-        );
-      });
-    }
     final formState = ref.read(onboardingProvider);
-    _nationalIdController = TextEditingController(text: formState.nationalId);
-    _phoneController = TextEditingController(text: formState.phone);
+
+    final initialName = formState.fullName.isNotEmpty
+        ? formState.fullName
+        : (employee?.name ?? 'Employee User');
+    final initialEmail = formState.email.isNotEmpty
+        ? formState.email
+        : (employee?.email ?? 'employee@company.com');
+    final initialNationalId = formState.nationalId.isNotEmpty
+        ? formState.nationalId
+        : (employee?.nationalId ?? '29501011234567');
+    final initialPhone = formState.phone.isNotEmpty
+        ? formState.phone
+        : (employee?.phone ?? '01012345678');
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(onboardingProvider.notifier).setStep1Data(
+            fullName: initialName,
+            email: initialEmail,
+            nationalId: initialNationalId,
+            phone: initialPhone,
+          );
+    });
+
+    _nationalIdController = TextEditingController(text: initialNationalId);
+    _phoneController = TextEditingController(text: initialPhone);
   }
 
   @override
@@ -49,290 +63,199 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     super.dispose();
   }
 
-  void _handleNext() {
-    final nationalId = _nationalIdController.text.trim();
-    final phone = _phoneController.text.trim();
+  void _handleContinue() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final formState = ref.read(onboardingProvider);
+      ref.read(onboardingProvider.notifier).setStep1Data(
+            fullName: formState.fullName,
+            email: formState.email,
+            nationalId: _nationalIdController.text.trim(),
+            phone: _phoneController.text.trim(),
+          );
 
-    if (nationalId.isEmpty || phone.isEmpty) {
-      context.showSnackBar('يرجى ملء جميع الحقول', isError: true);
-      return;
+      context.push(AppRoutes.onboardingWork);
+    } else {
+      context.showSnackBar(
+        context.tr('onboarding.required_fields_error'),
+        isError: true,
+      );
     }
-
-    final formState = ref.read(onboardingProvider);
-    ref
-        .read(onboardingProvider.notifier)
-        .setStep1Data(
-          fullName: formState.fullName,
-          email: formState.email,
-          nationalId: nationalId,
-          phone: phone,
-        );
-
-    context.push(AppRoutes.onboardingWork);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final formState = ref.watch(onboardingProvider);
-    final localizations = AppLocalizations.of(context);
+    final employee = ref.watch(authProvider).employee;
+
+    final displayName = formState.fullName.isNotEmpty
+        ? formState.fullName
+        : (employee?.name ?? 'Employee User');
+    final displayEmail = formState.email.isNotEmpty
+        ? formState.email
+        : (employee?.email ?? 'employee@company.com');
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-      appBar: AppBar(
-        backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Progress Indicator
-              Container(
-                height: 4,
-                width: MediaQuery.of(context).size.width * 0.25,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 28),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Unified Onboarding Header
+                      OnboardingHeader(
+                        currentStep: 1,
+                        totalSteps: 3,
+                        title: context.tr('onboarding.step1_title'),
+                        subtitle: context.tr('onboarding.step1_subtitle'),
+                        showBack: true,
+                        onBack: () => context.pop(),
+                      ),
+                      const SizedBox(height: 28),
 
-              // Title
-              Text(
-                localizations.onboardingStep1Title,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                localizations.onboardingStep1Subtitle,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Full Name (Pre-filled, Read-only with Google checkmark)
-              Text(
-                localizations.onboardingFullName,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  borderRadius: AppDimensions.borderRadiusLarge,
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.borderDark
-                        : AppColors.borderLight,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        formState.fullName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark
-                              ? Colors.white
-                              : AppColors.textPrimaryLight,
+                      // Avatar Container with subtle glow & badge
+                      Center(
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 88,
+                              height: 88,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary.withValues(alpha: 0.8),
+                                    AppColors.primaryDark,
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.25),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  displayName.isNotEmpty
+                                      ? displayName.substring(0, 1).toUpperCase()
+                                      : 'E',
+                                  style: const TextStyle(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark ? AppColors.surfaceDark : Colors.white,
+                                    width: 2.5,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          localizations.onboardingVerifiedByGoogle,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          size: 16,
-                          color: AppColors.success,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+                      const SizedBox(height: 32),
 
-              // Email (Pre-filled, Read-only)
-              Text(
-                localizations.onboardingEmail,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  borderRadius: AppDimensions.borderRadiusLarge,
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.borderDark
-                        : AppColors.borderLight,
-                  ),
-                ),
-                child: Text(
-                  formState.email,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+                      // 1. Google Verified Full Name
+                      VerifiedField(
+                        label: context.tr('onboarding.full_name'),
+                        value: displayName,
+                        prefixIcon: Icons.person_outline_rounded,
+                      ),
+                      const SizedBox(height: 18),
 
-              // National ID
-              Text(
-                localizations.onboardingNationalId,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nationalIdController,
-                keyboardType: TextInputType.number,
-                maxLength: 14,
-                decoration: InputDecoration(
-                  hintText: localizations.onboardingNationalId,
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  counterText: '',
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 20),
+                      // 2. Google Verified Email
+                      VerifiedField(
+                        label: context.tr('onboarding.email'),
+                        value: displayEmail,
+                        prefixIcon: Icons.mail_outline_rounded,
+                      ),
+                      const SizedBox(height: 22),
 
-              // Phone Number
-              Text(
-                localizations.onboardingPhone,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  hintText: localizations.onboardingPhone,
-                  filled: true,
-                  fillColor: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceVariantLight,
-                  border: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppDimensions.borderRadiusLarge,
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 32),
+                      // 3. National ID (Editable)
+                      AppTextField(
+                        label: context.tr('onboarding.national_id'),
+                        controller: _nationalIdController,
+                        keyboardType: TextInputType.number,
+                        prefixIcon: const Icon(Icons.badge_outlined, size: 20),
+                        hintText: '29501011234567',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return context.tr('onboarding.required_fields_error');
+                          }
+                          if (value.trim().length < 8) {
+                            return context.tr('onboarding.required_fields_error');
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 18),
 
-              // Next Button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _handleNext,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppDimensions.borderRadiusLarge,
-                    ),
-                  ),
-                  child: Text(
-                    localizations.onboardingNext,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                      // 4. Phone Number (Editable)
+                      AppTextField(
+                        label: context.tr('onboarding.phone'),
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+                        hintText: '01012345678',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return context.tr('onboarding.required_fields_error');
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // Bottom Action Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  ),
+                ),
+              ),
+              child: AppButton(
+                label: context.tr('onboarding.continue_action'),
+                onPressed: _handleContinue,
+                isFullWidth: true,
+                height: 52,
+              ),
+            ),
+          ],
         ),
       ),
     );
