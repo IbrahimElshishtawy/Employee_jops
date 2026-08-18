@@ -4,6 +4,7 @@ import 'package:employee_setup/core/mock/mock_database.dart';
 import 'package:employee_setup/core/mock/models/app_session.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
+import 'package:employee_setup/core/widgets/app_button.dart';
 import 'package:employee_setup/features/attendance/data/services/mock_biometric_service.dart';
 import 'package:employee_setup/features/attendance/data/services/mock_location_service.dart';
 import 'package:employee_setup/features/attendance/presentation/screens/attendance_screen.dart';
@@ -112,6 +113,13 @@ void main() {
     });
 
     testWidgets('Tapping Check In executes flow and updates to Checked In state', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final locService = MockLocationService(
         mode: MockLocationMode.insideRange,
         customDistance: 2.3,
@@ -146,15 +154,19 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Find primary Check In button in Action Section and tap it
-      final checkInButton = find.widgetWithText(ElevatedButton, 'تسجيل الحضور');
+      // Find primary Check In button in Action Section, ensure visible and tap it
+      final checkInButton = find.widgetWithText(AppButton, 'تسجيل الحضور');
       expect(checkInButton, findsOneWidget);
+
+      await tester.ensureVisible(checkInButton);
+      await tester.pumpAndSettle();
 
       await tester.tap(checkInButton);
       await tester.pumpAndSettle();
 
       // Should now show Check Out available
-      expect(find.widgetWithText(ElevatedButton, 'تسجيل الانصراف'), findsOneWidget);
+      final checkOutButton = find.widgetWithText(AppButton, 'تسجيل الانصراف');
+      expect(checkOutButton, findsOneWidget);
     });
   });
 }

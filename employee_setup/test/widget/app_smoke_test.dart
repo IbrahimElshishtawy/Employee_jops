@@ -22,8 +22,9 @@ void main() {
     // Initial Splash Screen Render
     expect(find.text('Employee App'), findsOneWidget);
 
-    // Settle splash timer
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // Advance splash screen duration
+    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pumpAndSettle();
 
     // Should transition to Login screen
     expect(find.text('تسجيل الدخول باستخدام Google'), findsOneWidget);

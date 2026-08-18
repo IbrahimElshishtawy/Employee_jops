@@ -20,5 +20,7 @@ void main() {
     );
 
     expect(find.text('Employee App'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pumpAndSettle();
   });
 }
