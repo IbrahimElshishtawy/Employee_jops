@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../widgets/google_sign_in_button.dart';
@@ -53,12 +52,92 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _toggleLanguage() {
+  void _showLanguagePicker() {
     final currentLocale = ref.read(settingsProvider).locale;
-    final newLocale = currentLocale.languageCode == 'ar'
-        ? const Locale('en')
-        : const Locale('ar');
-    ref.read(settingsProvider.notifier).setLocale(newLocale);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.isDark ? AppColors.surfaceDark : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.isRtl ? 'اختر لغة التطبيق' : 'Select App Language',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildLanguageOption(
+                  label: 'العربية (Arabic)',
+                  isSelected: currentLocale.languageCode == 'ar',
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).setLocale(const Locale('ar'));
+                    Navigator.pop(ctx);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildLanguageOption(
+                  label: 'English (الإنجليزية)',
+                  isSelected: currentLocale.languageCode == 'en',
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).setLocale(const Locale('en'));
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : null,
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,519 +148,436 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isArabic = currentLocale.languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // ─── 1. Top Header: Logo + Live Language Switcher ───
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF8F9FD),
+      body: Stack(
+        children: [
+          // ─── 1. Decorative Curved Background Blobs ───────────────────
+          Positioned(
+            top: -60,
+            left: isRtl ? null : -60,
+            right: isRtl ? -60 : null,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
+                    .withValues(alpha: isDark ? 0.4 : 0.7),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -80,
+            right: isRtl ? null : -80,
+            left: isRtl ? -80 : null,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
+                    .withValues(alpha: isDark ? 0.3 : 0.6),
+              ),
+            ),
+          ),
+
+          // ─── 2. Main Scrollable Content ──────────────────────────────
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // App Identity Badge
-                      Row(
-                        children: [
-                          const AppLogo(
-                            size: 38,
-                            iconSize: 20,
-                            borderRadius: 10,
-                            showShadow: true,
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isRtl ? 'منظومة الموظف' : 'Employee Hub',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF0F172A),
-                                ),
+                      // Top Row: Language Selector Pill
+                      Align(
+                        alignment: isRtl ? Alignment.topLeft : Alignment.topRight,
+                        child: InkWell(
+                          onTap: _showLanguagePicker,
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.surfaceDark : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.borderDark
+                                    : const Color(0xFFE2E8F0),
                               ),
-                              Text(
-                                isRtl
-                                    ? 'الإصدار المؤسسي v2.4'
-                                    : 'Enterprise Edition v2.4',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.2 : 0.04,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.language_rounded,
+                                  size: 16,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isArabic ? 'العربية' : 'English',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 16,
                                   color: isDark
-                                      ? AppColors.textMutedDark
+                                      ? AppColors.textSecondaryDark
                                       : const Color(0xFF64748B),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // Language Switcher Pill
-                      InkWell(
-                        onTap: _toggleLanguage,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.surfaceVariantDark
-                                : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.borderDark
-                                  : const Color(0xFFE2E8F0),
-                              width: 1,
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.language_rounded,
-                                size: 16,
-                                color: AppColors.primary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isArabic ? 'English' : 'العربية',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF1E293B),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // ─── 2. Title & Subtitle ────────────────────────────
-                  Text(
-                    context.tr('auth.welcome_back'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    isRtl
-                        ? 'شجرة الملفات والويدجيت المترابطة بالمنظومة'
-                        : 'Integrated Application File & Widget Tree',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ─── 3. Widget & File Hierarchy Tree ────────────────
-                  _buildWidgetFileTree(isDark, isRtl),
-                  const SizedBox(height: 20),
-
-                  // Inline Error Banner
-                  if (_errorMessage != null) ...[
-                    _buildErrorBanner(isDark),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // ─── 4. Google Sign-In Action Card ──────────────────
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.surfaceDark
-                          : const Color(0xFFFAFAFA),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.borderDark
-                            : const Color(0xFFE2E8F0),
-                        width: 1.2,
+                      // ─── 3. App Logo & Headline ──────────────────────
+                      const AppLogo(
+                        size: 80,
+                        iconSize: 42,
+                        borderRadius: 24,
+                        showShadow: true,
+                        isWhiteCardStyle: true,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: isDark ? 0.25 : 0.04,
-                          ),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        GoogleSignInButton(
-                          isLoading: _isSigningIn,
-                          onPressed: _isSigningIn ? null : _handleGoogleSignIn,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          isRtl
-                              ? 'دخول موحد معتمد عبر حساب Google المؤسسي'
-                              : 'Authorized SSO with Corporate Google Account',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? AppColors.textMutedDark
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                  // ─── 5. Security & Governance Seal ──────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.verified_user_outlined,
-                        size: 15,
-                        color: AppColors.success,
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        context.tr('auth.secure_access'),
+                        context.tr('auth.welcome_back'),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+
+                      Text(
+                        isRtl
+                            ? 'تسجيل الدخول إلى حسابك'
+                            : 'Sign in to your account',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                           color: isDark
                               ? AppColors.textSecondaryDark
                               : const Color(0xFF64748B),
                         ),
                       ),
+                      const SizedBox(height: 28),
+
+                      // Inline Error Banner (if any)
+                      if (_errorMessage != null) ...[
+                        _buildErrorBanner(isDark),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // ─── 4. Main White Card Container ────────────────
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 24,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.surfaceDark : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : const Color(0xFFEEF2F6),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.25 : 0.05,
+                              ),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Card Title
+                            Text(
+                              isRtl
+                                  ? 'تسجيل الدخول بحساب جوجل'
+                                  : 'Sign in with Google Account',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              isRtl
+                                  ? 'استخدم حساب جوجل الخاص بك للوصول إلى التطبيق'
+                                  : 'Use your Google account to access the app',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+
+                            // Royal Blue Google Button
+                            GoogleSignInButton(
+                              isLoading: _isSigningIn,
+                              isFilled: true,
+                              label: isRtl
+                                  ? 'متابعة باستخدام Google'
+                                  : 'Continue with Google',
+                              onPressed: _isSigningIn ? null : _handleGoogleSignIn,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // 'أو' (OR) Divider Line
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : const Color(0xFFE2E8F0),
+                                    thickness: 1,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  child: Text(
+                                    isRtl ? 'أو' : 'OR',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppColors.textMutedDark
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : const Color(0xFFE2E8F0),
+                                    thickness: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Security Info Box (Light Blue Container)
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF0F6FE),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.primaryDark
+                                      : const Color(0xFFDBEAFE),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Shield Icon Badge
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.verified_user_rounded,
+                                        size: 22,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  // Texts
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          context.tr('auth.secure_access'),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          isRtl
+                                              ? 'باستخدام حساب جوجل الخاص بك للوصول السريع والآمن إلى جميع خدماتك'
+                                              : 'Using your Google account for secure and fast access to all services',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            height: 1.4,
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // ─── 5. Help & Support Link ──────────────────────
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            isRtl ? 'هل تحتاج مساعدة؟ ' : 'Need help? ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {},
+                            borderRadius: BorderRadius.circular(4),
+                            child: Text(
+                              isRtl ? 'تواصل مع الدعم الفني' : 'Contact Support',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // ─── 6. Terms & Privacy Notice ───────────────────
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4,
+                        children: [
+                          Icon(
+                            Icons.lock_outline_rounded,
+                            size: 13,
+                            color: isDark
+                                ? AppColors.textMutedDark
+                                : const Color(0xFF94A3B8),
+                          ),
+                          Text.rich(
+                            TextSpan(
+                              text: isRtl
+                                  ? 'بالدخول أنت توافق على '
+                                  : 'By signing in you agree to ',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.textMutedDark
+                                    : const Color(0xFF94A3B8),
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: isRtl
+                                      ? 'سياسة الخصوصية'
+                                      : 'Privacy Policy',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: isRtl ? ' و ' : ' and ',
+                                ),
+                                TextSpan(
+                                  text: isRtl
+                                      ? 'شروط الاستخدام'
+                                      : 'Terms of Service',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isRtl
-                        ? 'تشفير 256-bit SSL • حوكمة رقمية متوافقة'
-                        : '256-bit SSL Encrypted • Enterprise Compliance',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isDark
-                          ? AppColors.textMutedDark
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  /// Builds the complete hierarchical File & Widget Tree
-  Widget _buildWidgetFileTree(bool isDark, bool isRtl) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.surfaceDark.withValues(alpha: 0.9)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Root Directory Header ──
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.folder_copy_rounded,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'lib/features_tree/',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.success,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isRtl ? 'متصل بالخادم' : 'Live Sync',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // ── Tree Branches / Nodes ──
-          // Branch 1: Auth & Identity
-          _buildTreeBranch(
-            folderName: 'auth/',
-            folderLabel: isRtl ? 'المصادقة والأمان' : 'Auth & Security',
-            color: const Color(0xFF2563EB),
-            files: [
-              _TreeFile(
-                name: 'google_sso_service.dart',
-                tag: isRtl ? 'توثيق آمن' : 'OAuth 2.0',
-                icon: Icons.vpn_key_outlined,
-              ),
-              _TreeFile(
-                name: 'employee_session.dart',
-                tag: isRtl ? 'جلسة مشفّرة' : 'Encrypted',
-                icon: Icons.shield_outlined,
-              ),
-            ],
-            isDark: isDark,
-            isRtl: isRtl,
-          ),
-          const SizedBox(height: 10),
-
-          // Branch 2: Attendance & Geofencing
-          _buildTreeBranch(
-            folderName: 'attendance/',
-            folderLabel: isRtl ? 'الحضور ونطاق 4m' : 'Smart GPS & 4m',
-            color: const Color(0xFF059669),
-            files: [
-              _TreeFile(
-                name: 'geofence_4m_verifier.dart',
-                tag: isRtl ? 'نطاق دقيق 4m' : '4-Meter Radius',
-                icon: Icons.location_on_outlined,
-              ),
-              _TreeFile(
-                name: 'biometric_auth_node.dart',
-                tag: isRtl ? 'بصمة حيوية' : 'Biometrics',
-                icon: Icons.fingerprint_rounded,
-              ),
-            ],
-            isDark: isDark,
-            isRtl: isRtl,
-          ),
-          const SizedBox(height: 10),
-
-          // Branch 3: Requests & Operations
-          _buildTreeBranch(
-            folderName: 'requests_and_hub/',
-            folderLabel: isRtl ? 'الطلبات والعمليات' : 'Workflow & Leaves',
-            color: const Color(0xFF7C3AED),
-            files: [
-              _TreeFile(
-                name: 'vacation_leaves_flow.dart',
-                tag: isRtl ? 'إجازات وموافقات' : 'Approvals',
-                icon: Icons.event_note_outlined,
-              ),
-              _TreeFile(
-                name: 'advances_finance_hub.dart',
-                tag: isRtl ? 'سُلف ومصروفات' : 'Finance Node',
-                icon: Icons.account_balance_wallet_outlined,
-              ),
-            ],
-            isDark: isDark,
-            isRtl: isRtl,
-            isLast: true,
-          ),
         ],
       ),
     );
   }
 
-  /// Single Folder Branch in the Tree
-  Widget _buildTreeBranch({
-    required String folderName,
-    required String folderLabel,
-    required Color color,
-    required List<_TreeFile> files,
-    required bool isDark,
-    required bool isRtl,
-    bool isLast = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(left: 6, right: 6),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Branch Folder Header
-          Row(
-            children: [
-              Icon(Icons.folder_open_rounded, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(
-                folderName,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  '($folderLabel)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? AppColors.textMutedDark
-                        : const Color(0xFF64748B),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // File Nodes inside this Folder
-          ...files.map((file) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 4.0),
-              child: Row(
-                children: [
-                  Text(
-                    isRtl ? '├─ ' : '├── ',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11,
-                      color: isDark
-                          ? AppColors.textMutedDark
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                  Icon(
-                    file.icon,
-                    size: 13,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : const Color(0xFF475569),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      file.name,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 11,
-                        color: isDark
-                            ? Colors.white
-                            : const Color(0xFF334155),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      file.tag,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  /// Error Banner
   Widget _buildErrorBanner(bool isDark) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF450A0A) : AppColors.errorLight,
-        borderRadius: AppDimensions.borderRadiusMedium,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
         ),
@@ -616,16 +612,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-}
-
-class _TreeFile {
-  final String name;
-  final String tag;
-  final IconData icon;
-
-  const _TreeFile({
-    required this.name,
-    required this.tag,
-    required this.icon,
-  });
 }

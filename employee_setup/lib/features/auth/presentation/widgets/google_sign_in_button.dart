@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 
-/// Premium Enterprise Google Sign-In Button with 4-color Google mark,
-/// responsive states, loading animation, and accessible semantics.
+/// Premium Enterprise Google Sign-In Button.
+/// Supports both filled primary style (as shown in reference design) and outlined style.
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final String? label;
+  final bool isFilled;
 
   const GoogleSignInButton({
     super.key,
     required this.onPressed,
     this.isLoading = false,
     this.label,
+    this.isFilled = true,
   });
 
   @override
@@ -24,29 +25,38 @@ class GoogleSignInButton extends StatelessWidget {
     final buttonLabel = label ?? context.tr('auth.continue_google');
     final loadingLabel = context.tr('auth.signing_in');
 
+    final bgColor = isFilled
+        ? AppColors.primary
+        : (isDark ? AppColors.surfaceDark : Colors.white);
+    final textColor = isFilled
+        ? Colors.white
+        : (isDark ? Colors.white : AppColors.textPrimaryLight);
+
     return Semantics(
       button: true,
       enabled: !isLoading && onPressed != null,
       label: isLoading ? loadingLabel : buttonLabel,
       child: Material(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: bgColor,
         shape: RoundedRectangleBorder(
-          borderRadius: AppDimensions.borderRadiusLarge,
-          side: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-            width: 1.2,
-          ),
+          borderRadius: BorderRadius.circular(14),
+          side: isFilled
+              ? BorderSide.none
+              : BorderSide(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1.2,
+                ),
         ),
-        elevation: isDark ? 0 : 1,
-        shadowColor: const Color(0x10000000),
+        elevation: isFilled ? 1 : 0,
+        shadowColor: AppColors.primary.withValues(alpha: 0.3),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: isLoading ? null : onPressed,
-          splashColor: AppColors.primary.withValues(alpha: 0.08),
-          highlightColor: AppColors.primary.withValues(alpha: 0.04),
+          splashColor: Colors.white.withValues(alpha: 0.15),
+          highlightColor: Colors.white.withValues(alpha: 0.08),
           child: Container(
             height: 54,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -59,7 +69,7 @@ class GoogleSignInButton extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -68,9 +78,7 @@ class GoogleSignInButton extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
+                              color: textColor,
                             ),
                           ),
                         ],
@@ -79,10 +87,15 @@ class GoogleSignInButton extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 4-Color Google Logo
-                          SizedBox(
-                            width: 22,
-                            height: 22,
+                          // Circular White Badge with 4-Color Google Logo
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.all(6),
                             child: CustomPaint(
                               painter: _Google4ColorLogoPainter(),
                             ),
@@ -92,12 +105,10 @@ class GoogleSignInButton extends StatelessWidget {
                             child: Text(
                               buttonLabel,
                               style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 0.1,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppColors.textPrimaryLight,
+                                color: textColor,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
