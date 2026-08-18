@@ -151,10 +151,16 @@ class AppLocalizations {
 
       // Auth
       'auth.welcome_title': 'مرحبًا بك في Employee App',
+      'auth.welcome_back': 'مرحبًا بك مجددًا',
       'auth.welcome_subtitle':
           'بوابتك الرقمية لإدارة الحضور والطلبات وخدمات الموظفين بكل سهولة وأمان.',
+      'auth.sign_in_subtitle':
+          'سجّل الدخول للوصول إلى حسابك الوظيفي وإدارة مهامك.',
       'auth.sign_in_google': 'تسجيل الدخول باستخدام Google',
+      'auth.continue_google': 'المتابعة باستخدام Google',
       'auth.signing_in': 'جاري تسجيل الدخول...',
+      'auth.secure_access': 'دخول آمن ومشفّر للموظفين',
+      'auth.error_generic': 'تعذر تسجيل الدخول، يرجى المحاولة مرة أخرى.',
       'auth.logout': 'تسجيل الخروج',
       'auth.logout_confirm': 'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
 

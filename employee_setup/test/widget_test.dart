@@ -37,7 +37,7 @@ void main() {
       ),
     );
 
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.byType(TodayAttendanceStatusCard), findsOneWidget);
   });

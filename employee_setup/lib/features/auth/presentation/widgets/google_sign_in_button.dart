@@ -77,6 +77,7 @@ class GoogleSignInButton extends StatelessWidget {
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           // 4-Color Google Logo
                           SizedBox(
@@ -87,15 +88,19 @@ class GoogleSignInButton extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            buttonLabel,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.1,
-                              color: isDark
-                                  ? Colors.white
-                                  : AppColors.textPrimaryLight,
+                          Flexible(
+                            child: Text(
+                              buttonLabel,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.1,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimaryLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

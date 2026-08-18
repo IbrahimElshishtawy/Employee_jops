@@ -8,17 +8,45 @@ import '../../../../core/widgets/app_card.dart';
 
 /// Explanatory card showing why GPS location access is required for attendance,
 /// displaying live permission state and allow action.
-class LocationPermissionCard extends ConsumerWidget {
-  const LocationPermissionCard({super.key});
+class LocationPermissionCard extends ConsumerStatefulWidget {
+  final bool initialGranted;
+
+  const LocationPermissionCard({
+    super.key,
+    this.initialGranted = true,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final flowState = ref.watch(attendanceFlowProvider);
-    final isDark = context.isDark;
+  ConsumerState<LocationPermissionCard> createState() =>
+      _LocationPermissionCardState();
+}
 
-    final isGranted = flowState.locationResult == null ||
-        (!flowState.locationResult!.isPermissionDenied &&
-            !flowState.locationResult!.isGpsDisabled);
+class _LocationPermissionCardState
+    extends ConsumerState<LocationPermissionCard> {
+  late bool _isGranted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isGranted = widget.initialGranted;
+  }
+
+  Future<void> _requestPermission() async {
+    try {
+      final granted = await ref.read(locationServiceProvider).requestPermission();
+      if (mounted) {
+        setState(() => _isGranted = granted);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isGranted = true);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDark;
 
     return AppCard(
       padding: const EdgeInsets.all(18),
@@ -31,15 +59,15 @@ class LocationPermissionCard extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: (isGranted ? AppColors.success : AppColors.info)
+                  color: (_isGranted ? AppColors.success : AppColors.info)
                       .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  isGranted
+                  _isGranted
                       ? Icons.verified_user_rounded
                       : Icons.near_me_rounded,
-                  color: isGranted ? AppColors.success : AppColors.info,
+                  color: _isGranted ? AppColors.success : AppColors.info,
                   size: 22,
                 ),
               ),
@@ -58,13 +86,13 @@ class LocationPermissionCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isGranted
+                      _isGranted
                           ? context.tr('onboarding.location_permission_enabled')
                           : context.tr('onboarding.location_permission_required'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isGranted ? AppColors.success : AppColors.warning,
+                        color: _isGranted ? AppColors.success : AppColors.warning,
                       ),
                     ),
                   ],
@@ -86,14 +114,12 @@ class LocationPermissionCard extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
 
-          if (!isGranted)
+          if (!_isGranted)
             SizedBox(
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () => ref
-                    .read(attendanceFlowProvider.notifier)
-                    .requestLocationPermission(),
+                onPressed: _requestPermission,
                 icon: const Icon(Icons.my_location_rounded, size: 16),
                 label: Text(
                   context.tr('onboarding.allow_location'),
