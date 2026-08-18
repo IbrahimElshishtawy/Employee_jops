@@ -58,6 +58,16 @@ class AppLocalizations {
   String get pendingHrVerification =>
       translate('attendance.pending_hr_verification');
   String get offlineModeNotice => translate('attendance.offline_notice');
+  String get attendanceCompleted => translate('attendance.completed_btn');
+  String get verifyIdentity => translate('attendance.verify_identity');
+  String get biometricDesc => translate('attendance.biometric_desc');
+  String get updateLocation => translate('attendance.update_location');
+  String get allowLocationPermission => translate('attendance.allow_location_permission');
+  String get openSettings => translate('attendance.open_location_settings');
+  String get syncNow => translate('attendance.sync_now');
+  String get timelineTitle => translate('attendance.timeline_title');
+  String get currentlyWorking => translate('attendance.status_currently_working');
+  String get workdayCompleted => translate('attendance.status_workday_completed');
 
   // Requests
   String get requestsTitle => translate('requests.title');
@@ -143,29 +153,60 @@ class AppLocalizations {
       // Attendance
       'attendance.title': 'الحضور والانصراف',
       'attendance.status': 'حالة الحضور',
+      'attendance.status_not_checked_in': 'لم يتم تسجيل الحضور اليوم',
+      'attendance.status_currently_working': 'على رأس العمل',
+      'attendance.status_workday_completed': 'تم إكمال يوم العمل بنجاح',
+      'attendance.status_offline_pending': 'محفوظ محليًا (في انتظار المزامنة)',
       'attendance.check_in': 'تسجيل الحضور',
       'attendance.check_out': 'تسجيل الانصراف',
       'attendance.checked_in': 'تم تسجيل الحضور',
       'attendance.checked_out': 'تم تسجيل الانصراف',
       'attendance.not_checked_in': 'لم يتم تسجيل الحضور اليوم',
+      'attendance.completed_btn': 'تم إكمال الحضور والانصراف',
       'attendance.inside_range': 'داخل نطاق الشركة',
       'attendance.outside_range': 'أنت خارج نطاق تسجيل الحضور',
       'attendance.outside_range_desc':
           'يجب أن تكون داخل نطاق الشركة بمسافة لا تتجاوز 4 أمتار لتسجيل الحضور.',
+      'attendance.inside_allowed_zone': 'أنت داخل نطاق تسجيل الحضور المصرح به (أقل من 4 أمتار)',
+      'attendance.outside_allowed_zone': 'أنت خارج نطاق تسجيل الحضور المصرح به (الحد الأقصى 4 أمتار)',
       'attendance.distance_to_office': 'أنت على بعد {dist} من موقع العمل',
+      'attendance.distance_label': 'المسافة',
+      'attendance.allowed_radius_label': 'النطاق المسموح',
+      'attendance.workplace_zone': 'مقر العمل المعتمد',
+      'attendance.update_location': 'تحديث الموقع الجغرافي',
+      'attendance.updating_location': 'جاري تحديث الموقع...',
+      'attendance.allow_location_permission': 'السماح بالوصول للموقع',
+      'attendance.open_location_settings': 'فتح الإعدادات',
+      'attendance.verify_identity': 'أكّد هويتك للمتابعة',
+      'attendance.biometric_desc': 'استخدم بصمة الإصبع أو Face ID لتسجيل حضورك بأمان.',
+      'attendance.biometric_ready': 'المصادقة البيومترية جاهزة',
+      'attendance.biometric_verifying': 'جاري التحقق من البصمة...',
+      'attendance.biometric_failed': 'فشل التحقق بالبصمة',
+      'attendance.biometric_try_again': 'إعادة المحاولة',
+      'attendance.biometric_unavailable': 'المصادقة البيومترية غير متوفرة على هذا الجهاز',
       'attendance.check_in_time': 'وقت الدخول',
       'attendance.check_out_time': 'وقت الانصراف',
       'attendance.working_hours': 'ساعات العمل',
       'attendance.checking_location': 'جاري التحقق من الموقع الجغرافي...',
-      'attendance.authenticating_biometric':
-          'يرجى تأكيد بصمة الإصبع أو الوجه...',
+      'attendance.authenticating_biometric': 'يرجى تأكيد بصمة الإصبع أو الوجه...',
       'attendance.submitting': 'جاري تسجيل الحضور...',
       'attendance.success_msg': 'تم تسجيل الحضور بنجاح!',
       'attendance.checkout_success_msg': 'تم تسجيل الانصراف بنجاح!',
       'attendance.pending_hr_verification': 'في انتظار مراجعة الـ HR',
-      'attendance.offline_notice':
-          'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
+      'attendance.offline_notice': 'تم الحفظ محليًا - سيتم المزامنة عند توفر الاتصال',
+      'attendance.offline_alert': 'تم تسجيل الحضور بدون اتصال وسيتم المزامنة تلقائيًا لاحقًا.',
+      'attendance.offline_badge': 'وضع بدون اتصال',
+      'attendance.sync_now': 'مزامنة السجلات الآن',
+      'attendance.syncing': 'جاري المزامنة...',
+      'attendance.synced_success': 'تمت مزامنة جميع السجلات بنجاح',
       'attendance.history': 'سجل الحضور الأخير',
+      'attendance.timeline_title': 'الجدول الزمني لليوم',
+      'attendance.timeline_checkin': 'تسجيل الحضور',
+      'attendance.timeline_checkout': 'تسجيل الانصراف',
+      'attendance.timeline_working': 'جلسة العمل الحالية',
+      'attendance.checkout_confirm_title': 'تأكيد تسجيل الانصراف',
+      'attendance.checkout_confirm_msg': 'هل أنت متأكد من رغبتك في تسجيل الانصراف وإنهاء يوم العمل؟',
+      'attendance.security_note': 'عملية الحضور مؤمّنة وتعتمد على الموقع الجغرافي الدقيق ومصادقة النظام البيومترية.',
 
       // Requests Hub
       'requests.title': 'مركز الطلبات',

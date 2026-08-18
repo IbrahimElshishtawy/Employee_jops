@@ -6,5 +6,9 @@ enum BiometricAuthResult {
 }
 
 abstract class BiometricService {
-  Future<BiometricAuthResult> authenticate({String reason = 'يرجى تأكيد بصمتك لتسجيل الحضور'});
+  Future<BiometricAuthResult> authenticate({
+    String reason = 'يرجى تأكيد بصمتك لتسجيل الحضور',
+  });
+  Future<bool> canCheckBiometrics();
+  Future<bool> isDeviceSupported();
 }

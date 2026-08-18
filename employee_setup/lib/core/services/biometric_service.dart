@@ -1,3 +1,1 @@
-// TODO Implement this library.
-
-  
+export '../../features/attendance/domain/services/biometric_service.dart';

@@ -15,9 +15,11 @@ class MockBiometricService implements BiometricService {
   });
 
   @override
-  Future<BiometricAuthResult> authenticate({String reason = 'يرجى تأكيد بصمتك لتسجيل الحضور'}) async {
+  Future<BiometricAuthResult> authenticate({
+    String reason = 'يرجى تأكيد بصمتك لتسجيل الحضور',
+  }) async {
     // Artificial small delay for biometric prompt dialog
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
 
     switch (mode) {
       case MockBiometricMode.alwaysSuccess:
@@ -29,5 +31,15 @@ class MockBiometricService implements BiometricService {
       case MockBiometricMode.notAvailable:
         return BiometricAuthResult.notAvailable;
     }
+  }
+
+  @override
+  Future<bool> canCheckBiometrics() async {
+    return mode != MockBiometricMode.notAvailable;
+  }
+
+  @override
+  Future<bool> isDeviceSupported() async {
+    return mode != MockBiometricMode.notAvailable;
   }
 }
