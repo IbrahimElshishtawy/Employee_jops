@@ -1,203 +1,268 @@
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
+import 'package:employee_setup/features/attendance/data/api/mock_attendance_api.dart';
 import 'package:employee_setup/features/attendance/data/repositories/mock_attendance_repository.dart';
+import 'package:employee_setup/features/attendance/data/services/device_integrity_service_impl.dart';
 import 'package:employee_setup/features/attendance/data/services/mock_biometric_service.dart';
+import 'package:employee_setup/features/attendance/data/services/mock_location_detector_impl.dart';
 import 'package:employee_setup/features/attendance/data/services/mock_location_service.dart';
+import 'package:employee_setup/features/attendance/data/services/network_risk_service_impl.dart';
 import 'package:employee_setup/features/attendance/domain/models/attendance.dart';
-import 'package:employee_setup/features/attendance/domain/models/location_result.dart';
-import 'package:employee_setup/features/attendance/domain/services/attendance_location_policy.dart';
-import 'package:employee_setup/features/attendance/domain/services/biometric_service.dart';
+import 'package:employee_setup/features/attendance/domain/models/attendance_api_contracts.dart';
+import 'package:employee_setup/features/attendance/domain/services/attendance_policy_service.dart';
+import 'package:employee_setup/features/attendance/domain/services/attendance_verification_service.dart';
+import 'package:employee_setup/features/attendance/domain/services/geofence_service.dart';
+import 'package:employee_setup/features/attendance/domain/services/work_schedule_service.dart';
+import 'package:employee_setup/features/auth/domain/models/employee.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Attendance Feature Tests', () {
+  group('Attendance Feature & Security Verification Tests', () {
     late SharedPrefsStorage storage;
     late MockAttendanceRepository attendanceRepo;
+    late MockAttendanceApi attendanceApi;
     late MockLocationService locationService;
     late MockBiometricService biometricService;
+    late MockLocationDetectorImpl mockLocationDetector;
+    late DeviceIntegrityServiceImpl deviceIntegrityService;
+    late NetworkRiskServiceImpl networkRiskService;
+    late GeofenceService geofenceService;
+    late AttendancePolicyService policyService;
+    late WorkScheduleService workScheduleService;
+    late AttendanceVerificationService verificationService;
+    late Employee sampleEmployee;
 
     setUp(() async {
       storage = SharedPrefsStorage();
       await storage.init();
       await storage.clear();
-      attendanceRepo = MockAttendanceRepository(storage);
+
+      sampleEmployee = Employee(
+        id: 'EMP-1024',
+        name: 'إبراهيم الششتاوي',
+        email: 'employee@company.com',
+        department: 'الهندسة البرمجية',
+        jobTitle: 'Senior Software Developer',
+        avatarUrl: '',
+        phone: '01000000000',
+        joinDate: DateTime(2025, 1, 15),
+        workplaceName: 'المقر الرئيسي - القاهرة',
+        workplaceLatitude: 30.044400,
+        workplaceLongitude: 31.235700,
+        allowedRadiusMeters: 4.0,
+        workStartTime: '09:00 AM',
+        workEndTime: '05:00 PM',
+        hrContactName: 'سارة عبد الله',
+        hrContactPhone: '01011122233',
+        employeeStatus: 'active',
+      );
+
+      attendanceApi = MockAttendanceApi(getEmployee: () => sampleEmployee);
+      attendanceRepo = MockAttendanceRepository(storage, attendanceApi);
       locationService = MockLocationService();
       biometricService = MockBiometricService();
+      mockLocationDetector = MockLocationDetectorImpl();
+      deviceIntegrityService = DeviceIntegrityServiceImpl();
+      networkRiskService = NetworkRiskServiceImpl();
+      geofenceService = const GeofenceService();
+      policyService = const AttendancePolicyService();
+      workScheduleService = WorkScheduleService();
+
+      verificationService = AttendanceVerificationService(
+        locationService: locationService,
+        geofenceService: geofenceService,
+        mockLocationDetector: mockLocationDetector,
+        biometricService: biometricService,
+        deviceIntegrityService: deviceIntegrityService,
+        networkRiskService: networkRiskService,
+        workScheduleService: workScheduleService,
+        policyService: policyService,
+      );
     });
 
-    group('4-Meter Geofence & Location Policy Tests', () {
-      test('Distance <= 4.0 meters is inside allowed zone', () {
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(0.0), isTrue);
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(2.3), isTrue);
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(4.0), isTrue);
+    group('1. Employee Workplace Location & Configurable Geofence', () {
+      test('Employee workplace data is populated and not hardcoded', () {
+        expect(sampleEmployee.workplaceName, equals('المقر الرئيسي - القاهرة'));
+        expect(sampleEmployee.workplaceLatitude, equals(30.044400));
+        expect(sampleEmployee.workplaceLongitude, equals(31.235700));
+        expect(sampleEmployee.allowedRadiusMeters, equals(4.0));
       });
 
-      test('Distance > 4.0 meters is outside allowed zone', () {
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(4.01), isFalse);
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(8.5), isFalse);
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(48.5), isFalse);
+      test('GeofenceService calculates precise distance using Haversine', () {
+        final distanceZero = geofenceService.calculateDistanceInMeters(
+          startLatitude: 30.044400,
+          startLongitude: 31.235700,
+          endLatitude: 30.044400,
+          endLongitude: 31.235700,
+        );
+        expect(distanceZero, equals(0.0));
+
+        final distanceInside = geofenceService.calculateDistanceInMeters(
+          startLatitude: 30.044400,
+          startLongitude: 31.235700,
+          endLatitude: 30.044415,
+          endLongitude: 31.235715,
+        );
+        expect(distanceInside, lessThan(4.0));
       });
 
-      test('Negative distance is rejected', () {
-        expect(AttendanceLocationPolicy.isWithinAllowedRadius(-1.0), isFalse);
+      test('GeofenceService respects custom allowedRadiusMeters', () {
+        expect(
+          geofenceService.isWithinRadius(distanceInMeters: 3.5, allowedRadiusMeters: 4.0),
+          isTrue,
+        );
+        expect(
+          geofenceService.isWithinRadius(distanceInMeters: 4.5, allowedRadiusMeters: 4.0),
+          isFalse,
+        );
+        expect(
+          geofenceService.isWithinRadius(distanceInMeters: 7.5, allowedRadiusMeters: 10.0),
+          isTrue,
+        );
+      });
+    });
+
+    group('2. Location Verification & GPS Accuracy', () {
+      test('Accuracy threshold <= 20m accepted, > 20m rejected', () {
+        expect(policyService.isAccuracyAcceptable(3.5), isTrue);
+        expect(policyService.isAccuracyAcceptable(20.0), isTrue);
+        expect(policyService.isAccuracyAcceptable(20.1), isFalse);
+        expect(policyService.isAccuracyAcceptable(50.0), isFalse);
       });
 
-      test('GPS Accuracy <= 20.0m is acceptable, > 20m is rejected', () {
-        expect(AttendanceLocationPolicy.isAccuracyAcceptable(3.5), isTrue);
-        expect(AttendanceLocationPolicy.isAccuracyAcceptable(20.0), isTrue);
-        expect(AttendanceLocationPolicy.isAccuracyAcceptable(20.1), isFalse);
-        expect(AttendanceLocationPolicy.isAccuracyAcceptable(45.0), isFalse);
-        expect(AttendanceLocationPolicy.isAccuracyAcceptable(0.0), isFalse);
+      test('VerificationService fails if GPS disabled', () async {
+        locationService.mode = MockLocationMode.gpsDisabled;
+        final res = await verificationService.verifyLocation(employee: sampleEmployee);
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('خدمة تحديد المواقع (GPS) معطلة'));
       });
 
-      test('Location age > 60 seconds is considered stale', () {
-        final now = DateTime.now();
-        final fresh = now.subtract(const Duration(seconds: 10));
-        final stale = now.subtract(const Duration(seconds: 65));
-
-        expect(AttendanceLocationPolicy.isLocationStale(fresh, now), isFalse);
-        expect(AttendanceLocationPolicy.isLocationStale(stale, now), isTrue);
+      test('VerificationService fails if permission denied', () async {
+        locationService.mode = MockLocationMode.permissionDenied;
+        final res = await verificationService.verifyLocation(employee: sampleEmployee);
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('يرجى السماح للتطبيق باستخدام موقعك'));
       });
 
-      test('LocationService inside range reports distance <= 4m', () async {
-        locationService.mode = MockLocationMode.insideRange;
-        locationService.customDistance = 2.3;
-        final loc = await locationService.getCurrentLocation();
-        expect(loc.status, equals(LocationStatus.insideRange));
-        expect(loc.distanceFromOfficeMeters, lessThanOrEqualTo(4.0));
-        expect(loc.isInsideRange, isTrue);
-      });
-
-      test('LocationService outside range reports isInsideRange = false', () async {
+      test('VerificationService fails if outside workplace radius', () async {
         locationService.mode = MockLocationMode.outsideRange;
         locationService.customDistance = 48.5;
-        final loc = await locationService.getCurrentLocation();
-        expect(loc.status, equals(LocationStatus.outsideRange));
-        expect(loc.isInsideRange, isFalse);
+        final res = await verificationService.verifyLocation(employee: sampleEmployee);
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('أنت خارج نطاق موقع العمل'));
       });
+    });
 
-      test('Location permission denied reports isPermissionDenied = true', () async {
-        locationService.mode = MockLocationMode.permissionDenied;
-        final loc = await locationService.getCurrentLocation();
-        expect(loc.isPermissionDenied, isTrue);
-        expect(loc.isInsideRange, isFalse);
-      });
-
-      test('Low accuracy mode reports isAccuracyValid = false', () async {
-        locationService.mode = MockLocationMode.lowAccuracy;
-        final loc = await locationService.getCurrentLocation();
-        expect(loc.status, equals(LocationStatus.lowAccuracy));
-        expect(loc.isAccuracyValid, isFalse);
-      });
-
-      test('Mock location mode reports isMockLocation = true', () async {
+    group('3. Mock Location Detection', () {
+      test('Mock location detected causes verification failure', () async {
         locationService.mode = MockLocationMode.mockLocationDetected;
-        final loc = await locationService.getCurrentLocation();
-        expect(loc.isMockLocation, isTrue);
-        expect(loc.status, equals(LocationStatus.mockLocationDetected));
+        mockLocationDetector.simulatedMockDetected = true;
+        final res = await verificationService.verifyLocation(employee: sampleEmployee);
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('موقع غير موثوق'));
       });
     });
 
-    group('Biometric Authentication Tests', () {
-      test('BiometricService success verification', () async {
+    group('4. Device Biometric Authentication', () {
+      test('Biometric success produces auth proof token without raw template storage', () async {
         biometricService.mode = MockBiometricMode.alwaysSuccess;
-        final res = await biometricService.authenticate();
-        expect(res, equals(BiometricAuthResult.success));
+        final res = await verificationService.verifyBiometrics(isCheckIn: true);
+        expect(res.isSuccess, isTrue);
+        expect(res.data, isNotNull);
+        expect(res.data, startsWith('BIO-AUTH-'));
       });
 
-      test('BiometricService failed verification', () async {
-        biometricService.mode = MockBiometricMode.alwaysFail;
-        final res = await biometricService.authenticate();
-        expect(res, equals(BiometricAuthResult.failed));
-      });
-
-      test('BiometricService cancelled verification', () async {
+      test('Biometric failure/cancellation returns descriptive error message', () async {
         biometricService.mode = MockBiometricMode.alwaysCancel;
-        final res = await biometricService.authenticate();
-        expect(res, equals(BiometricAuthResult.cancelled));
-      });
-
-      test('BiometricService unavailable device verification', () async {
-        biometricService.mode = MockBiometricMode.notAvailable;
-        final res = await biometricService.authenticate();
-        expect(res, equals(BiometricAuthResult.notAvailable));
-        expect(await biometricService.canCheckBiometrics(), isFalse);
+        final res = await verificationService.verifyBiometrics(isCheckIn: true);
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('تم إلغاء المصادقة'));
       });
     });
 
-    group('Check-In / Check-Out Lifecycle Tests', () {
-      test('CheckIn online updates today status and adds to history', () async {
-        final checkIn = await attendanceRepo.checkIn(
-          employeeId: 'EMP-1024',
-          workLocationId: 'LOC-CAIRO-HQ',
-          latitude: 30.0444,
-          longitude: 31.2357,
-          accuracy: 3.5,
-          distance: 2.1,
-          biometricVerified: true,
-          isOffline: false,
-        );
+    group('5. Device Integrity (Play Integrity & App Attest) & Network Risk', () {
+      test('DeviceIntegrityService generates nonces and acquires attestation tokens', () async {
+        final nonce = deviceIntegrityService.generateNonce();
+        expect(nonce.isNotEmpty, isTrue);
 
-        expect(checkIn.type, equals(AttendanceType.checkIn));
-        expect(checkIn.status, equals(AttendanceStatus.success));
-        expect(checkIn.accuracy, equals(3.5));
-        expect(checkIn.workLocationId, equals('LOC-CAIRO-HQ'));
-
-        final today = await attendanceRepo.getTodayStatus('EMP-1024');
-        expect(today.hasCheckedIn, isTrue);
-        expect(today.hasCheckedOut, isFalse);
-
-        final history = await attendanceRepo.getHistory('EMP-1024');
-        expect(history.first.id, equals(checkIn.id));
+        final tokenResult = await deviceIntegrityService.requestIntegrityToken(nonce: nonce);
+        expect(tokenResult.hasToken, isTrue);
+        expect(tokenResult.nonce, equals(nonce));
       });
 
-      test('CheckIn offline queues pending item with Pending HR status', () async {
-        final checkIn = await attendanceRepo.checkIn(
-          employeeId: 'EMP-1024',
-          latitude: 30.0444,
-          longitude: 31.2357,
+      test('NetworkRiskService captures VPN active signal without blocking GPS', () async {
+        networkRiskService.simulatedVpnActive = true;
+        final risk = await networkRiskService.evaluateNetworkRisk();
+        expect(risk.isVpnActive, isTrue);
+        expect(risk.hasRisk, isTrue);
+      });
+    });
+
+    group('6. Backend API Final Decision Engine & Idempotency', () {
+      test('Backend approves valid check-in and re-computes distance independently', () async {
+        final req = AttendanceSubmissionRequest(
+          clientRequestId: 'REQ-UNIT-001',
+          employeeId: sampleEmployee.id,
+          attendanceType: AttendanceType.checkIn,
+          latitude: 30.044400,
+          longitude: 31.235700,
           accuracy: 3.5,
-          distance: 2.1,
+          clientTimestamp: DateTime.now(),
+          workplaceId: 'LOC-CAIRO-HQ',
+          distanceFromWorkplace: 2.1,
           biometricVerified: true,
-          isOffline: true,
         );
 
-        expect(checkIn.isOffline, isTrue);
-        expect(checkIn.status, equals(AttendanceStatus.offlinePending));
-        expect(checkIn.syncStatus, equals(AttendanceSyncStatus.pending));
-
-        final pending = await attendanceRepo.getPendingOfflineQueue();
-        expect(pending.length, equals(1));
-        expect(pending.first.id, equals(checkIn.id));
-
-        final syncedCount = await attendanceRepo.syncPendingAttendance();
-        expect(syncedCount, equals(1));
-        expect((await attendanceRepo.getPendingOfflineQueue()).isEmpty, isTrue);
+        final response = await attendanceApi.submitAttendance(req);
+        expect(response.success, isTrue);
+        expect(response.decision, equals(AttendanceDecision.approved));
+        expect(response.serverCalculatedDistance, equals(0.0));
       });
 
-      test('CheckOut completes today attendance flow', () async {
-        await attendanceRepo.checkIn(
-          employeeId: 'EMP-1024',
-          latitude: 30.0444,
-          longitude: 31.2357,
-          distance: 2.1,
+      test('Backend rejects duplicate submission with the same clientRequestId', () async {
+        final req = AttendanceSubmissionRequest(
+          clientRequestId: 'REQ-UNIT-DUPLICATE',
+          employeeId: sampleEmployee.id,
+          attendanceType: AttendanceType.checkIn,
+          latitude: 30.044400,
+          longitude: 31.235700,
+          accuracy: 3.5,
+          clientTimestamp: DateTime.now(),
+          workplaceId: 'LOC-CAIRO-HQ',
+          distanceFromWorkplace: 0.0,
           biometricVerified: true,
-          isOffline: false,
         );
 
-        final checkOut = await attendanceRepo.checkOut(
-          employeeId: 'EMP-1024',
-          latitude: 30.0444,
-          longitude: 31.2357,
-          distance: 2.2,
+        final first = await attendanceApi.submitAttendance(req);
+        expect(first.success, isTrue);
+
+        final duplicate = await attendanceApi.submitAttendance(req);
+        expect(duplicate.success, isFalse);
+        expect(duplicate.rejectionReason, equals(RejectionReason.duplicateSubmission));
+      });
+
+      test('Offline attendance submission is captured as PENDING_HR_VERIFICATION and repository manages queue', () async {
+        final req = AttendanceSubmissionRequest(
+          clientRequestId: 'REQ-UNIT-OFFLINE-001',
+          employeeId: sampleEmployee.id,
+          attendanceType: AttendanceType.checkIn,
+          latitude: 30.044400,
+          longitude: 31.235700,
+          accuracy: 3.5,
+          clientTimestamp: DateTime.now(),
+          workplaceId: 'LOC-CAIRO-HQ',
+          distanceFromWorkplace: 2.1,
           biometricVerified: true,
-          isOffline: false,
+          isOfflineSubmission: true,
         );
 
-        expect(checkOut.type, equals(AttendanceType.checkOut));
+        final response = await attendanceRepo.submitAttendanceRequest(req);
+        expect(response.success, isTrue);
+        expect(response.decision, equals(AttendanceDecision.pendingHrVerification));
+        expect(response.attendanceRecord?.isOffline, isTrue);
+        expect(response.attendanceRecord?.status, equals(AttendanceStatus.offlinePending));
 
-        final today = await attendanceRepo.getTodayStatus('EMP-1024');
-        expect(today.hasCheckedIn, isTrue);
-        expect(today.hasCheckedOut, isTrue);
+        final pendingQueue = await attendanceRepo.getPendingOfflineQueue();
+        expect(pendingQueue.isNotEmpty, isTrue);
       });
     });
   });

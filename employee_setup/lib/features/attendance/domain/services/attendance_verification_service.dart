@@ -1,6 +1,5 @@
 import '../../../auth/domain/models/employee.dart';
 import '../models/attendance.dart';
-import '../models/attendance_api_contracts.dart';
 import '../models/attendance_state_type.dart';
 import '../models/device_integrity_result.dart';
 import '../models/location_result.dart';
