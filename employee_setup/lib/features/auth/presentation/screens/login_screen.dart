@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/widgets/app_logo.dart';
 import '../widgets/google_sign_in_button.dart';
+import '../widgets/login_footer_links.dart';
+import '../widgets/login_header_card.dart';
+import '../widgets/login_security_banner.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -33,7 +35,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (success) {
         final employee = ref.read(authProvider).employee;
-        if (employee != null && employee.onboardingCompleted) {
+        if (employee != null && employee.profileCompleted) {
           context.go('/home');
         } else {
           context.go('/onboarding/personal');
@@ -81,9 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'العربية (Arabic)',
                   isSelected: currentLocale.languageCode == 'ar',
                   onTap: () {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setLocale(const Locale('ar'));
+                    ref.read(settingsProvider.notifier).setLocale(const Locale('ar'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -92,9 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'English (الإنجليزية)',
                   isSelected: currentLocale.languageCode == 'en',
                   onTap: () {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setLocale(const Locale('en'));
+                    ref.read(settingsProvider.notifier).setLocale(const Locale('en'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -156,12 +154,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isArabic = currentLocale.languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.backgroundDark
-          : const Color(0xFFF8F9FD),
+      backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF8F9FD),
       body: Stack(
         children: [
-          // ─── 1. Decorative Curved Background Blobs ───────────────────
+          // Background Glow Orbs
           Positioned(
             top: -60,
             left: isRtl ? null : -60,
@@ -171,9 +167,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
-                        .withValues(alpha: isDark ? 0.4 : 0.7),
+                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
+                    .withValues(alpha: isDark ? 0.4 : 0.7),
               ),
             ),
           ),
@@ -186,130 +181,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
-                        .withValues(alpha: isDark ? 0.3 : 0.6),
+                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
+                    .withValues(alpha: isDark ? 0.3 : 0.6),
               ),
             ),
           ),
 
-          // ─── 2. Main Scrollable Content ──────────────────────────────
+          // Main Scrollable Content
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 12.0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Top Row: Language Selector Pill
-                      Align(
-                        alignment: isRtl
-                            ? Alignment.topLeft
-                            : Alignment.topRight,
-                        child: InkWell(
-                          onTap: _showLanguagePicker,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.surfaceDark
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark
-                                    ? AppColors.borderDark
-                                    : const Color(0xFFE2E8F0),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isDark ? 0.2 : 0.04,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.language_rounded,
-                                  size: 16,
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  isArabic ? 'العربية' : 'English',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 16,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : const Color(0xFF64748B),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // ─── 3. App Logo & Headline ──────────────────────
-                      const AppLogo(
-                        size: 80,
-                        iconSize: 42,
-                        borderRadius: 24,
-                        showShadow: true,
-                        isWhiteCardStyle: true,
-                      ),
-                      const SizedBox(height: 20),
-
-                      Text(
-                        'CyberWise IE',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      Text(
-                        isRtl
-                            ? 'بوابة الموظفين الذكية والآمنة'
-                            : 'Smart & Secure Enterprise Employee Portal',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : const Color(0xFF64748B),
-                        ),
+                      // 1. Header with Language Pill & App Branding
+                      LoginHeaderCard(
+                        onLanguageTap: _showLanguagePicker,
+                        isArabic: isArabic,
                       ),
                       const SizedBox(height: 28),
 
@@ -319,26 +211,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 16),
                       ],
 
-                      // ─── 4. Main White Card Container ────────────────
+                      // 2. Main Login Card Container
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 24,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                         decoration: BoxDecoration(
                           color: isDark ? AppColors.surfaceDark : Colors.white,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: isDark
-                                ? AppColors.borderDark
-                                : const Color(0xFFEEF2F6),
+                            color: isDark ? AppColors.borderDark : const Color(0xFFEEF2F6),
                             width: 1.2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(
-                                alpha: isDark ? 0.25 : 0.05,
-                              ),
+                              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -346,18 +231,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         child: Column(
                           children: [
-                            // Card Title
                             Text(
-                              isRtl
-                                  ? 'تسجيل الدخول بحساب جوجل'
-                                  : 'Sign in with Google Account',
+                              isRtl ? 'تسجيل الدخول بحساب جوجل' : 'Sign in with Google Account',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -376,34 +256,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             const SizedBox(height: 22),
 
-                            // Royal Blue Google Button
+                            // Google Button
                             GoogleSignInButton(
                               isLoading: _isSigningIn,
                               isFilled: true,
-                              label: isRtl
-                                  ? 'متابعة باستخدام Google'
-                                  : 'Continue with Google',
-                              onPressed: _isSigningIn
-                                  ? null
-                                  : _handleGoogleSignIn,
+                              label: isRtl ? 'متابعة باستخدام Google' : 'Continue with Google',
+                              onPressed: _isSigningIn ? null : _handleGoogleSignIn,
                             ),
                             const SizedBox(height: 20),
 
-                            // 'أو' (OR) Divider Line
+                            // OR Divider Line
                             Row(
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: isDark
-                                        ? AppColors.borderDark
-                                        : const Color(0xFFE2E8F0),
+                                    color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
                                     thickness: 1,
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
                                   child: Text(
                                     isRtl ? 'أو' : 'OR',
                                     style: TextStyle(
@@ -417,9 +289,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: isDark
-                                        ? AppColors.borderDark
-                                        : const Color(0xFFE2E8F0),
+                                    color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
                                     thickness: 1,
                                   ),
                                 ),
@@ -427,162 +297,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Security Info Box (Light Blue Container)
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF0F6FE),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.primaryDark
-                                      : const Color(0xFFDBEAFE),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  // Shield Icon Badge
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.verified_user_rounded,
-                                        size: 22,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // Texts
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          context.tr('auth.secure_access'),
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark
-                                                ? Colors.white
-                                                : const Color(0xFF1E293B),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          isRtl
-                                              ? 'باستخدام حساب جوجل الخاص بك للوصول السريع والآمن إلى جميع خدماتك'
-                                              : 'Using your Google account for secure and fast access to all services',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            height: 1.4,
-                                            color: isDark
-                                                ? AppColors.textSecondaryDark
-                                                : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // Security Info Banner
+                            const LoginSecurityBanner(),
                           ],
                         ),
                       ),
                       const SizedBox(height: 28),
 
-                      // ─── 5. Help & Support Link ──────────────────────
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            isRtl ? 'هل تحتاج مساعدة؟ ' : 'Need help? ',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {},
-                            borderRadius: BorderRadius.circular(4),
-                            child: Text(
-                              isRtl
-                                  ? 'تواصل مع الدعم الفني'
-                                  : 'Contact Support',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // ─── 6. Terms & Privacy Notice ───────────────────
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 4,
-                        children: [
-                          Icon(
-                            Icons.lock_outline_rounded,
-                            size: 13,
-                            color: isDark
-                                ? AppColors.textMutedDark
-                                : const Color(0xFF94A3B8),
-                          ),
-                          Text.rich(
-                            TextSpan(
-                              text: isRtl
-                                  ? 'بالدخول أنت توافق على '
-                                  : 'By signing in you agree to ',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark
-                                    ? AppColors.textMutedDark
-                                    : const Color(0xFF94A3B8),
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: isRtl
-                                      ? 'سياسة الخصوصية'
-                                      : 'Privacy Policy',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                TextSpan(text: isRtl ? ' و ' : ' and '),
-                                TextSpan(
-                                  text: isRtl
-                                      ? 'شروط الاستخدام'
-                                      : 'Terms of Service',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
+                      // 3. Footer Links
+                      const LoginFooterLinks(),
                     ],
                   ),
                 ),

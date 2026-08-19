@@ -32,16 +32,16 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
 
     final initialName = formState.fullName.isNotEmpty
         ? formState.fullName
-        : (employee?.name ?? 'Employee User');
+        : (employee?.name ?? 'Device Test Employee');
     final initialEmail = formState.email.isNotEmpty
         ? formState.email
-        : (employee?.email ?? 'employee@company.com');
+        : (employee?.email ?? 'employee.test@example.com');
     final initialNationalId = formState.nationalId.isNotEmpty
         ? formState.nationalId
-        : (employee?.nationalId ?? '29501011234567');
+        : (employee?.nationalId ?? 'TEST-NATIONAL-ID');
     final initialPhone = formState.phone.isNotEmpty
         ? formState.phone
-        : (employee?.phone ?? '01012345678');
+        : (employee?.phone ?? '01000000000');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(onboardingProvider.notifier).setStep1Data(
