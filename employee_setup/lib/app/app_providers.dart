@@ -28,6 +28,7 @@ import '../features/attendance/data/services/mock_biometric_service.dart';
 import '../features/attendance/data/services/mock_location_detector_impl.dart';
 import '../features/attendance/data/services/mock_location_service.dart';
 import '../features/attendance/data/services/network_risk_service_impl.dart';
+import '../features/attendance/data/services/screen_overlay_detector_impl.dart';
 import '../features/attendance/domain/models/attendance.dart';
 import '../features/attendance/domain/models/attendance_api_contracts.dart';
 import '../features/attendance/domain/models/attendance_state_type.dart';
@@ -45,6 +46,7 @@ import '../features/attendance/domain/services/geofence_service.dart';
 import '../features/attendance/domain/services/location_service.dart';
 import '../features/attendance/domain/services/mock_location_detector.dart';
 import '../features/attendance/domain/services/network_risk_service.dart';
+import '../features/attendance/domain/services/screen_overlay_detector.dart';
 import '../features/attendance/domain/services/work_schedule_service.dart';
 
 import '../features/auth/data/datasources/mock_auth_datasource.dart';
@@ -215,12 +217,17 @@ final attendanceApiProvider = Provider<AttendanceApi>((ref) {
   return MockAttendanceApi(getEmployee: () => ref.watch(employeeProvider));
 });
 
+final screenOverlayDetectorProvider = Provider<ScreenOverlayDetector>((ref) {
+  return ScreenOverlayDetectorImpl();
+});
+
 final attendanceVerificationServiceProvider =
     Provider<AttendanceVerificationService>((ref) {
       return AttendanceVerificationService(
         locationService: ref.watch(locationServiceProvider),
         geofenceService: ref.watch(geofenceServiceProvider),
         mockLocationDetector: ref.watch(mockLocationDetectorProvider),
+        screenOverlayDetector: ref.watch(screenOverlayDetectorProvider),
         biometricService: ref.watch(biometricServiceProvider),
         deviceIntegrityService: ref.watch(deviceIntegrityServiceProvider),
         networkRiskService: ref.watch(networkRiskServiceProvider),
@@ -573,6 +580,17 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
       locationResult: locResult,
       lastLocationUpdateTime: DateTime.now(),
     );
+
+    // STEP 2.5: Verify Screen Overlay Security
+    final screenCheck = await verifier.verifyScreenSecurity();
+    if (!screenCheck.isSuccess) {
+      state = state.copyWith(
+        processState: AttendanceProcessState.error,
+        stateType: screenCheck.failureState ?? AttendanceStateType.deviceIntegrityFailed,
+        message: screenCheck.errorMessage,
+      );
+      return false;
+    }
 
     // STEP 3: Device Biometric Authentication (Fingerprint / Face ID)
     state = state.copyWith(

@@ -39,11 +39,11 @@ class OnboardingCatalog {
     'المنصورة',
   ];
 
-  // Managers (mock data)
+  // Managers (mock test data)
   static final List<ManagerInfo> managers = [
     ManagerInfo(
       id: 'MGR-001',
-      name: 'Ahmed Mohamed',
+      name: 'Test Manager (Ahmed Mohamed)',
       department: 'الهندسة البرمجية',
     ),
     ManagerInfo(
@@ -56,11 +56,11 @@ class OnboardingCatalog {
     ManagerInfo(id: 'MGR-005', name: 'Sarah Abdullah', department: 'التسويق'),
   ];
 
-  // HR Contact info
+  // HR Contact info (DEVICE_TEST_DATA)
   static const HrContact hrContact = HrContact(
-    name: 'Human Resources Team',
-    email: 'hr@company.com',
-    phone: '+20 100 123 4567',
+    name: 'Test HR (CyberWise IE Support)',
+    email: 'hr.test@example.com',
+    phone: '01011122233',
   );
 }
 

@@ -12,6 +12,7 @@ import 'geofence_service.dart';
 import 'location_service.dart';
 import 'mock_location_detector.dart';
 import 'network_risk_service.dart';
+import 'screen_overlay_detector.dart';
 import 'work_schedule_service.dart';
 
 /// Pre-submission client verification outcome.
@@ -38,6 +39,7 @@ class AttendanceVerificationService {
   final LocationService locationService;
   final GeofenceService geofenceService;
   final MockLocationDetector mockLocationDetector;
+  final ScreenOverlayDetector screenOverlayDetector;
   final BiometricService biometricService;
   final DeviceIntegrityService deviceIntegrityService;
   final NetworkRiskService networkRiskService;
@@ -48,6 +50,7 @@ class AttendanceVerificationService {
     required this.locationService,
     required this.geofenceService,
     required this.mockLocationDetector,
+    required this.screenOverlayDetector,
     required this.biometricService,
     required this.deviceIntegrityService,
     required this.networkRiskService,
@@ -93,7 +96,19 @@ class AttendanceVerificationService {
     return const VerificationStepResult.success(true);
   }
 
-  /// 2. Verifies GPS location, permissions, accuracy, staleness, mock signals, and geofence.
+  /// 2. Verifies screen overlay security conditions.
+  Future<VerificationStepResult<bool>> verifyScreenSecurity() async {
+    final isOverlay = await screenOverlayDetector.isUnsafeOverlayDetected();
+    if (isOverlay) {
+      return const VerificationStepResult.failure(
+        failureState: AttendanceStateType.deviceIntegrityFailed,
+        errorMessage: 'يوجد تطبيق آخر قد يظهر فوق التطبيق.\nيرجى إغلاقه ثم المحاولة مرة أخرى.',
+      );
+    }
+    return const VerificationStepResult.success(true);
+  }
+
+  /// 3. Verifies GPS location, permissions, accuracy, staleness, mock signals, and geofence.
   Future<VerificationStepResult<LocationResult>> verifyLocation({
     required Employee employee,
   }) async {
@@ -101,7 +116,7 @@ class AttendanceVerificationService {
     if (!isServiceEnabled) {
       return const VerificationStepResult.failure(
         failureState: AttendanceStateType.locationServiceDisabled,
-        errorMessage: 'خدمة تحديد المواقع (GPS) معطلة. يرجى تفعيلها للمتابعة.',
+        errorMessage: 'يجب تفعيل الموقع لتسجيل الحضور.',
       );
     }
 
@@ -118,7 +133,7 @@ class AttendanceVerificationService {
     if (locResult.status == LocationStatus.gpsDisabled) {
       return const VerificationStepResult.failure(
         failureState: AttendanceStateType.locationServiceDisabled,
-        errorMessage: 'يرجى تفعيل خدمة الموقع الجغرافي على هاتفك.',
+        errorMessage: 'يجب تفعيل الموقع لتسجيل الحضور.',
       );
     }
 
@@ -127,7 +142,7 @@ class AttendanceVerificationService {
     if (isMock || locResult.isMockLocation || locResult.status == LocationStatus.mockLocationDetected) {
       return const VerificationStepResult.failure(
         failureState: AttendanceStateType.mockLocationDetected,
-        errorMessage: 'تم رصد استخدام موقع وهمي (Mock Location). لا يمكن تسجيل الحضور باستخدام موقع غير موثوق.',
+        errorMessage: 'لا يمكن تسجيل الحضور باستخدام موقع غير موثوق.',
       );
     }
 
@@ -167,7 +182,7 @@ class AttendanceVerificationService {
     );
   }
 
-  /// 3. Authenticates device biometric presence.
+  /// 4. Authenticates device biometric presence.
   Future<VerificationStepResult<String>> verifyBiometrics({
     required bool isCheckIn,
   }) async {
@@ -198,18 +213,18 @@ class AttendanceVerificationService {
 
     return const VerificationStepResult.failure(
       failureState: AttendanceStateType.biometricFailed,
-      errorMessage: 'فشلت المصادقة البيومترية، يرجى إعادة المحاولة.',
+      errorMessage: 'فشلت المصادقة البيومترية. يرجى المحاولة مرة أخرى.',
     );
   }
 
-  /// 4. Requests device integrity attestation token.
+  /// 5. Acquires platform integrity token.
   Future<DeviceIntegrityResult> acquireDeviceIntegrityToken() async {
     final nonce = deviceIntegrityService.generateNonce();
-    return await deviceIntegrityService.requestIntegrityToken(nonce: nonce);
+    return deviceIntegrityService.requestIntegrityToken(nonce: nonce);
   }
 
-  /// 5. Collects network and VPN risk telemetry.
+  /// 6. Collects network risk telemetry.
   Future<NetworkRiskInfo> collectNetworkRisk() async {
-    return await networkRiskService.evaluateNetworkRisk();
+    return networkRiskService.evaluateNetworkRisk();
   }
 }

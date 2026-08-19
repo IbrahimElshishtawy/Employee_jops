@@ -12,7 +12,7 @@ class WorkplaceCard extends StatelessWidget {
 
   const WorkplaceCard({
     super.key,
-    this.title = 'مقر العمل الرئيسي',
+    this.title = 'CyberWise IE - Test Office',
     this.city = 'القاهرة، مصر',
     this.fullAddress = 'شارع النيل، البرج الشرقي، القاهرة، مصر',
   });

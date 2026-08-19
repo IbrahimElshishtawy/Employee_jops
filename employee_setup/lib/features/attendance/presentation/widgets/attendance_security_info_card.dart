@@ -136,20 +136,23 @@ class AttendanceSecurityInfoCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.successLight,
+                      color: isDark ? const Color(0xFF3B2806) : const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFFD97706) : const Color(0xFFFDE68A),
+                      ),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.verified_rounded, size: 10, color: AppColors.success),
-                        const SizedBox(width: 4),
+                        Icon(Icons.info_outline_rounded, size: 10, color: Color(0xFFD97706)),
+                        SizedBox(width: 4),
                         Text(
-                          context.tr('attendance.device_integrity_ok'),
-                          style: const TextStyle(
-                            fontSize: 10,
+                          'REQUIRES PRODUCTION CONFIGURATION',
+                          style: TextStyle(
+                            fontSize: 9,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.success,
+                            color: Color(0xFFB45309),
                           ),
                         ),
                       ],

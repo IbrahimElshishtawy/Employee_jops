@@ -1,3 +1,4 @@
+import 'package:employee_setup/core/mock/seeds/employee_seed.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/features/attendance/data/api/mock_attendance_api.dart';
 import 'package:employee_setup/features/attendance/data/repositories/mock_attendance_repository.dart';
@@ -6,6 +7,7 @@ import 'package:employee_setup/features/attendance/data/services/mock_biometric_
 import 'package:employee_setup/features/attendance/data/services/mock_location_detector_impl.dart';
 import 'package:employee_setup/features/attendance/data/services/mock_location_service.dart';
 import 'package:employee_setup/features/attendance/data/services/network_risk_service_impl.dart';
+import 'package:employee_setup/features/attendance/data/services/screen_overlay_detector_impl.dart';
 import 'package:employee_setup/features/attendance/domain/models/attendance.dart';
 import 'package:employee_setup/features/attendance/domain/models/attendance_api_contracts.dart';
 import 'package:employee_setup/features/attendance/domain/services/attendance_policy_service.dart';
@@ -23,6 +25,7 @@ void main() {
     late MockLocationService locationService;
     late MockBiometricService biometricService;
     late MockLocationDetectorImpl mockLocationDetector;
+    late ScreenOverlayDetectorImpl screenOverlayDetector;
     late DeviceIntegrityServiceImpl deviceIntegrityService;
     late NetworkRiskServiceImpl networkRiskService;
     late GeofenceService geofenceService;
@@ -36,24 +39,8 @@ void main() {
       await storage.init();
       await storage.clear();
 
-      sampleEmployee = Employee(
-        id: 'EMP-1024',
-        name: 'إبراهيم الششتاوي',
-        email: 'employee@company.com',
-        department: 'الهندسة البرمجية',
-        jobTitle: 'Senior Software Developer',
-        avatarUrl: '',
-        phone: '01000000000',
-        joinDate: DateTime(2025, 1, 15),
-        workplaceName: 'المقر الرئيسي - القاهرة',
-        workplaceLatitude: 30.044400,
-        workplaceLongitude: 31.235700,
-        allowedRadiusMeters: 4.0,
-        workStartTime: '09:00 AM',
-        workEndTime: '05:00 PM',
-        hrContactName: 'سارة عبد الله',
-        hrContactPhone: '01011122233',
-        employeeStatus: 'active',
+      sampleEmployee = EmployeeSeed.employee.copyWith(
+        onboardingCompleted: true,
       );
 
       attendanceApi = MockAttendanceApi(getEmployee: () => sampleEmployee);
@@ -61,6 +48,7 @@ void main() {
       locationService = MockLocationService();
       biometricService = MockBiometricService();
       mockLocationDetector = MockLocationDetectorImpl();
+      screenOverlayDetector = ScreenOverlayDetectorImpl();
       deviceIntegrityService = DeviceIntegrityServiceImpl();
       networkRiskService = NetworkRiskServiceImpl();
       geofenceService = const GeofenceService();
@@ -71,6 +59,7 @@ void main() {
         locationService: locationService,
         geofenceService: geofenceService,
         mockLocationDetector: mockLocationDetector,
+        screenOverlayDetector: screenOverlayDetector,
         biometricService: biometricService,
         deviceIntegrityService: deviceIntegrityService,
         networkRiskService: networkRiskService,
@@ -80,8 +69,8 @@ void main() {
     });
 
     group('1. Employee Workplace Location & Configurable Geofence', () {
-      test('Employee workplace data is populated and not hardcoded', () {
-        expect(sampleEmployee.workplaceName, equals('المقر الرئيسي - القاهرة'));
+      test('Employee workplace data matches CyberWise IE - Test Office', () {
+        expect(sampleEmployee.workplaceName, equals('CyberWise IE - Test Office'));
         expect(sampleEmployee.workplaceLatitude, equals(30.044400));
         expect(sampleEmployee.workplaceLongitude, equals(31.235700));
         expect(sampleEmployee.allowedRadiusMeters, equals(4.0));
@@ -129,11 +118,11 @@ void main() {
         expect(policyService.isAccuracyAcceptable(50.0), isFalse);
       });
 
-      test('VerificationService fails if GPS disabled', () async {
+      test('VerificationService fails if GPS disabled with exact required message', () async {
         locationService.mode = MockLocationMode.gpsDisabled;
         final res = await verificationService.verifyLocation(employee: sampleEmployee);
         expect(res.isSuccess, isFalse);
-        expect(res.errorMessage, contains('خدمة تحديد المواقع (GPS) معطلة'));
+        expect(res.errorMessage, equals('يجب تفعيل الموقع لتسجيل الحضور.'));
       });
 
       test('VerificationService fails if permission denied', () async {
@@ -162,7 +151,22 @@ void main() {
       });
     });
 
-    group('4. Device Biometric Authentication', () {
+    group('4. Screen Overlay Security', () {
+      test('Screen overlay detected blocks attendance with exact warning message', () async {
+        screenOverlayDetector.simulatedOverlayDetected = true;
+        final res = await verificationService.verifyScreenSecurity();
+        expect(res.isSuccess, isFalse);
+        expect(res.errorMessage, contains('يوجد تطبيق آخر قد يظهر فوق التطبيق'));
+      });
+
+      test('Clean screen security passes verification', () async {
+        screenOverlayDetector.simulatedOverlayDetected = false;
+        final res = await verificationService.verifyScreenSecurity();
+        expect(res.isSuccess, isTrue);
+      });
+    });
+
+    group('5. Device Biometric Authentication', () {
       test('Biometric success produces auth proof token without raw template storage', () async {
         biometricService.mode = MockBiometricMode.alwaysSuccess;
         final res = await verificationService.verifyBiometrics(isCheckIn: true);
@@ -179,7 +183,7 @@ void main() {
       });
     });
 
-    group('5. Device Integrity (Play Integrity & App Attest) & Network Risk', () {
+    group('6. Device Integrity (Play Integrity & App Attest) & Network Risk', () {
       test('DeviceIntegrityService generates nonces and acquires attestation tokens', () async {
         final nonce = deviceIntegrityService.generateNonce();
         expect(nonce.isNotEmpty, isTrue);
@@ -197,7 +201,7 @@ void main() {
       });
     });
 
-    group('6. Backend API Final Decision Engine & Idempotency', () {
+    group('7. Backend API Final Decision Engine & Idempotency', () {
       test('Backend approves valid check-in and re-computes distance independently', () async {
         final req = AttendanceSubmissionRequest(
           clientRequestId: 'REQ-UNIT-001',
@@ -207,8 +211,8 @@ void main() {
           longitude: 31.235700,
           accuracy: 3.5,
           clientTimestamp: DateTime.now(),
-          workplaceId: 'LOC-CAIRO-HQ',
-          distanceFromWorkplace: 2.1,
+          workplaceId: 'LOC-TEST-OFFICE',
+          distanceFromWorkplace: 0.0,
           biometricVerified: true,
         );
 
@@ -227,7 +231,7 @@ void main() {
           longitude: 31.235700,
           accuracy: 3.5,
           clientTimestamp: DateTime.now(),
-          workplaceId: 'LOC-CAIRO-HQ',
+          workplaceId: 'LOC-TEST-OFFICE',
           distanceFromWorkplace: 0.0,
           biometricVerified: true,
         );
@@ -249,7 +253,7 @@ void main() {
           longitude: 31.235700,
           accuracy: 3.5,
           clientTimestamp: DateTime.now(),
-          workplaceId: 'LOC-CAIRO-HQ',
+          workplaceId: 'LOC-TEST-OFFICE',
           distanceFromWorkplace: 2.1,
           biometricVerified: true,
           isOfflineSubmission: true,
