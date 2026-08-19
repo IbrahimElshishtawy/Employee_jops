@@ -18,6 +18,7 @@ class AppRoutes {
 
   // Attendance
   static const String attendance = '/attendance';
+  static const String attendanceVerify = '/attendance/verify';
   static const String attendanceHistory = '/attendance/history';
 
   // Advances

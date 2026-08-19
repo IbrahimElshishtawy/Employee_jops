@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../app/app_providers.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
@@ -362,12 +363,9 @@ class AttendanceCard extends ConsumerWidget {
                       child: AppButton.primary(
                         label: context.tr('attendance.check_in'),
                         icon: Icons.login_rounded,
-                        isLoading: flowState.isLoading && !isCheckedIn,
-                        onPressed: isCheckedIn || flowState.isLoading
+                        onPressed: isCheckedIn
                             ? null
-                            : () => ref
-                                  .read(attendanceFlowProvider.notifier)
-                                  .executeCheckIn(),
+                            : () => context.push('/attendance/verify?type=checkIn'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -375,14 +373,9 @@ class AttendanceCard extends ConsumerWidget {
                       child: AppButton.secondary(
                         label: context.tr('attendance.check_out'),
                         icon: Icons.logout_rounded,
-                        isLoading:
-                            flowState.isLoading && isCheckedIn && !isCheckedOut,
-                        onPressed:
-                            !isCheckedIn || isCheckedOut || flowState.isLoading
+                        onPressed: !isCheckedIn || isCheckedOut
                             ? null
-                            : () => ref
-                                  .read(attendanceFlowProvider.notifier)
-                                  .executeCheckOut(),
+                            : () => context.push('/attendance/verify?type=checkOut'),
                       ),
                     ),
                   ],

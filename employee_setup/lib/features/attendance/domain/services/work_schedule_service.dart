@@ -96,4 +96,18 @@ class WorkScheduleService {
             : 'Your workday has ended.';
     }
   }
+
+  /// Returns true if attempting to checkout before the scheduled shift ends.
+  bool isEarlyCheckout(WorkSchedule schedule, {DateTime? checkTime}) {
+    final now = checkTime ?? _timeService.now();
+    final today = _timeService.today();
+    final shiftEnd = DateTime(
+      today.year,
+      today.month,
+      today.day,
+      schedule.endTime.hour,
+      schedule.endTime.minute,
+    );
+    return now.isBefore(shiftEnd.subtract(const Duration(minutes: 5)));
+  }
 }
