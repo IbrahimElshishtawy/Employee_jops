@@ -1,4 +1,4 @@
-# CyberWise IE — Mobile & Device Security Setup Guide
+   # CyberWise IE — Mobile & Device Security Setup Guide
 
 This document details the complete native configuration, platform permissions, security architecture, and testing procedures for running **CyberWise IE** on real physical devices (Android & iOS) and web environments.
 

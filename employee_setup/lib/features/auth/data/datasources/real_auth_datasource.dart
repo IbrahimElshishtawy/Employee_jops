@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/mock/models/app_session.dart';
 import '../../../../core/mock/seeds/employee_seed.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/utils/secure_logger.dart';
 import '../../domain/models/employee.dart';
 
 /// RealAuthDataSource handles Google OAuth via the google_sign_in package,
@@ -76,8 +76,10 @@ class RealAuthDataSource {
         avatarUrl = account.photoUrl;
       }
     } catch (e) {
-      debugPrint(
-          '[RealAuthDataSource] Native GoogleSignIn requires SHA-1 & google-services.json registration: $e. Proceeding with authenticated session for testing.');
+      SecureLogger.info(
+        'RealAuthDataSource',
+        'Native GoogleSignIn requires SHA-1 & google-services.json registration. Proceeding with authenticated session for testing.',
+      );
     }
 
     final isAlreadyCompleted =

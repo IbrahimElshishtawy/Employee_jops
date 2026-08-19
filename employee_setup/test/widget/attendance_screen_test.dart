@@ -68,7 +68,8 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Verify Header and cards
       expect(find.text('الحضور والانصراف'), findsWidgets);
@@ -90,7 +91,8 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('الحضور والانصراف'), findsWidgets);
     });
@@ -106,7 +108,8 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Attendance'), findsWidgets);
       expect(find.text('Check In'), findsWidgets);
@@ -153,17 +156,21 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Find primary Check In button in Action Section, ensure visible and tap it
       final checkInButton = find.widgetWithText(AppButton, 'تسجيل الحضور');
       expect(checkInButton, findsOneWidget);
 
       await tester.ensureVisible(checkInButton);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(checkInButton);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+      await tester.pump(const Duration(milliseconds: 1000));
 
       // Should now show Check Out available
       final checkOutButton = find.widgetWithText(AppButton, 'تسجيل الانصراف');

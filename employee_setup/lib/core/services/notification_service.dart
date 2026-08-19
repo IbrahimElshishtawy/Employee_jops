@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../utils/secure_logger.dart';
+
 /// NotificationService coordinates local notification display, channels, and platform permissions.
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
@@ -48,8 +50,8 @@ class NotificationService {
       await _notificationsPlugin.initialize(
         settings,
         onDidReceiveNotificationResponse: (NotificationResponse response) {
-          debugPrint(
-              '[NotificationService] Notification clicked payload: ${response.payload}');
+          SecureLogger.info(
+              'NotificationService', 'Notification response received');
         },
       );
 
@@ -80,7 +82,7 @@ class NotificationService {
 
       _isInitialized = true;
     } catch (e) {
-      debugPrint('[NotificationService] initialize error: $e');
+      SecureLogger.error('NotificationService', 'initialize error', e);
     }
   }
 
@@ -115,7 +117,7 @@ class NotificationService {
 
       return true;
     } catch (e) {
-      debugPrint('[NotificationService] requestPermission error: $e');
+      SecureLogger.error('NotificationService', 'requestPermission error', e);
       return false;
     }
   }
@@ -162,7 +164,7 @@ class NotificationService {
         payload: payload,
       );
     } catch (e) {
-      debugPrint('[NotificationService] showNotification error: $e');
+      SecureLogger.error('NotificationService', 'showNotification error', e);
     }
   }
 }

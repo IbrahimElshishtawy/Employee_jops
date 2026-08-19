@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/secure_logger.dart';
 import '../../domain/models/location_result.dart';
 import '../../domain/services/attendance_location_policy.dart';
 import '../../domain/services/geofence_service.dart';
@@ -36,7 +36,7 @@ class RealLocationService implements LocationService {
     try {
       return await Geolocator.isLocationServiceEnabled();
     } catch (e) {
-      debugPrint('[RealLocationService] isLocationServiceEnabled error: $e');
+      SecureLogger.error('RealLocationService', 'isLocationServiceEnabled error', e);
       return false;
     }
   }
@@ -51,7 +51,7 @@ class RealLocationService implements LocationService {
       return permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always;
     } catch (e) {
-      debugPrint('[RealLocationService] requestPermission error: $e');
+      SecureLogger.error('RealLocationService', 'requestPermission error', e);
       return false;
     }
   }
@@ -118,6 +118,7 @@ class RealLocationService implements LocationService {
       // 4. Check Mock Location (Android platform signal)
       final bool isMocked = position.isMocked;
       if (isMocked) {
+        SecureLogger.warn('RealLocationService', 'Mock location detected from platform telemetry');
         return LocationResult(
           latitude: position.latitude,
           longitude: position.longitude,
@@ -184,7 +185,7 @@ class RealLocationService implements LocationService {
             'استغرق الحصول على الموقع الجغرافي وقتًا طويلاً. يرجى التأكد من اتصال GPS وإعادة المحاولة.',
       );
     } catch (e) {
-      debugPrint('[RealLocationService] getCurrentLocation error: $e');
+      SecureLogger.error('RealLocationService', 'getCurrentLocation error', e);
       return LocationResult(
         latitude: 0,
         longitude: 0,

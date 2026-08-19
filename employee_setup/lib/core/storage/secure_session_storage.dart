@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/secure_logger.dart';
 import 'local_storage.dart';
 
 /// SecureSessionStorage provides encrypted storage on mobile devices (Android Keystore / iOS Keychain)
@@ -30,7 +31,7 @@ class SecureSessionStorage implements LocalStorage {
       _prefs = await SharedPreferences.getInstance();
       _initialized = true;
     } catch (e) {
-      debugPrint('[SecureSessionStorage] SharedPreferences init error: $e');
+      SecureLogger.error('SecureSessionStorage', 'SharedPreferences init error', e);
     }
   }
 
@@ -47,14 +48,13 @@ class SecureSessionStorage implements LocalStorage {
       await _prefs?.setString(key, value);
       return true;
     } catch (e) {
-      debugPrint('[SecureSessionStorage] setString error: $e');
+      SecureLogger.error('SecureSessionStorage', 'setString error', e);
       return await _prefs?.setString(key, value) ?? false;
     }
   }
 
   @override
   String? getString(String key) {
-    // Synchronous read from in-memory prefs cache
     return _prefs?.getString(key);
   }
 
@@ -66,7 +66,7 @@ class SecureSessionStorage implements LocalStorage {
         final val = await _secureStorage.read(key: key);
         if (val != null) return val;
       } catch (e) {
-        debugPrint('[SecureSessionStorage] getSecureString error: $e');
+        SecureLogger.error('SecureSessionStorage', 'getSecureString error', e);
       }
     }
     return _prefs?.getString(key);

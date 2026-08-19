@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
+import '../../../../core/utils/secure_logger.dart';
 import '../../domain/services/biometric_service.dart';
 
 /// RealBiometricService implements hardware-backed biometric verification
@@ -23,7 +24,7 @@ class RealBiometricService implements BiometricService {
     try {
       return await _auth.isDeviceSupported();
     } catch (e) {
-      debugPrint('[RealBiometricService] isDeviceSupported error: $e');
+      SecureLogger.error('RealBiometricService', 'isDeviceSupported error', e);
       return false;
     }
   }
@@ -36,7 +37,7 @@ class RealBiometricService implements BiometricService {
       final isSupported = await _auth.isDeviceSupported();
       return canCheck || isSupported;
     } catch (e) {
-      debugPrint('[RealBiometricService] canCheckBiometrics error: $e');
+      SecureLogger.error('RealBiometricService', 'canCheckBiometrics error', e);
       return false;
     }
   }
@@ -47,7 +48,7 @@ class RealBiometricService implements BiometricService {
     try {
       return await _auth.getAvailableBiometrics();
     } catch (e) {
-      debugPrint('[RealBiometricService] getAvailableBiometrics error: $e');
+      SecureLogger.error('RealBiometricService', 'getAvailableBiometrics error', e);
       return const [];
     }
   }
@@ -79,7 +80,7 @@ class RealBiometricService implements BiometricService {
           ? BiometricAuthResult.success
           : BiometricAuthResult.failed;
     } on PlatformException catch (e) {
-      debugPrint('[RealBiometricService] PlatformException: ${e.code} - ${e.message}');
+      SecureLogger.warn('RealBiometricService', 'PlatformException code: ${e.code}');
       if (e.code == auth_error.notAvailable ||
           e.code == auth_error.notEnrolled ||
           e.code == auth_error.passcodeNotSet) {
@@ -91,7 +92,7 @@ class RealBiometricService implements BiometricService {
         return BiometricAuthResult.cancelled;
       }
     } catch (e) {
-      debugPrint('[RealBiometricService] authenticate error: $e');
+      SecureLogger.error('RealBiometricService', 'authenticate exception', e);
       return BiometricAuthResult.failed;
     }
   }

@@ -1,6 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 
+import '../../../../core/utils/secure_logger.dart';
 import '../../domain/models/network_risk_info.dart';
 import '../../domain/services/network_risk_service.dart';
 
@@ -35,6 +35,7 @@ class RealNetworkRiskService implements NetworkRiskService {
         level = NetworkSecurityLevel.vpnDetected;
         score = 0.5;
         note = 'تم رصد شبكة VPN نشطة (إشارة أمنية)';
+        SecureLogger.warn('RealNetworkRiskService', 'Active VPN detected on device');
       } else if (isOffline) {
         level = NetworkSecurityLevel.offline;
         score = 0.1;
@@ -62,7 +63,7 @@ class RealNetworkRiskService implements NetworkRiskService {
         note: note,
       );
     } catch (e) {
-      debugPrint('[RealNetworkRiskService] evaluateNetworkRisk error: $e');
+      SecureLogger.error('RealNetworkRiskService', 'evaluateNetworkRisk error', e);
       return const NetworkRiskInfo(
         isVpnActive: false,
         isOffline: false,
