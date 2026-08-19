@@ -20,26 +20,41 @@ class MockLocationService implements LocationService {
   double customDistance;
   double customAccuracy;
   DateTime? simulatedTimestamp;
+  double workplaceLatitude;
+  double workplaceLongitude;
 
   MockLocationService({
     this.mode = MockLocationMode.insideRange,
     this.customDistance = 2.3, // default: 2.3m from workplace
     this.customAccuracy = 3.5, // default: 3.5m high accuracy
     this.simulatedTimestamp,
+    this.workplaceLatitude = AppConstants.officeLatitude,
+    this.workplaceLongitude = AppConstants.officeLongitude,
   });
+
+  void updateWorkplaceCoordinates({
+    required double latitude,
+    required double longitude,
+  }) {
+    workplaceLatitude = latitude;
+    workplaceLongitude = longitude;
+  }
 
   @override
   Future<LocationResult> getCurrentLocation() async {
     // Artificial small delay for realistic UI loading states
-    await Future.delayed(const Duration(milliseconds: 350));
+    await Future.delayed(const Duration(milliseconds: 300));
     final now = DateTime.now();
+
+    final baseLat = workplaceLatitude;
+    final baseLon = workplaceLongitude;
 
     switch (mode) {
       case MockLocationMode.insideRange:
         final distance = customDistance <= 4.0 ? customDistance : 2.3;
         return LocationResult(
-          latitude: AppConstants.officeLatitude + 0.00001,
-          longitude: AppConstants.officeLongitude + 0.00001,
+          latitude: baseLat + 0.00001,
+          longitude: baseLon + 0.00001,
           distanceFromOfficeMeters: distance,
           accuracyMeters: customAccuracy <= 20.0 ? customAccuracy : 3.5,
           timestamp: simulatedTimestamp ?? now,
@@ -48,8 +63,8 @@ class MockLocationService implements LocationService {
       case MockLocationMode.outsideRange:
         final distance = customDistance > 4.0 ? customDistance : 48.5;
         return LocationResult(
-          latitude: AppConstants.officeLatitude + 0.005,
-          longitude: AppConstants.officeLongitude + 0.005,
+          latitude: baseLat + 0.005,
+          longitude: baseLon + 0.005,
           distanceFromOfficeMeters: distance,
           accuracyMeters: customAccuracy,
           timestamp: simulatedTimestamp ?? now,
@@ -58,8 +73,8 @@ class MockLocationService implements LocationService {
         );
       case MockLocationMode.lowAccuracy:
         return LocationResult(
-          latitude: AppConstants.officeLatitude,
-          longitude: AppConstants.officeLongitude,
+          latitude: baseLat,
+          longitude: baseLon,
           distanceFromOfficeMeters: 2.0,
           accuracyMeters: 45.0, // poor accuracy > 20m
           timestamp: simulatedTimestamp ?? now,
@@ -68,8 +83,8 @@ class MockLocationService implements LocationService {
         );
       case MockLocationMode.staleLocation:
         return LocationResult(
-          latitude: AppConstants.officeLatitude,
-          longitude: AppConstants.officeLongitude,
+          latitude: baseLat,
+          longitude: baseLon,
           distanceFromOfficeMeters: 2.0,
           accuracyMeters: 3.0,
           timestamp: now.subtract(const Duration(minutes: 5)), // 5 mins old
@@ -78,8 +93,8 @@ class MockLocationService implements LocationService {
         );
       case MockLocationMode.mockLocationDetected:
         return LocationResult(
-          latitude: AppConstants.officeLatitude,
-          longitude: AppConstants.officeLongitude,
+          latitude: baseLat,
+          longitude: baseLon,
           distanceFromOfficeMeters: 2.0,
           accuracyMeters: 3.0,
           timestamp: simulatedTimestamp ?? now,

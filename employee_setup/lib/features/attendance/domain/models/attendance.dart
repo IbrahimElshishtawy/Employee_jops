@@ -3,8 +3,11 @@ enum AttendanceType { checkIn, checkOut }
 enum AttendanceStatus {
   success,
   offlinePending,
+  pendingHrVerification,
   rejectedLocation,
   rejectedBiometric,
+  rejectedSchedule,
+  rejectedSecurity,
   error,
 }
 
@@ -44,6 +47,10 @@ class Attendance {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? note;
+  final String? clientRequestId;
+  final String? deviceIntegrityToken;
+  final String? networkRiskLevel;
+  final String? auditId;
 
   const Attendance({
     required this.id,
@@ -70,6 +77,10 @@ class Attendance {
     DateTime? createdAt,
     DateTime? updatedAt,
     this.note,
+    this.clientRequestId,
+    this.deviceIntegrityToken,
+    this.networkRiskLevel,
+    this.auditId,
   }) : date = date ?? timestamp,
        syncStatus = syncStatus ?? (isOffline ? AttendanceSyncStatus.pending : AttendanceSyncStatus.synced),
        createdAt = createdAt ?? timestamp,
@@ -107,6 +118,10 @@ class Attendance {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? note,
+    String? clientRequestId,
+    String? deviceIntegrityToken,
+    String? networkRiskLevel,
+    String? auditId,
   }) {
     return Attendance(
       id: id ?? this.id,
@@ -133,6 +148,10 @@ class Attendance {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       note: note ?? this.note,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      deviceIntegrityToken: deviceIntegrityToken ?? this.deviceIntegrityToken,
+      networkRiskLevel: networkRiskLevel ?? this.networkRiskLevel,
+      auditId: auditId ?? this.auditId,
     );
   }
 
@@ -161,6 +180,10 @@ class Attendance {
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     'note': note,
+    'clientRequestId': clientRequestId,
+    'deviceIntegrityToken': deviceIntegrityToken,
+    'networkRiskLevel': networkRiskLevel,
+    'auditId': auditId,
   };
 
   factory Attendance.fromJson(Map<String, dynamic> json) => Attendance(
@@ -192,6 +215,10 @@ class Attendance {
     createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
     updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     note: json['note'] as String?,
+    clientRequestId: json['clientRequestId'] as String?,
+    deviceIntegrityToken: json['deviceIntegrityToken'] as String?,
+    networkRiskLevel: json['networkRiskLevel'] as String?,
+    auditId: json['auditId'] as String?,
   );
 }
 

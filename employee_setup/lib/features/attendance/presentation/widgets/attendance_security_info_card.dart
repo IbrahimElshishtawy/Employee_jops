@@ -20,9 +20,11 @@ class AttendanceSecurityInfoCard extends ConsumerWidget {
     final hasPendingOffline =
         summary.checkIn?.isOffline == true || summary.checkOut?.isOffline == true;
 
+    final isVpnActive = flowState.networkRisk?.isVpnActive == true;
+
     return Column(
       children: [
-        // Offline Sync Notice if pending items exist
+        // 1. Offline Sync Notice if pending items exist
         if (hasPendingOffline) ...[
           AppCard(
             padding: const EdgeInsets.all(14),
@@ -46,7 +48,7 @@ class AttendanceSecurityInfoCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.tr('attendance.status_offline_pending'),
+                        context.tr('attendance.pending_hr_verification'),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -102,7 +104,106 @@ class AttendanceSecurityInfoCard extends ConsumerWidget {
           const SizedBox(height: 14),
         ],
 
-        // Security Notice Box
+        // 2. Security Foundation Telemetry Grid (Integrity & Network Signals)
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: AppDimensions.borderRadiusMedium,
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.security_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.tr('attendance.device_integrity_title'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceVariantDark : AppColors.successLight,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.verified_rounded, size: 10, color: AppColors.success),
+                        const SizedBox(width: 4),
+                        Text(
+                          context.tr('attendance.device_integrity_ok'),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (isVpnActive) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.vpn_lock_rounded, size: 14, color: AppColors.warning),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        context.tr('attendance.vpn_detected_notice'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppColors.warningLight : AppColors.warningDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.cloud_done_rounded,
+                    size: 14,
+                    color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      context.tr('attendance.server_verified_note'),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 3. Security Disclaimer Box
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(

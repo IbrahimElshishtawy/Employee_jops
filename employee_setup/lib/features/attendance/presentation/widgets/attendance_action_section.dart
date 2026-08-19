@@ -23,8 +23,12 @@ class AttendanceActionSection extends ConsumerWidget {
     final hasCheckedOut = summary.hasCheckedOut;
     final isLoading = flowState.isLoading;
 
+    final employee = ref.watch(employeeProvider);
+    final allowedRadius = employee.allowedRadiusMeters > 0
+        ? employee.allowedRadiusMeters
+        : 4.0;
     final locResult = flowState.locationResult;
-    final isInside = locResult?.isInsideRange ?? (demo.simulatedDistance <= 4.0);
+    final isInside = locResult?.isInsideRange ?? (demo.simulatedDistance <= allowedRadius);
     final isPermissionDenied =
         locResult?.isPermissionDenied ?? (demo.locationMode == MockLocationMode.permissionDenied);
 

@@ -19,6 +19,17 @@ class Employee {
   final String? managerId;
   final String? workLocationId;
 
+  // Workplace & Attendance configuration fields
+  final String? workplaceName;
+  final double? workplaceLatitude;
+  final double? workplaceLongitude;
+  final double allowedRadiusMeters;
+  final String? workStartTime;
+  final String? workEndTime;
+  final String? hrContactName;
+  final String? hrContactPhone;
+  final String? employeeStatus;
+
   const Employee({
     required this.id,
     required this.name,
@@ -37,6 +48,15 @@ class Employee {
     this.region,
     this.managerId,
     this.workLocationId,
+    this.workplaceName,
+    this.workplaceLatitude,
+    this.workplaceLongitude,
+    this.allowedRadiusMeters = 4.0,
+    this.workStartTime,
+    this.workEndTime,
+    this.hrContactName,
+    this.hrContactPhone,
+    this.employeeStatus = 'active',
   });
 
   Employee copyWith({
@@ -57,6 +77,15 @@ class Employee {
     String? region,
     String? managerId,
     String? workLocationId,
+    String? workplaceName,
+    double? workplaceLatitude,
+    double? workplaceLongitude,
+    double? allowedRadiusMeters,
+    String? workStartTime,
+    String? workEndTime,
+    String? hrContactName,
+    String? hrContactPhone,
+    String? employeeStatus,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -76,6 +105,15 @@ class Employee {
       region: region ?? this.region,
       managerId: managerId ?? this.managerId,
       workLocationId: workLocationId ?? this.workLocationId,
+      workplaceName: workplaceName ?? this.workplaceName,
+      workplaceLatitude: workplaceLatitude ?? this.workplaceLatitude,
+      workplaceLongitude: workplaceLongitude ?? this.workplaceLongitude,
+      allowedRadiusMeters: allowedRadiusMeters ?? this.allowedRadiusMeters,
+      workStartTime: workStartTime ?? this.workStartTime,
+      workEndTime: workEndTime ?? this.workEndTime,
+      hrContactName: hrContactName ?? this.hrContactName,
+      hrContactPhone: hrContactPhone ?? this.hrContactPhone,
+      employeeStatus: employeeStatus ?? this.employeeStatus,
     );
   }
 
@@ -97,6 +135,15 @@ class Employee {
     'region': region,
     'managerId': managerId,
     'workLocationId': workLocationId,
+    'workplaceName': workplaceName,
+    'workplaceLatitude': workplaceLatitude,
+    'workplaceLongitude': workplaceLongitude,
+    'allowedRadiusMeters': allowedRadiusMeters,
+    'workStartTime': workStartTime,
+    'workEndTime': workEndTime,
+    'hrContactName': hrContactName,
+    'hrContactPhone': hrContactPhone,
+    'employeeStatus': employeeStatus,
   };
 
   factory Employee.fromJson(Map<String, dynamic> json) => Employee(
@@ -119,6 +166,15 @@ class Employee {
     region: json['region'] as String?,
     managerId: json['managerId'] as String?,
     workLocationId: json['workLocationId'] as String?,
+    workplaceName: json['workplaceName'] as String?,
+    workplaceLatitude: (json['workplaceLatitude'] as num?)?.toDouble(),
+    workplaceLongitude: (json['workplaceLongitude'] as num?)?.toDouble(),
+    allowedRadiusMeters: (json['allowedRadiusMeters'] as num?)?.toDouble() ?? 4.0,
+    workStartTime: json['workStartTime'] as String?,
+    workEndTime: json['workEndTime'] as String?,
+    hrContactName: json['hrContactName'] as String?,
+    hrContactPhone: json['hrContactPhone'] as String?,
+    employeeStatus: json['employeeStatus'] as String? ?? 'active',
   );
 
   // Default Mock Employee (delegates to EmployeeSeed — kept for backward compat)
@@ -133,5 +189,14 @@ class Employee {
     joinDate: DateTime(2025, 1, 15),
     managerName: 'Ahmed Mohamed',
     onboardingCompleted: false,
+    workplaceName: 'المقر الرئيسي - القاهرة',
+    workplaceLatitude: 30.044400,
+    workplaceLongitude: 31.235700,
+    allowedRadiusMeters: 4.0,
+    workStartTime: '09:00 AM',
+    workEndTime: '05:00 PM',
+    hrContactName: 'سارة عبد الله',
+    hrContactPhone: '01011122233',
+    employeeStatus: 'active',
   );
 }

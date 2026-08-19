@@ -22,7 +22,12 @@ class LocationStatusCard extends ConsumerWidget {
     final locResult = flowState.locationResult;
     final distanceMeters = locResult?.distanceFromOfficeMeters ?? demo.simulatedDistance;
     final accuracyMeters = locResult?.accuracyMeters ?? 3.5;
-    final isInside = locResult?.isInsideRange ?? (demo.simulatedDistance <= 4.0);
+    final employee = ref.watch(employeeProvider);
+    final workplaceName = employee.workplaceName ?? db.companyLocation.label;
+    final allowedRadius = employee.allowedRadiusMeters > 0
+        ? employee.allowedRadiusMeters
+        : db.companyLocation.radiusMeters;
+    final isInside = locResult?.isInsideRange ?? (demo.simulatedDistance <= allowedRadius);
     final isPermissionDenied = locResult?.isPermissionDenied ?? (demo.locationMode == MockLocationMode.permissionDenied);
     final isGpsDisabled = locResult?.isGpsDisabled ?? (demo.locationMode == MockLocationMode.gpsDisabled);
     final isLowAccuracy = locResult?.status == LocationStatus.lowAccuracy || !((locResult?.isAccuracyValid) ?? true);
@@ -117,7 +122,7 @@ class LocationStatusCard extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            db.companyLocation.label,
+                            workplaceName,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -142,7 +147,7 @@ class LocationStatusCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '${context.tr('attendance.allowed_radius_label')}: ${db.companyLocation.radiusMeters.toInt()} ${context.tr('common.meters')}',
+                        '${context.tr('attendance.allowed_radius_label')}: ${allowedRadius.toInt()} ${context.tr('common.meters')}',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,

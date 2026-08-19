@@ -2,14 +2,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/mock/mock_database.dart';
 import '../../domain/models/attendance.dart';
+import '../../domain/models/attendance_api_contracts.dart';
+import '../../domain/models/device_integrity_result.dart';
+import '../../domain/models/network_risk_info.dart';
 import '../../domain/repositories/attendance_repository.dart';
+import '../api/attendance_api.dart';
+import '../api/mock_attendance_api.dart';
 
 class MockAttendanceRepository implements AttendanceRepository {
   final Ref? _ref;
+  final AttendanceApi? _api;
   final _uuid = const Uuid();
 
-  MockAttendanceRepository([Object? source])
-    : _ref = source is Ref ? source : null {
+  MockAttendanceRepository([Object? source, AttendanceApi? api])
+    : _ref = source is Ref ? source : null,
+      _api = api {
     if (_ref == null) {
       fallbackMockDatabaseNotifier.replaceState(
         MockDatabase.seed().copyWith(attendance: const []),
@@ -21,6 +28,9 @@ class MockAttendanceRepository implements AttendanceRepository {
       _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
   MockDatabase get _state =>
       _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
+
+  AttendanceApi get _apiClient =>
+      _api ?? MockAttendanceApi(getEmployee: () => _state.employee);
 
   @override
   Future<TodayAttendanceSummary> getTodayStatus(String employeeId) async {
@@ -34,6 +44,17 @@ class MockAttendanceRepository implements AttendanceRepository {
   }
 
   @override
+  Future<AttendanceVerificationResponse> submitAttendanceRequest(
+    AttendanceSubmissionRequest request,
+  ) async {
+    final response = await _apiClient.submitAttendance(request);
+    if (response.attendanceRecord != null) {
+      _db.addAttendance(response.attendanceRecord!);
+    }
+    return response;
+  }
+
+  @override
   Future<Attendance> checkIn({
     required String employeeId,
     required double latitude,
@@ -43,9 +64,34 @@ class MockAttendanceRepository implements AttendanceRepository {
     String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
+    DeviceIntegrityResult? integrityResult,
+    NetworkRiskInfo? networkRisk,
+    String? clientRequestId,
   }) async {
+    final reqId = clientRequestId ?? _uuid.v4();
+    final submission = AttendanceSubmissionRequest(
+      clientRequestId: reqId,
+      employeeId: employeeId,
+      attendanceType: AttendanceType.checkIn,
+      latitude: latitude,
+      longitude: longitude,
+      accuracy: accuracy,
+      clientTimestamp: DateTime.now(),
+      workplaceId: workLocationId,
+      distanceFromWorkplace: distance,
+      biometricVerified: biometricVerified,
+      integrityResult: integrityResult,
+      networkRisk: networkRisk,
+      isOfflineSubmission: isOffline,
+    );
+
+    final response = await submitAttendanceRequest(submission);
+    if (response.attendanceRecord != null) {
+      return response.attendanceRecord!;
+    }
+
     final now = DateTime.now();
-    final record = Attendance(
+    return Attendance(
       id: _uuid.v4(),
       employeeId: employeeId,
       workLocationId: workLocationId,
@@ -58,16 +104,9 @@ class MockAttendanceRepository implements AttendanceRepository {
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
-      method: isOffline ? AttendanceMethod.offlineBiometric : AttendanceMethod.biometric,
-      syncStatus: isOffline ? AttendanceSyncStatus.pending : AttendanceSyncStatus.synced,
-      status: isOffline
-          ? AttendanceStatus.offlinePending
-          : AttendanceStatus.success,
-      createdAt: now,
-      updatedAt: now,
+      status: isOffline ? AttendanceStatus.offlinePending : AttendanceStatus.rejectedLocation,
+      clientRequestId: reqId,
     );
-    _db.addAttendance(record);
-    return record;
   }
 
   @override
@@ -80,9 +119,34 @@ class MockAttendanceRepository implements AttendanceRepository {
     String workLocationId = 'LOC-CAIRO-HQ',
     required bool biometricVerified,
     required bool isOffline,
+    DeviceIntegrityResult? integrityResult,
+    NetworkRiskInfo? networkRisk,
+    String? clientRequestId,
   }) async {
+    final reqId = clientRequestId ?? _uuid.v4();
+    final submission = AttendanceSubmissionRequest(
+      clientRequestId: reqId,
+      employeeId: employeeId,
+      attendanceType: AttendanceType.checkOut,
+      latitude: latitude,
+      longitude: longitude,
+      accuracy: accuracy,
+      clientTimestamp: DateTime.now(),
+      workplaceId: workLocationId,
+      distanceFromWorkplace: distance,
+      biometricVerified: biometricVerified,
+      integrityResult: integrityResult,
+      networkRisk: networkRisk,
+      isOfflineSubmission: isOffline,
+    );
+
+    final response = await submitAttendanceRequest(submission);
+    if (response.attendanceRecord != null) {
+      return response.attendanceRecord!;
+    }
+
     final now = DateTime.now();
-    final record = Attendance(
+    return Attendance(
       id: _uuid.v4(),
       employeeId: employeeId,
       workLocationId: workLocationId,
@@ -95,44 +159,61 @@ class MockAttendanceRepository implements AttendanceRepository {
       distanceFromOffice: distance,
       biometricVerified: biometricVerified,
       isOffline: isOffline,
-      method: isOffline ? AttendanceMethod.offlineBiometric : AttendanceMethod.biometric,
-      syncStatus: isOffline ? AttendanceSyncStatus.pending : AttendanceSyncStatus.synced,
-      status: isOffline
-          ? AttendanceStatus.offlinePending
-          : AttendanceStatus.success,
-      createdAt: now,
-      updatedAt: now,
+      status: isOffline ? AttendanceStatus.offlinePending : AttendanceStatus.rejectedLocation,
+      clientRequestId: reqId,
     );
-    _db.addAttendance(record);
-    return record;
   }
 
   @override
   Future<List<Attendance>> getPendingOfflineQueue() async {
-    return _state.attendance.where((a) => a.isOffline).toList();
+    return _state.attendance
+        .where((a) => a.isOffline || a.status == AttendanceStatus.offlinePending || a.status == AttendanceStatus.pendingHrVerification)
+        .toList();
   }
 
   @override
   Future<int> syncPendingAttendance() async {
-    final pending = _state.attendance.where((a) => a.isOffline).toList();
+    final pending = await getPendingOfflineQueue();
     if (pending.isEmpty) return 0;
 
-    final synced = _state.attendance
+    int syncedCount = 0;
+    for (final item in pending) {
+      final req = AttendanceSubmissionRequest(
+        clientRequestId: item.clientRequestId ?? _uuid.v4(),
+        employeeId: item.employeeId,
+        attendanceType: item.type,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        accuracy: item.accuracy,
+        clientTimestamp: item.timestamp,
+        workplaceId: item.workLocationId,
+        distanceFromWorkplace: item.distanceFromOffice,
+        biometricVerified: item.biometricVerified,
+        isOfflineSubmission: false, // Now online
+      );
+
+      final response = await _apiClient.syncOfflineAttendance(req);
+      if (response.success) {
+        syncedCount++;
+      }
+    }
+
+    final updatedAttendance = _state.attendance
         .map(
-          (a) => a.isOffline
+          (a) => (a.isOffline || a.status == AttendanceStatus.offlinePending)
               ? a.copyWith(
                   isOffline: false,
                   status: AttendanceStatus.success,
                   syncStatus: AttendanceSyncStatus.synced,
                   updatedAt: DateTime.now(),
+                  note: 'تمت المزامنة بنجاح مع الخادم',
                 )
               : a,
         )
         .toList();
 
-    _db.replaceAttendance(synced);
-    await Future.delayed(const Duration(milliseconds: 400));
-    return pending.length;
+    _db.replaceAttendance(updatedAttendance);
+    return syncedCount;
   }
 
   @override

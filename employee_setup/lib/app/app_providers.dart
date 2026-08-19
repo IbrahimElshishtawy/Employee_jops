@@ -20,16 +20,31 @@ import '../features/advances/data/repositories/mock_advances_repository.dart';
 import '../features/advances/domain/models/advance_request.dart';
 import '../features/advances/domain/repositories/advances_repository.dart';
 
+import '../features/attendance/data/api/attendance_api.dart';
+import '../features/attendance/data/api/mock_attendance_api.dart';
 import '../features/attendance/data/repositories/mock_attendance_repository.dart';
+import '../features/attendance/data/services/device_integrity_service_impl.dart';
 import '../features/attendance/data/services/mock_biometric_service.dart';
+import '../features/attendance/data/services/mock_location_detector_impl.dart';
 import '../features/attendance/data/services/mock_location_service.dart';
+import '../features/attendance/data/services/network_risk_service_impl.dart';
 import '../features/attendance/domain/models/attendance.dart';
+import '../features/attendance/domain/models/attendance_api_contracts.dart';
 import '../features/attendance/domain/models/attendance_state_type.dart';
+import '../features/attendance/domain/models/device_integrity_result.dart';
 import '../features/attendance/domain/models/location_result.dart';
+import '../features/attendance/domain/models/network_risk_info.dart';
 import '../features/attendance/domain/models/work_schedule.dart';
 import '../features/attendance/domain/repositories/attendance_repository.dart';
+import '../features/attendance/domain/services/attendance_audit_service.dart';
+import '../features/attendance/domain/services/attendance_policy_service.dart';
+import '../features/attendance/domain/services/attendance_verification_service.dart';
 import '../features/attendance/domain/services/biometric_service.dart';
+import '../features/attendance/domain/services/device_integrity_service.dart';
+import '../features/attendance/domain/services/geofence_service.dart';
 import '../features/attendance/domain/services/location_service.dart';
+import '../features/attendance/domain/services/mock_location_detector.dart';
+import '../features/attendance/domain/services/network_risk_service.dart';
 import '../features/attendance/domain/services/work_schedule_service.dart';
 
 import '../features/auth/data/datasources/mock_auth_datasource.dart';
@@ -107,6 +122,8 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
     final locService = _ref.read(mockLocationServiceProvider);
     locService.mode = mode;
     locService.customDistance = state.simulatedDistance;
+    final mockDetector = _ref.read(mockLocationDetectorProvider) as MockLocationDetectorImpl;
+    mockDetector.simulatedMockDetected = (mode == MockLocationMode.mockLocationDetected);
   }
 
   void setBiometricMode(MockBiometricMode mode) {
@@ -147,11 +164,39 @@ final demoControlsProvider =
     });
 
 // ══════════════════════════════════════════════════════════════════
-// 3. Location & Biometric Services
+// 3. Location, Biometric & Security Services
 // ══════════════════════════════════════════════════════════════════
 
+final geofenceServiceProvider = Provider<GeofenceService>((ref) {
+  return const GeofenceService();
+});
+
+final attendancePolicyServiceProvider = Provider<AttendancePolicyService>((ref) {
+  return const AttendancePolicyService();
+});
+
+final mockLocationDetectorProvider = Provider<MockLocationDetector>((ref) {
+  return MockLocationDetectorImpl();
+});
+
+final deviceIntegrityServiceProvider = Provider<DeviceIntegrityService>((ref) {
+  return DeviceIntegrityServiceImpl();
+});
+
+final networkRiskServiceProvider = Provider<NetworkRiskService>((ref) {
+  return NetworkRiskServiceImpl();
+});
+
+final attendanceAuditServiceProvider = Provider<AttendanceAuditService>((ref) {
+  return AttendanceAuditService();
+});
+
 final mockLocationServiceProvider = Provider<MockLocationService>((ref) {
-  return MockLocationService();
+  final emp = ref.watch(employeeProvider);
+  return MockLocationService(
+    workplaceLatitude: emp.workplaceLatitude ?? AppConstants.officeLatitude,
+    workplaceLongitude: emp.workplaceLongitude ?? AppConstants.officeLongitude,
+  );
 });
 
 final locationServiceProvider = Provider<LocationService>((ref) {
@@ -165,6 +210,24 @@ final mockBiometricServiceProvider = Provider<MockBiometricService>((ref) {
 final biometricServiceProvider = Provider<BiometricService>((ref) {
   return ref.watch(mockBiometricServiceProvider);
 });
+
+final attendanceApiProvider = Provider<AttendanceApi>((ref) {
+  return MockAttendanceApi(getEmployee: () => ref.watch(employeeProvider));
+});
+
+final attendanceVerificationServiceProvider =
+    Provider<AttendanceVerificationService>((ref) {
+      return AttendanceVerificationService(
+        locationService: ref.watch(locationServiceProvider),
+        geofenceService: ref.watch(geofenceServiceProvider),
+        mockLocationDetector: ref.watch(mockLocationDetectorProvider),
+        biometricService: ref.watch(biometricServiceProvider),
+        deviceIntegrityService: ref.watch(deviceIntegrityServiceProvider),
+        networkRiskService: ref.watch(networkRiskServiceProvider),
+        workScheduleService: ref.watch(workScheduleServiceProvider),
+        policyService: ref.watch(attendancePolicyServiceProvider),
+      );
+    });
 
 // ══════════════════════════════════════════════════════════════════
 // 4. Auth & Employee Providers
@@ -285,7 +348,8 @@ final workScheduleShiftStatusProvider = Provider<WorkScheduleShiftStatus>((ref) 
 });
 
 final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  return MockAttendanceRepository(ref);
+  final api = ref.watch(attendanceApiProvider);
+  return MockAttendanceRepository(ref, api);
 });
 
 /// Today's check-in / check-out summary — auto-updates when MockDatabase changes.
@@ -314,7 +378,11 @@ enum AttendanceProcessState {
 
 class AttendanceFlowState {
   final AttendanceProcessState processState;
+  final AttendanceStateType stateType;
   final LocationResult? locationResult;
+  final DeviceIntegrityResult? integrityResult;
+  final NetworkRiskInfo? networkRisk;
+  final AttendanceVerificationResponse? lastResponse;
   final String? message;
   final bool isOffline;
   final bool isLocationUpdating;
@@ -323,7 +391,11 @@ class AttendanceFlowState {
 
   const AttendanceFlowState({
     this.processState = AttendanceProcessState.idle,
+    this.stateType = AttendanceStateType.notStarted,
     this.locationResult,
+    this.integrityResult,
+    this.networkRisk,
+    this.lastResponse,
     this.message,
     this.isOffline = false,
     this.isLocationUpdating = false,
@@ -338,7 +410,11 @@ class AttendanceFlowState {
 
   AttendanceFlowState copyWith({
     AttendanceProcessState? processState,
+    AttendanceStateType? stateType,
     LocationResult? locationResult,
+    DeviceIntegrityResult? integrityResult,
+    NetworkRiskInfo? networkRisk,
+    AttendanceVerificationResponse? lastResponse,
     String? message,
     bool? isOffline,
     bool? isLocationUpdating,
@@ -347,7 +423,11 @@ class AttendanceFlowState {
   }) {
     return AttendanceFlowState(
       processState: processState ?? this.processState,
+      stateType: stateType ?? this.stateType,
       locationResult: locationResult ?? this.locationResult,
+      integrityResult: integrityResult ?? this.integrityResult,
+      networkRisk: networkRisk ?? this.networkRisk,
+      lastResponse: lastResponse ?? this.lastResponse,
       message: message,
       isOffline: isOffline ?? this.isOffline,
       isLocationUpdating: isLocationUpdating ?? this.isLocationUpdating,
@@ -381,14 +461,27 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
 
     state = state.copyWith(isLocationUpdating: true);
     try {
+      final employee = _ref.read(employeeProvider);
       final locationService = _ref.read(locationServiceProvider);
+      final geofenceService = _ref.read(geofenceServiceProvider);
+
       final result = await locationService.getCurrentLocation();
+      final wpLat = employee.workplaceLatitude ?? AppConstants.officeLatitude;
+      final wpLon = employee.workplaceLongitude ?? AppConstants.officeLongitude;
+      final distance = geofenceService.calculateDistanceInMeters(
+        startLatitude: result.latitude,
+        startLongitude: result.longitude,
+        endLatitude: wpLat,
+        endLongitude: wpLon,
+      );
+
+      final updatedResult = result.copyWith(distanceFromOfficeMeters: distance);
       state = state.copyWith(
-        locationResult: result,
+        locationResult: updatedResult,
         isLocationUpdating: false,
         lastLocationUpdateTime: DateTime.now(),
       );
-      return result;
+      return updatedResult;
     } catch (e) {
       state = state.copyWith(
         isLocationUpdating: false,
@@ -426,167 +519,180 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     // Race Condition Prevention: ignore multiple rapid taps
     if (state.isLoading) return false;
 
-    final locationService = _ref.read(locationServiceProvider);
-    final biometricService = _ref.read(biometricServiceProvider);
+    final verifier = _ref.read(attendanceVerificationServiceProvider);
     final attendanceRepo = _ref.read(attendanceRepositoryProvider);
+    final auditService = _ref.read(attendanceAuditServiceProvider);
     final connectivity = _ref.read(connectivityServiceProvider);
     final notifRepo = _ref.read(notificationsRepositoryProvider);
     final db = _ref.read(mockDatabaseProvider);
-    final empId = db.session?.employeeId ?? db.employee.id;
+    final employee = db.employee;
+    final empId = db.session?.employeeId ?? employee.id;
     final summary = db.todaySummary;
-
-    // 0. Validation: Session & Duplicate State
-    if (isCheckIn && summary.hasCheckedIn) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message: 'تم تسجيل الحضور لهذا اليوم مسبقًا.',
-      );
-      return false;
-    }
-
-    if (!isCheckIn && !summary.hasCheckedIn) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message: 'لم يتم تسجيل الحضور بعد، لا يمكن تسجيل الانصراف.',
-      );
-      return false;
-    }
-
-    if (!isCheckIn && summary.hasCheckedOut) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message: 'تم إكمال يوم العمل وتسجيل الانصراف مسبقًا.',
-      );
-      return false;
-    }
+    final workSchedule = db.workSchedule;
 
     final isOnline = await connectivity.isConnected;
 
-    // 1. Check Location & Accuracy & Staleness
+    // STEP 1: Verify Work Schedule & Session Prerequisites
+    final scheduleCheck = verifier.verifyWorkSchedule(
+      employee: employee,
+      workSchedule: workSchedule,
+      todaySummary: summary,
+      isCheckIn: isCheckIn,
+    );
+
+    if (!scheduleCheck.isSuccess) {
+      state = state.copyWith(
+        processState: AttendanceProcessState.error,
+        stateType: scheduleCheck.failureState ?? AttendanceStateType.error,
+        message: scheduleCheck.errorMessage,
+      );
+      return false;
+    }
+
+    // STEP 2: Verify Location, Permissions, Accuracy, Mock GPS & Geofence
     state = state.copyWith(
       processState: AttendanceProcessState.checkingLocation,
+      stateType: AttendanceStateType.verifyingLocation,
       message: 'جاري التحقق من الموقع الجغرافي والدقة والمسافة...',
       isOffline: !isOnline,
     );
 
-    var locResult = await locationService.getCurrentLocation();
-    // Stale location check: if older than 60s, refresh again
-    if (locResult.isStale) {
-      locResult = await locationService.getCurrentLocation();
+    final locationCheck = await verifier.verifyLocation(employee: employee);
+    if (!locationCheck.isSuccess) {
+      state = state.copyWith(
+        processState: AttendanceProcessState.error,
+        stateType: locationCheck.failureState ?? AttendanceStateType.error,
+        message: locationCheck.errorMessage,
+      );
+      return false;
     }
 
+    final locResult = locationCheck.data!;
     state = state.copyWith(
       locationResult: locResult,
       lastLocationUpdateTime: DateTime.now(),
     );
 
-    // Check Mock Location
-    if (locResult.isMockLocation || locResult.status == LocationStatus.mockLocationDetected) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message: 'تم رصد استخدام موقع وهمي (Mock Location). تم رفض العملية.',
-      );
-      return false;
-    }
-
-    // Check GPS Accuracy
-    if (!locResult.isAccuracyValid || locResult.status == LocationStatus.lowAccuracy) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message: 'دقة الموقع غير كافية (${locResult.accuracyMeters.toInt()} م). يرجى الانتقال لمكان مكشوف.',
-      );
-      return false;
-    }
-
-    // Check 4-meter Geofence
-    if (!locResult.isInsideRange) {
-      state = state.copyWith(
-        processState: AttendanceProcessState.error,
-        message:
-            locResult.errorMessage ??
-            'أنت خارج نطاق الشركة المسموح به (أقصى مسافة ${db.companyLocation.radiusMeters.toInt()} أمتار)',
-      );
-      return false;
-    }
-
-    // 2. Biometric Authentication
+    // STEP 3: Device Biometric Authentication (Fingerprint / Face ID)
     state = state.copyWith(
       processState: AttendanceProcessState.authenticatingBiometric,
-      message: 'يرجى تأكيد بصمة الإصبع أو Face ID...',
+      stateType: AttendanceStateType.verifyingBiometric,
+      message: 'يرجى تأكيد بصمة الإصبع أو Face ID للمتابعة...',
     );
 
-    final bioResult = await biometricService.authenticate(
-      reason: isCheckIn
-          ? 'تأكيد الحضور ببصمة الموظف'
-          : 'تأكيد الانصراف ببصمة الموظف',
-    );
-
-    if (bioResult != BiometricAuthResult.success) {
+    final bioCheck = await verifier.verifyBiometrics(isCheckIn: isCheckIn);
+    if (!bioCheck.isSuccess) {
       state = state.copyWith(
         processState: AttendanceProcessState.error,
-        message: bioResult == BiometricAuthResult.cancelled
-            ? 'تم إلغاء المصادقة البيومترية'
-            : bioResult == BiometricAuthResult.notAvailable
-                ? 'المصادقة البيومترية غير مفعلة على الجهاز'
-                : 'فشلت المصادقة بالبصمة، يرجى المحاولة مجددًا',
+        stateType: bioCheck.failureState ?? AttendanceStateType.biometricFailed,
+        message: bioCheck.errorMessage,
       );
       return false;
     }
 
-    // 3. Submit Attendance
+    final bioToken = bioCheck.data;
+
+    // STEP 4: Device Integrity & Network Risk Assessment
+    state = state.copyWith(
+      processState: AttendanceProcessState.checkingLocation,
+      stateType: AttendanceStateType.verifyingDevice,
+      message: 'جاري فحص أمان الجهاز والشبكة...',
+    );
+
+    final integrityResult = await verifier.acquireDeviceIntegrityToken();
+    final networkRisk = await verifier.collectNetworkRisk();
+
+    state = state.copyWith(
+      integrityResult: integrityResult,
+      networkRisk: networkRisk,
+    );
+
+    // STEP 5: Submit Attendance Request to Backend Decision Engine
     state = state.copyWith(
       processState: AttendanceProcessState.submitting,
+      stateType: AttendanceStateType.submitting,
       message: isOnline
-          ? 'جاري تسجيل العملية...'
+          ? 'جاري تسجيل العملية واعتمادها من الخادم...'
           : 'جاري الحفظ المحلي (وضع بدون اتصال)...',
     );
 
-    if (isCheckIn) {
-      await attendanceRepo.checkIn(
-        employeeId: empId,
-        workLocationId: db.companyLocation.id,
-        latitude: locResult.latitude,
-        longitude: locResult.longitude,
-        accuracy: locResult.accuracyMeters,
-        distance: locResult.distanceFromOfficeMeters,
-        biometricVerified: true,
-        isOffline: !isOnline,
+    final clientRequestId = 'REQ-${DateTime.now().millisecondsSinceEpoch}-${empId.hashCode}';
+    final submissionRequest = AttendanceSubmissionRequest(
+      clientRequestId: clientRequestId,
+      employeeId: empId,
+      attendanceType: isCheckIn ? AttendanceType.checkIn : AttendanceType.checkOut,
+      latitude: locResult.latitude,
+      longitude: locResult.longitude,
+      accuracy: locResult.accuracyMeters,
+      clientTimestamp: DateTime.now(),
+      workplaceId: employee.workLocationId ?? 'LOC-CAIRO-HQ',
+      distanceFromWorkplace: locResult.distanceFromOfficeMeters,
+      biometricVerified: true,
+      biometricProofToken: bioToken,
+      integrityResult: integrityResult,
+      networkRisk: networkRisk,
+      isOfflineSubmission: !isOnline,
+    );
+
+    final response = await attendanceRepo.submitAttendanceRequest(submissionRequest);
+
+    // STEP 6: Capture Audit Log
+    auditService.logAttendanceAttempt(
+      request: submissionRequest,
+      locationResult: locResult,
+      response: response,
+    );
+
+    state = state.copyWith(lastResponse: response);
+
+    if (response.isApproved) {
+      // In-App Notification
+      await notifRepo.addNotification(
+        AppNotification(
+          id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
+          title: isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف',
+          message:
+              'تم ${isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف'} بنجاح (${locResult.distanceFromOfficeMeters.toStringAsFixed(1)} م)',
+          category: NotificationCategory.attendance,
+          createdAt: DateTime.now(),
+          isRead: false,
+        ),
       );
+
+      state = state.copyWith(
+        processState: AttendanceProcessState.success,
+        stateType: isCheckIn ? AttendanceStateType.checkedIn : AttendanceStateType.checkedOut,
+        message: response.message ??
+            (isCheckIn ? 'تم تسجيل الحضور بنجاح!' : 'تم تسجيل الانصراف بنجاح!'),
+      );
+      return true;
+    } else if (response.isPendingHr) {
+      await notifRepo.addNotification(
+        AppNotification(
+          id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
+          title: isCheckIn ? 'تسجيل الحضور (بدون اتصال)' : 'تسجيل الانصراف (بدون اتصال)',
+          message: 'تم الحفظ محلياً — في انتظار مراجعة الـ HR والمزامنة',
+          category: NotificationCategory.attendance,
+          createdAt: DateTime.now(),
+          isRead: false,
+        ),
+      );
+
+      state = state.copyWith(
+        processState: AttendanceProcessState.success,
+        stateType: AttendanceStateType.offlinePendingSync,
+        message: response.message ??
+            'تم تسجيل الحضور بدون اتصال وفي انتظار مراجعة الـ HR عند المزامنة.',
+      );
+      return true;
     } else {
-      await attendanceRepo.checkOut(
-        employeeId: empId,
-        workLocationId: db.companyLocation.id,
-        latitude: locResult.latitude,
-        longitude: locResult.longitude,
-        accuracy: locResult.accuracyMeters,
-        distance: locResult.distanceFromOfficeMeters,
-        biometricVerified: true,
-        isOffline: !isOnline,
+      state = state.copyWith(
+        processState: AttendanceProcessState.error,
+        stateType: AttendanceStateType.serverRejected,
+        message: response.message ?? 'تم رفض تسجيل الحضور من قبل الخادم.',
       );
+      return false;
     }
-
-    // 4. Push In-App Notification
-    await notifRepo.addNotification(
-      AppNotification(
-        id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
-        title: isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف',
-        message: isOnline
-            ? 'تم ${isCheckIn ? 'تسجيل الحضور' : 'تسجيل الانصراف'} بنجاح (${locResult.distanceFromOfficeMeters.toStringAsFixed(1)} م)'
-            : 'تم الحفظ محليًا — سيتم المزامنة تلقائيًا',
-        category: NotificationCategory.attendance,
-        createdAt: DateTime.now(),
-        isRead: false,
-      ),
-    );
-
-    state = state.copyWith(
-      processState: AttendanceProcessState.success,
-      message: isOnline
-          ? (isCheckIn ? 'تم تسجيل الحضور بنجاح!' : 'تم تسجيل الانصراف بنجاح!')
-          : 'تم تسجيل الحضور بدون اتصال وسيتم المزامنة لاحقًا.',
-    );
-
-    return true;
   }
 
   /// Syncs offline pending records when connectivity is restored
@@ -621,7 +727,7 @@ final attendanceFlowProvider =
       return AttendanceFlowNotifier(ref);
     });
 
-/// Master 22-state machine determining the exact current UI & business state.
+/// Master state machine determining the exact current UI & business state.
 final attendanceStateProvider = Provider<AttendanceStateType>((ref) {
   final summary = ref.watch(attendanceSummaryProvider);
   final flowState = ref.watch(attendanceFlowProvider);
@@ -630,7 +736,7 @@ final attendanceStateProvider = Provider<AttendanceStateType>((ref) {
 
   // 1. Process / Action states
   if (flowState.processState == AttendanceProcessState.checkingLocation) {
-    return AttendanceStateType.checkingLocation;
+    return flowState.stateType;
   }
   if (flowState.processState == AttendanceProcessState.authenticatingBiometric) {
     return AttendanceStateType.verifyingBiometric;
@@ -641,7 +747,7 @@ final attendanceStateProvider = Provider<AttendanceStateType>((ref) {
         : AttendanceStateType.checkingIn;
   }
   if (flowState.processState == AttendanceProcessState.error) {
-    return AttendanceStateType.error;
+    return flowState.stateType;
   }
 
   // 2. Completed State
@@ -661,7 +767,7 @@ final attendanceStateProvider = Provider<AttendanceStateType>((ref) {
   final loc = flowState.locationResult;
   if (loc != null) {
     if (loc.isPermissionDenied || demo.locationMode == MockLocationMode.permissionDenied) {
-      return AttendanceStateType.locationPermissionRequired;
+      return AttendanceStateType.locationPermissionDenied;
     }
     if (loc.isGpsDisabled || demo.locationMode == MockLocationMode.gpsDisabled) {
       return AttendanceStateType.locationServiceDisabled;

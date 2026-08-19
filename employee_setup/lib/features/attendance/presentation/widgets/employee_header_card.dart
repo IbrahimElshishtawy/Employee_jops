@@ -86,14 +86,16 @@ class EmployeeHeaderCard extends ConsumerWidget {
                       color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      '${employee.id} • ${employee.department}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                    Expanded(
+                      child: Text(
+                        '${employee.id} • ${employee.department}${employee.workplaceName != null ? ' • ${employee.workplaceName}' : ''}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

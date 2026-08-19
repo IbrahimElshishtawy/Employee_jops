@@ -158,56 +158,64 @@ class AttendanceCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.surfaceVariantDark
-                        : AppColors.surfaceVariantLight,
-                    borderRadius: AppDimensions.borderRadiusMedium,
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.borderDark
-                          : AppColors.borderLight,
+                () {
+                  final employee = ref.watch(employeeProvider);
+                  final allowedRadius = employee.allowedRadiusMeters > 0
+                      ? employee.allowedRadiusMeters
+                      : 4.0;
+                  final isInside = demoState.simulatedDistance <= allowedRadius;
+
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        demoState.simulatedDistance <= 4.0
-                            ? Icons.location_on_rounded
-                            : Icons.location_off_rounded,
-                        size: 18,
-                        color: demoState.simulatedDistance <= 4.0
-                            ? AppColors.success
-                            : AppColors.error,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.surfaceVariantLight,
+                      borderRadius: AppDimensions.borderRadiusMedium,
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          demoState.simulatedDistance <= 4.0
-                              ? '📍 داخل نطاق الشركة (أنت على بعد ${demoState.simulatedDistance.toStringAsFixed(1)} م)'
-                              : '⚠️ خارج نطاق الشركة (أنت على بعد ${demoState.simulatedDistance.toStringAsFixed(1)} م - المسموح 4م)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: demoState.simulatedDistance <= 4.0
-                                ? (isDark
-                                      ? const Color(0xFFA7F3D0)
-                                      : AppColors.successDark)
-                                : (isDark
-                                      ? const Color(0xFFFECACA)
-                                      : AppColors.errorDark),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isInside
+                              ? Icons.location_on_rounded
+                              : Icons.location_off_rounded,
+                          size: 18,
+                          color: isInside
+                              ? AppColors.success
+                              : AppColors.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            isInside
+                                ? '📍 داخل نطاق موقع العمل (أنت على بعد ${demoState.simulatedDistance.toStringAsFixed(1)} م)'
+                                : '⚠️ خارج نطاق موقع العمل (أنت على بعد ${demoState.simulatedDistance.toStringAsFixed(1)} م - المسموح ${allowedRadius.toInt()}م)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isInside
+                                  ? (isDark
+                                        ? const Color(0xFFA7F3D0)
+                                        : AppColors.successDark)
+                                  : (isDark
+                                        ? const Color(0xFFFECACA)
+                                        : AppColors.errorDark),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      ],
+                    ),
+                  );
+                }(),
                 const SizedBox(height: 16),
 
                 Container(
