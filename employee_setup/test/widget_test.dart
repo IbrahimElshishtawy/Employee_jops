@@ -8,32 +8,44 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Widget _buildTestApp({
+  required Widget child,
+  Locale locale = const Locale('ar'),
+  ThemeMode themeMode = ThemeMode.light,
+  List<Override> overrides = const [],
+}) {
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp(
+      locale: locale,
+      themeMode: themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
+  );
+}
+
 void main() {
-  testWidgets('TodayAttendanceStatusCard initial load test', (WidgetTester tester) async {
+  testWidgets('TodayAttendanceStatusCard initial load test',
+      (WidgetTester tester) async {
     final storage = SharedPrefsStorage();
     await storage.init();
     await storage.clear();
 
     await tester.pumpWidget(
-      ProviderScope(
+      _buildTestApp(
+        child: const TodayAttendanceStatusCard(),
         overrides: [
           localStorageProvider.overrideWithValue(storage),
         ],
-        child: MaterialApp(
-          locale: const Locale('ar'),
-          theme: AppTheme.lightTheme,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          themeMode: ThemeMode.light,
-          home: const Scaffold(
-            body: SingleChildScrollView(child: TodayAttendanceStatusCard()),
-          ),
-        ),
       ),
     );
 
