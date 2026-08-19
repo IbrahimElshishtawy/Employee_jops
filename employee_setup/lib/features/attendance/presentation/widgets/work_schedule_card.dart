@@ -30,42 +30,56 @@ class WorkScheduleCard extends ConsumerWidget {
 
     switch (shiftStatus.type) {
       case ShiftStatusType.offDay:
-        statusColor = isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight;
-        statusBgColor = isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight;
+        statusColor = isDark
+            ? AppColors.textMutedDark
+            : AppColors.textSecondaryLight;
+        statusBgColor = isDark
+            ? AppColors.surfaceVariantDark
+            : AppColors.surfaceVariantLight;
         statusIcon = Icons.event_busy_rounded;
         break;
       case ShiftStatusType.beforeShift:
         statusColor = AppColors.info;
-        statusBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : AppColors.primaryLight;
+        statusBgColor = isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+            : AppColors.primaryLight;
         statusIcon = Icons.schedule_rounded;
         break;
       case ShiftStatusType.withinShift:
         statusColor = AppColors.success;
-        statusBgColor = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : AppColors.successLight;
+        statusBgColor = isDark
+            ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+            : AppColors.successLight;
         statusIcon = Icons.work_history_rounded;
         break;
       case ShiftStatusType.afterShift:
-        statusColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
-        statusBgColor = isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight;
+        statusColor = isDark
+            ? AppColors.textSecondaryDark
+            : AppColors.textSecondaryLight;
+        statusBgColor = isDark
+            ? AppColors.surfaceVariantDark
+            : AppColors.surfaceVariantLight;
         statusIcon = Icons.done_all_rounded;
         break;
     }
 
     return AppCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -74,7 +88,7 @@ class WorkScheduleCard extends ConsumerWidget {
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 1),
                   Text(
                     context.tr('attendance.work_schedule_title'),
                     style: TextStyle(
@@ -88,7 +102,9 @@ class WorkScheduleCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                  color: isDark
+                      ? AppColors.surfaceVariantDark
+                      : AppColors.surfaceVariantLight,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -96,7 +112,9 @@ class WorkScheduleCard extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
@@ -106,7 +124,7 @@ class WorkScheduleCard extends ConsumerWidget {
 
           // Shift Hours Box
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceDark : Colors.white,
               borderRadius: AppDimensions.borderRadiusMedium,
@@ -124,7 +142,9 @@ class WorkScheduleCard extends ConsumerWidget {
                       context.tr('attendance.shift_hours_label'),
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textMutedDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -133,21 +153,32 @@ class WorkScheduleCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? Colors.white
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.timer_outlined, size: 14, color: AppColors.primary),
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 14,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '8 ${context.tr('common.hours')}',

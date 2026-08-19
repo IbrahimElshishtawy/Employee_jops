@@ -83,7 +83,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'العربية (Arabic)',
                   isSelected: currentLocale.languageCode == 'ar',
                   onTap: () {
-                    ref.read(settingsProvider.notifier).setLocale(const Locale('ar'));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setLocale(const Locale('ar'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -92,7 +94,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'English (الإنجليزية)',
                   isSelected: currentLocale.languageCode == 'en',
                   onTap: () {
-                    ref.read(settingsProvider.notifier).setLocale(const Locale('en'));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setLocale(const Locale('en'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -190,9 +194,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       maxWidth: 440,
                     ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // SizedBox(height: 30),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [

@@ -21,17 +21,15 @@ class AdvancesListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppHeader(
         title: context.tr('advances.title'),
-        subtitle:
-            'Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³ÙÙ„Ù ÙˆØ§Ù„Ø¹Ù‡Ø¯ Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª',
+        subtitle: 'تفاصيل السلف الماليه',
       ),
       body: Builder(
         builder: (context) {
           final advances = listAsync;
           if (advances.isEmpty) {
             return EmptyState(
-              title: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙÙ„Ù Ù…Ø§Ù„ÙŠØ© Ø­Ø§Ù„ÙŠØ©',
-              subtitle:
-                  'ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ù†Ø´Ø§Ø¡ Ø·Ù„Ø¨ Ø³ÙÙ„ÙØ© Ø£Ùˆ Ø¹Ù‡Ø¯Ø© Ø¬Ø¯ÙŠØ¯Ø© Ø¨ÙƒÙ„ Ø¨Ø³Ø§Ø·Ø©',
+              title: 'مطلوب الموافق علي السلف  الماليه ',
+              subtitle: 'مطلوب الموافق علي الماليه',
               actionLabel: context.tr('advances.new'),
               onAction: () => context.push('/requests/advances/new'),
             );
@@ -51,33 +49,32 @@ class AdvancesListScreen extends ConsumerWidget {
                 switch (adv.status) {
                   case AdvanceStatus.pending:
                     statusBadge = BadgeStatus.pending;
-                    statusLabel = 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©';
+                    statusLabel = 'في الانتظار ';
                     break;
                   case AdvanceStatus.approved:
                     statusBadge = BadgeStatus.approved;
-                    statusLabel = 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©';
+                    statusLabel = 'تم الموافقه ';
                     break;
                   case AdvanceStatus.paid:
                     statusBadge = BadgeStatus.paid;
-                    statusLabel = 'ØªÙ… Ø§Ù„ØµØ±Ù';
+                    statusLabel = 'قيد التنفيذ';
                     break;
                   case AdvanceStatus.rejected:
                     statusBadge = BadgeStatus.rejected;
-                    statusLabel = 'Ù…Ø±ÙÙˆØ¶';
+                    statusLabel = 'تم الرفض ';
                     break;
                   case AdvanceStatus.reportRequired:
                     statusBadge = BadgeStatus.pending;
-                    statusLabel = 'Ù…Ø·Ù„ÙˆØ¨ ØªÙ‚Ø±ÙŠØ± Ù…ØµØ±ÙˆÙØ§Øª';
+                    statusLabel = 'مطلوب المراجه ';
                     break;
                   case AdvanceStatus.reportSubmitted:
                     statusBadge = BadgeStatus.completed;
-                    statusLabel = 'ØªÙ… ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„ØªÙ‚Ø±ÙŠØ±';
+                    statusLabel = 'تم اكمال المهمه ';
                     break;
                 }
 
                 return RequestCard(
-                  title:
-                      'Ø³ÙÙ„ÙØ© Ù…Ø§Ù„ÙŠØ©: ${adv.amount.toInt()} Ø¬Ù†ÙŠÙ‡',
+                  title: ' نعتذر في طلب : ${adv.amount.toInt()} السعر ',
                   subtitle: adv.reason,
                   date: adv.createdAt,
                   badgeStatus: statusBadge,
