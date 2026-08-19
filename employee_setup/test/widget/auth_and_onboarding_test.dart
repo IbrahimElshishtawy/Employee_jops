@@ -70,8 +70,8 @@ void main() {
       // Check AppLogo
       expect(find.byType(AppLogo), findsOneWidget);
 
-      // Check Welcome text
-      expect(find.text('Welcome Back'), findsOneWidget);
+      // Check App Name Branding text
+      expect(find.text('CyberWise IE'), findsOneWidget);
 
       // Check Google Sign-In Button
       expect(find.byType(GoogleSignInButton), findsOneWidget);
@@ -94,7 +94,7 @@ void main() {
 
       expect(find.byType(AppLogo), findsOneWidget);
       expect(find.byType(GoogleSignInButton), findsOneWidget);
-      expect(find.textContaining('مرحب'), findsOneWidget);
+      expect(find.text('CyberWise IE'), findsOneWidget);
       expect(find.textContaining('Google'), findsAtLeastNWidgets(1));
       expect(find.textContaining('دخول آمن'), findsOneWidget);
     });

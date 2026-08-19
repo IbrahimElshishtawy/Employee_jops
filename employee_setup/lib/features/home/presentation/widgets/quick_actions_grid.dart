@@ -40,8 +40,8 @@ class QuickActionsGrid extends StatelessWidget {
         route: '/requests/vacations',
       ),
       _QuickActionItem(
-        title: context.tr('attendance.title'),
-        icon: Icons.fingerprint_rounded,
+        title: isRtl ? 'دليل وسياسة الحضور' : 'Attendance Guide & Policy',
+        icon: Icons.verified_user_rounded,
         color: const Color(0xFF8B5CF6),
         gradientColors: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
         route: '/attendance',

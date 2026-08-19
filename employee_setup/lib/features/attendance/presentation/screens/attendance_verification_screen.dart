@@ -11,7 +11,6 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../domain/models/attendance_state_type.dart';
-import '../../domain/models/work_schedule.dart';
 
 class AttendanceVerificationScreen extends ConsumerStatefulWidget {
   final bool isCheckIn;
@@ -28,7 +27,6 @@ class AttendanceVerificationScreen extends ConsumerStatefulWidget {
 
 class _AttendanceVerificationScreenState
     extends ConsumerState<AttendanceVerificationScreen> {
-  bool _hasStarted = false;
   bool _isSuccess = false;
   bool _showEarlyLeaveDialog = false;
 
@@ -57,7 +55,6 @@ class _AttendanceVerificationScreenState
 
   Future<void> _startVerification() async {
     setState(() {
-      _hasStarted = true;
       _isSuccess = false;
     });
 
