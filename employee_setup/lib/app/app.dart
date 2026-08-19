@@ -6,11 +6,45 @@ import '../core/routing/app_router.dart';
 import '../core/theme/app_theme.dart';
 import 'app_providers.dart';
 
-class EmployeeApp extends ConsumerWidget {
+class EmployeeApp extends ConsumerStatefulWidget {
   const EmployeeApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EmployeeApp> createState() => _EmployeeAppState();
+}
+
+class _EmployeeAppState extends ConsumerState<EmployeeApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh location and network status upon returning to foreground
+      ref.read(attendanceFlowProvider.notifier).refreshLocation();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // Invalidate transient pending states if app is backgrounded
+      final flowState = ref.read(attendanceFlowProvider);
+      if (flowState.isLoading) {
+        ref.read(attendanceFlowProvider.notifier).resetState();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsProvider);
 

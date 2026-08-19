@@ -13,7 +13,6 @@ import '../core/mock/repositories/mock_hr_message_repository.dart';
 import '../core/network/connectivity_service.dart';
 import '../core/network/mock_connectivity_service.dart';
 import '../core/storage/local_storage.dart';
-import '../core/storage/shared_prefs_storage.dart';
 
 import '../core/services/time_service.dart';
 import '../features/advances/data/repositories/mock_advances_repository.dart';
@@ -50,7 +49,6 @@ import '../features/attendance/domain/services/screen_overlay_detector.dart';
 import '../features/attendance/domain/services/work_schedule_service.dart';
 
 import '../features/auth/data/datasources/mock_auth_datasource.dart';
-import '../features/auth/data/repositories/mock_auth_repository.dart';
 import '../features/auth/domain/models/employee.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 
@@ -71,6 +69,14 @@ import '../features/vacations/data/repositories/mock_vacations_repository.dart';
 import '../features/vacations/domain/models/vacation_request.dart';
 import '../features/vacations/domain/repositories/vacations_repository.dart';
 
+import '../core/storage/secure_session_storage.dart';
+import '../core/services/notification_service.dart';
+import '../features/attendance/data/services/real_biometric_service.dart';
+import '../features/attendance/data/services/real_location_service.dart';
+import '../features/attendance/data/services/real_network_risk_service.dart';
+import '../features/auth/data/datasources/real_auth_datasource.dart';
+import '../features/auth/data/repositories/real_auth_repository.dart';
+
 // ══════════════════════════════════════════════════════════════════
 // 0. MockDatabase Provider  (Single Source of Truth)
 // ══════════════════════════════════════════════════════════════════
@@ -82,7 +88,13 @@ export '../core/mock/mock_database.dart' show mockDatabaseProvider;
 // ══════════════════════════════════════════════════════════════════
 
 final localStorageProvider = Provider<LocalStorage>((ref) {
-  return SharedPrefsStorage();
+  return SecureSessionStorage();
+});
+
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  final service = NotificationService();
+  service.initialize();
+  return service;
 });
 
 final timeServiceProvider = Provider<TimeService>((ref) {
@@ -115,8 +127,13 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
 
   DemoControlsNotifier(this._ref) : super(const DemoControlsState());
 
+  void setUseRealDeviceSensors(bool useReal) {
+    state = state.copyWith(useRealDeviceSensors: useReal);
+  }
+
   void setLocationMode(MockLocationMode mode, [double? distance]) {
     state = state.copyWith(
+      useRealDeviceSensors: false,
       locationMode: mode,
       simulatedDistance:
           distance ?? (mode == MockLocationMode.insideRange ? 2.3 : 48.5),
@@ -129,7 +146,10 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
   }
 
   void setBiometricMode(MockBiometricMode mode) {
-    state = state.copyWith(biometricMode: mode);
+    state = state.copyWith(
+      useRealDeviceSensors: false,
+      biometricMode: mode,
+    );
     final bioService = _ref.read(mockBiometricServiceProvider);
     bioService.mode = mode;
   }
@@ -144,8 +164,14 @@ class DemoControlsNotifier extends StateNotifier<DemoControlsState> {
     // Reset all data but keep the current session
     _ref.read(mockDatabaseProvider.notifier).resetDataKeepSession();
 
-    setLocationMode(MockLocationMode.insideRange, 2.3);
-    setBiometricMode(MockBiometricMode.alwaysSuccess);
+    state = const DemoControlsState();
+    final locService = _ref.read(mockLocationServiceProvider);
+    locService.mode = MockLocationMode.insideRange;
+    locService.customDistance = 2.3;
+
+    final bioService = _ref.read(mockBiometricServiceProvider);
+    bioService.mode = MockBiometricMode.alwaysSuccess;
+
     setNetworkOnline(true);
 
     // Invalidate all derived providers
@@ -185,8 +211,16 @@ final deviceIntegrityServiceProvider = Provider<DeviceIntegrityService>((ref) {
   return DeviceIntegrityServiceImpl();
 });
 
+final realNetworkRiskServiceProvider = Provider<RealNetworkRiskService>((ref) {
+  return RealNetworkRiskService();
+});
+
 final networkRiskServiceProvider = Provider<NetworkRiskService>((ref) {
-  return NetworkRiskServiceImpl();
+  final demo = ref.watch(demoControlsProvider);
+  if (!demo.useRealDeviceSensors) {
+    return NetworkRiskServiceImpl();
+  }
+  return ref.watch(realNetworkRiskServiceProvider);
 });
 
 final attendanceAuditServiceProvider = Provider<AttendanceAuditService>((ref) {
@@ -201,16 +235,36 @@ final mockLocationServiceProvider = Provider<MockLocationService>((ref) {
   );
 });
 
+final realLocationServiceProvider = Provider<RealLocationService>((ref) {
+  final emp = ref.watch(employeeProvider);
+  return RealLocationService(
+    workplaceLatitude: emp.workplaceLatitude ?? AppConstants.officeLatitude,
+    workplaceLongitude: emp.workplaceLongitude ?? AppConstants.officeLongitude,
+  );
+});
+
 final locationServiceProvider = Provider<LocationService>((ref) {
-  return ref.watch(mockLocationServiceProvider);
+  final demo = ref.watch(demoControlsProvider);
+  if (!demo.useRealDeviceSensors) {
+    return ref.watch(mockLocationServiceProvider);
+  }
+  return ref.watch(realLocationServiceProvider);
 });
 
 final mockBiometricServiceProvider = Provider<MockBiometricService>((ref) {
   return MockBiometricService();
 });
 
+final realBiometricServiceProvider = Provider<RealBiometricService>((ref) {
+  return RealBiometricService();
+});
+
 final biometricServiceProvider = Provider<BiometricService>((ref) {
-  return ref.watch(mockBiometricServiceProvider);
+  final demo = ref.watch(demoControlsProvider);
+  if (!demo.useRealDeviceSensors) {
+    return ref.watch(mockBiometricServiceProvider);
+  }
+  return ref.watch(realBiometricServiceProvider);
 });
 
 final attendanceApiProvider = Provider<AttendanceApi>((ref) {
@@ -245,9 +299,14 @@ final authDataSourceProvider = Provider<MockAuthDataSource>((ref) {
   return MockAuthDataSource(storage);
 });
 
+final realAuthDataSourceProvider = Provider<RealAuthDataSource>((ref) {
+  final storage = ref.watch(localStorageProvider);
+  return RealAuthDataSource(storage);
+});
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final ds = ref.watch(authDataSourceProvider);
-  return MockAuthRepository(ds, ref);
+  final ds = ref.watch(realAuthDataSourceProvider);
+  return RealAuthRepository(ds, ref);
 });
 
 /// The current authenticated Employee — derived from MockDatabase.

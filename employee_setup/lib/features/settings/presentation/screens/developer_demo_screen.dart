@@ -28,6 +28,44 @@ class DeveloperDemoScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 0. Real Device vs Simulation Mode Toggle
+            SettingsSection(
+              title: 'مصدر البيانات وحساسات الجهاز',
+              children: [
+                SwitchListTile(
+                  title: Text(
+                    demo.useRealDeviceSensors
+                        ? 'حساسات الجهاز الحقيقية (GPS & Biometrics)'
+                        : 'وضع المحاكاة الاصطناعية (Simulation Mode)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    demo.useRealDeviceSensors
+                        ? 'يتم استخدام شريحة GPS وبصمة الهاتف الفعلية للتحقق'
+                        : 'يتم استخدام القيم المحددة أدناه لمحاكاة السيناريوهات',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  value: demo.useRealDeviceSensors,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (val) {
+                    ref
+                        .read(demoControlsProvider.notifier)
+                        .setUseRealDeviceSensors(val);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
             // 1. Location Simulation
             SettingsSection(
               title: context.tr('demo.location_heading'),
