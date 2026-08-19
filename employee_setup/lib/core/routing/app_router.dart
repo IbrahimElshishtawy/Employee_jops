@@ -59,22 +59,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (!isLogin && !isSplash) {
           return AppRoutes.login;
         }
-      } else {
-        // User is authenticated
-        if (isLogin || isSplash) {
-          // Check if onboarding is needed
-          if (!(authState.employee?.onboardingCompleted ?? false)) {
-            return AppRoutes.onboardingPersonal;
-          }
-          return AppRoutes.home;
-        }
-
-        // If on onboarding and already completed, go to home
-        if (isOnboarding &&
-            (authState.employee?.onboardingCompleted ?? false)) {
-          return AppRoutes.home;
-        }
+        return null;
       }
+
+      // User is authenticated
+      final profileCompleted = authState.employee?.profileCompleted ?? false;
+
+      // Incomplete profile: strictly confine to onboarding
+      if (!profileCompleted) {
+        if (!isOnboarding) {
+          return AppRoutes.onboardingPersonal;
+        }
+        return null;
+      }
+
+      // Complete profile: redirect away from splash, login, or onboarding to home
+      if (isLogin || isSplash || isOnboarding) {
+        return AppRoutes.home;
+      }
+
       return null;
     },
     routes: [

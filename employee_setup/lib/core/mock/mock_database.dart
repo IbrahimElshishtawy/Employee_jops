@@ -170,6 +170,10 @@ class MockDatabaseNotifier extends StateNotifier<MockDatabase> {
     state = state.copyWith(session: () => session);
   }
 
+  void setEmployee(Employee employee) {
+    state = state.copyWith(employee: employee);
+  }
+
   void clearSession() {
     state = state.copyWith(session: () => null);
   }

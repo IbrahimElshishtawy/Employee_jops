@@ -155,6 +155,38 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            // 4. About CyberWise IE
+            SettingsSection(
+              title: context.isArabic ? 'عن التطبيق' : 'About App',
+              children: [
+                ListTile(
+                  title: const Text(
+                    'CyberWise IE',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${context.isArabic ? 'الإصدار' : 'Version'} 1.0.0 (Build 1)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 20),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
           ],
         ),

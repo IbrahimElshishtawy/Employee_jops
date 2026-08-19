@@ -15,7 +15,7 @@ class EmployeeApp extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     return MaterialApp.router(
-      title: 'Employee App',
+      title: 'CyberWise IE',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: AppTheme.lightTheme,

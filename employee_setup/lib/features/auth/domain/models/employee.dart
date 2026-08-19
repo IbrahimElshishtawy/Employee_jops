@@ -10,9 +10,11 @@ class Employee {
   final bool isActive;
   final String? managerName;
 
-  // Onboarding fields
+  // Onboarding & Profile Completion fields
   final String? nationalId;
   final String? googleId;
+  final String? googleName;
+  final String? googleEmail;
   final bool onboardingCompleted;
   final bool biometricEnabled;
   final String? region;
@@ -29,6 +31,7 @@ class Employee {
   final String? hrContactName;
   final String? hrContactPhone;
   final String? employeeStatus;
+  final String dataSource;
 
   const Employee({
     required this.id,
@@ -43,6 +46,8 @@ class Employee {
     this.managerName,
     this.nationalId,
     this.googleId,
+    this.googleName,
+    this.googleEmail,
     this.onboardingCompleted = false,
     this.biometricEnabled = false,
     this.region,
@@ -57,7 +62,11 @@ class Employee {
     this.hrContactName,
     this.hrContactPhone,
     this.employeeStatus = 'active',
+    this.dataSource = 'DEVICE_TEST_DATA',
   });
+
+  /// Alias for onboarding completion state
+  bool get profileCompleted => onboardingCompleted;
 
   Employee copyWith({
     String? id,
@@ -72,7 +81,10 @@ class Employee {
     String? managerName,
     String? nationalId,
     String? googleId,
+    String? googleName,
+    String? googleEmail,
     bool? onboardingCompleted,
+    bool? profileCompleted,
     bool? biometricEnabled,
     String? region,
     String? managerId,
@@ -86,6 +98,7 @@ class Employee {
     String? hrContactName,
     String? hrContactPhone,
     String? employeeStatus,
+    String? dataSource,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -100,7 +113,9 @@ class Employee {
       managerName: managerName ?? this.managerName,
       nationalId: nationalId ?? this.nationalId,
       googleId: googleId ?? this.googleId,
-      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      googleName: googleName ?? this.googleName,
+      googleEmail: googleEmail ?? this.googleEmail,
+      onboardingCompleted: profileCompleted ?? (onboardingCompleted ?? this.onboardingCompleted),
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,
       region: region ?? this.region,
       managerId: managerId ?? this.managerId,
@@ -114,6 +129,7 @@ class Employee {
       hrContactName: hrContactName ?? this.hrContactName,
       hrContactPhone: hrContactPhone ?? this.hrContactPhone,
       employeeStatus: employeeStatus ?? this.employeeStatus,
+      dataSource: dataSource ?? this.dataSource,
     );
   }
 
@@ -130,7 +146,10 @@ class Employee {
     'managerName': managerName,
     'nationalId': nationalId,
     'googleId': googleId,
+    'googleName': googleName,
+    'googleEmail': googleEmail,
     'onboardingCompleted': onboardingCompleted,
+    'profileCompleted': profileCompleted,
     'biometricEnabled': biometricEnabled,
     'region': region,
     'managerId': managerId,
@@ -144,59 +163,70 @@ class Employee {
     'hrContactName': hrContactName,
     'hrContactPhone': hrContactPhone,
     'employeeStatus': employeeStatus,
+    'dataSource': dataSource,
   };
 
   factory Employee.fromJson(Map<String, dynamic> json) => Employee(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    email: json['email'] as String,
-    department: json['department'] as String,
-    jobTitle: json['jobTitle'] as String,
+    id: json['id'] as String? ?? 'TEST-001',
+    name: json['name'] as String? ?? 'Device Test Employee',
+    email: json['email'] as String? ?? 'employee.test@example.com',
+    department: json['department'] as String? ?? 'الهندسة البرمجية',
+    jobTitle: json['jobTitle'] as String? ?? 'Senior Software Developer',
     avatarUrl: json['avatarUrl'] as String? ?? '',
-    phone: json['phone'] as String? ?? '',
+    phone: json['phone'] as String? ?? '01000000000',
     joinDate: json['joinDate'] != null
         ? DateTime.parse(json['joinDate'] as String)
-        : DateTime(2023, 1, 1),
+        : DateTime(2025, 1, 15),
     isActive: json['isActive'] as bool? ?? true,
     managerName: json['managerName'] as String?,
     nationalId: json['nationalId'] as String?,
     googleId: json['googleId'] as String?,
-    onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+    googleName: json['googleName'] as String?,
+    googleEmail: json['googleEmail'] as String?,
+    onboardingCompleted: (json['profileCompleted'] as bool?) ??
+        (json['onboardingCompleted'] as bool?) ??
+        false,
     biometricEnabled: json['biometricEnabled'] as bool? ?? false,
     region: json['region'] as String?,
     managerId: json['managerId'] as String?,
     workLocationId: json['workLocationId'] as String?,
-    workplaceName: json['workplaceName'] as String?,
-    workplaceLatitude: (json['workplaceLatitude'] as num?)?.toDouble(),
-    workplaceLongitude: (json['workplaceLongitude'] as num?)?.toDouble(),
+    workplaceName: json['workplaceName'] as String? ?? 'CyberWise IE - Test Office',
+    workplaceLatitude: (json['workplaceLatitude'] as num?)?.toDouble() ?? 30.044400,
+    workplaceLongitude: (json['workplaceLongitude'] as num?)?.toDouble() ?? 31.235700,
     allowedRadiusMeters: (json['allowedRadiusMeters'] as num?)?.toDouble() ?? 4.0,
-    workStartTime: json['workStartTime'] as String?,
-    workEndTime: json['workEndTime'] as String?,
-    hrContactName: json['hrContactName'] as String?,
-    hrContactPhone: json['hrContactPhone'] as String?,
+    workStartTime: json['workStartTime'] as String? ?? '09:00 AM',
+    workEndTime: json['workEndTime'] as String? ?? '05:00 PM',
+    hrContactName: json['hrContactName'] as String? ?? 'Test HR',
+    hrContactPhone: json['hrContactPhone'] as String? ?? '01011122233',
     employeeStatus: json['employeeStatus'] as String? ?? 'active',
+    dataSource: json['dataSource'] as String? ?? 'DEVICE_TEST_DATA',
   );
 
-  // Default Mock Employee (delegates to EmployeeSeed — kept for backward compat)
+  /// Default Test Employee profile
   static Employee get defaultMock => Employee(
-    id: 'EMP-1024',
-    name: 'إبراهيم الششتاوي',
-    email: 'employee@company.com',
+    id: 'TEST-001',
+    name: 'Device Test Employee',
+    email: 'employee.test@example.com',
     department: 'الهندسة البرمجية',
     jobTitle: 'Senior Software Developer',
     avatarUrl: '',
     phone: '01000000000',
     joinDate: DateTime(2025, 1, 15),
-    managerName: 'Ahmed Mohamed',
+    managerName: 'Test Manager',
+    nationalId: 'TEST-NATIONAL-ID',
+    googleId: 'google_test_id_001',
+    googleName: 'Device Test Employee',
+    googleEmail: 'employee.test@example.com',
     onboardingCompleted: false,
-    workplaceName: 'المقر الرئيسي - القاهرة',
+    workplaceName: 'CyberWise IE - Test Office',
     workplaceLatitude: 30.044400,
     workplaceLongitude: 31.235700,
     allowedRadiusMeters: 4.0,
     workStartTime: '09:00 AM',
     workEndTime: '05:00 PM',
-    hrContactName: 'سارة عبد الله',
+    hrContactName: 'Test HR',
     hrContactPhone: '01011122233',
     employeeStatus: 'active',
+    dataSource: 'DEVICE_TEST_DATA',
   );
 }

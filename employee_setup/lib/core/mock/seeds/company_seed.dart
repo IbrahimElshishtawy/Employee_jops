@@ -7,7 +7,7 @@ class CompanySeed {
 
   static Company get company => const Company(
         id: companyId,
-        name: 'Demo Company',
+        name: 'CyberWise IE',
         address: 'Cairo, Egypt',
         city: 'Cairo',
         country: 'Egypt',
@@ -16,7 +16,7 @@ class CompanySeed {
   /// Company HQ — employees must be within [radiusMeters] to check in/out.
   static CompanyLocation get location => const CompanyLocation(
         id: locationId,
-        label: 'Company Main Office',
+        label: 'CyberWise IE - Test Office',
         latitude: 30.044400,
         longitude: 31.235700,
         radiusMeters: 4.0,

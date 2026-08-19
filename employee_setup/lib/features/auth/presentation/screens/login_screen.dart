@@ -81,7 +81,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'العربية (Arabic)',
                   isSelected: currentLocale.languageCode == 'ar',
                   onTap: () {
-                    ref.read(settingsProvider.notifier).setLocale(const Locale('ar'));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setLocale(const Locale('ar'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -90,7 +92,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'English (الإنجليزية)',
                   isSelected: currentLocale.languageCode == 'en',
                   onTap: () {
-                    ref.read(settingsProvider.notifier).setLocale(const Locale('en'));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setLocale(const Locale('en'));
                     Navigator.pop(ctx);
                   },
                 ),
@@ -133,7 +137,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -148,7 +156,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isArabic = currentLocale.languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF8F9FD),
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : const Color(0xFFF8F9FD),
       body: Stack(
         children: [
           // ─── 1. Decorative Curved Background Blobs ───────────────────
@@ -161,8 +171,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
-                    .withValues(alpha: isDark ? 0.4 : 0.7),
+                color:
+                    (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
+                        .withValues(alpha: isDark ? 0.4 : 0.7),
               ),
             ),
           ),
@@ -175,8 +186,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
-                    .withValues(alpha: isDark ? 0.3 : 0.6),
+                color:
+                    (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
+                        .withValues(alpha: isDark ? 0.3 : 0.6),
               ),
             ),
           ),
@@ -185,7 +197,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 12.0,
+              ),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
@@ -194,7 +209,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       // Top Row: Language Selector Pill
                       Align(
-                        alignment: isRtl ? Alignment.topLeft : Alignment.topRight,
+                        alignment: isRtl
+                            ? Alignment.topLeft
+                            : Alignment.topRight,
                         child: InkWell(
                           onTap: _showLanguagePicker,
                           borderRadius: BorderRadius.circular(20),
@@ -204,7 +221,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: isDark ? AppColors.surfaceDark : Colors.white,
+                              color: isDark
+                                  ? AppColors.surfaceDark
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isDark
@@ -266,21 +285,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 20),
 
                       Text(
-                        context.tr('auth.welcome_back'),
+                        'CyberWise IE',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 6),
 
                       Text(
                         isRtl
-                            ? 'تسجيل الدخول إلى حسابك'
-                            : 'Sign in to your account',
+                            ? 'بوابة الموظفين الذكية والآمنة'
+                            : 'Smart & Secure Enterprise Employee Portal',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -362,7 +383,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               label: isRtl
                                   ? 'متابعة باستخدام Google'
                                   : 'Continue with Google',
-                              onPressed: _isSigningIn ? null : _handleGoogleSignIn,
+                              onPressed: _isSigningIn
+                                  ? null
+                                  : _handleGoogleSignIn,
                             ),
                             const SizedBox(height: 20),
 
@@ -495,7 +518,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             onTap: () {},
                             borderRadius: BorderRadius.circular(4),
                             child: Text(
-                              isRtl ? 'تواصل مع الدعم الفني' : 'Contact Support',
+                              isRtl
+                                  ? 'تواصل مع الدعم الفني'
+                                  : 'Contact Support',
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -541,9 +566,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                TextSpan(
-                                  text: isRtl ? ' و ' : ' and ',
-                                ),
+                                TextSpan(text: isRtl ? ' و ' : ' and '),
                                 TextSpan(
                                   text: isRtl
                                       ? 'شروط الاستخدام'

@@ -1,6 +1,6 @@
 {
-    "name": "employee_setup",
-    "short_name": "employee_setup",
+    "name": "CyberWise IE",
+    "short_name": "CyberWise IE",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

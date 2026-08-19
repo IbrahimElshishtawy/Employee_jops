@@ -316,7 +316,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Update employee profile (for onboarding completion)
-  void updateEmployee(Employee updatedEmployee) {
+  Future<void> updateEmployee(Employee updatedEmployee) async {
+    await _repo.updateEmployee(updatedEmployee);
     state = state.copyWith(employee: updatedEmployee);
   }
 }

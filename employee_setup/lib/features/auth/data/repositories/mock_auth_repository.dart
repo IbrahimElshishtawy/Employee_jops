@@ -25,30 +25,44 @@ class MockAuthRepository implements AuthRepository {
   Future<Employee?> getCurrentUser() async {
     final employee = await _dataSource.getCachedEmployee();
     if (employee != null) {
-      // Restore session into MockDatabase
       final session = await _dataSource.getCachedSession();
       if (session != null) {
         _db.setSession(session);
       }
+      _db.setEmployee(employee);
     }
     _authStreamController.add(employee);
     return employee;
   }
 
   @override
-  Future<Employee> signInWithGoogle() async {
-    // Default to the seed email for the mock Google sign-in button
-    final user = await _dataSource.mockGoogleSignIn(EmployeeSeed.email);
+  Future<Employee> signInWithGoogle({String? email}) async {
+    final targetEmail = email ?? EmployeeSeed.email;
+    final user = await _dataSource.mockGoogleSignIn(targetEmail);
 
-    // Create and persist a fresh session in MockDatabase
-    final session = AppSession.create(
-      employeeId: EmployeeSeed.id,
-      email: EmployeeSeed.email,
-      provider: LoginProvider.google,
-    );
+    final session = await _dataSource.getCachedSession() ??
+        AppSession.create(
+          employeeId: user.id,
+          email: user.email,
+          profileCompleted: user.profileCompleted,
+          provider: LoginProvider.google,
+        );
+
     _db.setSession(session);
+    _db.setEmployee(user);
     _authStreamController.add(user);
     return user;
+  }
+
+  @override
+  Future<void> updateEmployee(Employee employee) async {
+    await _dataSource.updateEmployee(employee);
+    _db.setEmployee(employee);
+    final session = await _dataSource.getCachedSession();
+    if (session != null) {
+      _db.setSession(session);
+    }
+    _authStreamController.add(employee);
   }
 
   @override

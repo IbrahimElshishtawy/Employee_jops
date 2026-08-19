@@ -141,7 +141,7 @@ class AppLocalizations {
   static final Map<String, Map<String, String>> _translations = {
     'ar': {
       // App
-      'app.title': 'Employee App',
+      'app.title': 'CyberWise IE',
 
       // Navigation
       'nav.home': 'الرئيسية',
@@ -150,7 +150,7 @@ class AppLocalizations {
       'nav.profile': 'حسابي',
 
       // Auth
-      'auth.welcome_title': 'مرحبًا بك في Employee App',
+      'auth.welcome_title': 'مرحبًا بك في CyberWise IE',
       'auth.welcome_back': 'مرحبًا بك مجددًا',
       'auth.welcome_subtitle':
           'بوابتك الرقمية لإدارة الحضور والطلبات وخدمات الموظفين بكل سهولة وأمان.',
@@ -238,10 +238,15 @@ class AppLocalizations {
       'attendance.server_verified_note': 'الخادم هو المرجع النهائي لاعتماد الحضور والانصراف',
       'attendance.mock_location_detected_msg': 'لا يمكن تسجيل الحضور باستخدام موقع غير موثوق.',
       'attendance.location_service_disabled_msg': 'يرجى تفعيل خدمة الموقع',
+      'attendance.location_service_required_msg': 'يجب تفعيل الموقع لتسجيل الحضور.',
+      'attendance.overlay_detected_alert':
+          'يوجد تطبيق آخر قد يظهر فوق التطبيق.\nيرجى إغلاقه ثم المحاولة مرة أخرى.',
       'attendance.location_permission_denied_msg': 'يرجى السماح للتطبيق باستخدام موقعك',
       'attendance.location_low_accuracy_msg': 'دقة الموقع غير كافية',
       'attendance.outside_workplace_msg': 'أنت خارج نطاق موقع العمل',
       'attendance.location_unavailable_msg': 'تعذر تحديد موقعك، حاول مرة أخرى',
+      'common.test_mode': 'وضع تجريبي',
+      'common.device_test_data': 'بيانات اختبار الجهاز (DEVICE_TEST_DATA)',
 
       // Requests Hub
       'requests.title': 'مركز الطلبات',
@@ -398,7 +403,7 @@ class AppLocalizations {
     },
     'en': {
       // App
-      'app.title': 'Employee App',
+      'app.title': 'CyberWise IE',
 
       // Navigation
       'nav.home': 'Home',
@@ -407,7 +412,7 @@ class AppLocalizations {
       'nav.profile': 'Profile',
 
       // Auth
-      'auth.welcome_title': 'Welcome to Employee App',
+      'auth.welcome_title': 'Welcome to CyberWise IE',
       'auth.welcome_back': 'Welcome Back',
       'auth.welcome_subtitle':
           'Your enterprise portal for attendance, requests, and HR services with maximum simplicity.',
@@ -504,6 +509,9 @@ class AppLocalizations {
       'attendance.server_verified_note': 'The server makes the final decision on attendance verification',
       'attendance.mock_location_detected_msg': 'Attendance cannot be logged using an untrusted location.',
       'attendance.location_service_disabled_msg': 'Please enable location services',
+      'attendance.location_service_required_msg': 'Location service must be enabled to register attendance.',
+      'attendance.overlay_detected_alert':
+          'Another application may be displaying over the app.\nPlease close it and try again.',
       'attendance.location_permission_denied_msg': 'Please allow location permission for the app',
       'attendance.location_low_accuracy_msg': 'Location accuracy is insufficient',
       'attendance.outside_workplace_msg': 'You are outside the workplace zone',
@@ -511,6 +519,8 @@ class AppLocalizations {
       'attendance.checkout_confirm_title': 'Confirm Check-Out',
       'attendance.checkout_confirm_msg': 'Are you sure you want to check out and complete today\'s workday?',
       'attendance.security_note': 'Attendance is securely verified using precise GPS geofencing and OS biometric authentication.',
+      'common.test_mode': 'TEST MODE',
+      'common.device_test_data': 'Device Test Data (DEVICE_TEST_DATA)',
 
       // Requests Hub
       'requests.title': 'Requests Center',

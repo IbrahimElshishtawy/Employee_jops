@@ -157,7 +157,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingFormState> {
     );
 
     // Update auth state — this triggers router redirect to home
-    authNotifier.updateEmployee(updatedEmployee);
+    await authNotifier.updateEmployee(updatedEmployee);
 
     // Reset form state
     state = const OnboardingFormState();

@@ -7,18 +7,27 @@ import '../../domain/models/employee.dart';
 
 class MockAuthDataSource {
   final LocalStorage storage;
-  static const String _sessionKey = 'mock_session_v2';
+  static const String _sessionKey = 'cyberwise_session_v1';
 
   MockAuthDataSource(this.storage);
 
-  /// Returns the persisted employee if a valid session exists.
+  /// Returns the persisted employee if a valid active session exists.
   Future<Employee?> getCachedEmployee() async {
     final sessionJson = storage.getString(_sessionKey);
     if (sessionJson != null && sessionJson.isNotEmpty) {
       try {
         final session = AppSession.fromJson(jsonDecode(sessionJson));
         if (session.isActive) {
-          return EmployeeSeed.employee;
+          // Check if employee profile is stored
+          final userJson = storage.getString(AppConstants.keyUserData);
+          if (userJson != null && userJson.isNotEmpty) {
+            final empMap = jsonDecode(userJson) as Map<String, dynamic>;
+            return Employee.fromJson(empMap);
+          }
+          // If no stored profile exists, return test seed with session's completion state
+          return EmployeeSeed.employee.copyWith(
+            onboardingCompleted: session.profileCompleted,
+          );
         }
       } catch (_) {
         // Corrupted session — treat as logged out
@@ -41,31 +50,70 @@ class MockAuthDataSource {
     return null;
   }
 
-  /// Simulates Google OAuth with email validation.
+  /// Simulates Google OAuth with email & profile completion validation.
   Future<Employee> mockGoogleSignIn(String email) async {
-    await Future.delayed(const Duration(milliseconds: 650));
-    if (email.toLowerCase() != EmployeeSeed.email) {
-      throw Exception('البريد الإلكتروني غير مسجل في النظام');
+    await Future.delayed(const Duration(milliseconds: 350));
+
+    // Check if employee already completed profile previously in storage
+    final isAlreadyCompleted = storage.getString(AppConstants.keyOnboardingCompleted) == 'true';
+
+    Employee employee;
+    final userJson = storage.getString(AppConstants.keyUserData);
+    if (userJson != null && userJson.isNotEmpty) {
+      final empMap = jsonDecode(userJson) as Map<String, dynamic>;
+      employee = Employee.fromJson(empMap);
+    } else {
+      employee = EmployeeSeed.employee.copyWith(
+        email: email,
+        googleEmail: email,
+        googleName: EmployeeSeed.name,
+        onboardingCompleted: isAlreadyCompleted,
+      );
     }
+
     final session = AppSession.create(
-      employeeId: EmployeeSeed.id,
-      email: EmployeeSeed.email,
+      employeeId: employee.id,
+      email: email,
+      profileCompleted: employee.profileCompleted,
       provider: LoginProvider.google,
     );
-    await _persistSession(session);
-    return EmployeeSeed.employee;
+
+    await _persistSession(session, employee);
+    return employee;
   }
 
-  /// Persists session to local storage.
-  Future<void> _persistSession(AppSession session) async {
+  /// Persists session and employee profile to local storage.
+  Future<void> _persistSession(AppSession session, Employee employee) async {
     await storage.setString(_sessionKey, jsonEncode(session.toJson()));
-    await storage.setString(AppConstants.keyAuthToken, 'mock_jwt_${session.sessionId}');
-    await storage.setString(AppConstants.keyUserData, jsonEncode(EmployeeSeed.employee.toJson()));
+    await storage.setString(AppConstants.keyAuthToken, 'cyberwise_jwt_${session.sessionId}');
+    await storage.setString(AppConstants.keyUserData, jsonEncode(employee.toJson()));
+    await storage.setString(
+      AppConstants.keyOnboardingCompleted,
+      employee.profileCompleted ? 'true' : 'false',
+    );
+  }
+
+  /// Update and persist employee profile (e.g. after onboarding completion)
+  Future<void> updateEmployee(Employee employee) async {
+    final session = await getCachedSession();
+    if (session != null) {
+      final updatedSession = session.copyWith(
+        profileCompleted: employee.profileCompleted,
+        lastActivityAt: DateTime.now(),
+      );
+      await storage.setString(_sessionKey, jsonEncode(updatedSession.toJson()));
+    }
+    await storage.setString(AppConstants.keyUserData, jsonEncode(employee.toJson()));
+    await storage.setString(
+      AppConstants.keyOnboardingCompleted,
+      employee.profileCompleted ? 'true' : 'false',
+    );
   }
 
   Future<void> clearSession() async {
     await storage.remove(_sessionKey);
     await storage.remove(AppConstants.keyUserData);
     await storage.remove(AppConstants.keyAuthToken);
+    await storage.remove(AppConstants.keyOnboardingCompleted);
   }
 }
