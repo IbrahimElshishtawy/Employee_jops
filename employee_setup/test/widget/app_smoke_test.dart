@@ -30,15 +30,13 @@ void main() {
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const Scaffold(
-            body: EmployeeHeaderCard(),
+            body: SingleChildScrollView(child: EmployeeHeaderCard()),
           ),
         ),
       ),
     );
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
+    await tester.pumpAndSettle();
     expect(find.byType(EmployeeHeaderCard), findsOneWidget);
   });
 }
