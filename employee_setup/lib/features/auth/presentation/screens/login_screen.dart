@@ -154,165 +154,189 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isArabic = currentLocale.languageCode == 'ar';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF8F9FD),
-      body: Stack(
-        children: [
-          // Background Glow Orbs
-          Positioned(
-            top: -60,
-            left: isRtl ? null : -60,
-            right: isRtl ? -60 : null,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFDCEBFE))
-                    .withValues(alpha: isDark ? 0.4 : 0.7),
-              ),
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF0F172A),
+                    const Color(0xFF1E293B),
+                    const Color(0xFF0F172A),
+                  ]
+                : [
+                    const Color(0xFFEBF3FE),
+                    const Color(0xFFF1F6FD),
+                    const Color(0xFFF8FAFC),
+                  ],
           ),
-          Positioned(
-            bottom: -80,
-            right: isRtl ? null : -80,
-            left: isRtl ? -80 : null,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: (isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EEFE))
-                    .withValues(alpha: isDark ? 0.3 : 0.6),
-              ),
-            ),
-          ),
-
-          // Main Scrollable Content
-          SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // 1. Header with Language Pill & App Branding
-                      LoginHeaderCard(
-                        onLanguageTap: _showLanguagePicker,
-                        isArabic: isArabic,
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Inline Error Banner (if any)
-                      if (_errorMessage != null) ...[
-                        _buildErrorBanner(isDark),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // 2. Main Login Card Container
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.surfaceDark : Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: isDark ? AppColors.borderDark : const Color(0xFFEEF2F6),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 32,
+                      maxWidth: 440,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              isRtl ? 'تسجيل الدخول بحساب جوجل' : 'Sign in with Google Account',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              ),
+                            // 1. Header with Language Pill & App Branding
+                            LoginHeaderCard(
+                              onLanguageTap: _showLanguagePicker,
+                              isArabic: isArabic,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              isRtl
-                                  ? 'استخدم حساب جوجل الخاص بك للوصول إلى التطبيق'
-                                  : 'Use your Google account to access the app',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                            const SizedBox(height: 24),
+
+                            // Inline Error Banner (if any)
+                            if (_errorMessage != null) ...[
+                              _buildErrorBanner(isDark),
+                              const SizedBox(height: 16),
+                            ],
+
+                            // 2. Main Login Card Container
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 24,
+                              ),
+                              decoration: BoxDecoration(
                                 color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : const Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(height: 22),
-
-                            // Google Button
-                            GoogleSignInButton(
-                              isLoading: _isSigningIn,
-                              isFilled: true,
-                              label: isRtl ? 'متابعة باستخدام Google' : 'Continue with Google',
-                              onPressed: _isSigningIn ? null : _handleGoogleSignIn,
-                            ),
-                            const SizedBox(height: 20),
-
-                            // OR Divider Line
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Divider(
-                                    color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
-                                    thickness: 1,
-                                  ),
+                                    ? AppColors.surfaceDark
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.borderDark
+                                      : const Color(0xFFEEF2F6),
+                                  width: 1.2,
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                                  child: Text(
-                                    isRtl ? 'أو' : 'OR',
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.25 : 0.05,
+                                    ),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    isRtl
+                                        ? 'تسجيل الدخول بحساب جوجل'
+                                        : 'Sign in with Google Account',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
                                       color: isDark
-                                          ? AppColors.textMutedDark
-                                          : const Color(0xFF94A3B8),
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: Divider(
-                                    color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
-                                    thickness: 1,
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    isRtl
+                                        ? 'استخدم حساب جوجل الخاص بك للوصول إلى التطبيق'
+                                        : 'Use your Google account to access the app',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : const Color(0xFF64748B),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
+                                  const SizedBox(height: 22),
 
-                            // Security Info Banner
-                            const LoginSecurityBanner(),
+                                  // Google Button
+                                  GoogleSignInButton(
+                                    isLoading: _isSigningIn,
+                                    isFilled: true,
+                                    label: isRtl
+                                        ? 'متابعة باستخدام Google'
+                                        : 'Continue with Google',
+                                    onPressed: _isSigningIn
+                                        ? null
+                                        : _handleGoogleSignIn,
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  // OR Divider Line
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          color: isDark
+                                              ? AppColors.borderDark
+                                              : const Color(0xFFE2E8F0),
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                        ),
+                                        child: Text(
+                                          isRtl ? 'أو' : 'OR',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark
+                                                ? AppColors.textMutedDark
+                                                : const Color(0xFF94A3B8),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          color: isDark
+                                              ? AppColors.borderDark
+                                              : const Color(0xFFE2E8F0),
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  // Security Info Banner
+                                  const LoginSecurityBanner(),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
-                      // 3. Footer Links
-                      const LoginFooterLinks(),
-                    ],
+                        // 3. Footer Links
+                        const LoginFooterLinks(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
-        ],
+        ),
       ),
     );
   }
