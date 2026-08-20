@@ -10,7 +10,8 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 import * as argon2 from 'argon2';
-import { AuditAction, Prisma, AccountState } from '@prisma/client';
+import { AuditAction, Prisma } from '@prisma/client';
+import { AccountState } from '../../common/enums/account-state.enum';
 
 @Injectable()
 export class EmployeesService {
