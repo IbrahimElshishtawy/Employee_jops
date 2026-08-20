@@ -25,13 +25,6 @@ enum UserStatus {
   SUSPENDED
 }
 
-enum AccountState {
-  NEW_EMPLOYEE
-  PROFILE_INCOMPLETE
-  ACTIVE_EMPLOYEE
-  SUSPENDED_EMPLOYEE
-}
-
 enum Gender {
   MALE
   FEMALE
@@ -46,6 +39,16 @@ enum AttendanceStatus {
   ON_LEAVE
   HOLIDAY
   WEEKEND
+}
+
+enum AttendanceEventType {
+  CHECK_IN_ATTEMPTED
+  CHECK_IN_ACCEPTED
+  CHECK_IN_REJECTED
+  CHECK_OUT_ATTEMPTED
+  CHECK_OUT_ACCEPTED
+  CHECK_OUT_REJECTED
+  MANUAL_CORRECTION
 }
 
 enum CheckInMethod {
@@ -128,6 +131,9 @@ enum AuditAction {
   WORKPLACE_CHANGED
   SCHEDULE_ASSIGNED
   SCHEDULE_CHANGED
+  MANUAL_ATTENDANCE_CREATED
+  MANUAL_ATTENDANCE_UPDATED
+  SECURITY_ATTENDANCE_REJECTED
 }
 
 // ============================================================
@@ -285,7 +291,7 @@ model Schedule {
 }
 
 // ============================================================
-// ATTENDANCE MANAGEMENT
+// ATTENDANCE MANAGEMENT & EVENTS
 // ============================================================
 
 model AttendanceRecord {
@@ -318,8 +324,16 @@ model AttendanceRecord {
   earlyLeaveMinutes   Int?     @default(0)
   isSuspicious        Boolean  @default(false)
   deviceSignals       Json?    // Client device telemetry
+
+  // HR Manual Adjustment Tracking
+  isManualEntry            Boolean  @default(false)
+  manualCorrectionReason   String?
+  manualCorrectedByUserId  String?
+
   notes               String?
   verifiedByUserId    String?
+
+  events              AttendanceEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -330,6 +344,27 @@ model AttendanceRecord {
   @@index([status])
   @@index([requestId])
   @@map("attendance_records")
+}
+
+model AttendanceEvent {
+  id                 String              @id @default(uuid())
+  attendanceRecordId String
+  attendanceRecord   AttendanceRecord    @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  eventType          AttendanceEventType
+  timestamp          DateTime            @default(now())
+  latitude           Float?
+  longitude          Float?
+  accuracy           Float?
+  distanceMeters     Float?
+  isWithinGeofence   Boolean?
+  metadata           Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([attendanceRecordId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@map("attendance_events")
 }
 
 // ============================================================

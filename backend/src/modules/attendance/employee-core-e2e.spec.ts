@@ -3,6 +3,7 @@ import { AuthService } from '../auth/auth.service';
 import { EmployeesService } from '../employees/employees.service';
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AccountState } from '../../common/enums/account-state.enum';
@@ -194,8 +195,11 @@ describe('Employee Core — 10 Mandatory E2E Scenarios', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    attendanceEvent: {
+      create: jest.fn().mockResolvedValue({ id: 'evt-01' }),
+    },
     auditLog: {
-      create: jest.fn().mockResolvedValue({ id: 'aud-01' }),
+      create: jest.fn().mockResolvedValue({ id: 'audit-01' }),
     },
     $transaction: jest.fn((callback) => callback(mockPrismaService)),
   };
@@ -212,6 +216,10 @@ describe('Employee Core — 10 Mandatory E2E Scenarios', () => {
     }),
   };
 
+  const mockNotificationsService = {
+    sendNotification: jest.fn().mockResolvedValue({ id: 'notif-01' }),
+  };
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -221,6 +229,7 @@ describe('Employee Core — 10 Mandatory E2E Scenarios', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 

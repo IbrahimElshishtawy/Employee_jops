@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('AttendanceService', () => {
   let service: AttendanceService;
@@ -17,11 +18,16 @@ describe('AttendanceService', () => {
     auditLog: { create: jest.fn() },
   };
 
+  const mockNotificationsService = {
+    sendNotification: jest.fn().mockResolvedValue({ id: 'notif-01' }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AttendanceService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
