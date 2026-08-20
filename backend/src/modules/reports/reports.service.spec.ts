@@ -163,8 +163,16 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
           _count: { id: 5 },
         }),
         groupBy: jest.fn().mockResolvedValue([
-          { type: DeductionType.LATENESS, _count: { id: 3 }, _sum: { amount: 1500 } },
-          { type: DeductionType.ABSENCE, _count: { id: 2 }, _sum: { amount: 1000 } },
+          {
+            type: DeductionType.LATENESS,
+            _count: { id: 3 },
+            _sum: { amount: 1500 },
+          },
+          {
+            type: DeductionType.ABSENCE,
+            _count: { id: 2 },
+            _sum: { amount: 1000 },
+          },
         ]),
         findMany: jest.fn().mockResolvedValue([
           { amount: 1500, employee: { department: "Engineering" } },
@@ -194,7 +202,12 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
             totalDeductions: 2500,
             netSalary: 42500,
             employee: { department: "Engineering", workplaceId: "wp-1" },
-            payrollPeriod: { id: "p-1", name: "2026-08", startDate: new Date("2026-08-01"), endDate: new Date("2026-08-31") },
+            payrollPeriod: {
+              id: "p-1",
+              name: "2026-08",
+              startDate: new Date("2026-08-01"),
+              endDate: new Date("2026-08-31"),
+            },
           },
         ]),
         findFirst: jest.fn().mockResolvedValue({
@@ -208,7 +221,12 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
       },
       payrollPeriod: {
         findMany: jest.fn().mockResolvedValue([
-          { id: "p-1", name: "2026-08", status: PayrollPeriodStatus.OPEN, _count: { payrollRecords: 10 } },
+          {
+            id: "p-1",
+            name: "2026-08",
+            status: PayrollPeriodStatus.OPEN,
+            _count: { payrollRecords: 10 },
+          },
         ]),
       },
       workplace: {
@@ -437,7 +455,12 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
   // 15. Date Filtering with Year and Month
   // ============================================================
   it("Scenario 15: Should support year and month filters accurately in DateRangeUtil", () => {
-    const parsed = DateRangeUtil.parseAndValidateDateRange(undefined, undefined, 2026, 8);
+    const parsed = DateRangeUtil.parseAndValidateDateRange(
+      undefined,
+      undefined,
+      2026,
+      8,
+    );
 
     expect(parsed.startDate.getUTCFullYear()).toBe(2026);
     expect(parsed.startDate.getUTCMonth()).toBe(7); // 0-indexed: 7 is August
@@ -553,9 +576,13 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
   // 24. CSV Formula Injection Sanitization
   // ============================================================
   it("Scenario 24: Should neutralize formula injection triggers in CSV export", () => {
-    expect(CsvExporterUtil.sanitizeCell("=SUM(A1:A10)")).toBe('"\'=SUM(A1:A10)"');
-    expect(CsvExporterUtil.sanitizeCell("+cmd|' /C calc'")).toBe('"\' +cmd|\' /C calc\'"');
-    expect(CsvExporterUtil.sanitizeCell("-100")).toBe('"\' -100"');
+    expect(CsvExporterUtil.sanitizeCell("=SUM(A1:A10)")).toBe(
+      '"\'=SUM(A1:A10)"',
+    );
+    expect(CsvExporterUtil.sanitizeCell("+cmd|' /C calc'")).toBe(
+      "\"'+cmd|' /C calc'\"",
+    );
+    expect(CsvExporterUtil.sanitizeCell("-100")).toBe('"\'-100"');
     expect(CsvExporterUtil.sanitizeCell("@SUM")).toBe('"\'@SUM"');
     expect(CsvExporterUtil.sanitizeCell("Normal Text")).toBe('"Normal Text"');
     expect(CsvExporterUtil.sanitizeCell(null)).toBe('""');
@@ -582,8 +609,16 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
   // ============================================================
   it("Scenario 26: Should handle zero records gracefully without NaN", async () => {
     mockPrisma.attendanceRecord.aggregate.mockResolvedValueOnce({
-      _sum: { lateMinutes: null, earlyLeaveMinutes: null, workDurationMinutes: null },
-      _avg: { lateMinutes: null, earlyLeaveMinutes: null, workDurationMinutes: null },
+      _sum: {
+        lateMinutes: null,
+        earlyLeaveMinutes: null,
+        workDurationMinutes: null,
+      },
+      _avg: {
+        lateMinutes: null,
+        earlyLeaveMinutes: null,
+        workDurationMinutes: null,
+      },
       _count: { id: 0 },
     });
     mockPrisma.attendanceRecord.groupBy.mockResolvedValueOnce([]);
@@ -605,7 +640,11 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
     // 2026-08-01 (Sat) to 2026-08-07 (Fri) has 5 working days: Sun, Mon, Tue, Wed, Thu (indices 0,1,2,3,4)
     const start = new Date("2026-08-01T00:00:00Z");
     const end = new Date("2026-08-07T23:59:59Z");
-    const workingDays = DateRangeUtil.calculateExpectedWorkingDays(start, end, [0, 1, 2, 3, 4]);
+    const workingDays = DateRangeUtil.calculateExpectedWorkingDays(
+      start,
+      end,
+      [0, 1, 2, 3, 4],
+    );
 
     expect(workingDays).toBe(5);
   });
@@ -704,7 +743,9 @@ describe("Phase 07 — Reports, Analytics & HR Intelligence (33 Test Scenarios)"
   // 33. Audit Log Failure Resilience
   // ============================================================
   it("Scenario 33: Should not throw error when audit logging encounters an exception", async () => {
-    mockPrisma.auditLog.create.mockRejectedValueOnce(new Error("DB Connection Error"));
+    mockPrisma.auditLog.create.mockRejectedValueOnce(
+      new Error("DB Connection Error"),
+    );
 
     // Should still resolve successfully and log warning internally
     const res = await reportsService.getPayrollAnalytics({}, { id: "admin-1" });

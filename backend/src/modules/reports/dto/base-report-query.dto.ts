@@ -3,7 +3,6 @@ import { Type } from "class-transformer";
 import {
   IsDateString,
   IsEnum,
-  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -60,7 +59,7 @@ export class BaseReportQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page: number = 1;
+  page?: number = 1;
 
   @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
   @IsOptional()
@@ -68,7 +67,7 @@ export class BaseReportQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  limit: number = 20;
+  limit?: number = 20;
 
   @ApiPropertyOptional({
     description: "Field name to sort by (whitelisted)",
@@ -82,8 +81,4 @@ export class BaseReportQueryDto {
   @IsOptional()
   @IsEnum(SortOrder)
   sortOrder?: SortOrder = SortOrder.DESC;
-
-  get skip(): number {
-    return (this.page - 1) * this.limit;
-  }
 }

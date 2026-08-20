@@ -12,9 +12,7 @@ export class CsvExporterUtil {
 
     // Check for formula injection triggers
     const dangerousPrefixes = ["=", "+", "-", "@", "\t", "\r"];
-    if (
-      dangerousPrefixes.some((prefix) => stringValue.startsWith(prefix))
-    ) {
+    if (dangerousPrefixes.some((prefix) => stringValue.startsWith(prefix))) {
       stringValue = `'${stringValue}`;
     }
 
@@ -30,13 +28,9 @@ export class CsvExporterUtil {
     headers: { key: string; label: string }[],
     rows: Record<string, any>[],
   ): string {
-    const headerRow = headers
-      .map((h) => this.sanitizeCell(h.label))
-      .join(",");
+    const headerRow = headers.map((h) => this.sanitizeCell(h.label)).join(",");
     const bodyRows = rows.map((row) =>
-      headers
-        .map((header) => this.sanitizeCell(row[header.key]))
-        .join(","),
+      headers.map((header) => this.sanitizeCell(row[header.key])).join(","),
     );
 
     return [headerRow, ...bodyRows].join("\r\n");

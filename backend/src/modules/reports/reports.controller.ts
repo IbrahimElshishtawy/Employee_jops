@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Res,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller, Get, Query, Res, UseGuards } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -102,7 +96,8 @@ export class ReportsController {
   @Get("attendance/security")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({
-    summary: "Attendance security telemetry (geofence breaches, GPS accuracy, suspicious device signals)",
+    summary:
+      "Attendance security telemetry (geofence breaches, GPS accuracy, suspicious device signals)",
   })
   getSecurityAnalytics(
     @Query() query: BaseReportQueryDto,
@@ -114,14 +109,18 @@ export class ReportsController {
   @Get("attendance/export")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @ApiOperation({
-    summary: "Export filtered attendance reports with formula injection protection (CSV)",
+    summary:
+      "Export filtered attendance reports with formula injection protection (CSV)",
   })
   async exportAttendance(
     @Query() query: ExportReportQueryDto,
     @CurrentUser() user: any,
     @Res() reply: FastifyReply,
   ) {
-    const csvContent = await this.reportsService.exportAttendanceCsv(query, user);
+    const csvContent = await this.reportsService.exportAttendanceCsv(
+      query,
+      user,
+    );
     const filename = `attendance-report-${new Date().toISOString().split("T")[0]}.csv`;
 
     reply
@@ -137,7 +136,8 @@ export class ReportsController {
   @Get("requests")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({
-    summary: "Request analytics, approval/rejection rates & processing duration",
+    summary:
+      "Request analytics, approval/rejection rates & processing duration",
   })
   getRequestAnalytics(@Query() query: RequestReportQueryDto) {
     return this.reportsService.getRequestAnalytics(query);

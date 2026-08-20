@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,7 +19,6 @@ import { CsvExporterUtil } from "./utils/csv-exporter.util";
 import {
   AttendanceStatus,
   AuditAction,
-  DeductionType,
   Prisma,
   RequestStatus,
   RequestType,
@@ -155,7 +153,14 @@ export class ReportsService {
   // 2. ATTENDANCE ANALYTICS & REPORT
   // ============================================================
 
-  async getAttendanceReport(query: AttendanceReportQueryDto, currentUser?: any) {
+  async getAttendanceReport(
+    query: AttendanceReportQueryDto,
+    _currentUser?: any,
+  ) {
+    const page = query.page || 1;
+    const limit = query.limit || 20;
+    const skip = (page - 1) * limit;
+
     const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
       query.startDate,
       query.endDate,
@@ -202,8 +207,8 @@ export class ReportsService {
         this.prisma.attendanceRecord.count({ where }),
         this.prisma.attendanceRecord.findMany({
           where,
-          skip: query.skip,
-          take: query.limit,
+          skip,
+          take: limit,
           orderBy: { [sortBy]: sortOrder },
           include: {
             employee: {
@@ -268,10 +273,16 @@ export class ReportsService {
       startDate,
       endDate,
     );
-    const denominator = (query.employeeId ? 1 : totalEmployeesCount) * expectedWorkingDays;
+    const denominator =
+      (query.employeeId ? 1 : totalEmployeesCount) * expectedWorkingDays;
     const attendanceRate =
       denominator > 0
-        ? Number((((presentDays + lateDays + onLeaveDays) / denominator) * 100).toFixed(2))
+        ? Number(
+            (
+              ((presentDays + lateDays + onLeaveDays) / denominator) *
+              100
+            ).toFixed(2),
+          )
         : 100;
 
     return {
@@ -297,10 +308,10 @@ export class ReportsService {
       },
       data: records,
       meta: {
-        page: query.page,
-        limit: query.limit,
+        page,
+        limit,
         total,
-        totalPages: Math.ceil(total / query.limit),
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -370,8 +381,14 @@ export class ReportsService {
       }
     >();
 
-    const deptMap = new Map<string, { occurrences: number; totalMinutes: number }>();
-    const workplaceMap = new Map<string, { occurrences: number; totalMinutes: number }>();
+    const deptMap = new Map<
+      string,
+      { occurrences: number; totalMinutes: number }
+    >();
+    const workplaceMap = new Map<
+      string,
+      { occurrences: number; totalMinutes: number }
+    >();
 
     for (const rec of lateRecords) {
       const mins = rec.lateMinutes || 0;
@@ -517,7 +534,8 @@ export class ReportsService {
       startDate,
       endDate,
     );
-    const totalPossibleWorkingDays = (totalEmployees || 1) * (expectedWorkingDays || 1);
+    const totalPossibleWorkingDays =
+      (totalEmployees || 1) * (expectedWorkingDays || 1);
     const absenceRate = Number(
       ((totalAbsenceCount / totalPossibleWorkingDays) * 100).toFixed(2),
     );
@@ -527,7 +545,12 @@ export class ReportsService {
     const wpMap = new Map<string, number>();
     const empMap = new Map<
       string,
-      { employeeName: string; employeeCode: string; department: string; count: number }
+      {
+        employeeName: string;
+        employeeCode: string;
+        department: string;
+        count: number;
+      }
     >();
 
     for (const rec of absenceRecords) {
@@ -563,10 +586,12 @@ export class ReportsService {
       departmentAbsence: Array.from(deptMap.entries()).map(
         ([department, count]) => ({ department, count }),
       ),
-      workplaceAbsence: Array.from(wpMap.entries()).map(([workplace, count]) => ({
-        workplace,
-        count,
-      })),
+      workplaceAbsence: Array.from(wpMap.entries()).map(
+        ([workplace, count]) => ({
+          workplace,
+          count,
+        }),
+      ),
     };
   }
 
@@ -647,7 +672,8 @@ export class ReportsService {
     for (const req of requests) {
       if (req.reviewedAt && req.createdAt) {
         const diffMs =
-          new Date(req.reviewedAt).getTime() - new Date(req.createdAt).getTime();
+          new Date(req.reviewedAt).getTime() -
+          new Date(req.createdAt).getTime();
         const hours = diffMs / (1000 * 60 * 60);
         if (hours >= 0) {
           totalProcessingHours += hours;
@@ -937,7 +963,7 @@ export class ReportsService {
   // 9. EMPLOYEE ANALYTICS
   // ============================================================
 
-  async getEmployeeAnalytics(query: BaseReportQueryDto) {
+  async getEmployeeAnalytics(_query: BaseReportQueryDto) {
     const [
       totalEmployees,
       activeEmployees,
@@ -991,7 +1017,9 @@ export class ReportsService {
       })),
       byWorkplace: byWorkplace.map((w) => ({
         workplaceId: w.workplaceId,
-        workplaceName: w.workplaceId ? wpNameMap.get(w.workplaceId) || "Unknown" : "Unassigned",
+        workplaceName: w.workplaceId
+          ? wpNameMap.get(w.workplaceId) || "Unknown"
+          : "Unassigned",
         employeeCount: w._count.id,
       })),
       byJobTitle: byJobTitle.map((j) => ({
@@ -1046,7 +1074,7 @@ export class ReportsService {
   // 11. WORKPLACE ANALYTICS
   // ============================================================
 
-  async getWorkplaceAnalytics(query: BaseReportQueryDto) {
+  async getWorkplaceAnalytics(_query: BaseReportQueryDto) {
     const workplaces = await this.prisma.workplace.findMany({
       select: {
         id: true,
@@ -1122,10 +1150,7 @@ export class ReportsService {
         where: {
           timestamp: { gte: startDate, lte: endDate },
           eventType: {
-            in: [
-              "CHECK_IN_REJECTED",
-              "CHECK_OUT_REJECTED",
-            ] as any,
+            in: ["CHECK_IN_REJECTED", "CHECK_OUT_REJECTED"] as any,
           },
         },
       }),
@@ -1195,65 +1220,74 @@ export class ReportsService {
       query.month,
     );
 
-    const [attendanceAgg, attendanceByStatus, requests, recentPayroll, advances] =
-      await Promise.all([
-        this.prisma.attendanceRecord.aggregate({
-          where: {
-            employeeId: employee.id,
-            date: { gte: startDate, lte: endDate },
-          },
-          _sum: { lateMinutes: true, earlyLeaveMinutes: true, workDurationMinutes: true },
-          _count: { id: true },
-        }),
-        this.prisma.attendanceRecord.groupBy({
-          by: ["status"],
-          where: {
-            employeeId: employee.id,
-            date: { gte: startDate, lte: endDate },
-          },
-          _count: { id: true },
-        }),
-        this.prisma.request.findMany({
-          where: {
-            employeeId: employee.id,
-            createdAt: { gte: startDate, lte: endDate },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 10,
-          select: {
-            id: true,
-            type: true,
-            status: true,
-            startDate: true,
-            endDate: true,
-            reason: true,
-          },
-        }),
-        this.prisma.payrollRecord.findFirst({
-          where: { employeeId: employee.id },
-          orderBy: { createdAt: "desc" },
-          select: {
-            basicSalary: true,
-            allowances: true,
-            grossSalary: true,
-            totalDeductions: true,
-            netSalary: true,
-            payrollPeriod: { select: { name: true } },
-          },
-        }),
-        this.prisma.financialAdvance.findMany({
-          where: { employeeId: employee.id },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          select: {
-            id: true,
-            amount: true,
-            paidAmount: true,
-            remainingAmount: true,
-            status: true,
-          },
-        }),
-      ]);
+    const [
+      attendanceAgg,
+      attendanceByStatus,
+      requests,
+      recentPayroll,
+      advances,
+    ] = await Promise.all([
+      this.prisma.attendanceRecord.aggregate({
+        where: {
+          employeeId: employee.id,
+          date: { gte: startDate, lte: endDate },
+        },
+        _sum: {
+          lateMinutes: true,
+          earlyLeaveMinutes: true,
+          workDurationMinutes: true,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.attendanceRecord.groupBy({
+        by: ["status"],
+        where: {
+          employeeId: employee.id,
+          date: { gte: startDate, lte: endDate },
+        },
+        _count: { id: true },
+      }),
+      this.prisma.request.findMany({
+        where: {
+          employeeId: employee.id,
+          createdAt: { gte: startDate, lte: endDate },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          reason: true,
+        },
+      }),
+      this.prisma.payrollRecord.findFirst({
+        where: { employeeId: employee.id },
+        orderBy: { createdAt: "desc" },
+        select: {
+          basicSalary: true,
+          allowances: true,
+          grossSalary: true,
+          totalDeductions: true,
+          netSalary: true,
+          payrollPeriod: { select: { name: true } },
+        },
+      }),
+      this.prisma.financialAdvance.findMany({
+        where: { employeeId: employee.id },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          amount: true,
+          paidAmount: true,
+          remainingAmount: true,
+          status: true,
+        },
+      }),
+    ]);
 
     const statusMap: Record<string, number> = {};
     for (const sc of attendanceByStatus) {

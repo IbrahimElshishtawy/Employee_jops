@@ -68,7 +68,9 @@ export class DateRangeUtil {
     }
 
     if (start.getTime() > end.getTime()) {
-      throw new BadRequestException("startDate must be before or equal to endDate");
+      throw new BadRequestException(
+        "startDate must be before or equal to endDate",
+      );
     }
 
     const diffDays = Math.ceil(
