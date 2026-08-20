@@ -9,7 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { AnnouncementPriority, AnnouncementStatus, AnnouncementTarget, NotificationPriority } from '@prisma/client';
+import { AnnouncementStatus, AnnouncementTarget, NotificationPriority } from '@prisma/client';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
 
 export class CreateAnnouncementDto {

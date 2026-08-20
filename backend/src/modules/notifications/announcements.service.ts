@@ -17,6 +17,7 @@ import {
   AnnouncementTarget,
   AuditAction,
   NotificationType,
+  NotificationPriority,
   Role,
   UserStatus,
   Prisma,
@@ -103,7 +104,7 @@ export class AnnouncementsService {
       },
     });
 
-    await this.broadcastAnnouncement(updated);
+    await this.broadcastAnnouncement({ ...announcement, ...updated });
 
     return updated;
   }
@@ -140,13 +141,16 @@ export class AnnouncementsService {
       const targetUserIds = await this.resolveTargetUserIds(announcement);
 
       if (targetUserIds.length > 0) {
+        const bodyText = announcement.body || '';
+        const snippet = bodyText.length > 150 ? `${bodyText.slice(0, 147)}...` : bodyText;
+
         await this.notificationsService.sendBatchNotifications(
           targetUserIds,
-          `Announcement: ${announcement.title}`,
-          announcement.body.length > 150 ? `${announcement.body.slice(0, 147)}...` : announcement.body,
+          `Announcement: ${announcement.title || 'Company Notice'}`,
+          snippet,
           NotificationType.ANNOUNCEMENT,
           { announcementId: announcement.id },
-          announcement.priority,
+          announcement.priority || NotificationPriority.NORMAL,
         );
       }
     } catch (err: any) {
@@ -178,7 +182,7 @@ export class AnnouncementsService {
 
   async getAnnouncements(
     currentUser: { id: string; role: Role; employeeProfileId?: string },
-    query: QueryAnnouncementsDto = {},
+    query: Partial<QueryAnnouncementsDto> = {},
   ) {
     const { page = 1, limit = 10, status, targetType, department } = query;
     const skip = (page - 1) * limit;

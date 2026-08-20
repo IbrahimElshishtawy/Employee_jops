@@ -236,7 +236,7 @@ export class MessagesService {
   async getConversationMessages(
     conversationId: string,
     currentUserId: string,
-    query: QueryMessagesDto = {},
+    query: Partial<QueryMessagesDto> = {},
   ) {
     // 1. Participant check (IDOR Protection)
     const isParticipant = await this.prisma.conversationParticipant.findUnique({

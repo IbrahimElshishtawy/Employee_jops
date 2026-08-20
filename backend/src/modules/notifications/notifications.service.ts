@@ -221,7 +221,7 @@ export class NotificationsService {
   // 3. NOTIFICATION RETRIEVAL & READ STATE
   // ============================================================
 
-  async getMyNotifications(userId: string, query: QueryNotificationsDto = {}) {
+  async getMyNotifications(userId: string, query: Partial<QueryNotificationsDto> = {}) {
     const { page = 1, limit = 20, type, priority, isRead, startDate, endDate } = query;
     const skip = (page - 1) * limit;
 
