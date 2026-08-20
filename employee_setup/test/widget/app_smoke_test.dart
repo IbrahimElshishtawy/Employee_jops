@@ -1,5 +1,7 @@
 import 'package:employee_setup/app/app_providers.dart';
 import 'package:employee_setup/core/localization/app_localizations.dart';
+import 'package:employee_setup/core/mock/mock_database.dart';
+import 'package:employee_setup/core/mock/seeds/employee_seed.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
 import 'package:employee_setup/features/attendance/presentation/widgets/employee_header_card.dart';
@@ -40,17 +42,25 @@ void main() {
     await storage.init();
     await storage.clear();
 
+    final dbNotifier = MockDatabaseNotifier();
+    dbNotifier.replaceState(
+      MockDatabase.seed().copyWith(
+        employee: EmployeeSeed.employee.copyWith(avatarUrl: ''),
+      ),
+    );
+
     await tester.pumpWidget(
       _buildTestApp(
         child: const EmployeeHeaderCard(),
         overrides: [
           localStorageProvider.overrideWithValue(storage),
+          mockDatabaseProvider.overrideWith((ref) => dbNotifier),
         ],
       ),
     );
 
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(EmployeeHeaderCard), findsOneWidget);
   });
 }

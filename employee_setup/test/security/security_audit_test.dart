@@ -2,8 +2,6 @@ import 'package:employee_setup/core/utils/validators.dart';
 import 'package:employee_setup/features/attendance/data/api/mock_attendance_api.dart';
 import 'package:employee_setup/features/attendance/domain/models/attendance.dart';
 import 'package:employee_setup/features/attendance/domain/models/attendance_api_contracts.dart';
-import 'package:employee_setup/features/attendance/domain/models/device_integrity_result.dart';
-import 'package:employee_setup/features/attendance/domain/models/network_risk_info.dart';
 import 'package:employee_setup/features/auth/domain/models/employee.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,9 +15,11 @@ void main() {
         id: 'EMP-SEC-001',
         name: 'Secured Test Employee',
         email: 'secured.employee@cyberwise.ie',
-        role: 'employee',
         department: 'Cybersecurity',
         jobTitle: 'Security Analyst',
+        avatarUrl: '',
+        phone: '01000000000',
+        joinDate: DateTime(2025, 1, 1),
         region: 'Cairo',
         managerId: 'MGR-001',
         managerName: 'Security Lead',
