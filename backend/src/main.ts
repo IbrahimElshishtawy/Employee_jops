@@ -33,18 +33,23 @@ async function bootstrap() {
 
   // Security: Helmet
   await app.register(helmet as any, {
-    contentSecurityPolicy: false, // Swagger compatibility
+    contentSecurityPolicy: false, // Preserves Swagger UI compatibility
+    frameguard: { action: "deny" },
+    noSniff: true,
   });
 
   // Performance: Fastify Compression
   await app.register(compression as any);
 
-  // CORS
+  // CORS Configuration
+  const isProduction = process.env.NODE_ENV === "production";
+  const corsOrigin = configService.get<string>("corsOrigin") || process.env.CORS_ORIGIN;
+  
   app.enableCors({
-    origin: "*",
+    origin: isProduction && corsOrigin ? corsOrigin.split(",").map((o) => o.trim()) : "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Request-Id"],
   });
 
   // Global Validation Pipe

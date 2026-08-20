@@ -22,6 +22,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let message: string | string[] = "Internal server error";
     let error = "Internal Server Error";
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -40,7 +42,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
           status = HttpStatus.CONFLICT;
           const fields =
             (exception.meta?.target as string[])?.join(", ") || "field";
-          message = `Unique constraint violation on ${fields}`;
+          message = isProduction
+            ? "A record with this identifier already exists"
+            : `Unique constraint violation on ${fields}`;
           error = "Conflict";
           break;
         }
@@ -52,19 +56,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
         case "P2003": {
           status = HttpStatus.BAD_REQUEST;
-          message = "Foreign key constraint violation";
+          message = isProduction
+            ? "Referenced record does not exist or cannot be modified"
+            : "Foreign key constraint violation";
           error = "Bad Request";
           break;
         }
         default: {
           status = HttpStatus.BAD_REQUEST;
-          message = `Database query error (${exception.code})`;
+          message = isProduction
+            ? "Invalid data or database operation rejected"
+            : `Database query error (${exception.code})`;
           error = "Bad Request";
           break;
         }
       }
+      this.logger.warn(
+        `[Prisma ${exception.code}] ${request.method} ${request.url} - ${exception.message}`,
+      );
     } else if (exception instanceof Error) {
-      message = exception.message;
+      message = isProduction ? "An unexpected error occurred" : exception.message;
       this.logger.error(
         `[Unhandled Error] ${request.method} ${request.url} - ${exception.message}`,
         exception.stack,

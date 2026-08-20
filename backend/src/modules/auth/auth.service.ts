@@ -282,8 +282,39 @@ export class AuthService {
       },
     });
 
-    if (!existingToken || existingToken.revokedAt) {
-      throw new UnauthorizedException("Invalid or revoked refresh token");
+    if (!existingToken) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    // Refresh Token Replay Attack Detection:
+    // If a revoked token is presented, this indicates the token might have been compromised.
+    // Invalidate all tokens for this user immediately and record an audit log.
+    if (existingToken.revokedAt) {
+      await this.prisma.refreshToken.updateMany({
+        where: { userId: existingToken.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+
+      await this.prisma.auditLog.create({
+        data: {
+          userId: existingToken.userId,
+          action: AuditAction.UPDATE,
+          entity: "RefreshToken",
+          entityId: existingToken.id,
+          payload: {
+            alert: "REFRESH_TOKEN_REPLAY_ATTACK",
+            reason:
+              "Revoked refresh token reuse detected. All active user sessions invalidated.",
+            compromisedTokenId: existingToken.id,
+          },
+          ipAddress: meta?.ipAddress,
+          userAgent: meta?.userAgent,
+        },
+      });
+
+      throw new UnauthorizedException(
+        "Compromised session detected. All sessions have been terminated for security. Please sign in again.",
+      );
     }
 
     if (new Date() > existingToken.expiresAt) {
