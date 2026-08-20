@@ -6,6 +6,7 @@ import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from "@nestjs/core";
 import configuration from "./config/configuration";
 import { validate } from "./config/env.validation";
 import { PrismaModule } from "./prisma/prisma.module";
+import { RedisModule } from "./common/redis/redis.module";
 import { HealthModule } from "./modules/health/health.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { EmployeesModule } from "./modules/employees/employees.module";
@@ -44,8 +45,9 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
       ],
     }),
 
-    // Database
+    // Database & Cache
     PrismaModule,
+    RedisModule,
 
     // Domain Modules
     HealthModule,

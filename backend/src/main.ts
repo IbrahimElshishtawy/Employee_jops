@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "@fastify/helmet";
 import compression from "@fastify/compress";
+import * as crypto from "crypto";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
@@ -16,12 +17,30 @@ async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter({
     logger: false,
     trustProxy: true,
+    bodyLimit: 10485760, // 10MB payload ceiling
+  });
+
+  // Attach request correlation ID hook on Fastify
+  const fastifyInstance = fastifyAdapter.getInstance();
+  fastifyInstance.addHook("onRequest", (request, reply, done) => {
+    const incomingId = request.headers["x-request-id"];
+    const requestId =
+      typeof incomingId === "string" && incomingId.trim().length > 0
+        ? incomingId.trim()
+        : crypto.randomUUID();
+
+    (request as any).requestId = requestId;
+    reply.header("X-Request-Id", requestId);
+    done();
   });
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
   );
+
+  // Enable NestJS lifecycle shutdown hooks
+  app.enableShutdownHooks();
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("port") || 3000;
@@ -43,10 +62,14 @@ async function bootstrap() {
 
   // CORS Configuration
   const isProduction = process.env.NODE_ENV === "production";
-  const corsOrigin = configService.get<string>("corsOrigin") || process.env.CORS_ORIGIN;
-  
+  const corsOrigin =
+    configService.get<string>("corsOrigin") || process.env.CORS_ORIGIN;
+
   app.enableCors({
-    origin: isProduction && corsOrigin ? corsOrigin.split(",").map((o) => o.trim()) : "*",
+    origin:
+      isProduction && corsOrigin
+        ? corsOrigin.split(",").map((o) => o.trim())
+        : "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Request-Id"],
@@ -96,6 +119,22 @@ async function bootstrap() {
       docExpansion: "none",
     },
   });
+
+  // Graceful signal termination handling
+  const shutdown = async (signal: string) => {
+    logger.log(`Received ${signal}. Initiating graceful shutdown...`);
+    try {
+      await app.close();
+      logger.log("Application gracefully closed. Exiting.");
+      process.exit(0);
+    } catch (err) {
+      logger.error("Error during graceful shutdown:", err);
+      process.exit(1);
+    }
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 
   await app.listen(port, host);
   logger.log(
