@@ -157,9 +157,9 @@ export class AuthService {
         lastName: user.employeeProfile?.lastName,
         jobTitle: user.employeeProfile?.jobTitle,
         department: user.employeeProfile?.department,
-        avatarUrl: user.employeeProfile?.avatarUrl,
-        workplaceId: user.employeeProfile?.workplaceId,
-        scheduleId: user.employeeProfile?.scheduleId,
+        avatarUrl: user.employeeProfile?.avatarUrl ?? undefined,
+        workplaceId: user.employeeProfile?.workplaceId ?? undefined,
+        scheduleId: user.employeeProfile?.scheduleId ?? undefined,
       },
     };
   }
@@ -249,9 +249,9 @@ export class AuthService {
         lastName: user.employeeProfile?.lastName,
         jobTitle: user.employeeProfile?.jobTitle,
         department: user.employeeProfile?.department,
-        avatarUrl: user.employeeProfile?.avatarUrl,
-        workplaceId: user.employeeProfile?.workplaceId,
-        scheduleId: user.employeeProfile?.scheduleId,
+        avatarUrl: user.employeeProfile?.avatarUrl ?? undefined,
+        workplaceId: user.employeeProfile?.workplaceId ?? undefined,
+        scheduleId: user.employeeProfile?.scheduleId ?? undefined,
       },
     };
   }
@@ -417,7 +417,7 @@ export class AuthService {
   /**
    * Helper to mask National ID values (e.g. "1098765432" -> "******5432")
    */
-  maskNationalId(nationalId?: string): string | undefined {
+  maskNationalId(nationalId?: string | null): string | undefined {
     if (!nationalId) return undefined;
     if (nationalId.length <= 4) return '****';
     const last4 = nationalId.slice(-4);
@@ -447,7 +447,7 @@ export class AuthService {
         email: payload.email,
         sub: payload.sub,
       };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`Google token verification failed: ${err.message}`);
       throw new UnauthorizedException('Google identity verification failed');
     }

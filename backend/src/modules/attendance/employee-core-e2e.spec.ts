@@ -110,7 +110,7 @@ describe('Employee Core — 10 Mandatory E2E Scenarios', () => {
 
   const attendanceRecords: Record<string, any> = {};
 
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     user: {
       findFirst: jest.fn(({ where }) => {
         const email = where?.OR?.[0]?.email;

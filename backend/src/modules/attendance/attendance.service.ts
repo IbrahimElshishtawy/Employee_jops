@@ -424,7 +424,7 @@ export class AttendanceService {
           payload: { reason, ...metadata },
         },
       });
-    } catch (e) {
+    } catch (e: any) {
       this.logger.warn(`Failed to log attendance rejection: ${e.message}`);
     }
   }

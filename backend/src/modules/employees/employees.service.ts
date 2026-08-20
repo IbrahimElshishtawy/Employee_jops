@@ -413,7 +413,7 @@ export class EmployeesService {
     return { message: 'Employee deleted successfully' };
   }
 
-  private maskNationalId(nationalId?: string): string | undefined {
+  private maskNationalId(nationalId?: string | null): string | undefined {
     if (!nationalId) return undefined;
     if (nationalId.length <= 4) return '****';
     const last4 = nationalId.slice(-4);
