@@ -52,7 +52,7 @@ class FilterBar extends StatelessWidget {
             runSpacing: AppDimensions.space8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (filterActions != null) ...filterActions!,
+              ...?filterActions,
               if (onRefresh != null)
                 IconButton(
                   tooltip: AppStrings.refresh,

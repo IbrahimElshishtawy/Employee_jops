@@ -132,7 +132,7 @@ class HttpApiClient implements ApiClient {
           response = await _client.delete(uri, headers: headers);
           break;
         default:
-          throw AppException('Unsupported HTTP method: $method');
+          throw UnknownException(message: 'Unsupported HTTP method: $method');
       }
 
       LoggingInterceptor.logResponse(method, uri.toString(), response.statusCode);

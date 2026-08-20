@@ -14,6 +14,8 @@ class SessionManager {
     this.inactivityTimeout = const Duration(minutes: 30),
   });
 
+  DateTime? get lastActivityTime => _lastActivityTime;
+
   void recordActivity() {
     _lastActivityTime = DateTime.now();
     _resetInactivityTimer();

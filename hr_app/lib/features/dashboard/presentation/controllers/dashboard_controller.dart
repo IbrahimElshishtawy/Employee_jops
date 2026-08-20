@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/dashboard_metrics.dart';
-import '../../domain/repositories/dashboard_repository.dart';
 
 enum DashboardStatus { initial, loading, loaded, error }
 
