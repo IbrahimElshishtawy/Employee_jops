@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -27,9 +28,36 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
+  @Get('me')
+  @ApiOperation({ summary: 'Get current employee profile & onboarding status' })
+  getMyProfile(@CurrentUser('id') userId: string) {
+    return this.employeesService.getMyProfile(userId);
+  }
+
+  @Patch('me/profile')
+  @ApiOperation({ summary: 'Complete employee initial onboarding profile' })
+  completeProfile(
+    @CurrentUser('id') userId: string,
+    @Body() dto: CompleteProfileDto,
+  ) {
+    return this.employeesService.completeProfile(userId, dto);
+  }
+
+  @Get('me/workplace')
+  @ApiOperation({ summary: 'Get assigned workplace & geofence parameters for current employee' })
+  getMyWorkplace(@CurrentUser('id') userId: string) {
+    return this.employeesService.getMyWorkplace(userId);
+  }
+
+  @Get('me/schedule')
+  @ApiOperation({ summary: 'Get work schedule & server-time working hours for current employee' })
+  getMySchedule(@CurrentUser('id') userId: string) {
+    return this.employeesService.getMySchedule(userId);
+  }
+
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: 'Create new employee profile & user account' })
+  @ApiOperation({ summary: 'Create new employee profile & user account (HR Dashboard)' })
   create(
     @Body() dto: CreateEmployeeDto,
     @CurrentUser('id') creatorId: string,
@@ -45,7 +73,7 @@ export class EmployeesController {
   }
 
   @Get(':id')
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
+  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({ summary: 'Get employee details by profile ID' })
   findOne(@Param('id') id: string) {
     return this.employeesService.findOne(id);
@@ -53,7 +81,7 @@ export class EmployeesController {
 
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: 'Update employee profile' })
+  @ApiOperation({ summary: 'Update employee profile (HR Dashboard)' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateEmployeeDto,

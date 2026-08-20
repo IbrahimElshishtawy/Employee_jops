@@ -25,6 +25,13 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum AccountState {
+  NEW_EMPLOYEE
+  PROFILE_INCOMPLETE
+  ACTIVE_EMPLOYEE
+  SUSPENDED_EMPLOYEE
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -110,6 +117,17 @@ enum AuditAction {
   CHECK_OUT
   APPROVE
   REJECT
+  GOOGLE_LOGIN_SUCCESS
+  GOOGLE_LOGIN_FAILED
+  PROFILE_STARTED
+  PROFILE_COMPLETED
+  ATTENDANCE_CHECK_IN
+  ATTENDANCE_CHECK_OUT
+  ATTENDANCE_REJECTED
+  WORKPLACE_ASSIGNED
+  WORKPLACE_CHANGED
+  SCHEDULE_ASSIGNED
+  SCHEDULE_CHANGED
 }
 
 // ============================================================
@@ -119,7 +137,8 @@ enum AuditAction {
 model User {
   id           String     @id @default(uuid())
   email        String     @unique
-  passwordHash String
+  googleId     String?    @unique
+  passwordHash String?    // Nullable for pure Google Sign-In users
   role         Role       @default(EMPLOYEE)
   status       UserStatus @default(ACTIVE)
 
@@ -137,6 +156,7 @@ model User {
   sentMessages              ChatMessage[]
 
   @@index([email])
+  @@index([googleId])
   @@index([role])
   @@index([status])
   @@map("users")
@@ -163,21 +183,23 @@ model RefreshToken {
 // ============================================================
 
 model EmployeeProfile {
-  id           String    @id @default(uuid())
-  userId       String    @unique
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  employeeCode String    @unique
-  firstName    String
-  lastName     String
-  phone        String?   @unique
-  nationalId   String?   @unique
-  dateOfBirth  DateTime?
-  gender       Gender?
-  avatarUrl    String?
-  jobTitle     String
-  department   String
-  hireDate     DateTime  @default(now())
-  baseSalary   Decimal?  @db.Decimal(12, 2)
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeCode          String    @unique
+  firstName             String
+  lastName              String
+  phone                 String?   @unique
+  nationalId            String?   @unique
+  dateOfBirth           DateTime?
+  gender                Gender?
+  avatarUrl             String?
+  jobTitle              String
+  department            String
+  hireDate              DateTime  @default(now())
+  baseSalary            Decimal?  @db.Decimal(12, 2)
+  isProfileComplete     Boolean   @default(false)
+  onboardingCompletedAt DateTime?
 
   // Assigned Workplace
   workplaceId String?
@@ -204,7 +226,9 @@ model EmployeeProfile {
   @@index([employeeCode])
   @@index([department])
   @@index([workplaceId])
+  @@index([scheduleId])
   @@index([managerId])
+  @@index([isProfileComplete])
   @@map("employee_profiles")
 }
 
@@ -240,17 +264,17 @@ model Workplace {
 // ============================================================
 
 model Schedule {
-  id                  String   @id @default(uuid())
-  name                String
-  description         String?
-  workplaceId         String?
-  workplace           Workplace? @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
-  startTime           String   // e.g. "09:00"
-  endTime             String   // e.g. "17:00"
-  graceMinutesCheckIn Int      @default(15)
-  graceMinutesCheckOut Int     @default(15)
-  workingDays         Int[]    // Array of day numbers: 0=Sun, 1=Mon, ..., 6=Sat
-  isDefault           Boolean  @default(false)
+  id                   String   @id @default(uuid())
+  name                 String
+  description          String?
+  workplaceId          String?
+  workplace            Workplace? @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+  startTime            String   // e.g. "09:00"
+  endTime              String   // e.g. "17:00"
+  graceMinutesCheckIn  Int      @default(15)
+  graceMinutesCheckOut Int      @default(15)
+  workingDays          Int[]    // Array of day numbers: 0=Sun, 1=Mon, ..., 6=Sat
+  isDefault            Boolean  @default(false)
 
   employees EmployeeProfile[]
 
@@ -265,30 +289,35 @@ model Schedule {
 // ============================================================
 
 model AttendanceRecord {
-  id         String           @id @default(uuid())
-  employeeId String
-  employee   EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id          String           @id @default(uuid())
+  requestId   String?          @unique // Idempotency key from mobile client
+  employeeId  String
+  employee    EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   workplaceId String?
-  workplace   Workplace?      @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+  workplace   Workplace?       @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
   
-  date       DateTime         @db.Date
-  status     AttendanceStatus @default(PRESENT)
+  date        DateTime         @db.Date
+  status      AttendanceStatus @default(PRESENT)
 
   checkInTime             DateTime?
   checkInLat              Float?
   checkInLng              Float?
   checkInMethod           CheckInMethod? @default(GPS)
   isCheckInWithinGeofence Boolean?       @default(true)
+  checkInAccuracy         Float?         // GPS accuracy in meters
 
   checkOutTime             DateTime?
   checkOutLat              Float?
   checkOutLng              Float?
   checkOutMethod           CheckInMethod? @default(GPS)
   isCheckOutWithinGeofence Boolean?       @default(true)
+  checkOutAccuracy         Float?
 
   workDurationMinutes Int?     @default(0)
   lateMinutes         Int?     @default(0)
   earlyLeaveMinutes   Int?     @default(0)
+  isSuspicious        Boolean  @default(false)
+  deviceSignals       Json?    // Client device telemetry
   notes               String?
   verifiedByUserId    String?
 
@@ -299,6 +328,7 @@ model AttendanceRecord {
   @@index([employeeId])
   @@index([date])
   @@index([status])
+  @@index([requestId])
   @@map("attendance_records")
 }
 
@@ -307,17 +337,17 @@ model AttendanceRecord {
 // ============================================================
 
 model Request {
-  id           String        @id @default(uuid())
-  employeeId   String
-  employee     EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type         RequestType
-  startDate    DateTime      @db.Date
-  endDate      DateTime      @db.Date
-  startTime    String?       // For excuse / hourly leave
-  endTime      String?
-  reason       String
+  id            String        @id @default(uuid())
+  employeeId    String
+  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type          RequestType
+  startDate     DateTime      @db.Date
+  endDate       DateTime      @db.Date
+  startTime     String?       // For excuse / hourly leave
+  endTime       String?
+  reason        String
   attachmentUrl String?
-  status       RequestStatus @default(PENDING)
+  status        RequestStatus @default(PENDING)
 
   approvalSteps ApprovalStep[]
 
@@ -375,14 +405,14 @@ model FinancialAdvance {
 }
 
 model FinancialDeduction {
-  id          String        @id @default(uuid())
-  employeeId  String
-  employee    EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type        DeductionType
-  amount      Decimal       @db.Decimal(10, 2)
-  reason      String
-  effectiveDate DateTime    @db.Date
-  createdById String?
+  id            String        @id @default(uuid())
+  employeeId    String
+  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type          DeductionType
+  amount        Decimal       @db.Decimal(10, 2)
+  reason        String
+  effectiveDate DateTime      @db.Date
+  createdById   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -436,9 +466,9 @@ model DeviceToken {
 // ============================================================
 
 model Conversation {
-  id        String   @id @default(uuid())
-  name      String?  // For group channels
-  isGroup   Boolean  @default(false)
+  id      String   @id @default(uuid())
+  name    String?
+  isGroup Boolean  @default(false)
 
   participants ConversationParticipant[]
   messages     ChatMessage[]
@@ -487,9 +517,9 @@ model AuditLog {
   userId    String?
   user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   action    AuditAction
-  entity    String      // e.g. "EmployeeProfile", "AttendanceRecord"
+  entity    String
   entityId  String?
-  payload   Json?       // Diff or snapshot
+  payload   Json?
   ipAddress String?
   userAgent String?
 

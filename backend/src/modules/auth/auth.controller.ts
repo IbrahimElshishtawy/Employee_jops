@@ -16,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -30,9 +31,22 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Employee Google Sign-In with authoritative onboarding state' })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  async googleLogin(@Body() dto: GoogleLoginDto, @Req() req: FastifyRequest) {
+    const meta = {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    };
+    return this.authService.googleLogin(dto, meta);
+  }
+
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login user (Employee App or HR Dashboard)' })
+  @ApiOperation({ summary: 'Login user with Email/Password (HR Dashboard / Admin)' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   async login(@Body() dto: LoginDto, @Req() req: FastifyRequest) {
     const meta = {
@@ -83,7 +97,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current authenticated user & profile' })
+  @ApiOperation({ summary: 'Get current authenticated user & profile status' })
   async getMe(@CurrentUser('id') userId: string) {
     return this.authService.getMe(userId);
   }

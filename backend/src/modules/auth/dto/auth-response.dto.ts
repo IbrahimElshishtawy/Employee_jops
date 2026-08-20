@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Role, UserStatus } from '@prisma/client';
+import { AccountState } from '../../../common/enums/account-state.enum';
 
 export class UserProfileResponseDto {
   @ApiProperty()
@@ -13,6 +14,12 @@ export class UserProfileResponseDto {
 
   @ApiProperty({ enum: UserStatus })
   status: UserStatus;
+
+  @ApiProperty({ enum: AccountState, description: 'Authoritative account state' })
+  accountState: AccountState;
+
+  @ApiProperty({ description: 'Whether employee completed initial onboarding profile' })
+  isProfileComplete: boolean;
 
   @ApiProperty({ required: false })
   employeeProfileId?: string;
@@ -37,6 +44,9 @@ export class UserProfileResponseDto {
 
   @ApiProperty({ required: false })
   workplaceId?: string;
+
+  @ApiProperty({ required: false })
+  scheduleId?: string;
 }
 
 export class AuthResponseDto {

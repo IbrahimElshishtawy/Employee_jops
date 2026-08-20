@@ -2,16 +2,24 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CheckInDto } from './dto/check-in.dto';
 import { CheckOutDto } from './dto/check-out.dto';
 import { AttendanceStatus, AuditAction, Prisma } from '@prisma/client';
 
+export const MAX_ALLOWED_GPS_ACCURACY_METERS = 50.0;
+
 @Injectable()
 export class AttendanceService {
+  private readonly logger = new Logger(AttendanceService.name);
+
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Register employee check-in with geofencing, accuracy, and anti-fraud validation
+   */
   async checkIn(userId: string, dto: CheckInDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -30,100 +38,170 @@ export class AttendanceService {
     }
 
     const employee = user.employeeProfile;
+
+    if (!employee.isProfileComplete) {
+      throw new BadRequestException('PROFILE_INCOMPLETE: Please complete your onboarding profile first');
+    }
+
+    if (!employee.workplace || !employee.workplace.isActive) {
+      throw new BadRequestException('WORKPLACE_NOT_ASSIGNED: No active workplace assigned');
+    }
+
+    if (!employee.schedule) {
+      throw new BadRequestException('SCHEDULE_NOT_ASSIGNED: No work schedule assigned');
+    }
+
+    // 1. GPS Accuracy Check
+    if (dto.accuracy !== undefined && dto.accuracy > MAX_ALLOWED_GPS_ACCURACY_METERS) {
+      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', { accuracy: dto.accuracy });
+      throw new BadRequestException(
+        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${MAX_ALLOWED_GPS_ACCURACY_METERS}m)`,
+      );
+    }
+
+    // 2. Geofence Boundary Check (Haversine Formula)
+    const distanceMeters = this.calculateDistanceMeters(
+      dto.latitude,
+      dto.longitude,
+      employee.workplace.latitude,
+      employee.workplace.longitude,
+    );
+
+    const isWithinGeofence = distanceMeters <= employee.workplace.radiusMeters;
+    if (!isWithinGeofence) {
+      await this.logRejection(userId, 'OUTSIDE_WORKPLACE', {
+        distanceMeters,
+        allowedRadius: employee.workplace.radiusMeters,
+      });
+      throw new BadRequestException(
+        `OUTSIDE_WORKPLACE: You are ${distanceMeters}m away from your assigned workplace (${employee.workplace.name}). Maximum allowed radius is ${employee.workplace.radiusMeters}m.`,
+      );
+    }
+
+    // 3. Evaluate Anti-Fraud & Device Signals
+    const isSuspicious = Boolean(
+      dto.isMockLocation || dto.isJailbroken,
+    );
+
+    const deviceSignals = {
+      isMockLocation: Boolean(dto.isMockLocation),
+      isVpn: Boolean(dto.isVpn),
+      isJailbroken: Boolean(dto.isJailbroken),
+      biometricVerified: Boolean(dto.biometricVerified),
+      distanceMeters,
+      accuracy: dto.accuracy,
+    };
+
+    // 4. Server-Authoritative Time & Schedule Evaluation
+    const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Check if already checked in today
-    const existingRecord = await this.prisma.attendanceRecord.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
+    const [schedHours, schedMins] = employee.schedule.startTime.split(':').map(Number);
+    const scheduledCheckIn = new Date();
+    scheduledCheckIn.setHours(schedHours, schedMins, 0, 0);
 
-    if (existingRecord && existingRecord.checkInTime) {
-      throw new BadRequestException('You have already checked in today');
-    }
+    const graceLimit = new Date(
+      scheduledCheckIn.getTime() + employee.schedule.graceMinutesCheckIn * 60000,
+    );
 
-    // Geofence verification
-    let isWithinGeofence = true;
-    if (employee.workplace) {
-      const distance = this.calculateDistanceMeters(
-        dto.latitude,
-        dto.longitude,
-        employee.workplace.latitude,
-        employee.workplace.longitude,
-      );
-      isWithinGeofence = distance <= employee.workplace.radiusMeters;
-    }
-
-    // Calculate lateness
-    const now = new Date();
     let status: AttendanceStatus = AttendanceStatus.PRESENT;
     let lateMinutes = 0;
 
-    if (employee.schedule) {
-      const [schedHours, schedMins] = employee.schedule.startTime.split(':').map(Number);
-      const scheduledCheckIn = new Date();
-      scheduledCheckIn.setHours(schedHours, schedMins, 0, 0);
-
-      const graceLimit = new Date(
-        scheduledCheckIn.getTime() + employee.schedule.graceMinutesCheckIn * 60000,
-      );
-
-      if (now > graceLimit) {
-        status = AttendanceStatus.LATE;
-        lateMinutes = Math.round((now.getTime() - scheduledCheckIn.getTime()) / 60000);
-      }
+    if (now > graceLimit) {
+      status = AttendanceStatus.LATE;
+      lateMinutes = Math.round((now.getTime() - scheduledCheckIn.getTime()) / 60000);
     }
 
-    const record = await this.prisma.attendanceRecord.upsert({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
+    // 5. Atomic Transaction: Check for idempotency & prevent duplicate check-in
+    return this.prisma.$transaction(async (tx) => {
+      // Check existing record for today
+      const existing = await tx.attendanceRecord.findUnique({
+        where: {
+          employeeId_date: {
+            employeeId: employee.id,
+            date: today,
+          },
         },
-      },
-      update: {
-        checkInTime: now,
-        checkInLat: dto.latitude,
-        checkInLng: dto.longitude,
-        checkInMethod: dto.method,
-        isCheckInWithinGeofence: isWithinGeofence,
-        status,
-        lateMinutes,
-        notes: dto.notes,
-      },
-      create: {
-        employeeId: employee.id,
-        workplaceId: employee.workplaceId,
-        date: today,
-        checkInTime: now,
-        checkInLat: dto.latitude,
-        checkInLng: dto.longitude,
-        checkInMethod: dto.method,
-        isCheckInWithinGeofence: isWithinGeofence,
-        status,
-        lateMinutes,
-        notes: dto.notes,
-      },
-    });
+      });
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: AuditAction.CHECK_IN,
-        entity: 'AttendanceRecord',
-        entityId: record.id,
-        payload: { isWithinGeofence, status, lateMinutes },
-      },
-    });
+      if (existing && existing.checkInTime) {
+        throw new BadRequestException('ALREADY_CHECKED_IN: Attendance record for today has already been checked in');
+      }
 
-    return record;
+      // Check replay by requestId if provided
+      if (dto.requestId) {
+        const replay = await tx.attendanceRecord.findUnique({
+          where: { requestId: dto.requestId },
+        });
+        if (replay) {
+          return replay; // Idempotent return
+        }
+      }
+
+      const record = await tx.attendanceRecord.upsert({
+        where: {
+          employeeId_date: {
+            employeeId: employee.id,
+            date: today,
+          },
+        },
+        update: {
+          requestId: dto.requestId,
+          checkInTime: now,
+          checkInLat: dto.latitude,
+          checkInLng: dto.longitude,
+          checkInMethod: dto.method,
+          checkInAccuracy: dto.accuracy,
+          isCheckInWithinGeofence: true,
+          status,
+          lateMinutes,
+          isSuspicious,
+          deviceSignals,
+          notes: dto.notes,
+        },
+        create: {
+          requestId: dto.requestId,
+          employeeId: employee.id,
+          workplaceId: employee.workplaceId,
+          date: today,
+          checkInTime: now,
+          checkInLat: dto.latitude,
+          checkInLng: dto.longitude,
+          checkInMethod: dto.method,
+          checkInAccuracy: dto.accuracy,
+          isCheckInWithinGeofence: true,
+          status,
+          lateMinutes,
+          isSuspicious,
+          deviceSignals,
+          notes: dto.notes,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.ATTENDANCE_CHECK_IN,
+          entity: 'AttendanceRecord',
+          entityId: record.id,
+          payload: {
+            status,
+            lateMinutes,
+            distanceMeters,
+            isSuspicious,
+            deviceSignals,
+          },
+        },
+      });
+
+      return record;
+    });
   }
 
+  /**
+   * Register employee check-out with duration and early departure calculations
+   */
   async checkOut(userId: string, dto: CheckOutDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -142,77 +220,94 @@ export class AttendanceService {
     }
 
     const employee = user.employeeProfile;
+    const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const record = await this.prisma.attendanceRecord.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (!record || !record.checkInTime) {
-      throw new BadRequestException('Cannot check out without checking in first');
-    }
-
-    if (record.checkOutTime) {
-      throw new BadRequestException('You have already checked out today');
-    }
-
-    let isWithinGeofence = true;
-    if (employee.workplace) {
-      const distance = this.calculateDistanceMeters(
-        dto.latitude,
-        dto.longitude,
-        employee.workplace.latitude,
-        employee.workplace.longitude,
+    // 1. GPS Accuracy Check
+    if (dto.accuracy !== undefined && dto.accuracy > MAX_ALLOWED_GPS_ACCURACY_METERS) {
+      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', { accuracy: dto.accuracy });
+      throw new BadRequestException(
+        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${MAX_ALLOWED_GPS_ACCURACY_METERS}m)`,
       );
-      isWithinGeofence = distance <= employee.workplace.radiusMeters;
     }
 
-    const now = new Date();
-    const workDurationMinutes = Math.round(
-      (now.getTime() - new Date(record.checkInTime).getTime()) / 60000,
-    );
+    return this.prisma.$transaction(async (tx) => {
+      const record = await tx.attendanceRecord.findUnique({
+        where: {
+          employeeId_date: {
+            employeeId: employee.id,
+            date: today,
+          },
+        },
+      });
 
-    let earlyLeaveMinutes = 0;
-    if (employee.schedule) {
-      const [endHours, endMins] = employee.schedule.endTime.split(':').map(Number);
-      const scheduledCheckOut = new Date();
-      scheduledCheckOut.setHours(endHours, endMins, 0, 0);
-
-      if (now < scheduledCheckOut) {
-        earlyLeaveMinutes = Math.round((scheduledCheckOut.getTime() - now.getTime()) / 60000);
+      if (!record || !record.checkInTime) {
+        throw new BadRequestException('NO_ACTIVE_CHECK_IN: You must check in first before checking out');
       }
-    }
 
-    const updatedRecord = await this.prisma.attendanceRecord.update({
-      where: { id: record.id },
-      data: {
-        checkOutTime: now,
-        checkOutLat: dto.latitude,
-        checkOutLng: dto.longitude,
-        checkOutMethod: dto.method,
-        isCheckOutWithinGeofence: isWithinGeofence,
-        workDurationMinutes,
-        earlyLeaveMinutes,
-      },
+      if (record.checkOutTime) {
+        throw new BadRequestException('ALREADY_CHECKED_OUT: You have already checked out today');
+      }
+
+      let isWithinGeofence = true;
+      let distanceMeters = 0;
+      if (employee.workplace) {
+        distanceMeters = this.calculateDistanceMeters(
+          dto.latitude,
+          dto.longitude,
+          employee.workplace.latitude,
+          employee.workplace.longitude,
+        );
+        isWithinGeofence = distanceMeters <= employee.workplace.radiusMeters;
+      }
+
+      const workDurationMinutes = Math.round(
+        (now.getTime() - new Date(record.checkInTime).getTime()) / 60000,
+      );
+
+      let earlyLeaveMinutes = 0;
+      if (employee.schedule) {
+        const [endHours, endMins] = employee.schedule.endTime.split(':').map(Number);
+        const scheduledCheckOut = new Date();
+        scheduledCheckOut.setHours(endHours, endMins, 0, 0);
+
+        if (now < scheduledCheckOut) {
+          earlyLeaveMinutes = Math.round((scheduledCheckOut.getTime() - now.getTime()) / 60000);
+        }
+      }
+
+      const updatedRecord = await tx.attendanceRecord.update({
+        where: { id: record.id },
+        data: {
+          checkOutTime: now,
+          checkOutLat: dto.latitude,
+          checkOutLng: dto.longitude,
+          checkOutMethod: dto.method,
+          checkOutAccuracy: dto.accuracy,
+          isCheckOutWithinGeofence: isWithinGeofence,
+          workDurationMinutes,
+          earlyLeaveMinutes,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.ATTENDANCE_CHECK_OUT,
+          entity: 'AttendanceRecord',
+          entityId: record.id,
+          payload: {
+            workDurationMinutes,
+            earlyLeaveMinutes,
+            distanceMeters,
+            isWithinGeofence,
+          },
+        },
+      });
+
+      return updatedRecord;
     });
-
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: AuditAction.CHECK_OUT,
-        entity: 'AttendanceRecord',
-        entityId: record.id,
-        payload: { isWithinGeofence, workDurationMinutes, earlyLeaveMinutes },
-      },
-    });
-
-    return updatedRecord;
   }
 
   async getTodayStatus(userId: string) {
@@ -293,9 +388,9 @@ export class AttendanceService {
   }
 
   /**
-   * Haversine formula to calculate great-circle distance between two GPS coordinates in meters
+   * Great-circle distance between two GPS coordinates using Haversine formula
    */
-  private calculateDistanceMeters(
+  calculateDistanceMeters(
     lat1: number,
     lon1: number,
     lat2: number,
@@ -317,5 +412,20 @@ export class AttendanceService {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return Math.round(R * c);
+  }
+
+  private async logRejection(userId: string, reason: string, metadata: any) {
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.ATTENDANCE_REJECTED,
+          entity: 'AttendanceRecord',
+          payload: { reason, ...metadata },
+        },
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to log attendance rejection: ${e.message}`);
+    }
   }
 }
