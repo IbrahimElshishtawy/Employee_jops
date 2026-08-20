@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsDateString,
   IsEnum,
@@ -8,13 +8,13 @@ import {
   IsString,
   Min,
   MinLength,
-} from 'class-validator';
-import { UserStatus } from '@prisma/client';
+} from "class-validator";
+import { UserStatus } from "@prisma/client";
 
 export class CreateSalaryProfileDto {
   @ApiProperty({
-    example: 'emp-uuid-1234',
-    description: 'Target Employee Profile UUID',
+    example: "emp-uuid-1234",
+    description: "Target Employee Profile UUID",
   })
   @IsString()
   @IsNotEmpty()
@@ -22,7 +22,7 @@ export class CreateSalaryProfileDto {
 
   @ApiProperty({
     example: 15000,
-    description: 'Basic monthly salary in specified currency',
+    description: "Basic monthly salary in specified currency",
   })
   @IsNumber()
   @Min(0)
@@ -31,7 +31,7 @@ export class CreateSalaryProfileDto {
   @ApiPropertyOptional({
     example: 2500,
     default: 0,
-    description: 'Total monthly allowances (housing, transport, etc.)',
+    description: "Total monthly allowances (housing, transport, etc.)",
   })
   @IsOptional()
   @IsNumber()
@@ -39,25 +39,25 @@ export class CreateSalaryProfileDto {
   allowances?: number = 0;
 
   @ApiPropertyOptional({
-    example: 'EGP',
-    default: 'EGP',
-    description: 'Salary currency code',
+    example: "EGP",
+    default: "EGP",
+    description: "Salary currency code",
   })
   @IsOptional()
   @IsString()
-  currency?: string = 'EGP';
+  currency?: string = "EGP";
 
   @ApiPropertyOptional({
-    example: '2026-01-01',
-    description: 'Date when this salary configuration becomes effective',
+    example: "2026-01-01",
+    description: "Date when this salary configuration becomes effective",
   })
   @IsOptional()
   @IsDateString()
   effectiveFrom?: string;
 
   @ApiProperty({
-    example: 'Annual appraisal promotion / Initial hiring package',
-    description: 'Reason or business rationale for setting this salary profile',
+    example: "Annual appraisal promotion / Initial hiring package",
+    description: "Reason or business rationale for setting this salary profile",
   })
   @IsString()
   @IsNotEmpty()
@@ -68,7 +68,7 @@ export class CreateSalaryProfileDto {
 export class UpdateSalaryProfileDto {
   @ApiPropertyOptional({
     example: 18000,
-    description: 'Updated basic monthly salary',
+    description: "Updated basic monthly salary",
   })
   @IsOptional()
   @IsNumber()
@@ -77,7 +77,7 @@ export class UpdateSalaryProfileDto {
 
   @ApiPropertyOptional({
     example: 3000,
-    description: 'Updated monthly allowances',
+    description: "Updated monthly allowances",
   })
   @IsOptional()
   @IsNumber()
@@ -85,16 +85,16 @@ export class UpdateSalaryProfileDto {
   allowances?: number;
 
   @ApiPropertyOptional({
-    example: 'EGP',
-    description: 'Updated currency',
+    example: "EGP",
+    description: "Updated currency",
   })
   @IsOptional()
   @IsString()
   currency?: string;
 
   @ApiPropertyOptional({
-    example: '2026-09-01',
-    description: 'Effective date for the updated salary',
+    example: "2026-09-01",
+    description: "Effective date for the updated salary",
   })
   @IsOptional()
   @IsDateString()
@@ -102,15 +102,15 @@ export class UpdateSalaryProfileDto {
 
   @ApiPropertyOptional({
     enum: UserStatus,
-    description: 'Status of salary profile',
+    description: "Status of salary profile",
   })
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
 
   @ApiProperty({
-    example: 'Senior Engineer promotion & salary bump',
-    description: 'Mandatory reason for modifying employee salary',
+    example: "Senior Engineer promotion & salary bump",
+    description: "Mandatory reason for modifying employee salary",
   })
   @IsString()
   @IsNotEmpty()

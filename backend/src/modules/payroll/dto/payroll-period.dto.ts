@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsBoolean,
   IsDateString,
@@ -10,35 +10,37 @@ import {
   Matches,
   Min,
   MinLength,
-} from 'class-validator';
+} from "class-validator";
 import {
   PayrollPeriodStatus,
   PayrollRecordStatus,
   PayrollLineItemType,
-} from '@prisma/client';
-import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
+} from "@prisma/client";
+import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 export class CreatePayrollPeriodDto {
   @ApiProperty({
-    example: '2026-08',
-    description: 'Name of the payroll period (e.g. YYYY-MM)',
+    example: "2026-08",
+    description: "Name of the payroll period (e.g. YYYY-MM)",
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d{4}-\d{2}$/, { message: 'Period name must be in format YYYY-MM' })
+  @Matches(/^\d{4}-\d{2}$/, {
+    message: "Period name must be in format YYYY-MM",
+  })
   name: string;
 
   @ApiProperty({
-    example: '2026-08-01',
-    description: 'Start date of the payroll cycle',
+    example: "2026-08-01",
+    description: "Start date of the payroll cycle",
   })
   @IsDateString()
   @IsNotEmpty()
   startDate: string;
 
   @ApiProperty({
-    example: '2026-08-31',
-    description: 'End date of the payroll cycle',
+    example: "2026-08-31",
+    description: "End date of the payroll cycle",
   })
   @IsDateString()
   @IsNotEmpty()
@@ -47,15 +49,16 @@ export class CreatePayrollPeriodDto {
 
 export class CalculatePayrollDto {
   @ApiPropertyOptional({
-    description: 'Optional single Employee Profile UUID to calculate (if omitted, calculates entire active workforce)',
+    description:
+      "Optional single Employee Profile UUID to calculate (if omitted, calculates entire active workforce)",
   })
   @IsOptional()
   @IsString()
   employeeId?: string;
 
   @ApiPropertyOptional({
-    example: 'Engineering',
-    description: 'Optional department filter for calculation',
+    example: "Engineering",
+    description: "Optional department filter for calculation",
   })
   @IsOptional()
   @IsString()
@@ -64,7 +67,8 @@ export class CalculatePayrollDto {
   @ApiPropertyOptional({
     example: false,
     default: false,
-    description: 'If true, recalculates already drafted records for this period',
+    description:
+      "If true, recalculates already drafted records for this period",
   })
   @IsOptional()
   @IsBoolean()
@@ -73,16 +77,16 @@ export class CalculatePayrollDto {
 
 export class FinalizePayrollDto {
   @ApiPropertyOptional({
-    example: 'Finalized and approved by CFO & HR Director for disbursement.',
-    description: 'Optional remarks for period finalization audit trail',
+    example: "Finalized and approved by CFO & HR Director for disbursement.",
+    description: "Optional remarks for period finalization audit trail",
   })
   @IsOptional()
   @IsString()
   remarks?: string;
 
   @ApiPropertyOptional({
-    example: 'fin_period_idemp_key_2026_08',
-    description: 'Idempotency key for finalization action',
+    example: "fin_period_idemp_key_2026_08",
+    description: "Idempotency key for finalization action",
   })
   @IsOptional()
   @IsString()
@@ -93,7 +97,8 @@ export class CreateAdjustmentDto {
   @ApiProperty({
     enum: PayrollLineItemType,
     example: PayrollLineItemType.BONUS,
-    description: 'Adjustment line item category (BONUS, MANUAL_DEDUCTION, OTHER_DEDUCTION, etc.)',
+    description:
+      "Adjustment line item category (BONUS, MANUAL_DEDUCTION, OTHER_DEDUCTION, etc.)",
   })
   @IsEnum(PayrollLineItemType)
   @IsNotEmpty()
@@ -101,7 +106,7 @@ export class CreateAdjustmentDto {
 
   @ApiProperty({
     example: 1000,
-    description: 'Adjustment amount (positive value)',
+    description: "Adjustment amount (positive value)",
   })
   @IsNumber()
   @Min(0.01)
@@ -110,15 +115,16 @@ export class CreateAdjustmentDto {
   @ApiPropertyOptional({
     example: false,
     default: false,
-    description: 'Set true if this adjustment reduces net salary (deduction)',
+    description: "Set true if this adjustment reduces net salary (deduction)",
   })
   @IsOptional()
   @IsBoolean()
   isDeduction?: boolean = false;
 
   @ApiProperty({
-    example: 'Post-close retroactive bonus adjustment approved by General Manager',
-    description: 'Mandatory reason for adjusting finalized payroll record',
+    example:
+      "Post-close retroactive bonus adjustment approved by General Manager",
+    description: "Mandatory reason for adjusting finalized payroll record",
   })
   @IsString()
   @IsNotEmpty()
@@ -128,29 +134,29 @@ export class CreateAdjustmentDto {
 
 export class QueryPayrollDto extends PaginationQueryDto {
   @ApiPropertyOptional({
-    example: '2026-08',
-    description: 'Filter by payroll period name (e.g. YYYY-MM)',
+    example: "2026-08",
+    description: "Filter by payroll period name (e.g. YYYY-MM)",
   })
   @IsOptional()
   @IsString()
   period?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by Payroll Period UUID',
+    description: "Filter by Payroll Period UUID",
   })
   @IsOptional()
   @IsString()
   payrollPeriodId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by Employee Profile UUID',
+    description: "Filter by Employee Profile UUID",
   })
   @IsOptional()
   @IsString()
   employeeId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by employee department',
+    description: "Filter by employee department",
   })
   @IsOptional()
   @IsString()
@@ -158,7 +164,8 @@ export class QueryPayrollDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({
     enum: PayrollRecordStatus,
-    description: 'Filter by payroll record status (DRAFT, CALCULATED, REVIEW, FINALIZED, PAID)',
+    description:
+      "Filter by payroll record status (DRAFT, CALCULATED, REVIEW, FINALIZED, PAID)",
   })
   @IsOptional()
   @IsEnum(PayrollRecordStatus)

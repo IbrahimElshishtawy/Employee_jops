@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsDateString,
   IsEnum,
@@ -8,14 +8,14 @@ import {
   IsString,
   Min,
   MinLength,
-} from 'class-validator';
-import { DeductionType } from '@prisma/client';
-import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
+} from "class-validator";
+import { DeductionType } from "@prisma/client";
+import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 export class CreateDeductionDto {
   @ApiProperty({
-    example: 'emp-uuid-1234',
-    description: 'Target Employee Profile UUID',
+    example: "emp-uuid-1234",
+    description: "Target Employee Profile UUID",
   })
   @IsString()
   @IsNotEmpty()
@@ -24,7 +24,7 @@ export class CreateDeductionDto {
   @ApiProperty({
     enum: DeductionType,
     example: DeductionType.PENALTY,
-    description: 'Type of financial deduction',
+    description: "Type of financial deduction",
   })
   @IsEnum(DeductionType)
   @IsNotEmpty()
@@ -32,15 +32,15 @@ export class CreateDeductionDto {
 
   @ApiProperty({
     example: 500,
-    description: 'Deduction amount (must be positive)',
+    description: "Deduction amount (must be positive)",
   })
   @IsNumber()
   @Min(0.01)
   amount: number;
 
   @ApiProperty({
-    example: 'Damaged company equipment / policy non-compliance fine',
-    description: 'Clear justification and documentation for deduction',
+    example: "Damaged company equipment / policy non-compliance fine",
+    description: "Clear justification and documentation for deduction",
   })
   @IsString()
   @IsNotEmpty()
@@ -48,8 +48,8 @@ export class CreateDeductionDto {
   reason: string;
 
   @ApiProperty({
-    example: '2026-08-15',
-    description: 'Effective date on which deduction applies',
+    example: "2026-08-15",
+    description: "Effective date on which deduction applies",
   })
   @IsDateString()
   @IsNotEmpty()
@@ -58,7 +58,7 @@ export class CreateDeductionDto {
 
 export class QueryDeductionsDto extends PaginationQueryDto {
   @ApiPropertyOptional({
-    description: 'Filter deductions by Employee Profile UUID',
+    description: "Filter deductions by Employee Profile UUID",
   })
   @IsOptional()
   @IsString()
@@ -66,23 +66,23 @@ export class QueryDeductionsDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({
     enum: DeductionType,
-    description: 'Filter by deduction category',
+    description: "Filter by deduction category",
   })
   @IsOptional()
   @IsEnum(DeductionType)
   type?: DeductionType;
 
   @ApiPropertyOptional({
-    example: '2026-08-01',
-    description: 'Filter deductions on or after this date',
+    example: "2026-08-01",
+    description: "Filter deductions on or after this date",
   })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
   @ApiPropertyOptional({
-    example: '2026-08-31',
-    description: 'Filter deductions on or before this date',
+    example: "2026-08-31",
+    description: "Filter deductions on or before this date",
   })
   @IsOptional()
   @IsDateString()

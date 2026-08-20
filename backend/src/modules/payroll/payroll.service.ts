@@ -4,10 +4,10 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { PayrollCalculatorService } from './payroll-calculator.service';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { PayrollCalculatorService } from "./payroll-calculator.service";
 import {
   CreateSalaryProfileDto,
   RequestAdvanceDto,
@@ -22,7 +22,7 @@ import {
   FinalizePayrollDto,
   CreateAdjustmentDto,
   QueryPayrollDto,
-} from './dto';
+} from "./dto";
 import {
   AdvanceStatus,
   InstallmentStatus,
@@ -34,7 +34,7 @@ import {
   UserStatus,
   Role,
   Prisma,
-} from '@prisma/client';
+} from "@prisma/client";
 
 @Injectable()
 export class PayrollService {
@@ -50,12 +50,19 @@ export class PayrollService {
   // 1. SALARY PROFILE & HISTORY
   // ============================================================
 
-  async getSalaryProfile(employeeId: string, currentUser: { id: string; role: Role; employeeProfileId?: string }) {
-    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]).includes(currentUser.role);
+  async getSalaryProfile(
+    employeeId: string,
+    currentUser: { id: string; role: Role; employeeProfileId?: string },
+  ) {
+    const isHr = (
+      [Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]
+    ).includes(currentUser.role);
     const isOwner = currentUser.employeeProfileId === employeeId;
 
     if (!isHr && !isOwner) {
-      throw new ForbiddenException('You do not have permission to view this salary profile');
+      throw new ForbiddenException(
+        "You do not have permission to view this salary profile",
+      );
     }
 
     const profile = await this.prisma.salaryProfile.findUnique({
@@ -76,13 +83,15 @@ export class PayrollService {
 
     if (!profile) {
       // Return default profile representation if not initialized
-      const emp = await this.prisma.employeeProfile.findUnique({ where: { id: employeeId } });
-      if (!emp) throw new NotFoundException('Employee not found');
+      const emp = await this.prisma.employeeProfile.findUnique({
+        where: { id: employeeId },
+      });
+      if (!emp) throw new NotFoundException("Employee not found");
       return {
         employeeId,
         basicSalary: emp.baseSalary || new Prisma.Decimal(10000),
         allowances: new Prisma.Decimal(0),
-        currency: 'EGP',
+        currency: "EGP",
         status: UserStatus.ACTIVE,
         effectiveFrom: new Date(),
         employee: emp,
@@ -98,7 +107,7 @@ export class PayrollService {
     });
 
     if (!employee) {
-      throw new NotFoundException('Employee not found');
+      throw new NotFoundException("Employee not found");
     }
 
     const existingProfile = await this.prisma.salaryProfile.findUnique({
@@ -107,7 +116,9 @@ export class PayrollService {
 
     const basicSalaryDecimal = new Prisma.Decimal(dto.basicSalary);
     const allowancesDecimal = new Prisma.Decimal(dto.allowances || 0);
-    const effectiveDate = dto.effectiveFrom ? new Date(dto.effectiveFrom) : new Date();
+    const effectiveDate = dto.effectiveFrom
+      ? new Date(dto.effectiveFrom)
+      : new Date();
 
     const result = await this.prisma.$transaction(async (tx) => {
       let profile;
@@ -117,7 +128,7 @@ export class PayrollService {
           data: {
             basicSalary: basicSalaryDecimal,
             allowances: allowancesDecimal,
-            currency: dto.currency || 'EGP',
+            currency: dto.currency || "EGP",
             effectiveFrom: effectiveDate,
           },
         });
@@ -140,7 +151,7 @@ export class PayrollService {
           data: {
             userId: currentUserId,
             action: AuditAction.SALARY_CHANGED,
-            entity: 'SalaryProfile',
+            entity: "SalaryProfile",
             entityId: profile.id,
             payload: {
               previousBasic: existingProfile.basicSalary,
@@ -155,7 +166,7 @@ export class PayrollService {
             employeeId: dto.employeeId,
             basicSalary: basicSalaryDecimal,
             allowances: allowancesDecimal,
-            currency: dto.currency || 'EGP',
+            currency: dto.currency || "EGP",
             effectiveFrom: effectiveDate,
             status: UserStatus.ACTIVE,
           },
@@ -170,7 +181,7 @@ export class PayrollService {
             newAllowances: allowancesDecimal,
             effectiveDate,
             changedById: currentUserId,
-            reason: dto.reason || 'Initial salary profile creation',
+            reason: dto.reason || "Initial salary profile creation",
           },
         });
 
@@ -178,7 +189,7 @@ export class PayrollService {
           data: {
             userId: currentUserId,
             action: AuditAction.SALARY_CREATED,
-            entity: 'SalaryProfile',
+            entity: "SalaryProfile",
             entityId: profile.id,
             payload: { basicSalary: basicSalaryDecimal, reason: dto.reason },
           },
@@ -200,7 +211,7 @@ export class PayrollService {
   async getSalaryHistory(employeeId: string) {
     return this.prisma.salaryHistory.findMany({
       where: { employeeId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -215,11 +226,15 @@ export class PayrollService {
     });
 
     if (!user?.employeeProfile) {
-      throw new BadRequestException('Employee profile required to request salary advance');
+      throw new BadRequestException(
+        "Employee profile required to request salary advance",
+      );
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException('Inactive or suspended employees cannot request salary advances');
+      throw new ForbiddenException(
+        "Inactive or suspended employees cannot request salary advances",
+      );
     }
 
     const employeeId = user.employeeProfile.id;
@@ -232,7 +247,7 @@ export class PayrollService {
       });
       if (existing) {
         if (existing.employeeId !== employeeId) {
-          throw new ForbiddenException('Idempotency key collision');
+          throw new ForbiddenException("Idempotency key collision");
         }
         return existing;
       }
@@ -241,13 +256,18 @@ export class PayrollService {
     // 2. Amount and Eligibility Checks
     const advanceAmount = new Prisma.Decimal(dto.amount);
     if (advanceAmount.lessThanOrEqualTo(0)) {
-      throw new BadRequestException('Advance amount must be strictly greater than 0');
+      throw new BadRequestException(
+        "Advance amount must be strictly greater than 0",
+      );
     }
 
     const salaryProfile = await this.prisma.salaryProfile.findUnique({
       where: { employeeId },
     });
-    const monthlySalary = salaryProfile?.basicSalary || user.employeeProfile.baseSalary || new Prisma.Decimal(10000);
+    const monthlySalary =
+      salaryProfile?.basicSalary ||
+      user.employeeProfile.baseSalary ||
+      new Prisma.Decimal(10000);
 
     // Limit check: Maximum single advance cannot exceed 3x monthly basic salary
     const maxAllowedLimit = monthlySalary.times(3);
@@ -266,7 +286,9 @@ export class PayrollService {
     });
 
     if (pendingAdvance) {
-      throw new BadRequestException('You already have a pending advance request awaiting review');
+      throw new BadRequestException(
+        "You already have a pending advance request awaiting review",
+      );
     }
 
     // 3. Create Advance Record
@@ -288,7 +310,7 @@ export class PayrollService {
       data: {
         userId,
         action: AuditAction.ADVANCE_CREATED,
-        entity: 'FinancialAdvance',
+        entity: "FinancialAdvance",
         entityId: advance.id,
         payload: {
           amount: dto.amount,
@@ -301,7 +323,10 @@ export class PayrollService {
     return advance;
   }
 
-  async getMyAdvances(employeeProfileId: string, query: Partial<QueryAdvancesDto> = {}) {
+  async getMyAdvances(
+    employeeProfileId: string,
+    query: Partial<QueryAdvancesDto> = {},
+  ) {
     const { page = 1, limit = 10, status } = query;
     const skip = (page - 1) * limit;
 
@@ -316,10 +341,10 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           installments: {
-            orderBy: { installmentNumber: 'asc' },
+            orderBy: { installmentNumber: "asc" },
           },
         },
       }),
@@ -348,7 +373,7 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           employee: {
             select: {
@@ -361,7 +386,7 @@ export class PayrollService {
             },
           },
           installments: {
-            orderBy: { installmentNumber: 'asc' },
+            orderBy: { installmentNumber: "asc" },
           },
         },
       }),
@@ -373,7 +398,10 @@ export class PayrollService {
     };
   }
 
-  async getAdvanceDetails(id: string, currentUser: { id: string; role: Role; employeeProfileId?: string }) {
+  async getAdvanceDetails(
+    id: string,
+    currentUser: { id: string; role: Role; employeeProfileId?: string },
+  ) {
     const advance = await this.prisma.financialAdvance.findUnique({
       where: { id },
       include: {
@@ -388,49 +416,73 @@ export class PayrollService {
           },
         },
         installments: {
-          orderBy: { installmentNumber: 'asc' },
+          orderBy: { installmentNumber: "asc" },
         },
       },
     });
 
-    if (!advance) throw new NotFoundException('Advance request not found');
+    if (!advance) throw new NotFoundException("Advance request not found");
 
-    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]).includes(currentUser.role);
+    const isHr = (
+      [Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]
+    ).includes(currentUser.role);
     const isOwner = currentUser.employeeProfileId === advance.employeeId;
 
     if (!isHr && !isOwner) {
-      throw new ForbiddenException('You do not have permission to view this advance request');
+      throw new ForbiddenException(
+        "You do not have permission to view this advance request",
+      );
     }
 
     return advance;
   }
 
-  async approveAdvance(id: string, approverUserId: string, dto?: ApproveAdvanceDto) {
+  async approveAdvance(
+    id: string,
+    approverUserId: string,
+    dto?: ApproveAdvanceDto,
+  ) {
     const advance = await this.prisma.financialAdvance.findUnique({
       where: { id },
       include: { employee: { include: { user: true } } },
     });
 
-    if (!advance) throw new NotFoundException('Advance request not found');
+    if (!advance) throw new NotFoundException("Advance request not found");
 
-    if (advance.status === AdvanceStatus.APPROVED || advance.status === AdvanceStatus.ACTIVE) {
-      throw new BadRequestException('Advance is already approved');
+    if (
+      advance.status === AdvanceStatus.APPROVED ||
+      advance.status === AdvanceStatus.ACTIVE
+    ) {
+      throw new BadRequestException("Advance is already approved");
     }
 
     if (advance.status !== AdvanceStatus.PENDING) {
-      throw new BadRequestException(`Cannot approve advance in ${advance.status} status`);
+      throw new BadRequestException(
+        `Cannot approve advance in ${advance.status} status`,
+      );
     }
 
     const approvedAmount = dto?.approvedAmount
       ? new Prisma.Decimal(dto.approvedAmount)
       : advance.amount;
-    const installmentsCount = dto?.installmentsCount || advance.requestedInstallments || 1;
+    const installmentsCount =
+      dto?.installmentsCount || advance.requestedInstallments || 1;
 
     // Calculate installment amount
-    const installmentAmount = approvedAmount.dividedBy(installmentsCount).toDecimalPlaces(2);
-    let firstDueDate = dto?.firstDueDate ? new Date(dto.firstDueDate) : new Date();
+    const installmentAmount = approvedAmount
+      .dividedBy(installmentsCount)
+      .toDecimalPlaces(2);
+    let firstDueDate = dto?.firstDueDate
+      ? new Date(dto.firstDueDate)
+      : new Date();
     // Move to 1st of next month by default
-    firstDueDate = new Date(Date.UTC(firstDueDate.getUTCFullYear(), firstDueDate.getUTCMonth() + 1, 1));
+    firstDueDate = new Date(
+      Date.UTC(
+        firstDueDate.getUTCFullYear(),
+        firstDueDate.getUTCMonth() + 1,
+        1,
+      ),
+    );
 
     const updated = await this.prisma.$transaction(async (tx) => {
       // 1. Update advance
@@ -442,7 +494,7 @@ export class PayrollService {
           remainingAmount: approvedAmount,
           paidAmount: new Prisma.Decimal(0),
           requestedInstallments: installmentsCount,
-          remarks: dto?.remarks || 'Approved by HR',
+          remarks: dto?.remarks || "Approved by HR",
           approvedById: approverUserId,
           approvedAt: new Date(),
         },
@@ -480,7 +532,7 @@ export class PayrollService {
         data: {
           userId: approverUserId,
           action: AuditAction.ADVANCE_APPROVED,
-          entity: 'FinancialAdvance',
+          entity: "FinancialAdvance",
           entityId: id,
           payload: {
             approvedAmount,
@@ -498,22 +550,28 @@ export class PayrollService {
       if (advance.employee?.user?.id) {
         await this.notificationsService.sendNotification(
           advance.employee.user.id,
-          'Salary Advance Approved',
+          "Salary Advance Approved",
           `Your advance request for ${approvedAmount} has been approved with ${installmentsCount} installments.`,
           NotificationType.ADVANCE_STATUS_UPDATE,
           { advanceId: id, status: AdvanceStatus.ACTIVE },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch advance approval notification: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch advance approval notification: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return updated;
   }
 
-  async rejectAdvance(id: string, approverUserId: string, dto: RejectAdvanceDto) {
+  async rejectAdvance(
+    id: string,
+    approverUserId: string,
+    dto: RejectAdvanceDto,
+  ) {
     if (!dto?.reason || dto.reason.trim().length === 0) {
-      throw new BadRequestException('Rejection reason is required');
+      throw new BadRequestException("Rejection reason is required");
     }
 
     const advance = await this.prisma.financialAdvance.findUnique({
@@ -521,14 +579,16 @@ export class PayrollService {
       include: { employee: { include: { user: true } } },
     });
 
-    if (!advance) throw new NotFoundException('Advance request not found');
+    if (!advance) throw new NotFoundException("Advance request not found");
 
     if (advance.status === AdvanceStatus.REJECTED) {
-      throw new BadRequestException('Advance is already rejected');
+      throw new BadRequestException("Advance is already rejected");
     }
 
     if (advance.status !== AdvanceStatus.PENDING) {
-      throw new BadRequestException(`Cannot reject advance in ${advance.status} status`);
+      throw new BadRequestException(
+        `Cannot reject advance in ${advance.status} status`,
+      );
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -546,7 +606,7 @@ export class PayrollService {
         data: {
           userId: approverUserId,
           action: AuditAction.ADVANCE_REJECTED,
-          entity: 'FinancialAdvance',
+          entity: "FinancialAdvance",
           entityId: id,
           payload: { reason: dto.reason },
         },
@@ -559,20 +619,26 @@ export class PayrollService {
       if (advance.employee?.user?.id) {
         await this.notificationsService.sendNotification(
           advance.employee.user.id,
-          'Salary Advance Rejected',
+          "Salary Advance Rejected",
           `Your advance request was rejected: ${dto.reason}`,
           NotificationType.ADVANCE_STATUS_UPDATE,
           { advanceId: id, status: AdvanceStatus.REJECTED, reason: dto.reason },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch advance rejection notification: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch advance rejection notification: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return updated;
   }
 
-  async recordInstallmentPayment(installmentId: string, currentUserId: string, dto: PayInstallmentDto) {
+  async recordInstallmentPayment(
+    installmentId: string,
+    currentUserId: string,
+    dto: PayInstallmentDto,
+  ) {
     const installment = await this.prisma.advanceInstallment.findUnique({
       where: { id: installmentId },
       include: {
@@ -582,15 +648,15 @@ export class PayrollService {
       },
     });
 
-    if (!installment) throw new NotFoundException('Installment not found');
+    if (!installment) throw new NotFoundException("Installment not found");
 
     if (installment.status === InstallmentStatus.PAID) {
-      throw new BadRequestException('Installment is already fully paid');
+      throw new BadRequestException("Installment is already fully paid");
     }
 
     const paymentAmount = new Prisma.Decimal(dto.amount);
     if (paymentAmount.lessThanOrEqualTo(0)) {
-      throw new BadRequestException('Payment amount must be greater than 0');
+      throw new BadRequestException("Payment amount must be greater than 0");
     }
 
     if (paymentAmount.greaterThan(installment.remainingAmount)) {
@@ -600,17 +666,26 @@ export class PayrollService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const newPaidAmount = new Prisma.Decimal(installment.paidAmount).plus(paymentAmount);
-      const newRemainingAmount = new Prisma.Decimal(installment.remainingAmount).minus(paymentAmount);
-      const isFullyPaid = newRemainingAmount.isZero() || newRemainingAmount.lessThan(0.01);
+      const newPaidAmount = new Prisma.Decimal(installment.paidAmount).plus(
+        paymentAmount,
+      );
+      const newRemainingAmount = new Prisma.Decimal(
+        installment.remainingAmount,
+      ).minus(paymentAmount);
+      const isFullyPaid =
+        newRemainingAmount.isZero() || newRemainingAmount.lessThan(0.01);
 
       // 1. Update Installment
       const updatedInst = await tx.advanceInstallment.update({
         where: { id: installmentId },
         data: {
           paidAmount: newPaidAmount,
-          remainingAmount: isFullyPaid ? new Prisma.Decimal(0) : newRemainingAmount,
-          status: isFullyPaid ? InstallmentStatus.PAID : InstallmentStatus.PARTIALLY_PAID,
+          remainingAmount: isFullyPaid
+            ? new Prisma.Decimal(0)
+            : newRemainingAmount,
+          status: isFullyPaid
+            ? InstallmentStatus.PAID
+            : InstallmentStatus.PARTIALLY_PAID,
           paidAt: isFullyPaid ? new Date() : installment.paidAt,
           notes: dto.notes,
         },
@@ -618,16 +693,25 @@ export class PayrollService {
 
       // 2. Update Parent Advance
       const parentAdv = installment.advance;
-      const advPaidAmount = new Prisma.Decimal(parentAdv.paidAmount).plus(paymentAmount);
-      const advRemainingAmount = new Prisma.Decimal(parentAdv.remainingAmount).minus(paymentAmount);
-      const isAdvFullyPaid = advRemainingAmount.isZero() || advRemainingAmount.lessThan(0.01);
+      const advPaidAmount = new Prisma.Decimal(parentAdv.paidAmount).plus(
+        paymentAmount,
+      );
+      const advRemainingAmount = new Prisma.Decimal(
+        parentAdv.remainingAmount,
+      ).minus(paymentAmount);
+      const isAdvFullyPaid =
+        advRemainingAmount.isZero() || advRemainingAmount.lessThan(0.01);
 
       await tx.financialAdvance.update({
         where: { id: parentAdv.id },
         data: {
           paidAmount: advPaidAmount,
-          remainingAmount: isAdvFullyPaid ? new Prisma.Decimal(0) : advRemainingAmount,
-          status: isAdvFullyPaid ? AdvanceStatus.PAID : AdvanceStatus.PARTIALLY_PAID,
+          remainingAmount: isAdvFullyPaid
+            ? new Prisma.Decimal(0)
+            : advRemainingAmount,
+          status: isAdvFullyPaid
+            ? AdvanceStatus.PAID
+            : AdvanceStatus.PARTIALLY_PAID,
         },
       });
 
@@ -636,7 +720,7 @@ export class PayrollService {
         data: {
           userId: currentUserId,
           action: AuditAction.ADVANCE_PAYMENT_RECORDED,
-          entity: 'AdvanceInstallment',
+          entity: "AdvanceInstallment",
           entityId: installmentId,
           payload: {
             advanceId: parentAdv.id,
@@ -655,14 +739,16 @@ export class PayrollService {
       if (installment.advance?.employee?.user?.id) {
         await this.notificationsService.sendNotification(
           installment.advance.employee.user.id,
-          'Advance Payment Recorded',
+          "Advance Payment Recorded",
           `Payment of ${paymentAmount} recorded for installment #${installment.installmentNumber}.`,
           NotificationType.ADVANCE_STATUS_UPDATE,
           { installmentId, amount: paymentAmount },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch payment notification: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch payment notification: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return updated;
@@ -678,11 +764,11 @@ export class PayrollService {
       include: { user: true },
     });
 
-    if (!employee) throw new NotFoundException('Employee not found');
+    if (!employee) throw new NotFoundException("Employee not found");
 
     const amountDecimal = new Prisma.Decimal(dto.amount);
     if (amountDecimal.lessThanOrEqualTo(0)) {
-      throw new BadRequestException('Deduction amount must be greater than 0');
+      throw new BadRequestException("Deduction amount must be greater than 0");
     }
 
     const deduction = await this.prisma.financialDeduction.create({
@@ -700,7 +786,7 @@ export class PayrollService {
       data: {
         userId: createdById,
         action: AuditAction.DEDUCTION_CREATED,
-        entity: 'FinancialDeduction',
+        entity: "FinancialDeduction",
         entityId: deduction.id,
         payload: { ...dto },
       },
@@ -710,20 +796,25 @@ export class PayrollService {
       if (employee.user?.id) {
         await this.notificationsService.sendNotification(
           employee.user.id,
-          'Financial Deduction Notice',
+          "Financial Deduction Notice",
           `A deduction of ${amountDecimal} (${dto.type}) was applied: ${dto.reason}`,
           NotificationType.DEDUCTION_ALERT,
           { deductionId: deduction.id, amount: amountDecimal },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch deduction notification: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch deduction notification: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return deduction;
   }
 
-  async getMyDeductions(employeeProfileId: string, query: Partial<QueryDeductionsDto> = {}) {
+  async getMyDeductions(
+    employeeProfileId: string,
+    query: Partial<QueryDeductionsDto> = {},
+  ) {
     const { page = 1, limit = 10, type, startDate, endDate } = query;
     const skip = (page - 1) * limit;
 
@@ -743,7 +834,7 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { effectiveDate: 'desc' },
+        orderBy: { effectiveDate: "desc" },
       }),
     ]);
 
@@ -754,7 +845,14 @@ export class PayrollService {
   }
 
   async getAllDeductions(query: Partial<QueryDeductionsDto> = {}) {
-    const { page = 1, limit = 10, employeeId, type, startDate, endDate } = query;
+    const {
+      page = 1,
+      limit = 10,
+      employeeId,
+      type,
+      startDate,
+      endDate,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.FinancialDeductionWhereInput = {};
@@ -772,7 +870,7 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { effectiveDate: 'desc' },
+        orderBy: { effectiveDate: "desc" },
         include: {
           employee: {
             select: {
@@ -797,19 +895,26 @@ export class PayrollService {
   // 4. PAYROLL PERIODS & CALCULATION ENGINE
   // ============================================================
 
-  async createPayrollPeriod(dto: CreatePayrollPeriodDto, currentUserId: string) {
+  async createPayrollPeriod(
+    dto: CreatePayrollPeriodDto,
+    currentUserId: string,
+  ) {
     const existing = await this.prisma.payrollPeriod.findUnique({
       where: { name: dto.name },
     });
 
     if (existing) {
-      throw new BadRequestException(`Payroll period ${dto.name} already exists`);
+      throw new BadRequestException(
+        `Payroll period ${dto.name} already exists`,
+      );
     }
 
     const startDate = new Date(dto.startDate);
     const endDate = new Date(dto.endDate);
     if (startDate > endDate) {
-      throw new BadRequestException('Start date must be before or equal to end date');
+      throw new BadRequestException(
+        "Start date must be before or equal to end date",
+      );
     }
 
     const period = await this.prisma.payrollPeriod.create({
@@ -825,7 +930,7 @@ export class PayrollService {
       data: {
         userId: currentUserId,
         action: AuditAction.CREATE,
-        entity: 'PayrollPeriod',
+        entity: "PayrollPeriod",
         entityId: period.id,
         payload: { ...dto },
       },
@@ -841,7 +946,7 @@ export class PayrollService {
       this.prisma.payrollPeriod.findMany({
         skip,
         take: limit,
-        orderBy: { startDate: 'desc' },
+        orderBy: { startDate: "desc" },
       }),
     ]);
 
@@ -851,15 +956,24 @@ export class PayrollService {
     };
   }
 
-  async calculatePeriodPayroll(periodId: string, dto: CalculatePayrollDto, currentUserId: string) {
+  async calculatePeriodPayroll(
+    periodId: string,
+    dto: CalculatePayrollDto,
+    currentUserId: string,
+  ) {
     const period = await this.prisma.payrollPeriod.findUnique({
       where: { id: periodId },
     });
 
-    if (!period) throw new NotFoundException('Payroll period not found');
+    if (!period) throw new NotFoundException("Payroll period not found");
 
-    if (period.status === PayrollPeriodStatus.FINALIZED || period.status === PayrollPeriodStatus.LOCKED) {
-      throw new BadRequestException(`Cannot calculate finalized or locked payroll period (${period.status})`);
+    if (
+      period.status === PayrollPeriodStatus.FINALIZED ||
+      period.status === PayrollPeriodStatus.LOCKED
+    ) {
+      throw new BadRequestException(
+        `Cannot calculate finalized or locked payroll period (${period.status})`,
+      );
     }
 
     // Determine target employees
@@ -875,7 +989,9 @@ export class PayrollService {
     });
 
     if (employees.length === 0) {
-      throw new BadRequestException('No active employees match the calculation criteria');
+      throw new BadRequestException(
+        "No active employees match the calculation criteria",
+      );
     }
 
     const results: any[] = [];
@@ -906,7 +1022,9 @@ export class PayrollService {
         });
 
         if (existingRecord) {
-          await tx.payrollLineItem.deleteMany({ where: { payrollRecordId: existingRecord.id } });
+          await tx.payrollLineItem.deleteMany({
+            where: { payrollRecordId: existingRecord.id },
+          });
           await tx.payrollRecord.delete({ where: { id: existingRecord.id } });
         }
 
@@ -954,7 +1072,7 @@ export class PayrollService {
         data: {
           userId: currentUserId,
           action: AuditAction.PAYROLL_CALCULATED,
-          entity: 'PayrollPeriod',
+          entity: "PayrollPeriod",
           entityId: periodId,
           payload: {
             calculatedEmployeesCount: employees.length,
@@ -972,20 +1090,29 @@ export class PayrollService {
     };
   }
 
-  async finalizePayrollPeriod(periodId: string, currentUserId: string, dto?: FinalizePayrollDto) {
+  async finalizePayrollPeriod(
+    periodId: string,
+    currentUserId: string,
+    dto?: FinalizePayrollDto,
+  ) {
     const period = await this.prisma.payrollPeriod.findUnique({
       where: { id: periodId },
       include: { payrollRecords: { include: { lineItems: true } } },
     });
 
-    if (!period) throw new NotFoundException('Payroll period not found');
+    if (!period) throw new NotFoundException("Payroll period not found");
 
-    if (period.status === PayrollPeriodStatus.FINALIZED || period.status === PayrollPeriodStatus.LOCKED) {
-      throw new BadRequestException('Payroll period is already finalized');
+    if (
+      period.status === PayrollPeriodStatus.FINALIZED ||
+      period.status === PayrollPeriodStatus.LOCKED
+    ) {
+      throw new BadRequestException("Payroll period is already finalized");
     }
 
     if (period.payrollRecords.length === 0) {
-      throw new BadRequestException('Cannot finalize an empty payroll period. Run calculation first.');
+      throw new BadRequestException(
+        "Cannot finalize an empty payroll period. Run calculation first.",
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -1011,7 +1138,10 @@ export class PayrollService {
       // 3. Mark deducted advance installments as PAID and update parent advances
       for (const rec of period.payrollRecords) {
         for (const item of rec.lineItems) {
-          if (item.type === PayrollLineItemType.ADVANCE_INSTALLMENT && item.sourceId) {
+          if (
+            item.type === PayrollLineItemType.ADVANCE_INSTALLMENT &&
+            item.sourceId
+          ) {
             const installment = await tx.advanceInstallment.findUnique({
               where: { id: item.sourceId },
               include: { advance: true },
@@ -1030,16 +1160,24 @@ export class PayrollService {
               });
 
               const adv = installment.advance;
-              const newAdvPaid = new Prisma.Decimal(adv.paidAmount).plus(item.amount);
-              const newAdvRemaining = new Prisma.Decimal(adv.remainingAmount).minus(item.amount);
+              const newAdvPaid = new Prisma.Decimal(adv.paidAmount).plus(
+                item.amount,
+              );
+              const newAdvRemaining = new Prisma.Decimal(
+                adv.remainingAmount,
+              ).minus(item.amount);
               const isAdvPaid = newAdvRemaining.lessThanOrEqualTo(0.01);
 
               await tx.financialAdvance.update({
                 where: { id: adv.id },
                 data: {
                   paidAmount: newAdvPaid,
-                  remainingAmount: isAdvPaid ? new Prisma.Decimal(0) : newAdvRemaining,
-                  status: isAdvPaid ? AdvanceStatus.PAID : AdvanceStatus.PARTIALLY_PAID,
+                  remainingAmount: isAdvPaid
+                    ? new Prisma.Decimal(0)
+                    : newAdvRemaining,
+                  status: isAdvPaid
+                    ? AdvanceStatus.PAID
+                    : AdvanceStatus.PARTIALLY_PAID,
                 },
               });
             }
@@ -1052,7 +1190,7 @@ export class PayrollService {
         data: {
           userId: currentUserId,
           action: AuditAction.PAYROLL_FINALIZED,
-          entity: 'PayrollPeriod',
+          entity: "PayrollPeriod",
           entityId: periodId,
           payload: {
             period: period.name,
@@ -1070,17 +1208,21 @@ export class PayrollService {
     };
   }
 
-  async createPayrollAdjustment(recordId: string, currentUserId: string, dto: CreateAdjustmentDto) {
+  async createPayrollAdjustment(
+    recordId: string,
+    currentUserId: string,
+    dto: CreateAdjustmentDto,
+  ) {
     const record = await this.prisma.payrollRecord.findUnique({
       where: { id: recordId },
       include: { payrollPeriod: true },
     });
 
-    if (!record) throw new NotFoundException('Payroll record not found');
+    if (!record) throw new NotFoundException("Payroll record not found");
 
     const adjAmount = new Prisma.Decimal(dto.amount);
     if (adjAmount.lessThanOrEqualTo(0)) {
-      throw new BadRequestException('Adjustment amount must be positive');
+      throw new BadRequestException("Adjustment amount must be positive");
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -1092,7 +1234,7 @@ export class PayrollService {
           amount: adjAmount,
           isDeduction: dto.isDeduction || false,
           reason: dto.reason,
-          status: 'APPROVED',
+          status: "APPROVED",
           approvedById: currentUserId,
         },
       });
@@ -1102,11 +1244,11 @@ export class PayrollService {
         data: {
           payrollRecordId: recordId,
           type: dto.type,
-          name: `Adjustment: ${dto.type.replace('_', ' ')}`,
+          name: `Adjustment: ${dto.type.replace("_", " ")}`,
           description: dto.reason,
           amount: adjAmount,
           isDeduction: dto.isDeduction || false,
-          source: 'ADJUSTMENT',
+          source: "ADJUSTMENT",
           sourceId: adjustment.id,
         },
       });
@@ -1138,7 +1280,7 @@ export class PayrollService {
         data: {
           userId: currentUserId,
           action: AuditAction.PAYROLL_CORRECTED,
-          entity: 'PayrollRecord',
+          entity: "PayrollRecord",
           entityId: recordId,
           payload: {
             adjustmentId: adjustment.id,
@@ -1160,7 +1302,10 @@ export class PayrollService {
   // 5. PAYROLL QUERIES & PAYSLIP DETAILS
   // ============================================================
 
-  async getMyPayroll(employeeProfileId: string, query: Partial<QueryPayrollDto> = {}) {
+  async getMyPayroll(
+    employeeProfileId: string,
+    query: Partial<QueryPayrollDto> = {},
+  ) {
     const { page = 1, limit = 12, period } = query;
     const skip = (page - 1) * limit;
 
@@ -1177,10 +1322,16 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { payrollPeriod: { startDate: 'desc' } },
+        orderBy: { payrollPeriod: { startDate: "desc" } },
         include: {
           payrollPeriod: {
-            select: { id: true, name: true, startDate: true, endDate: true, status: true },
+            select: {
+              id: true,
+              name: true,
+              startDate: true,
+              endDate: true,
+              status: true,
+            },
           },
           lineItems: true,
         },
@@ -1193,7 +1344,10 @@ export class PayrollService {
     };
   }
 
-  async getPayrollRecordDetails(recordId: string, currentUser: { id: string; role: Role; employeeProfileId?: string }) {
+  async getPayrollRecordDetails(
+    recordId: string,
+    currentUser: { id: string; role: Role; employeeProfileId?: string },
+  ) {
     const record = await this.prisma.payrollRecord.findUnique({
       where: { id: recordId },
       include: {
@@ -1210,26 +1364,38 @@ export class PayrollService {
           },
         },
         lineItems: {
-          orderBy: [{ isDeduction: 'asc' }, { type: 'asc' }],
+          orderBy: [{ isDeduction: "asc" }, { type: "asc" }],
         },
         adjustments: true,
       },
     });
 
-    if (!record) throw new NotFoundException('Payroll record not found');
+    if (!record) throw new NotFoundException("Payroll record not found");
 
-    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]).includes(currentUser.role);
+    const isHr = (
+      [Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]
+    ).includes(currentUser.role);
     const isOwner = currentUser.employeeProfileId === record.employeeId;
 
     if (!isHr && !isOwner) {
-      throw new ForbiddenException('You do not have permission to view this payroll record');
+      throw new ForbiddenException(
+        "You do not have permission to view this payroll record",
+      );
     }
 
     return record;
   }
 
   async getHrPayroll(query: Partial<QueryPayrollDto> = {}) {
-    const { page = 1, limit = 10, period, payrollPeriodId, employeeId, department, status } = query;
+    const {
+      page = 1,
+      limit = 10,
+      period,
+      payrollPeriodId,
+      employeeId,
+      department,
+      status,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.PayrollRecordWhereInput = {};
@@ -1245,7 +1411,7 @@ export class PayrollService {
         where,
         skip,
         take: limit,
-        orderBy: { payrollPeriod: { startDate: 'desc' } },
+        orderBy: { payrollPeriod: { startDate: "desc" } },
         include: {
           employee: {
             select: {
@@ -1258,7 +1424,13 @@ export class PayrollService {
             },
           },
           payrollPeriod: {
-            select: { id: true, name: true, startDate: true, endDate: true, status: true },
+            select: {
+              id: true,
+              name: true,
+              startDate: true,
+              endDate: true,
+              status: true,
+            },
           },
         },
       }),

@@ -4,14 +4,14 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from './notifications.service';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "./notifications.service";
 import {
   CreateAnnouncementDto,
   UpdateAnnouncementDto,
   QueryAnnouncementsDto,
-} from './dto';
+} from "./dto";
 import {
   AnnouncementStatus,
   AnnouncementTarget,
@@ -21,7 +21,7 @@ import {
   Role,
   UserStatus,
   Prisma,
-} from '@prisma/client';
+} from "@prisma/client";
 
 @Injectable()
 export class AnnouncementsService {
@@ -33,11 +33,21 @@ export class AnnouncementsService {
   ) {}
 
   async createAnnouncement(dto: CreateAnnouncementDto, createdById: string) {
-    if (dto.targetType === AnnouncementTarget.DEPARTMENT && !dto.targetDepartment) {
-      throw new BadRequestException('targetDepartment is required when targetType is DEPARTMENT');
+    if (
+      dto.targetType === AnnouncementTarget.DEPARTMENT &&
+      !dto.targetDepartment
+    ) {
+      throw new BadRequestException(
+        "targetDepartment is required when targetType is DEPARTMENT",
+      );
     }
-    if (dto.targetType === AnnouncementTarget.WORKPLACE && !dto.targetWorkplaceId) {
-      throw new BadRequestException('targetWorkplaceId is required when targetType is WORKPLACE');
+    if (
+      dto.targetType === AnnouncementTarget.WORKPLACE &&
+      !dto.targetWorkplaceId
+    ) {
+      throw new BadRequestException(
+        "targetWorkplaceId is required when targetType is WORKPLACE",
+      );
     }
 
     const announcement = await this.prisma.announcement.create({
@@ -48,9 +58,13 @@ export class AnnouncementsService {
         targetType: dto.targetType,
         targetDepartment: dto.targetDepartment,
         targetWorkplaceId: dto.targetWorkplaceId,
-        targetEmployeeIds: dto.targetEmployeeIds ? dto.targetEmployeeIds : undefined,
+        targetEmployeeIds: dto.targetEmployeeIds
+          ? dto.targetEmployeeIds
+          : undefined,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-        status: dto.publishNow ? AnnouncementStatus.PUBLISHED : AnnouncementStatus.DRAFT,
+        status: dto.publishNow
+          ? AnnouncementStatus.PUBLISHED
+          : AnnouncementStatus.DRAFT,
         publishedAt: dto.publishNow ? new Date() : undefined,
         createdById,
       },
@@ -60,9 +74,13 @@ export class AnnouncementsService {
       data: {
         userId: createdById,
         action: AuditAction.ANNOUNCEMENT_CREATED,
-        entity: 'Announcement',
+        entity: "Announcement",
         entityId: announcement.id,
-        payload: { title: dto.title, targetType: dto.targetType, status: announcement.status },
+        payload: {
+          title: dto.title,
+          targetType: dto.targetType,
+          status: announcement.status,
+        },
       },
     });
 
@@ -79,11 +97,11 @@ export class AnnouncementsService {
     });
 
     if (!announcement) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException("Announcement not found");
     }
 
     if (announcement.status === AnnouncementStatus.PUBLISHED) {
-      throw new BadRequestException('Announcement is already published');
+      throw new BadRequestException("Announcement is already published");
     }
 
     const updated = await this.prisma.announcement.update({
@@ -98,7 +116,7 @@ export class AnnouncementsService {
       data: {
         userId: publishedByUserId,
         action: AuditAction.ANNOUNCEMENT_PUBLISHED,
-        entity: 'Announcement',
+        entity: "Announcement",
         entityId: id,
         payload: { title: announcement.title },
       },
@@ -115,7 +133,7 @@ export class AnnouncementsService {
     });
 
     if (!announcement) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException("Announcement not found");
     }
 
     const updated = await this.prisma.announcement.update({
@@ -127,7 +145,7 @@ export class AnnouncementsService {
       data: {
         userId: cancelledByUserId,
         action: AuditAction.ANNOUNCEMENT_CANCELLED,
-        entity: 'Announcement',
+        entity: "Announcement",
         entityId: id,
       },
     });
@@ -141,12 +159,13 @@ export class AnnouncementsService {
       const targetUserIds = await this.resolveTargetUserIds(announcement);
 
       if (targetUserIds.length > 0) {
-        const bodyText = announcement.body || '';
-        const snippet = bodyText.length > 150 ? `${bodyText.slice(0, 147)}...` : bodyText;
+        const bodyText = announcement.body || "";
+        const snippet =
+          bodyText.length > 150 ? `${bodyText.slice(0, 147)}...` : bodyText;
 
         await this.notificationsService.sendBatchNotifications(
           targetUserIds,
-          `Announcement: ${announcement.title || 'Company Notice'}`,
+          `Announcement: ${announcement.title || "Company Notice"}`,
           snippet,
           NotificationType.ANNOUNCEMENT,
           { announcementId: announcement.id },
@@ -154,20 +173,35 @@ export class AnnouncementsService {
         );
       }
     } catch (err: any) {
-      this.logger.error(`Failed to broadcast announcement notifications: ${err?.message || err}`);
+      this.logger.error(
+        `Failed to broadcast announcement notifications: ${err?.message || err}`,
+      );
     }
   }
 
   private async resolveTargetUserIds(announcement: any): Promise<string[]> {
-    let whereClause: Prisma.UserWhereInput = {
+    const whereClause: Prisma.UserWhereInput = {
       status: UserStatus.ACTIVE,
     };
 
-    if (announcement.targetType === AnnouncementTarget.DEPARTMENT && announcement.targetDepartment) {
-      whereClause.employeeProfile = { department: announcement.targetDepartment };
-    } else if (announcement.targetType === AnnouncementTarget.WORKPLACE && announcement.targetWorkplaceId) {
-      whereClause.employeeProfile = { workplaceId: announcement.targetWorkplaceId };
-    } else if (announcement.targetType === AnnouncementTarget.EMPLOYEES && announcement.targetEmployeeIds) {
+    if (
+      announcement.targetType === AnnouncementTarget.DEPARTMENT &&
+      announcement.targetDepartment
+    ) {
+      whereClause.employeeProfile = {
+        department: announcement.targetDepartment,
+      };
+    } else if (
+      announcement.targetType === AnnouncementTarget.WORKPLACE &&
+      announcement.targetWorkplaceId
+    ) {
+      whereClause.employeeProfile = {
+        workplaceId: announcement.targetWorkplaceId,
+      };
+    } else if (
+      announcement.targetType === AnnouncementTarget.EMPLOYEES &&
+      announcement.targetEmployeeIds
+    ) {
       const empIds = announcement.targetEmployeeIds as string[];
       whereClause.employeeProfile = { id: { in: empIds } };
     }
@@ -187,7 +221,9 @@ export class AnnouncementsService {
     const { page = 1, limit = 10, status, targetType, department } = query;
     const skip = (page - 1) * limit;
 
-    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]).includes(currentUser.role);
+    const isHr = (
+      [Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER] as Role[]
+    ).includes(currentUser.role);
 
     const where: Prisma.AnnouncementWhereInput = {};
 
@@ -208,10 +244,20 @@ export class AnnouncementsService {
       where.OR = [
         { targetType: AnnouncementTarget.ALL },
         ...(employee?.department
-          ? [{ targetType: AnnouncementTarget.DEPARTMENT, targetDepartment: employee.department }]
+          ? [
+              {
+                targetType: AnnouncementTarget.DEPARTMENT,
+                targetDepartment: employee.department,
+              },
+            ]
           : []),
         ...(employee?.workplaceId
-          ? [{ targetType: AnnouncementTarget.WORKPLACE, targetWorkplaceId: employee.workplaceId }]
+          ? [
+              {
+                targetType: AnnouncementTarget.WORKPLACE,
+                targetWorkplaceId: employee.workplaceId,
+              },
+            ]
           : []),
       ];
     }
@@ -222,7 +268,7 @@ export class AnnouncementsService {
         where,
         skip,
         take: limit,
-        orderBy: { publishedAt: 'desc' },
+        orderBy: { publishedAt: "desc" },
         include: {
           reads: {
             where: { userId: currentUser.id },
@@ -256,7 +302,7 @@ export class AnnouncementsService {
     });
 
     if (!announcement) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException("Announcement not found");
     }
 
     // Auto mark as read

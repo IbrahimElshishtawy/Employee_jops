@@ -1,5 +1,5 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   Prisma,
   AttendanceStatus,
@@ -8,7 +8,7 @@ import {
   InstallmentStatus,
   PayrollLineItemType,
   UserStatus,
-} from '@prisma/client';
+} from "@prisma/client";
 
 export interface CalculatedPayrollResult {
   employeeId: string;
@@ -57,11 +57,12 @@ export class PayrollCalculatorService {
       if (!employee) {
         throw new NotFoundException(`Employee profile ${employeeId} not found`);
       }
-      const baseSalaryDecimal = employee.baseSalary || new Prisma.Decimal(10000);
+      const baseSalaryDecimal =
+        employee.baseSalary || new Prisma.Decimal(10000);
       salaryProfile = {
         basicSalary: baseSalaryDecimal,
         allowances: new Prisma.Decimal(0),
-        currency: 'EGP',
+        currency: "EGP",
         status: UserStatus.ACTIVE,
       };
     }
@@ -69,28 +70,28 @@ export class PayrollCalculatorService {
     const basicSalary = new Prisma.Decimal(salaryProfile.basicSalary);
     const allowances = new Prisma.Decimal(salaryProfile.allowances || 0);
 
-    const lineItems: CalculatedPayrollResult['lineItems'] = [];
+    const lineItems: CalculatedPayrollResult["lineItems"] = [];
     const advanceInstallmentIds: string[] = [];
 
     // Line Item: Basic Salary
     lineItems.push({
       type: PayrollLineItemType.BASIC_SALARY,
-      name: 'Basic Monthly Salary',
-      description: `Contractual monthly base pay (${salaryProfile.currency || 'EGP'})`,
+      name: "Basic Monthly Salary",
+      description: `Contractual monthly base pay (${salaryProfile.currency || "EGP"})`,
       amount: basicSalary,
       isDeduction: false,
-      source: 'SALARY_PROFILE',
+      source: "SALARY_PROFILE",
     });
 
     // Line Item: Allowances
     if (allowances.greaterThan(0)) {
       lineItems.push({
         type: PayrollLineItemType.ALLOWANCE,
-        name: 'Fixed Allowances',
-        description: 'Monthly fixed allowances (transportation, housing, etc.)',
+        name: "Fixed Allowances",
+        description: "Monthly fixed allowances (transportation, housing, etc.)",
         amount: allowances,
         isDeduction: false,
-        source: 'SALARY_PROFILE',
+        source: "SALARY_PROFILE",
       });
     }
 
@@ -115,7 +116,9 @@ export class PayrollCalculatorService {
     let unexcusedAbsentDays = 0;
 
     for (const record of attendanceRecords) {
-      const isExcused = record.notes && (record.notes.includes('excused') || record.notes.includes('Approved'));
+      const isExcused =
+        record.notes &&
+        (record.notes.includes("excused") || record.notes.includes("Approved"));
 
       if (!isExcused) {
         if (record.status === AttendanceStatus.ABSENT) {
@@ -135,11 +138,11 @@ export class PayrollCalculatorService {
       const amount = dailyRate.times(unexcusedAbsentDays).toDecimalPlaces(2);
       lineItems.push({
         type: PayrollLineItemType.ABSENCE_DEDUCTION,
-        name: 'Unexcused Absence Deduction',
+        name: "Unexcused Absence Deduction",
         description: `${unexcusedAbsentDays} unexcused absence day(s) during period`,
         amount,
         isDeduction: true,
-        source: 'ATTENDANCE',
+        source: "ATTENDANCE",
       });
     }
 
@@ -148,11 +151,11 @@ export class PayrollCalculatorService {
       if (amount.greaterThan(0)) {
         lineItems.push({
           type: PayrollLineItemType.LATE_DEDUCTION,
-          name: 'Lateness Penalty Deduction',
+          name: "Lateness Penalty Deduction",
           description: `${totalLateMinutes} unexcused late minutes during period`,
           amount,
           isDeduction: true,
-          source: 'ATTENDANCE',
+          source: "ATTENDANCE",
         });
       }
     }
@@ -162,11 +165,11 @@ export class PayrollCalculatorService {
       if (amount.greaterThan(0)) {
         lineItems.push({
           type: PayrollLineItemType.EARLY_LEAVE_DEDUCTION,
-          name: 'Early Leave Deduction',
+          name: "Early Leave Deduction",
           description: `${totalEarlyMinutes} unexcused early departure minutes during period`,
           amount,
           isDeduction: true,
-          source: 'ATTENDANCE',
+          source: "ATTENDANCE",
         });
       }
     }
@@ -183,7 +186,8 @@ export class PayrollCalculatorService {
     });
 
     for (const req of unpaidLeaveRequests) {
-      const reqStart = req.startDate < periodStartDate ? periodStartDate : req.startDate;
+      const reqStart =
+        req.startDate < periodStartDate ? periodStartDate : req.startDate;
       const reqEnd = req.endDate > periodEndDate ? periodEndDate : req.endDate;
       const diffMs = reqEnd.getTime() - reqStart.getTime();
       const unpaidDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
@@ -192,11 +196,11 @@ export class PayrollCalculatorService {
         const amount = dailyRate.times(unpaidDays).toDecimalPlaces(2);
         lineItems.push({
           type: PayrollLineItemType.UNPAID_LEAVE_DEDUCTION,
-          name: 'Approved Unpaid Leave Deduction',
+          name: "Approved Unpaid Leave Deduction",
           description: `${unpaidDays} day(s) unpaid leave (${req.reason})`,
           amount,
           isDeduction: true,
-          source: 'REQUEST',
+          source: "REQUEST",
           sourceId: req.id,
         });
       }
@@ -207,9 +211,11 @@ export class PayrollCalculatorService {
       where: {
         advance: {
           employeeId,
-          status: { in: ['APPROVED', 'ACTIVE', 'PARTIALLY_PAID'] },
+          status: { in: ["APPROVED", "ACTIVE", "PARTIALLY_PAID"] },
         },
-        status: { in: [InstallmentStatus.PENDING, InstallmentStatus.PARTIALLY_PAID] },
+        status: {
+          in: [InstallmentStatus.PENDING, InstallmentStatus.PARTIALLY_PAID],
+        },
         dueDate: {
           gte: periodStartDate,
           lte: periodEndDate,
@@ -229,7 +235,7 @@ export class PayrollCalculatorService {
           description: `Installment deduction for advance ${inst.advance.reason}`,
           amount: deductionAmount,
           isDeduction: true,
-          source: 'ADVANCE',
+          source: "ADVANCE",
           sourceId: inst.id,
         });
         advanceInstallmentIds.push(inst.id);
@@ -254,7 +260,7 @@ export class PayrollCalculatorService {
         description: ded.reason,
         amount: new Prisma.Decimal(ded.amount),
         isDeduction: true,
-        source: 'MANUAL_DEDUCTION',
+        source: "MANUAL_DEDUCTION",
         sourceId: ded.id,
       });
     }

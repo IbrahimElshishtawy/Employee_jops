@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEnum,
   IsInt,
@@ -17,16 +17,18 @@ import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 export class RequestAdvanceDto {
   @ApiProperty({
     example: 5000,
-    description: 'Requested salary advance amount (must be positive and within eligibility limits)',
+    description:
+      "Requested salary advance amount (must be positive and within eligibility limits)",
   })
   @IsNumber()
-  @Min(100, { message: 'Advance amount must be at least 100' })
+  @Min(100, { message: "Advance amount must be at least 100" })
   amount: number;
 
   @ApiPropertyOptional({
     example: 3,
     default: 1,
-    description: 'Number of monthly installments to repay the advance (1 to 12)',
+    description:
+      "Number of monthly installments to repay the advance (1 to 12)",
   })
   @IsOptional()
   @IsInt()
@@ -35,8 +37,8 @@ export class RequestAdvanceDto {
   requestedInstallments?: number = 1;
 
   @ApiProperty({
-    example: 'Emergency home maintenance and family medical expenses',
-    description: 'Reason for requesting salary advance',
+    example: "Emergency home maintenance and family medical expenses",
+    description: "Reason for requesting salary advance",
   })
   @IsString()
   @IsNotEmpty()
@@ -45,8 +47,8 @@ export class RequestAdvanceDto {
   reason: string;
 
   @ApiPropertyOptional({
-    example: 'adv_idemp_key_uuid_12345',
-    description: 'Client idempotency key to prevent double requests',
+    example: "adv_idemp_key_uuid_12345",
+    description: "Client idempotency key to prevent double requests",
   })
   @IsOptional()
   @IsString()
@@ -56,7 +58,8 @@ export class RequestAdvanceDto {
 export class ApproveAdvanceDto {
   @ApiPropertyOptional({
     example: 5000,
-    description: 'Final approved amount (can be adjusted by HR, defaults to requested amount)',
+    description:
+      "Final approved amount (can be adjusted by HR, defaults to requested amount)",
   })
   @IsOptional()
   @IsNumber()
@@ -65,7 +68,8 @@ export class ApproveAdvanceDto {
 
   @ApiPropertyOptional({
     example: 3,
-    description: 'Final approved installment count (defaults to requested installments)',
+    description:
+      "Final approved installment count (defaults to requested installments)",
   })
   @IsOptional()
   @IsInt()
@@ -74,16 +78,16 @@ export class ApproveAdvanceDto {
   installmentsCount?: number;
 
   @ApiPropertyOptional({
-    example: '2026-09-01',
-    description: 'First installment due date (defaults to next monthly cycle)',
+    example: "2026-09-01",
+    description: "First installment due date (defaults to next monthly cycle)",
   })
   @IsOptional()
   @IsString()
   firstDueDate?: string;
 
   @ApiPropertyOptional({
-    example: 'Approved as per company salary advance policy.',
-    description: 'HR remarks or approval notes',
+    example: "Approved as per company salary advance policy.",
+    description: "HR remarks or approval notes",
   })
   @IsOptional()
   @IsString()
@@ -93,11 +97,12 @@ export class ApproveAdvanceDto {
 
 export class RejectAdvanceDto {
   @ApiProperty({
-    example: 'Active outstanding advance exists or probationary period not completed.',
-    description: 'Mandatory reason explaining why advance is rejected',
+    example:
+      "Active outstanding advance exists or probationary period not completed.",
+    description: "Mandatory reason explaining why advance is rejected",
   })
   @IsString()
-  @IsNotEmpty({ message: 'Rejection reason is required' })
+  @IsNotEmpty({ message: "Rejection reason is required" })
   @MinLength(3)
   @MaxLength(500)
   reason: string;
@@ -106,23 +111,24 @@ export class RejectAdvanceDto {
 export class PayInstallmentDto {
   @ApiProperty({
     example: 1000,
-    description: 'Amount paid towards this installment (must be > 0 and <= remaining amount)',
+    description:
+      "Amount paid towards this installment (must be > 0 and <= remaining amount)",
   })
   @IsNumber()
   @Min(0.01)
   amount: number;
 
   @ApiPropertyOptional({
-    example: 'Paid via bank transfer / direct deposit',
-    description: 'Payment notes or reference',
+    example: "Paid via bank transfer / direct deposit",
+    description: "Payment notes or reference",
   })
   @IsOptional()
   @IsString()
   notes?: string;
 
   @ApiPropertyOptional({
-    example: 'pay_idemp_key_123',
-    description: 'Idempotency key for payment transaction',
+    example: "pay_idemp_key_123",
+    description: "Idempotency key for payment transaction",
   })
   @IsOptional()
   @IsString()
@@ -132,21 +138,22 @@ export class PayInstallmentDto {
 export class QueryAdvancesDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     enum: AdvanceStatus,
-    description: 'Filter by advance status (PENDING, APPROVED, ACTIVE, PAID, REJECTED, CANCELLED)',
+    description:
+      "Filter by advance status (PENDING, APPROVED, ACTIVE, PAID, REJECTED, CANCELLED)",
   })
   @IsOptional()
   @IsEnum(AdvanceStatus)
   status?: AdvanceStatus;
 
   @ApiPropertyOptional({
-    description: 'Filter by specific employee profile ID',
+    description: "Filter by specific employee profile ID",
   })
   @IsOptional()
   @IsString()
   employeeId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by employee department',
+    description: "Filter by employee department",
   })
   @IsOptional()
   @IsString()

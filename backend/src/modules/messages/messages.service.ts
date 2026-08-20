@@ -4,21 +4,12 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { RealTimeService } from './realtime.service';
-import {
-  CreateConversationDto,
-  SendMessageDto,
-  QueryMessagesDto,
-} from './dto';
-import {
-  NotificationType,
-  AuditAction,
-  Role,
-  Prisma,
-} from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { RealTimeService } from "./realtime.service";
+import { CreateConversationDto, SendMessageDto, QueryMessagesDto } from "./dto";
+import { NotificationType, AuditAction, Role, Prisma } from "@prisma/client";
 
 @Injectable()
 export class MessagesService {
@@ -36,7 +27,7 @@ export class MessagesService {
 
   async createConversation(senderUserId: string, dto: CreateConversationDto) {
     if (!dto.content || dto.content.trim().length === 0) {
-      throw new BadRequestException('Initial message content cannot be empty');
+      throw new BadRequestException("Initial message content cannot be empty");
     }
 
     const senderUser = await this.prisma.user.findUnique({
@@ -45,7 +36,7 @@ export class MessagesService {
     });
 
     if (!senderUser) {
-      throw new NotFoundException('Sender user not found');
+      throw new NotFoundException("Sender user not found");
     }
 
     // Determine target recipient (HR representative or specific participant)
@@ -59,13 +50,17 @@ export class MessagesService {
         },
       });
       if (!hrUser) {
-        throw new BadRequestException('No HR representative is currently available');
+        throw new BadRequestException(
+          "No HR representative is currently available",
+        );
       }
       recipientUserId = hrUser.id;
     }
 
     if (recipientUserId === senderUserId) {
-      throw new BadRequestException('Cannot start a conversation with yourself');
+      throw new BadRequestException(
+        "Cannot start a conversation with yourself",
+      );
     }
 
     const recipientUser = await this.prisma.user.findUnique({
@@ -74,7 +69,7 @@ export class MessagesService {
     });
 
     if (!recipientUser) {
-      throw new NotFoundException('Recipient user not found');
+      throw new NotFoundException("Recipient user not found");
     }
 
     // Check for existing 1-on-1 direct conversation
@@ -101,7 +96,9 @@ export class MessagesService {
     const conversation = await this.prisma.$transaction(async (tx) => {
       const conv = await tx.conversation.create({
         data: {
-          title: dto.title || `Inquiry: ${senderUser.employeeProfile?.firstName || senderUser.email}`,
+          title:
+            dto.title ||
+            `Inquiry: ${senderUser.employeeProfile?.firstName || senderUser.email}`,
           isGroup: false,
           createdByUserId: senderUserId,
           lastMessageAt: new Date(),
@@ -140,8 +137,16 @@ export class MessagesService {
     });
 
     // Real-time and Notification delivery (post-commit)
-    this.realtimeService.emitToConversation(conversation.conv.id, 'new_message', conversation.message);
-    this.realtimeService.emitToUsers([recipientUserId], 'new_conversation', conversation.conv);
+    this.realtimeService.emitToConversation(
+      conversation.conv.id,
+      "new_message",
+      conversation.message,
+    );
+    this.realtimeService.emitToUsers(
+      [recipientUserId],
+      "new_conversation",
+      conversation.conv,
+    );
 
     try {
       const senderName = senderUser.employeeProfile
@@ -151,12 +156,19 @@ export class MessagesService {
       await this.notificationsService.sendNotification(
         recipientUserId,
         `New message from ${senderName}`,
-        dto.content.length > 100 ? `${dto.content.slice(0, 97)}...` : dto.content,
+        dto.content.length > 100
+          ? `${dto.content.slice(0, 97)}...`
+          : dto.content,
         NotificationType.CHAT_MESSAGE,
-        { conversationId: conversation.conv.id, messageId: conversation.message.id },
+        {
+          conversationId: conversation.conv.id,
+          messageId: conversation.message.id,
+        },
       );
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch message notification: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch message notification: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return conversation.message;
@@ -192,10 +204,10 @@ export class MessagesService {
         messages: {
           where: { isDeleted: false },
           take: 1,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         },
       },
-      orderBy: { lastMessageAt: 'desc' },
+      orderBy: { lastMessageAt: "desc" },
     });
 
     // Calculate unread count for each conversation
@@ -249,7 +261,9 @@ export class MessagesService {
     });
 
     if (!isParticipant) {
-      throw new ForbiddenException('You are not an authorized participant in this conversation');
+      throw new ForbiddenException(
+        "You are not an authorized participant in this conversation",
+      );
     }
 
     const { page = 1, limit = 50, before } = query;
@@ -269,7 +283,7 @@ export class MessagesService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
         include: {
           sender: {
             select: {
@@ -291,9 +305,15 @@ export class MessagesService {
     };
   }
 
-  async sendMessage(conversationId: string, senderUserId: string, dto: SendMessageDto) {
+  async sendMessage(
+    conversationId: string,
+    senderUserId: string,
+    dto: SendMessageDto,
+  ) {
     if (!dto.content || dto.content.trim().length === 0) {
-      throw new BadRequestException('Message content cannot be empty or only whitespace');
+      throw new BadRequestException(
+        "Message content cannot be empty or only whitespace",
+      );
     }
 
     // 1. Verify membership
@@ -308,7 +328,9 @@ export class MessagesService {
     });
 
     if (!participant) {
-      throw new ForbiddenException('You are not a participant in this conversation');
+      throw new ForbiddenException(
+        "You are not a participant in this conversation",
+      );
     }
 
     const senderUser = await this.prisma.user.findUnique({
@@ -349,7 +371,7 @@ export class MessagesService {
         data: {
           userId: senderUserId,
           action: AuditAction.MESSAGE_SENT,
-          entity: 'ChatMessage',
+          entity: "ChatMessage",
           entityId: msg.id,
           payload: { conversationId },
         },
@@ -359,7 +381,11 @@ export class MessagesService {
     });
 
     // 3. Real-Time Event Broadcast
-    this.realtimeService.emitToConversation(conversationId, 'new_message', message);
+    this.realtimeService.emitToConversation(
+      conversationId,
+      "new_message",
+      message,
+    );
 
     // 4. Notifications to Other Participants
     const otherParticipants = participant.conversation.participants.filter(
@@ -368,19 +394,23 @@ export class MessagesService {
 
     const senderName = senderUser?.employeeProfile
       ? `${senderUser.employeeProfile.firstName} ${senderUser.employeeProfile.lastName}`
-      : senderUser?.email || 'A user';
+      : senderUser?.email || "A user";
 
     for (const p of otherParticipants) {
       this.notificationsService
         .sendNotification(
           p.userId,
           `New message from ${senderName}`,
-          dto.content.length > 100 ? `${dto.content.slice(0, 97)}...` : dto.content,
+          dto.content.length > 100
+            ? `${dto.content.slice(0, 97)}...`
+            : dto.content,
           NotificationType.CHAT_MESSAGE,
           { conversationId, messageId: message.id },
         )
         .catch((err) => {
-          this.logger.warn(`Failed to notify participant ${p.userId}: ${err?.message || err}`);
+          this.logger.warn(
+            `Failed to notify participant ${p.userId}: ${err?.message || err}`,
+          );
         });
     }
 
@@ -402,7 +432,9 @@ export class MessagesService {
     });
 
     if (!isParticipant) {
-      throw new ForbiddenException('You are not a participant in this conversation');
+      throw new ForbiddenException(
+        "You are not a participant in this conversation",
+      );
     }
 
     const now = new Date();
@@ -430,14 +462,14 @@ export class MessagesService {
       }),
     ]);
 
-    this.realtimeService.emitToConversation(conversationId, 'messages_read', {
+    this.realtimeService.emitToConversation(conversationId, "messages_read", {
       conversationId,
       readByUserId: currentUserId,
       readAt: now,
     });
 
     return {
-      message: 'Conversation marked as read',
+      message: "Conversation marked as read",
       markedCount: updateResult.count,
     };
   }
@@ -463,7 +495,7 @@ export class MessagesService {
     });
 
     if (!message) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException("Message not found");
     }
 
     const user = await this.prisma.user.findUnique({
@@ -471,10 +503,14 @@ export class MessagesService {
     });
 
     const isSender = message.senderId === currentUserId;
-    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN] as Role[]).includes(user?.role as Role);
+    const isHr = ([Role.SUPER_ADMIN, Role.HR_ADMIN] as Role[]).includes(
+      user?.role as Role,
+    );
 
     if (!isSender && !isHr) {
-      throw new ForbiddenException('You do not have permission to delete this message');
+      throw new ForbiddenException(
+        "You do not have permission to delete this message",
+      );
     }
 
     const updated = await this.prisma.chatMessage.update({
@@ -490,16 +526,20 @@ export class MessagesService {
       data: {
         userId: currentUserId,
         action: AuditAction.MESSAGE_DELETED,
-        entity: 'ChatMessage',
+        entity: "ChatMessage",
         entityId: messageId,
       },
     });
 
-    this.realtimeService.emitToConversation(message.conversationId, 'message_deleted', {
-      messageId,
-      conversationId: message.conversationId,
-    });
+    this.realtimeService.emitToConversation(
+      message.conversationId,
+      "message_deleted",
+      {
+        messageId,
+        conversationId: message.conversationId,
+      },
+    );
 
-    return { message: 'Message deleted successfully' };
+    return { message: "Message deleted successfully" };
   }
 }

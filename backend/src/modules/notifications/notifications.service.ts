@@ -3,19 +3,19 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   RegisterDeviceTokenDto,
   QueryNotificationsDto,
   UpdateNotificationPreferencesDto,
-} from './dto';
+} from "./dto";
 import {
   NotificationType,
   NotificationPriority,
   AuditAction,
   Prisma,
-} from '@prisma/client';
+} from "@prisma/client";
 
 @Injectable()
 export class NotificationsService {
@@ -75,7 +75,9 @@ export class NotificationsService {
         type === NotificationType.SYSTEM_ALERT;
 
       if (!isSecurityOrCritical && !this.isCategoryEnabled(preferences, type)) {
-        this.logger.debug(`Notification of type ${type} suppressed by user ${userId} preferences`);
+        this.logger.debug(
+          `Notification of type ${type} suppressed by user ${userId} preferences`,
+        );
         return null;
       }
 
@@ -99,7 +101,9 @@ export class NotificationsService {
       return notification;
     } catch (err: any) {
       // Notification dispatch failure must NEVER throw or break caller transaction
-      this.logger.error(`Failed to send notification to user ${userId}: ${err?.message || err}`);
+      this.logger.error(
+        `Failed to send notification to user ${userId}: ${err?.message || err}`,
+      );
       return null;
     }
   }
@@ -132,14 +136,20 @@ export class NotificationsService {
 
       // Dispatch push in background
       for (const userId of userIds) {
-        this.dispatchPushToUserDevices(userId, title, body, type, data).catch((err) => {
-          this.logger.warn(`Batch push failed for user ${userId}: ${err?.message || err}`);
-        });
+        this.dispatchPushToUserDevices(userId, title, body, type, data).catch(
+          (err) => {
+            this.logger.warn(
+              `Batch push failed for user ${userId}: ${err?.message || err}`,
+            );
+          },
+        );
       }
 
       return records.length;
     } catch (err: any) {
-      this.logger.error(`Batch notification dispatch failed: ${err?.message || err}`);
+      this.logger.error(
+        `Batch notification dispatch failed: ${err?.message || err}`,
+      );
       return 0;
     }
   }
@@ -167,14 +177,16 @@ export class NotificationsService {
       } catch (fcmErr: any) {
         // Handle invalid/unregistered token by deactivating it
         if (
-          fcmErr?.code === 'messaging/registration-token-not-registered' ||
-          fcmErr?.code === 'messaging/invalid-registration-token'
+          fcmErr?.code === "messaging/registration-token-not-registered" ||
+          fcmErr?.code === "messaging/invalid-registration-token"
         ) {
           await this.prisma.deviceToken.update({
             where: { id: token.id },
             data: { isActive: false },
           });
-          this.logger.warn(`Deactivated invalid FCM token ${token.id} for user ${userId}`);
+          this.logger.warn(
+            `Deactivated invalid FCM token ${token.id} for user ${userId}`,
+          );
         }
       }
     }
@@ -207,7 +219,7 @@ export class NotificationsService {
   }
 
   private sanitizeData(data: any): any {
-    if (!data || typeof data !== 'object') return data;
+    if (!data || typeof data !== "object") return data;
     const sanitized = { ...data };
     delete sanitized.password;
     delete sanitized.passwordHash;
@@ -221,8 +233,19 @@ export class NotificationsService {
   // 3. NOTIFICATION RETRIEVAL & READ STATE
   // ============================================================
 
-  async getMyNotifications(userId: string, query: Partial<QueryNotificationsDto> = {}) {
-    const { page = 1, limit = 20, type, priority, isRead, startDate, endDate } = query;
+  async getMyNotifications(
+    userId: string,
+    query: Partial<QueryNotificationsDto> = {},
+  ) {
+    const {
+      page = 1,
+      limit = 20,
+      type,
+      priority,
+      isRead,
+      startDate,
+      endDate,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.NotificationWhereInput = { userId };
@@ -241,7 +264,7 @@ export class NotificationsService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
     ]);
 
@@ -257,11 +280,13 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException('Notification not found');
+      throw new NotFoundException("Notification not found");
     }
 
     if (notification.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to modify this notification');
+      throw new ForbiddenException(
+        "You do not have permission to modify this notification",
+      );
     }
 
     return this.prisma.notification.update({
@@ -277,7 +302,7 @@ export class NotificationsService {
     });
 
     return {
-      message: 'All notifications marked as read',
+      message: "All notifications marked as read",
       count: result.count,
     };
   }
@@ -308,7 +333,10 @@ export class NotificationsService {
     return pref;
   }
 
-  async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
+  async updatePreferences(
+    userId: string,
+    dto: UpdateNotificationPreferencesDto,
+  ) {
     const pref = await this.prisma.notificationPreference.upsert({
       where: { userId },
       update: { ...dto },
@@ -319,7 +347,7 @@ export class NotificationsService {
       data: {
         userId,
         action: AuditAction.NOTIFICATION_PREFERENCE_UPDATED,
-        entity: 'NotificationPreference',
+        entity: "NotificationPreference",
         entityId: pref.id,
         payload: { ...dto },
       },

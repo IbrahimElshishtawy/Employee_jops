@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter } from 'events';
+import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter } from "events";
 
 export interface RealTimeEventPayload {
   channel: string;
@@ -24,7 +24,7 @@ export class RealTimeService {
   emitToUsers(userIds: string[], event: string, data: any) {
     try {
       const payload: RealTimeEventPayload = {
-        channel: 'user_notifications',
+        channel: "user_notifications",
         event,
         data,
         recipientUserIds: userIds,
@@ -35,9 +35,13 @@ export class RealTimeService {
         this.emitter.emit(`user:${userId}`, payload);
       }
 
-      this.logger.debug(`[RealTime] Emitted event '${event}' to ${userIds.length} user(s)`);
+      this.logger.debug(
+        `[RealTime] Emitted event '${event}' to ${userIds.length} user(s)`,
+      );
     } catch (err: any) {
-      this.logger.warn(`[RealTime] Error emitting event to users: ${err?.message || err}`);
+      this.logger.warn(
+        `[RealTime] Error emitting event to users: ${err?.message || err}`,
+      );
     }
   }
 
@@ -54,16 +58,23 @@ export class RealTimeService {
       };
 
       this.emitter.emit(`conversation:${conversationId}`, payload);
-      this.logger.debug(`[RealTime] Emitted event '${event}' to conversation ${conversationId}`);
+      this.logger.debug(
+        `[RealTime] Emitted event '${event}' to conversation ${conversationId}`,
+      );
     } catch (err: any) {
-      this.logger.warn(`[RealTime] Error emitting event to conversation: ${err?.message || err}`);
+      this.logger.warn(
+        `[RealTime] Error emitting event to conversation: ${err?.message || err}`,
+      );
     }
   }
 
   /**
    * Subscribes a listener to a specific user's private event stream
    */
-  subscribeUser(userId: string, listener: (payload: RealTimeEventPayload) => void) {
+  subscribeUser(
+    userId: string,
+    listener: (payload: RealTimeEventPayload) => void,
+  ) {
     this.emitter.on(`user:${userId}`, listener);
     return () => this.emitter.off(`user:${userId}`, listener);
   }
@@ -71,7 +82,10 @@ export class RealTimeService {
   /**
    * Subscribes a listener to a specific conversation stream
    */
-  subscribeConversation(conversationId: string, listener: (payload: RealTimeEventPayload) => void) {
+  subscribeConversation(
+    conversationId: string,
+    listener: (payload: RealTimeEventPayload) => void,
+  ) {
     this.emitter.on(`conversation:${conversationId}`, listener);
     return () => this.emitter.off(`conversation:${conversationId}`, listener);
   }
