@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 
 export interface CreateScheduleInput {
   name: string;
@@ -37,7 +37,7 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new NotFoundException('Schedule not found');
+      throw new NotFoundException("Schedule not found");
     }
 
     return schedule;

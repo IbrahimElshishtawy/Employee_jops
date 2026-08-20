@@ -1,14 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
-import { CurrentUser } from '../../../common/interfaces/current-user.interface';
-import { UserStatus } from '@prisma/client';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { JwtPayload } from "../../../common/interfaces/jwt-payload.interface";
+import { CurrentUser } from "../../../common/interfaces/current-user.interface";
+import { UserStatus } from "@prisma/client";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
@@ -16,7 +16,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.accessSecret') || 'default_secret',
+      secretOrKey:
+        configService.get<string>("jwt.accessSecret") || "default_secret",
     });
   }
 
@@ -27,11 +28,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User account no longer exists');
+      throw new UnauthorizedException("User account no longer exists");
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException(`User account is ${user.status.toLowerCase()}`);
+      throw new UnauthorizedException(
+        `User account is ${user.status.toLowerCase()}`,
+      );
     }
 
     return {

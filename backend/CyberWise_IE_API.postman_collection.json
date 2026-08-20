@@ -1541,7 +1541,7 @@
       "name": "Requests",
       "item": [
         {
-          "name": "Submit leave / excuse / remote work request (Employee App)",
+          "name": "Submit a new request (Leave, Absence, Permission, Late Excuse, Early Leave, Half Day, etc.)",
           "request": {
             "method": "POST",
             "header": [
@@ -1565,7 +1565,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"ANNUAL_LEAVE\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2026-09-05\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\",\n  \"reason\": \"Family emergency / vacation\",\n  \"attachmentUrl\": \"https://storage.cyberwise.com/attachments/doc.pdf\"\n}",
+              "raw": "{\n  \"type\": \"ANNUAL_LEAVE\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2026-09-05\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\",\n  \"halfDayPeriod\": \"FIRST_HALF\",\n  \"reason\": \"Annual family vacation / Personal medical appointment\",\n  \"attachmentUrl\": \"https://storage.cyberwise.com/attachments/medical_report.pdf\",\n  \"idempotencyKey\": \"req_idempotency_uuid_v4_12345\",\n  \"metadata\": {\n    \"targetAttendanceDate\": \"2026-09-01\",\n    \"estimatedHours\": 2\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1576,7 +1576,7 @@
           "response": []
         },
         {
-          "name": "HR Dashboard: List all requests with optional status filter",
+          "name": "HR: Filtered and paginated queue of employee requests (status, department, workplace, dates)",
           "request": {
             "method": "GET",
             "header": [
@@ -1597,9 +1597,75 @@
               "variable": [],
               "query": [
                 {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
                   "key": "status",
                   "value": "",
-                  "description": "",
+                  "description": "Filter by request status (PENDING, APPROVED, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by request type",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee Profile ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by workplace / branch ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter requests active on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter requests active on or before this date",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field to sort results by",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order direction",
                   "disabled": true
                 }
               ]
@@ -1609,7 +1675,107 @@
           "response": []
         },
         {
-          "name": "Get current employee submitted requests",
+          "name": "Get paginated submitted requests for current employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by request status (PENDING, APPROVED, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by request type",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee Profile ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by workplace / branch ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter requests active on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter requests active on or before this date",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field to sort results by",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order direction",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Alias: Get submitted requests for current employee",
           "request": {
             "method": "GET",
             "header": [
@@ -1629,6 +1795,268 @@
                 "my-requests"
               ],
               "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by request status (PENDING, APPROVED, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by request type",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee Profile ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by workplace / branch ID (HR only)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter requests active on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter requests active on or before this date",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field to sort results by",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order direction",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get current year leave balances and remaining days for current employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/leave-balances/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                "leave-balances",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Get leave balances for a specific employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/leave-balances/employee/:employeeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                "leave-balances",
+                "employee",
+                ":employeeId"
+              ],
+              "variable": [
+                {
+                  "key": "employeeId",
+                  "value": "sample-id",
+                  "description": "Employee Profile UUID"
+                }
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Allocate / Initialize new leave balance for an employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/leave-balances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                "leave-balances"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"emp-profile-uuid-1234\",\n  \"leaveType\": \"ANNUAL_LEAVE\",\n  \"year\": 2026,\n  \"totalDays\": 21\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Adjust total or used days on an existing leave balance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/leave-balances/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                "leave-balances",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "LeaveBalance UUID"
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalDays\": 25,\n  \"usedDays\": 2,\n  \"reason\": \"Annual bonus leave adjustment (+4 days)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get request details with approval history (IDOR protected: Owner or HR)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "Request UUID"
+                }
+              ],
               "query": []
             },
             "description": ""
@@ -1636,7 +2064,136 @@
           "response": []
         },
         {
-          "name": "Approve an employee request",
+          "name": "Employee: Cancel a pending request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/:id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "Request UUID"
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Plans changed, no longer required.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: Cancel a pending request (PATCH method)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/:id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "Request UUID"
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Plans changed, no longer required.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Approve an employee request (updates leave balance, attendance records, audit & notification)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/:id/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "Request UUID"
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Approved based on departmental staffing coverage.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Approve an employee request (PATCH method)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -1660,17 +2217,69 @@
                 {
                   "key": "id",
                   "value": "sample-id",
-                  "description": ""
+                  "description": "Request UUID"
                 }
               ],
               "query": []
             },
-            "description": ""
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Approved based on departmental staffing coverage.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         },
         {
-          "name": "Reject an employee request",
+          "name": "HR: Reject an employee request with mandatory reason",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/requests/:id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "requests",
+                ":id",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": "Request UUID"
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Insufficient project coverage during sprint release window.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Reject an employee request with mandatory reason (PATCH method)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -1694,230 +2303,21 @@
                 {
                   "key": "id",
                   "value": "sample-id",
-                  "description": ""
+                  "description": "Request UUID"
                 }
               ],
               "query": []
             },
-            "description": ""
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Payroll & Advances",
-      "item": [
-        {
-          "name": "Request salary advance (Employee App)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/advances",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "advances"
-              ],
-              "variable": [],
-              "query": []
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "HR Dashboard: List all salary advance requests",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/advances",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "advances"
-              ],
-              "variable": [],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "",
-                  "description": "",
-                  "disabled": true
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Insufficient project coverage during sprint release window.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Get current employee advances",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/advances/my",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "advances",
-                "my"
-              ],
-              "variable": [],
-              "query": []
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Approve, reject, or mark paid for salary advance",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/advances/:id/status",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "advances",
-                ":id",
-                "status"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "sample-id",
-                  "description": ""
-                }
-              ],
-              "query": []
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Create financial deduction or penalty",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/deductions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "deductions"
-              ],
-              "variable": [],
-              "query": []
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "HR Dashboard: List all deductions",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/deductions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "deductions"
-              ],
-              "variable": [],
-              "query": [
-                {
-                  "key": "employeeId",
-                  "value": "",
-                  "description": "",
-                  "disabled": false
-                }
-              ]
-            },
-            "description": ""
-          },
-          "response": []
-        },
-        {
-          "name": "Get current employee deduction list",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payroll/deductions/my",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payroll",
-                "deductions",
-                "my"
-              ],
-              "variable": [],
-              "query": []
-            },
-            "description": ""
+            }
           },
           "response": []
         }
@@ -2045,6 +2445,1183 @@
               ],
               "variable": [],
               "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payroll, Salary Advances & Deductions",
+      "item": [
+        {
+          "name": "Employee: View my current salary profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/salary/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "salary",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: View salary profile for specific employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/salary/employee/:employeeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "salary",
+                "employee",
+                ":employeeId"
+              ],
+              "variable": [
+                {
+                  "key": "employeeId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Set or update employee salary profile (with history versioning)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "salary"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"emp-uuid-1234\",\n  \"basicSalary\": 15000,\n  \"allowances\": 2500,\n  \"currency\": \"EGP\",\n  \"effectiveFrom\": \"2026-01-01\",\n  \"reason\": \"Annual appraisal promotion / Initial hiring package\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: View salary modification history for employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/salary/history/:employeeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "salary",
+                "history",
+                ":employeeId"
+              ],
+              "variable": [
+                {
+                  "key": "employeeId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: Request a salary advance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"requestedInstallments\": 3,\n  \"reason\": \"Emergency home maintenance and family medical expenses\",\n  \"idempotencyKey\": \"adv_idemp_key_uuid_12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: List and filter all salary advance requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by advance status (PENDING, APPROVED, ACTIVE, PAID, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific employee profile ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: View my salary advance requests & installment schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by advance status (PENDING, APPROVED, ACTIVE, PAID, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific employee profile ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: View my salary advances (alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                "my"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by advance status (PENDING, APPROVED, ACTIVE, PAID, REJECTED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific employee profile ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "View detailed salary advance with installment schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Approve salary advance and generate installment schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/:id/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedAmount\": 5000,\n  \"installmentsCount\": 3,\n  \"firstDueDate\": \"2026-09-01\",\n  \"remarks\": \"Approved as per company salary advance policy.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Reject salary advance with mandatory reason",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/:id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                ":id",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Active outstanding advance exists or probationary period not completed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR / Finance: Record payment towards an advance installment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/advances/installments/:installmentId/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "advances",
+                "installments",
+                ":installmentId",
+                "pay"
+              ],
+              "variable": [
+                {
+                  "key": "installmentId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"notes\": \"Paid via bank transfer / direct deposit\",\n  \"idempotencyKey\": \"pay_idemp_key_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Create manual financial deduction or penalty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/deductions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "deductions"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"emp-uuid-1234\",\n  \"type\": \"PENALTY\",\n  \"amount\": 500,\n  \"reason\": \"Damaged company equipment / policy non-compliance fine\",\n  \"effectiveDate\": \"2026-08-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: List and filter all financial deductions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/deductions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "deductions"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter deductions by Employee Profile UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by deduction category",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter deductions on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter deductions on or before this date",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: View my deductions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/deductions/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "deductions",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter deductions by Employee Profile UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by deduction category",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter deductions on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter deductions on or before this date",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: View my deductions (alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/deductions/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "deductions",
+                "my"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter deductions by Employee Profile UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by deduction category",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter deductions on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter deductions on or before this date",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Create a new monthly payroll period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/periods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "periods"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2026-08\",\n  \"startDate\": \"2026-08-01\",\n  \"endDate\": \"2026-08-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: List all payroll periods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/periods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "periods"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "description": "",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Run calculation engine for payroll period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/periods/:id/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "periods",
+                ":id",
+                "calculate"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"sample_employeeId\",\n  \"department\": \"Engineering\",\n  \"recalculate\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR / Finance: Finalize and lock payroll period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/periods/:id/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "periods",
+                ":id",
+                "finalize"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Finalized and approved by CFO & HR Director for disbursement.\",\n  \"idempotencyKey\": \"fin_period_idemp_key_2026_08\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Employee: View my monthly payroll payslips",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "period",
+                  "value": "",
+                  "description": "Filter by payroll period name (e.g. YYYY-MM)",
+                  "disabled": true
+                },
+                {
+                  "key": "payrollPeriodId",
+                  "value": "",
+                  "description": "Filter by Payroll Period UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by Employee Profile UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by payroll record status (DRAFT, CALCULATED, REVIEW, FINALIZED, PAID)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "View detailed payslip with itemized line items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/records/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "records",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Create post-finalization adjustment for payroll record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/records/:id/adjust",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll",
+                "records",
+                ":id",
+                "adjust"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"BONUS\",\n  \"amount\": 1000,\n  \"isDeduction\": false,\n  \"reason\": \"Post-close retroactive bonus adjustment approved by General Manager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HR: List and filter all employee payroll records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payroll",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payroll"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "period",
+                  "value": "",
+                  "description": "Filter by payroll period name (e.g. YYYY-MM)",
+                  "disabled": true
+                },
+                {
+                  "key": "payrollPeriodId",
+                  "value": "",
+                  "description": "Filter by Payroll Period UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by Employee Profile UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by employee department",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by payroll record status (DRAFT, CALCULATED, REVIEW, FINALIZED, PAID)",
+                  "disabled": true
+                }
+              ]
             },
             "description": ""
           },

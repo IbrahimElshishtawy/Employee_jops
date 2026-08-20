@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
-import { AttendanceService } from './attendance.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
+import { AttendanceService } from "./attendance.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 
-describe('AttendanceService', () => {
+describe("AttendanceService", () => {
   let service: AttendanceService;
 
   const mockPrismaService = {
@@ -20,7 +20,7 @@ describe('AttendanceService', () => {
   };
 
   const mockNotificationsService = {
-    sendNotification: jest.fn().mockResolvedValue({ id: 'notif-01' }),
+    sendNotification: jest.fn().mockResolvedValue({ id: "notif-01" }),
   };
 
   const mockConfigService = {
@@ -40,7 +40,7 @@ describe('AttendanceService', () => {
     service = module.get<AttendanceService>(AttendanceService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

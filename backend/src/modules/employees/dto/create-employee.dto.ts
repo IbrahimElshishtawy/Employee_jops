@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEmail,
   IsEnum,
@@ -7,52 +7,52 @@ import {
   IsOptional,
   IsString,
   MinLength,
-} from 'class-validator';
-import { Gender, Role } from '@prisma/client';
+} from "class-validator";
+import { Gender, Role } from "@prisma/client";
 
 export class CreateEmployeeDto {
-  @ApiProperty({ example: 'employee@cyberwise.com' })
+  @ApiProperty({ example: "employee@cyberwise.com" })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'Emp@123456' })
+  @ApiProperty({ example: "Emp@123456" })
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'CW-1001' })
+  @ApiProperty({ example: "CW-1001" })
   @IsString()
   @IsNotEmpty()
   employeeCode: string;
 
-  @ApiProperty({ example: 'Omar' })
+  @ApiProperty({ example: "Omar" })
   @IsString()
   @IsNotEmpty()
   firstName: string;
 
-  @ApiProperty({ example: 'Khalid' })
+  @ApiProperty({ example: "Khalid" })
   @IsString()
   @IsNotEmpty()
   lastName: string;
 
-  @ApiPropertyOptional({ example: '+966501112233' })
+  @ApiPropertyOptional({ example: "+966501112233" })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ example: '1098765432' })
+  @ApiPropertyOptional({ example: "1098765432" })
   @IsOptional()
   @IsString()
   nationalId?: string;
 
-  @ApiProperty({ example: 'Software Engineer' })
+  @ApiProperty({ example: "Software Engineer" })
   @IsString()
   @IsNotEmpty()
   jobTitle: string;
 
-  @ApiProperty({ example: 'Engineering' })
+  @ApiProperty({ example: "Engineering" })
   @IsString()
   @IsNotEmpty()
   department: string;
@@ -67,17 +67,17 @@ export class CreateEmployeeDto {
   @IsEnum(Role)
   role?: Role = Role.EMPLOYEE;
 
-  @ApiPropertyOptional({ example: 'uuid-workplace-id' })
+  @ApiPropertyOptional({ example: "uuid-workplace-id" })
   @IsOptional()
   @IsString()
   workplaceId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-schedule-id' })
+  @ApiPropertyOptional({ example: "uuid-schedule-id" })
   @IsOptional()
   @IsString()
   scheduleId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-manager-profile-id' })
+  @ApiPropertyOptional({ example: "uuid-manager-profile-id" })
   @IsOptional()
   @IsString()
   managerId?: string;

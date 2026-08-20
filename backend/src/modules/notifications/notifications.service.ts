@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDeviceTokenDto } from './dto/register-device.dto';
-import { NotificationType } from '@prisma/client';
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { RegisterDeviceTokenDto } from "./dto/register-device.dto";
+import { NotificationType } from "@prisma/client";
 
 @Injectable()
 export class NotificationsService {
@@ -65,7 +65,7 @@ export class NotificationsService {
   async getMyNotifications(userId: string) {
     return this.prisma.notification.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 50,
     });
   }

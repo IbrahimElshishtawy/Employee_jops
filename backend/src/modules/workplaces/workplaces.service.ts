@@ -2,9 +2,9 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateWorkplaceDto } from './dto/create-workplace.dto';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateWorkplaceDto } from "./dto/create-workplace.dto";
 
 @Injectable()
 export class WorkplacesService {
@@ -15,7 +15,7 @@ export class WorkplacesService {
       where: { code: dto.code },
     });
     if (existing) {
-      throw new ConflictException('Workplace code already exists');
+      throw new ConflictException("Workplace code already exists");
     }
 
     return this.prisma.workplace.create({ data: dto });
@@ -26,7 +26,7 @@ export class WorkplacesService {
       include: {
         _count: { select: { employees: true } },
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }
 
@@ -48,7 +48,7 @@ export class WorkplacesService {
     });
 
     if (!workplace) {
-      throw new NotFoundException('Workplace not found');
+      throw new NotFoundException("Workplace not found");
     }
 
     return workplace;

@@ -1,16 +1,16 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance } from "class-transformer";
 import {
   IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   validateSync,
-} from 'class-validator';
+} from "class-validator";
 
 export enum Environment {
-  Development = 'development',
-  Production = 'production',
-  Test = 'test',
+  Development = "development",
+  Production = "production",
+  Test = "test",
 }
 
 export class EnvironmentVariables {
@@ -24,15 +24,15 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  HOST: string = '0.0.0.0';
+  HOST: string = "0.0.0.0";
 
   @IsString()
   @IsOptional()
-  APP_NAME: string = 'CyberWise-IE-Backend';
+  APP_NAME: string = "CyberWise-IE-Backend";
 
   @IsString()
   @IsOptional()
-  API_PREFIX: string = 'api/v1';
+  API_PREFIX: string = "api/v1";
 
   @IsString()
   DATABASE_URL: string;
@@ -54,18 +54,18 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  JWT_ACCESS_EXPIRATION: string = '15m';
+  JWT_ACCESS_EXPIRATION: string = "15m";
 
   @IsString()
   JWT_REFRESH_SECRET: string;
 
   @IsString()
   @IsOptional()
-  JWT_REFRESH_EXPIRATION: string = '7d';
+  JWT_REFRESH_EXPIRATION: string = "7d";
 
   @IsString()
   @IsOptional()
-  CORS_ORIGINS: string = '*';
+  CORS_ORIGINS: string = "*";
 
   @IsNumber()
   @IsOptional()

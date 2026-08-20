@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
 export class MessagesService {
@@ -32,10 +32,10 @@ export class MessagesService {
         },
         messages: {
           take: 1,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         },
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
     });
   }
 
@@ -53,7 +53,7 @@ export class MessagesService {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
       take: limit,
     });
   }

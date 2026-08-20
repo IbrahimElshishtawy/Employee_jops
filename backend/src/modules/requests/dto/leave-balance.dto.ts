@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEnum,
   IsInt,
@@ -8,13 +8,13 @@ import {
   IsString,
   Min,
   Max,
-} from 'class-validator';
-import { RequestType } from '@prisma/client';
+} from "class-validator";
+import { RequestType } from "@prisma/client";
 
 export class CreateLeaveBalanceDto {
   @ApiProperty({
-    description: 'Target Employee Profile ID',
-    example: 'emp-profile-uuid-1234',
+    description: "Target Employee Profile ID",
+    example: "emp-profile-uuid-1234",
   })
   @IsString()
   @IsNotEmpty()
@@ -23,7 +23,8 @@ export class CreateLeaveBalanceDto {
   @ApiProperty({
     enum: RequestType,
     example: RequestType.ANNUAL_LEAVE,
-    description: 'Leave category (e.g. ANNUAL_LEAVE, SICK_LEAVE, EMERGENCY_LEAVE)',
+    description:
+      "Leave category (e.g. ANNUAL_LEAVE, SICK_LEAVE, EMERGENCY_LEAVE)",
   })
   @IsEnum(RequestType)
   @IsNotEmpty()
@@ -31,7 +32,7 @@ export class CreateLeaveBalanceDto {
 
   @ApiProperty({
     example: 2026,
-    description: 'Year for the allocation',
+    description: "Year for the allocation",
   })
   @IsInt()
   @Min(2020)
@@ -40,7 +41,7 @@ export class CreateLeaveBalanceDto {
 
   @ApiProperty({
     example: 21,
-    description: 'Total allocated leave days for the year',
+    description: "Total allocated leave days for the year",
   })
   @IsNumber()
   @Min(0)
@@ -50,7 +51,7 @@ export class CreateLeaveBalanceDto {
 export class AdjustLeaveBalanceDto {
   @ApiPropertyOptional({
     example: 25,
-    description: 'Updated total allocated days for the year',
+    description: "Updated total allocated days for the year",
   })
   @IsOptional()
   @IsNumber()
@@ -59,7 +60,7 @@ export class AdjustLeaveBalanceDto {
 
   @ApiPropertyOptional({
     example: 2,
-    description: 'Direct adjustment to used days',
+    description: "Direct adjustment to used days",
   })
   @IsOptional()
   @IsNumber()
@@ -67,8 +68,8 @@ export class AdjustLeaveBalanceDto {
   usedDays?: number;
 
   @ApiPropertyOptional({
-    example: 'Annual bonus leave adjustment (+4 days)',
-    description: 'Reason for balance adjustment',
+    example: "Annual bonus leave adjustment (+4 days)",
+    description: "Reason for balance adjustment",
   })
   @IsOptional()
   @IsString()

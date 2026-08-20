@@ -4,9 +4,9 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import {
   CreateRequestDto,
   QueryRequestsDto,
@@ -15,7 +15,7 @@ import {
   CancelRequestDto,
   CreateLeaveBalanceDto,
   AdjustLeaveBalanceDto,
-} from './dto';
+} from "./dto";
 import {
   RequestStatus,
   RequestType,
@@ -25,7 +25,7 @@ import {
   UserStatus,
   Prisma,
   Role,
-} from '@prisma/client';
+} from "@prisma/client";
 
 @Injectable()
 export class RequestsService {
@@ -44,13 +44,19 @@ export class RequestsService {
     if (isNaN(d.getTime())) {
       throw new BadRequestException(`Invalid date format: ${dateStr}`);
     }
-    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    return new Date(
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+    );
   }
 
   /**
    * Helper to calculate inclusive days count between two dates
    */
-  private calculateDaysCount(start: Date, end: Date, type: RequestType): number {
+  private calculateDaysCount(
+    start: Date,
+    end: Date,
+    type: RequestType,
+  ): number {
     if (type === RequestType.HALF_DAY) {
       return 0.5;
     }
@@ -109,11 +115,15 @@ export class RequestsService {
     });
 
     if (!user?.employeeProfile) {
-      throw new BadRequestException('Employee profile required to submit requests');
+      throw new BadRequestException(
+        "Employee profile required to submit requests",
+      );
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException('Inactive or suspended employees cannot submit requests');
+      throw new ForbiddenException(
+        "Inactive or suspended employees cannot submit requests",
+      );
     }
 
     const employeeId = user.employeeProfile.id;
@@ -126,7 +136,9 @@ export class RequestsService {
       });
       if (existingRequest) {
         if (existingRequest.employeeId !== employeeId) {
-          throw new ForbiddenException('Idempotency key collision with another employee');
+          throw new ForbiddenException(
+            "Idempotency key collision with another employee",
+          );
         }
         return existingRequest;
       }
@@ -137,7 +149,9 @@ export class RequestsService {
     const endDate = this.parseDateOnly(dto.endDate);
 
     if (startDate > endDate) {
-      throw new BadRequestException('Start date must be before or equal to end date');
+      throw new BadRequestException(
+        "Start date must be before or equal to end date",
+      );
     }
 
     // 3. Time Validation for hourly permissions
@@ -148,8 +162,13 @@ export class RequestsService {
       dto.startTime &&
       dto.endTime
     ) {
-      if (dto.startTime >= dto.endTime && startDate.getTime() === endDate.getTime()) {
-        throw new BadRequestException('Start time must be strictly before end time');
+      if (
+        dto.startTime >= dto.endTime &&
+        startDate.getTime() === endDate.getTime()
+      ) {
+        throw new BadRequestException(
+          "Start time must be strictly before end time",
+        );
       }
     }
 
@@ -178,7 +197,11 @@ export class RequestsService {
       dto.type === RequestType.LEAVE ||
       dto.type === RequestType.EMERGENCY_LEAVE
     ) {
-      const balance = await this.ensureLeaveBalance(employeeId, dto.type, requestYear);
+      const balance = await this.ensureLeaveBalance(
+        employeeId,
+        dto.type,
+        requestYear,
+      );
       if (balance.remainingDays < daysRequested) {
         throw new BadRequestException(
           `Insufficient leave balance: You have ${balance.remainingDays} days remaining, but requested ${daysRequested} days`,
@@ -220,7 +243,7 @@ export class RequestsService {
       data: {
         userId,
         action: AuditAction.REQUEST_CREATED,
-        entity: 'Request',
+        entity: "Request",
         entityId: request.id,
         payload: {
           type: dto.type,
@@ -238,7 +261,10 @@ export class RequestsService {
   /**
    * 2. Employee History: Get submitted requests for authenticated employee
    */
-  async findMyRequests(employeeProfileId: string, query: Partial<QueryRequestsDto> = {}) {
+  async findMyRequests(
+    employeeProfileId: string,
+    query: Partial<QueryRequestsDto> = {},
+  ) {
     const {
       page = 1,
       limit = 10,
@@ -247,8 +273,8 @@ export class RequestsService {
       startDate,
       endDate,
       search,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = query;
 
     const skip = (page - 1) * limit;
@@ -262,15 +288,19 @@ export class RequestsService {
     if (startDate || endDate) {
       where.AND = [];
       if (startDate) {
-        (where.AND as any[]).push({ endDate: { gte: this.parseDateOnly(startDate) } });
+        (where.AND as any[]).push({
+          endDate: { gte: this.parseDateOnly(startDate) },
+        });
       }
       if (endDate) {
-        (where.AND as any[]).push({ startDate: { lte: this.parseDateOnly(endDate) } });
+        (where.AND as any[]).push({
+          startDate: { lte: this.parseDateOnly(endDate) },
+        });
       }
     }
 
     if (search) {
-      where.reason = { contains: search, mode: 'insensitive' };
+      where.reason = { contains: search, mode: "insensitive" };
     }
 
     const [total, data] = await Promise.all([
@@ -310,7 +340,10 @@ export class RequestsService {
   /**
    * 3. Request Details (IDOR Protected: owner or authorized HR)
    */
-  async findOne(requestId: string, currentUser: { id: string; role: Role; employeeProfileId?: string }) {
+  async findOne(
+    requestId: string,
+    currentUser: { id: string; role: Role; employeeProfileId?: string },
+  ) {
     const request = await this.prisma.request.findUnique({
       where: { id: requestId },
       include: {
@@ -323,7 +356,9 @@ export class RequestsService {
             jobTitle: true,
             department: true,
             workplace: { select: { id: true, name: true, code: true } },
-            schedule: { select: { id: true, name: true, startTime: true, endTime: true } },
+            schedule: {
+              select: { id: true, name: true, startTime: true, endTime: true },
+            },
           },
         },
         approvalSteps: {
@@ -336,13 +371,13 @@ export class RequestsService {
               },
             },
           },
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException("Request not found");
     }
 
     // IDOR Check
@@ -357,7 +392,9 @@ export class RequestsService {
     const isOwner = currentUser.employeeProfileId === request.employeeId;
 
     if (!isHr && !isOwner) {
-      throw new ForbiddenException('You do not have permission to view this request');
+      throw new ForbiddenException(
+        "You do not have permission to view this request",
+      );
     }
 
     return request;
@@ -377,14 +414,16 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException("Request not found");
     }
 
     const isOwner = currentUser.employeeProfileId === request.employeeId;
-    const isHrAdmin = currentUser.role === Role.SUPER_ADMIN || currentUser.role === Role.HR_ADMIN;
+    const isHrAdmin =
+      currentUser.role === Role.SUPER_ADMIN ||
+      currentUser.role === Role.HR_ADMIN;
 
     if (!isOwner && !isHrAdmin) {
-      throw new ForbiddenException('You can only cancel your own requests');
+      throw new ForbiddenException("You can only cancel your own requests");
     }
 
     if (request.status !== RequestStatus.PENDING) {
@@ -398,7 +437,9 @@ export class RequestsService {
         where: { id: requestId },
         data: {
           status: RequestStatus.CANCELLED,
-          rejectionReason: dto?.reason ? `Cancelled: ${dto.reason}` : 'Cancelled by employee',
+          rejectionReason: dto?.reason
+            ? `Cancelled: ${dto.reason}`
+            : "Cancelled by employee",
         },
       });
 
@@ -406,7 +447,7 @@ export class RequestsService {
         data: {
           userId: currentUser.id,
           action: AuditAction.REQUEST_CANCELLED,
-          entity: 'Request',
+          entity: "Request",
           entityId: requestId,
           payload: { reason: dto?.reason },
         },
@@ -433,8 +474,8 @@ export class RequestsService {
       startDate,
       endDate,
       search,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = query;
 
     const skip = (page - 1) * limit;
@@ -453,19 +494,25 @@ export class RequestsService {
     if (startDate || endDate) {
       where.AND = [];
       if (startDate) {
-        (where.AND as any[]).push({ endDate: { gte: this.parseDateOnly(startDate) } });
+        (where.AND as any[]).push({
+          endDate: { gte: this.parseDateOnly(startDate) },
+        });
       }
       if (endDate) {
-        (where.AND as any[]).push({ startDate: { lte: this.parseDateOnly(endDate) } });
+        (where.AND as any[]).push({
+          startDate: { lte: this.parseDateOnly(endDate) },
+        });
       }
     }
 
     if (search) {
       where.OR = [
-        { reason: { contains: search, mode: 'insensitive' } },
-        { employee: { firstName: { contains: search, mode: 'insensitive' } } },
-        { employee: { lastName: { contains: search, mode: 'insensitive' } } },
-        { employee: { employeeCode: { contains: search, mode: 'insensitive' } } },
+        { reason: { contains: search, mode: "insensitive" } },
+        { employee: { firstName: { contains: search, mode: "insensitive" } } },
+        { employee: { lastName: { contains: search, mode: "insensitive" } } },
+        {
+          employee: { employeeCode: { contains: search, mode: "insensitive" } },
+        },
       ];
     }
 
@@ -511,7 +558,11 @@ export class RequestsService {
   /**
    * 6. Approve Request (Transactional: Request + LeaveBalance + Attendance Integration + Audit + Notification)
    */
-  async approve(requestId: string, approverUserId: string, dto?: ApproveRequestDto) {
+  async approve(
+    requestId: string,
+    approverUserId: string,
+    dto?: ApproveRequestDto,
+  ) {
     const request = await this.prisma.request.findUnique({
       where: { id: requestId },
       include: {
@@ -524,11 +575,11 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException("Request not found");
     }
 
     if (request.status === RequestStatus.APPROVED) {
-      throw new BadRequestException('Request is already approved');
+      throw new BadRequestException("Request is already approved");
     }
 
     if (request.status !== RequestStatus.PENDING) {
@@ -540,7 +591,11 @@ export class RequestsService {
     const startDate = new Date(request.startDate);
     const endDate = new Date(request.endDate);
     const requestYear = startDate.getUTCFullYear();
-    const daysRequested = this.calculateDaysCount(startDate, endDate, request.type);
+    const daysRequested = this.calculateDaysCount(
+      startDate,
+      endDate,
+      request.type,
+    );
 
     // Perform atomic transaction
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -555,7 +610,7 @@ export class RequestsService {
             create: {
               approverId: approverUserId,
               status: RequestStatus.APPROVED,
-              comment: dto?.comment || 'Approved by HR',
+              comment: dto?.comment || "Approved by HR",
               actionDate: new Date(),
             },
           },
@@ -595,7 +650,7 @@ export class RequestsService {
           data: {
             userId: approverUserId,
             action: AuditAction.LEAVE_BALANCE_UPDATED,
-            entity: 'LeaveBalance',
+            entity: "LeaveBalance",
             entityId: balance.id,
             payload: {
               employeeId: request.employeeId,
@@ -610,7 +665,13 @@ export class RequestsService {
       // 3. Attendance Integration
       const curr = new Date(startDate.getTime());
       while (curr <= endDate) {
-        const dateOnly = new Date(Date.UTC(curr.getUTCFullYear(), curr.getUTCMonth(), curr.getUTCDate()));
+        const dateOnly = new Date(
+          Date.UTC(
+            curr.getUTCFullYear(),
+            curr.getUTCMonth(),
+            curr.getUTCDate(),
+          ),
+        );
 
         if (
           request.type === RequestType.ANNUAL_LEAVE ||
@@ -630,14 +691,14 @@ export class RequestsService {
             },
             update: {
               status: AttendanceStatus.ON_LEAVE,
-              notes: `Approved ${request.type.replace('_', ' ')}: ${request.reason}`,
+              notes: `Approved ${request.type.replace("_", " ")}: ${request.reason}`,
               verifiedByUserId: approverUserId,
             },
             create: {
               employeeId: request.employeeId,
               date: dateOnly,
               status: AttendanceStatus.ON_LEAVE,
-              notes: `Approved ${request.type.replace('_', ' ')}: ${request.reason}`,
+              notes: `Approved ${request.type.replace("_", " ")}: ${request.reason}`,
               verifiedByUserId: approverUserId,
             },
           });
@@ -677,7 +738,7 @@ export class RequestsService {
             await tx.attendanceRecord.update({
               where: { id: existingRecord.id },
               data: {
-                notes: `Approved ${request.type}: ${request.reason} (${dto?.comment || 'OK'})`,
+                notes: `Approved ${request.type}: ${request.reason} (${dto?.comment || "OK"})`,
                 verifiedByUserId: approverUserId,
               },
             });
@@ -692,7 +753,7 @@ export class RequestsService {
         data: {
           userId: approverUserId,
           action: AuditAction.REQUEST_APPROVED,
-          entity: 'Request',
+          entity: "Request",
           entityId: requestId,
           payload: {
             comment: dto?.comment,
@@ -710,14 +771,16 @@ export class RequestsService {
       if (request.employee?.user?.id) {
         await this.notificationsService.sendNotification(
           request.employee.user.id,
-          'Request Approved',
-          `Your ${request.type.replace('_', ' ')} request has been approved.`,
+          "Request Approved",
+          `Your ${request.type.replace("_", " ")} request has been approved.`,
           NotificationType.REQUEST_STATUS_UPDATE,
           { requestId: request.id, status: RequestStatus.APPROVED },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch notification for request ${requestId}: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch notification for request ${requestId}: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return updated;
@@ -726,9 +789,13 @@ export class RequestsService {
   /**
    * 7. Reject Request (Mandatory reason, Audit, Notification)
    */
-  async reject(requestId: string, approverUserId: string, dto: RejectRequestDto) {
+  async reject(
+    requestId: string,
+    approverUserId: string,
+    dto: RejectRequestDto,
+  ) {
     if (!dto?.reason || dto.reason.trim().length === 0) {
-      throw new BadRequestException('Rejection reason is required');
+      throw new BadRequestException("Rejection reason is required");
     }
 
     const request = await this.prisma.request.findUnique({
@@ -743,11 +810,11 @@ export class RequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Request not found');
+      throw new NotFoundException("Request not found");
     }
 
     if (request.status === RequestStatus.REJECTED) {
-      throw new BadRequestException('Request is already rejected');
+      throw new BadRequestException("Request is already rejected");
     }
 
     if (request.status !== RequestStatus.PENDING) {
@@ -779,7 +846,7 @@ export class RequestsService {
         data: {
           userId: approverUserId,
           action: AuditAction.REQUEST_REJECTED,
-          entity: 'Request',
+          entity: "Request",
           entityId: requestId,
           payload: {
             reason: dto.reason,
@@ -796,14 +863,20 @@ export class RequestsService {
       if (request.employee?.user?.id) {
         await this.notificationsService.sendNotification(
           request.employee.user.id,
-          'Request Rejected',
-          `Your ${request.type.replace('_', ' ')} request was rejected: ${dto.reason}`,
+          "Request Rejected",
+          `Your ${request.type.replace("_", " ")} request was rejected: ${dto.reason}`,
           NotificationType.REQUEST_STATUS_UPDATE,
-          { requestId: request.id, status: RequestStatus.REJECTED, reason: dto.reason },
+          {
+            requestId: request.id,
+            status: RequestStatus.REJECTED,
+            reason: dto.reason,
+          },
         );
       }
     } catch (notifErr: any) {
-      this.logger.warn(`Failed to dispatch rejection notification for request ${requestId}: ${notifErr?.message || notifErr}`);
+      this.logger.warn(
+        `Failed to dispatch rejection notification for request ${requestId}: ${notifErr?.message || notifErr}`,
+      );
     }
 
     return updated;
@@ -814,15 +887,15 @@ export class RequestsService {
    */
   async processRequest(
     requestId: string,
-    action: 'APPROVE' | 'REJECT',
+    action: "APPROVE" | "REJECT",
     approverUserId: string,
     comment?: string,
   ) {
-    if (action === 'APPROVE') {
+    if (action === "APPROVE") {
       return this.approve(requestId, approverUserId, { comment });
     } else {
       return this.reject(requestId, approverUserId, {
-        reason: comment || 'Rejected by HR',
+        reason: comment || "Rejected by HR",
       });
     }
   }
@@ -834,16 +907,28 @@ export class RequestsService {
     const targetYear = year || new Date().getUTCFullYear();
 
     // Ensure default annual leave balance exists
-    await this.ensureLeaveBalance(employeeProfileId, RequestType.ANNUAL_LEAVE, targetYear);
-    await this.ensureLeaveBalance(employeeProfileId, RequestType.SICK_LEAVE, targetYear);
-    await this.ensureLeaveBalance(employeeProfileId, RequestType.EMERGENCY_LEAVE, targetYear);
+    await this.ensureLeaveBalance(
+      employeeProfileId,
+      RequestType.ANNUAL_LEAVE,
+      targetYear,
+    );
+    await this.ensureLeaveBalance(
+      employeeProfileId,
+      RequestType.SICK_LEAVE,
+      targetYear,
+    );
+    await this.ensureLeaveBalance(
+      employeeProfileId,
+      RequestType.EMERGENCY_LEAVE,
+      targetYear,
+    );
 
     return this.prisma.leaveBalance.findMany({
       where: {
         employeeId: employeeProfileId,
         year: targetYear,
       },
-      orderBy: { leaveType: 'asc' },
+      orderBy: { leaveType: "asc" },
     });
   }
 
@@ -853,14 +938,18 @@ export class RequestsService {
   async getEmployeeLeaveBalances(employeeId: string, year?: number) {
     const targetYear = year || new Date().getUTCFullYear();
 
-    await this.ensureLeaveBalance(employeeId, RequestType.ANNUAL_LEAVE, targetYear);
+    await this.ensureLeaveBalance(
+      employeeId,
+      RequestType.ANNUAL_LEAVE,
+      targetYear,
+    );
 
     return this.prisma.leaveBalance.findMany({
       where: {
         employeeId,
         year: targetYear,
       },
-      orderBy: { leaveType: 'asc' },
+      orderBy: { leaveType: "asc" },
     });
   }
 
@@ -879,7 +968,9 @@ export class RequestsService {
     });
 
     if (existing) {
-      throw new BadRequestException('Leave balance for this employee, type, and year already exists');
+      throw new BadRequestException(
+        "Leave balance for this employee, type, and year already exists",
+      );
     }
 
     const balance = await this.prisma.leaveBalance.create({
@@ -898,7 +989,7 @@ export class RequestsService {
       data: {
         userId: currentUserId,
         action: AuditAction.LEAVE_BALANCE_UPDATED,
-        entity: 'LeaveBalance',
+        entity: "LeaveBalance",
         entityId: balance.id,
         payload: { ...dto },
       },
@@ -910,17 +1001,23 @@ export class RequestsService {
   /**
    * 11. Leave Balance: Adjust existing leave balance (HR only)
    */
-  async adjustLeaveBalance(id: string, dto: AdjustLeaveBalanceDto, currentUserId: string) {
+  async adjustLeaveBalance(
+    id: string,
+    dto: AdjustLeaveBalanceDto,
+    currentUserId: string,
+  ) {
     const existing = await this.prisma.leaveBalance.findUnique({
       where: { id },
     });
 
     if (!existing) {
-      throw new NotFoundException('Leave balance record not found');
+      throw new NotFoundException("Leave balance record not found");
     }
 
-    const totalDays = dto.totalDays !== undefined ? dto.totalDays : existing.totalDays;
-    const usedDays = dto.usedDays !== undefined ? dto.usedDays : existing.usedDays;
+    const totalDays =
+      dto.totalDays !== undefined ? dto.totalDays : existing.totalDays;
+    const usedDays =
+      dto.usedDays !== undefined ? dto.usedDays : existing.usedDays;
     const remainingDays = Math.max(0, totalDays - usedDays);
 
     const updated = await this.prisma.leaveBalance.update({
@@ -936,7 +1033,7 @@ export class RequestsService {
       data: {
         userId: currentUserId,
         action: AuditAction.LEAVE_BALANCE_UPDATED,
-        entity: 'LeaveBalance',
+        entity: "LeaveBalance",
         entityId: id,
         payload: {
           previousTotal: existing.totalDays,

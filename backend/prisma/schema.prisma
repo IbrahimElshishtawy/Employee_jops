@@ -90,8 +90,49 @@ enum AdvanceStatus {
   PENDING
   APPROVED
   REJECTED
+  ACTIVE
+  PARTIALLY_PAID
   PAID
   CANCELLED
+}
+
+enum InstallmentStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum PayrollPeriodStatus {
+  OPEN
+  CALCULATING
+  REVIEW
+  FINALIZED
+  LOCKED
+}
+
+enum PayrollRecordStatus {
+  DRAFT
+  CALCULATED
+  REVIEW
+  FINALIZED
+  PAID
+}
+
+enum PayrollLineItemType {
+  BASIC_SALARY
+  ALLOWANCE
+  BONUS
+  OVERTIME
+  LATE_DEDUCTION
+  EARLY_LEAVE_DEDUCTION
+  ABSENCE_DEDUCTION
+  UNPAID_LEAVE_DEDUCTION
+  ADVANCE_INSTALLMENT
+  MANUAL_DEDUCTION
+  TAX_DEDUCTION
+  INSURANCE_DEDUCTION
+  OTHER_DEDUCTION
 }
 
 enum DeductionType {
@@ -153,6 +194,18 @@ enum AuditAction {
   REQUEST_MODIFIED
   LEAVE_BALANCE_UPDATED
   ATTENDANCE_UPDATED_FROM_REQUEST
+  SALARY_CREATED
+  SALARY_UPDATED
+  SALARY_CHANGED
+  ADVANCE_CREATED
+  ADVANCE_APPROVED
+  ADVANCE_REJECTED
+  ADVANCE_PAYMENT_RECORDED
+  DEDUCTION_CREATED
+  PAYROLL_CALCULATED
+  PAYROLL_FINALIZED
+  PAYROLL_CORRECTED
+  PAYROLL_LOCKED
 }
 
 // ============================================================
@@ -240,11 +293,14 @@ model EmployeeProfile {
   schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
   // Relationships
-  attendances   AttendanceRecord[]
-  requests      Request[]
-  leaveBalances LeaveBalance[]
-  advances      FinancialAdvance[]
-  deductions    FinancialDeduction[]
+  attendances    AttendanceRecord[]
+  requests       Request[]
+  leaveBalances  LeaveBalance[]
+  salaryProfile  SalaryProfile?
+  salaryHistory  SalaryHistory[]
+  advances       FinancialAdvance[]
+  deductions     FinancialDeduction[]
+  payrollRecords PayrollRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -469,38 +525,110 @@ model ApprovalStep {
 }
 
 // ============================================================
-// PAYROLL: ADVANCES & DEDUCTIONS
+// PAYROLL: SALARY PROFILES & HISTORY
+// ============================================================
+
+model SalaryProfile {
+  id            String          @id @default(uuid())
+  employeeId    String          @unique
+  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  basicSalary   Decimal         @db.Decimal(12, 2)
+  allowances    Decimal         @default(0) @db.Decimal(12, 2)
+  currency      String          @default("EGP")
+  effectiveFrom DateTime        @default(now())
+  effectiveTo   DateTime?
+  status        UserStatus      @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@map("salary_profiles")
+}
+
+model SalaryHistory {
+  id             String          @id @default(uuid())
+  employeeId     String
+  employee       EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  oldBasicSalary Decimal         @db.Decimal(12, 2)
+  newBasicSalary Decimal         @db.Decimal(12, 2)
+  oldAllowances  Decimal         @db.Decimal(12, 2)
+  newAllowances  Decimal         @db.Decimal(12, 2)
+  effectiveDate  DateTime
+  changedById    String
+  reason         String
+
+  createdAt DateTime @default(now())
+
+  @@index([employeeId])
+  @@index([effectiveDate])
+  @@map("salary_histories")
+}
+
+// ============================================================
+// PAYROLL: ADVANCES & INSTALLMENTS
 // ============================================================
 
 model FinancialAdvance {
-  id                    String        @id @default(uuid())
+  id                    String              @id @default(uuid())
+  idempotencyKey        String?             @unique
   employeeId            String
-  employee              EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  amount                Decimal       @db.Decimal(10, 2)
-  approvedAmount        Decimal?      @db.Decimal(10, 2)
-  requestedInstallments Int           @default(1)
+  employee              EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  amount                Decimal             @db.Decimal(12, 2)
+  approvedAmount        Decimal?            @db.Decimal(12, 2)
+  paidAmount            Decimal             @default(0) @db.Decimal(12, 2)
+  remainingAmount       Decimal             @db.Decimal(12, 2)
+  requestedInstallments Int                 @default(1)
   reason                String
-  status                AdvanceStatus @default(PENDING)
+  rejectionReason       String?
+  status                AdvanceStatus       @default(PENDING)
   approvedById          String?
   approvedAt            DateTime?
   remarks               String?
+
+  installments          AdvanceInstallment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([employeeId])
   @@index([status])
+  @@index([idempotencyKey])
   @@map("financial_advances")
 }
 
+model AdvanceInstallment {
+  id                String            @id @default(uuid())
+  advanceId         String
+  advance           FinancialAdvance  @relation(fields: [advanceId], references: [id], onDelete: Cascade)
+  installmentNumber Int
+  amount            Decimal           @db.Decimal(12, 2)
+  paidAmount        Decimal           @default(0) @db.Decimal(12, 2)
+  remainingAmount   Decimal           @db.Decimal(12, 2)
+  dueDate           DateTime          @db.Date
+  status            InstallmentStatus @default(PENDING)
+  paidAt            DateTime?
+  payrollPeriodId   String?
+  notes             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([advanceId, installmentNumber])
+  @@index([advanceId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("advance_installments")
+}
+
 model FinancialDeduction {
-  id            String        @id @default(uuid())
+  id            String          @id @default(uuid())
   employeeId    String
   employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   type          DeductionType
-  amount        Decimal       @db.Decimal(10, 2)
+  amount        Decimal         @db.Decimal(12, 2)
   reason        String
-  effectiveDate DateTime      @db.Date
+  effectiveDate DateTime        @db.Date
   createdById   String?
 
   createdAt DateTime @default(now())
@@ -509,6 +637,95 @@ model FinancialDeduction {
   @@index([employeeId])
   @@index([type])
   @@map("financial_deductions")
+}
+
+// ============================================================
+// PAYROLL: PERIODS, RECORDS & LINE ITEMS
+// ============================================================
+
+model PayrollPeriod {
+  id            String              @id @default(uuid())
+  name          String              @unique // e.g. "2026-08"
+  startDate     DateTime            @db.Date
+  endDate       DateTime            @db.Date
+  status        PayrollPeriodStatus @default(OPEN)
+  finalizedById String?
+  finalizedAt   DateTime?
+
+  payrollRecords PayrollRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("payroll_periods")
+}
+
+model PayrollRecord {
+  id              String              @id @default(uuid())
+  employeeId      String
+  employee        EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod       @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
+
+  basicSalary     Decimal             @db.Decimal(12, 2)
+  allowances      Decimal             @db.Decimal(12, 2)
+  grossSalary     Decimal             @db.Decimal(12, 2)
+  totalDeductions Decimal             @db.Decimal(12, 2)
+  netSalary       Decimal             @db.Decimal(12, 2)
+  status          PayrollRecordStatus @default(DRAFT)
+
+  calculatedAt    DateTime            @default(now())
+  finalizedAt     DateTime?
+
+  lineItems       PayrollLineItem[]
+  adjustments     PayrollAdjustment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, payrollPeriodId])
+  @@index([employeeId])
+  @@index([payrollPeriodId])
+  @@index([status])
+  @@map("payroll_records")
+}
+
+model PayrollLineItem {
+  id              String              @id @default(uuid())
+  payrollRecordId String
+  payrollRecord   PayrollRecord       @relation(fields: [payrollRecordId], references: [id], onDelete: Cascade)
+  type            PayrollLineItemType
+  name            String
+  description     String?
+  amount          Decimal             @db.Decimal(12, 2)
+  isDeduction     Boolean             @default(false)
+  source          String?             // "ATTENDANCE", "REQUEST", "ADVANCE", "MANUAL", "SALARY"
+  sourceId        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([payrollRecordId])
+  @@index([type])
+  @@map("payroll_line_items")
+}
+
+model PayrollAdjustment {
+  id              String              @id @default(uuid())
+  payrollRecordId String
+  payrollRecord   PayrollRecord       @relation(fields: [payrollRecordId], references: [id], onDelete: Cascade)
+  type            PayrollLineItemType
+  amount          Decimal             @db.Decimal(12, 2)
+  isDeduction     Boolean             @default(false)
+  reason          String
+  status          RequestStatus       @default(APPROVED)
+  approvedById    String
+
+  createdAt DateTime @default(now())
+
+  @@index([payrollRecordId])
+  @@map("payroll_adjustments")
 }
 
 // ============================================================

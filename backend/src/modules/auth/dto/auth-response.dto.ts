@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
-import { AccountState } from '../../../common/enums/account-state.enum';
+import { ApiProperty } from "@nestjs/swagger";
+import { Role, UserStatus } from "@prisma/client";
+import { AccountState } from "../../../common/enums/account-state.enum";
 
 export class UserProfileResponseDto {
   @ApiProperty()
@@ -15,10 +15,15 @@ export class UserProfileResponseDto {
   @ApiProperty({ enum: UserStatus })
   status: UserStatus;
 
-  @ApiProperty({ enum: AccountState, description: 'Authoritative account state' })
+  @ApiProperty({
+    enum: AccountState,
+    description: "Authoritative account state",
+  })
   accountState: AccountState;
 
-  @ApiProperty({ description: 'Whether employee completed initial onboarding profile' })
+  @ApiProperty({
+    description: "Whether employee completed initial onboarding profile",
+  })
   isProfileComplete: boolean;
 
   @ApiProperty({ required: false })
@@ -50,13 +55,16 @@ export class UserProfileResponseDto {
 }
 
 export class AuthResponseDto {
-  @ApiProperty({ description: 'Short-lived JWT Access Token' })
+  @ApiProperty({ description: "Short-lived JWT Access Token" })
   accessToken: string;
 
-  @ApiProperty({ description: 'Long-lived Refresh Token' })
+  @ApiProperty({ description: "Long-lived Refresh Token" })
   refreshToken: string;
 
-  @ApiProperty({ description: 'Access token expiration in seconds', example: 900 })
+  @ApiProperty({
+    description: "Access token expiration in seconds",
+    example: 900,
+  })
   expiresIn: number;
 
   @ApiProperty({ type: UserProfileResponseDto })

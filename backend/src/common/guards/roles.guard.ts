@@ -1,7 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Role } from '@prisma/client';
-import { ROLES_KEY } from '../decorators/roles.decorator';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Role } from "@prisma/client";
+import { ROLES_KEY } from "../decorators/roles.decorator";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -19,7 +24,9 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
     if (!user || !user.role) {
-      throw new ForbiddenException('Access denied: User not authenticated or role missing');
+      throw new ForbiddenException(
+        "Access denied: User not authenticated or role missing",
+      );
     }
 
     // SUPER_ADMIN has full access
@@ -29,7 +36,9 @@ export class RolesGuard implements CanActivate {
 
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
-      throw new ForbiddenException(`Access denied: Requires one of [${requiredRoles.join(', ')}]`);
+      throw new ForbiddenException(
+        `Access denied: Requires one of [${requiredRoles.join(", ")}]`,
+      );
     }
 
     return true;

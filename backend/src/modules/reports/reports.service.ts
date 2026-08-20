@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AttendanceStatus, RequestStatus, UserStatus } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { AttendanceStatus, RequestStatus, UserStatus } from "@prisma/client";
 
 @Injectable()
 export class ReportsService {
@@ -25,7 +25,7 @@ export class ReportsService {
         select: { status: true },
       }),
       this.prisma.request.count({ where: { status: RequestStatus.PENDING } }),
-      this.prisma.financialAdvance.count({ where: { status: 'PENDING' } }),
+      this.prisma.financialAdvance.count({ where: { status: "PENDING" } }),
       this.prisma.workplace.count({ where: { isActive: true } }),
     ]);
 
@@ -35,7 +35,10 @@ export class ReportsService {
     const lateCount = todayAttendances.filter(
       (a) => a.status === AttendanceStatus.LATE,
     ).length;
-    const absentCount = Math.max(0, totalEmployees - (presentCount + lateCount));
+    const absentCount = Math.max(
+      0,
+      totalEmployees - (presentCount + lateCount),
+    );
 
     return {
       employees: {
@@ -58,7 +61,7 @@ export class ReportsService {
 
   async getDepartmentStats() {
     const employees = await this.prisma.employeeProfile.groupBy({
-      by: ['department'],
+      by: ["department"],
       _count: { id: true },
     });
 

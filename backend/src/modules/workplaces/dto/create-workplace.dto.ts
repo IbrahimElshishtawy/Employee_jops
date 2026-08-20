@@ -1,24 +1,24 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateWorkplaceDto {
-  @ApiProperty({ example: 'Riyadh HQ' })
+  @ApiProperty({ example: "Riyadh HQ" })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'RYD-01' })
+  @ApiProperty({ example: "RYD-01" })
   @IsString()
   @IsNotEmpty()
   code: string;
 
-  @ApiPropertyOptional({ example: 'King Fahd Road, Riyadh' })
+  @ApiPropertyOptional({ example: "King Fahd Road, Riyadh" })
   @IsOptional()
   @IsString()
   address?: string;
@@ -36,12 +36,12 @@ export class CreateWorkplaceDto {
   @IsNumber()
   radiusMeters?: number;
 
-  @ApiPropertyOptional({ example: 'aa:bb:cc:dd:ee:ff' })
+  @ApiPropertyOptional({ example: "aa:bb:cc:dd:ee:ff" })
   @IsOptional()
   @IsString()
   wifiBssid?: string;
 
-  @ApiPropertyOptional({ example: '192.168.1.1' })
+  @ApiPropertyOptional({ example: "192.168.1.1" })
   @IsOptional()
   @IsString()
   wifiIp?: string;

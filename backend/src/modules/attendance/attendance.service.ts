@@ -4,14 +4,14 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { CheckInDto } from './dto/check-in.dto';
-import { CheckOutDto } from './dto/check-out.dto';
-import { ManualAttendanceDto } from './dto/manual-attendance.dto';
-import { QueryAttendanceDto } from './dto/query-attendance.dto';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { CheckInDto } from "./dto/check-in.dto";
+import { CheckOutDto } from "./dto/check-out.dto";
+import { ManualAttendanceDto } from "./dto/manual-attendance.dto";
+import { QueryAttendanceDto } from "./dto/query-attendance.dto";
 import {
   AttendanceStatus,
   AttendanceEventType,
@@ -19,7 +19,7 @@ import {
   NotificationType,
   Prisma,
   UserStatus,
-} from '@prisma/client';
+} from "@prisma/client";
 
 export const DEFAULT_MAX_ALLOWED_GPS_ACCURACY_METERS = 50.0;
 
@@ -37,8 +37,14 @@ export class AttendanceService {
    * Retrieves configurable max GPS accuracy threshold from environment/config
    */
   private getMaxGpsAccuracyMeters(): number {
-    const configValue = this.configService?.get<string | number>('ATTENDANCE_MAX_GPS_ACCURACY_METERS');
-    if (configValue !== undefined && configValue !== null && configValue !== '') {
+    const configValue = this.configService?.get<string | number>(
+      "ATTENDANCE_MAX_GPS_ACCURACY_METERS",
+    );
+    if (
+      configValue !== undefined &&
+      configValue !== null &&
+      configValue !== ""
+    ) {
       const parsed = Number(configValue);
       if (!isNaN(parsed) && parsed > 0) {
         return parsed;
@@ -53,16 +59,16 @@ export class AttendanceService {
    */
   private sanitizeTelemetry(data: Record<string, any>): Record<string, any> {
     const sensitiveKeys = [
-      'token',
-      'password',
-      'secret',
-      'biometrictemplate',
-      'faceid',
-      'fingerprint',
-      'auth',
-      'authorization',
-      'accesstoken',
-      'refreshtoken',
+      "token",
+      "password",
+      "secret",
+      "biometrictemplate",
+      "faceid",
+      "fingerprint",
+      "auth",
+      "authorization",
+      "accesstoken",
+      "refreshtoken",
     ];
     const sanitized: Record<string, any> = {};
     for (const [key, value] of Object.entries(data)) {
@@ -90,51 +96,67 @@ export class AttendanceService {
     });
 
     if (!user || !user.employeeProfile) {
-      throw new BadRequestException('Employee profile required to register attendance');
+      throw new BadRequestException(
+        "Employee profile required to register attendance",
+      );
     }
 
     if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException('EMPLOYEE_SUSPENDED: Your account is suspended');
+      throw new ForbiddenException(
+        "EMPLOYEE_SUSPENDED: Your account is suspended",
+      );
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException('EMPLOYEE_INACTIVE: Your account is inactive');
+      throw new ForbiddenException(
+        "EMPLOYEE_INACTIVE: Your account is inactive",
+      );
     }
 
     const employee = user.employeeProfile;
 
     if (!employee.isProfileComplete) {
-      throw new BadRequestException('PROFILE_INCOMPLETE: Please complete your onboarding profile first');
+      throw new BadRequestException(
+        "PROFILE_INCOMPLETE: Please complete your onboarding profile first",
+      );
     }
 
     if (!employee.workplace) {
-      throw new BadRequestException('WORKPLACE_NOT_ASSIGNED: No workplace assigned to your profile');
+      throw new BadRequestException(
+        "WORKPLACE_NOT_ASSIGNED: No workplace assigned to your profile",
+      );
     }
 
     if (!employee.workplace.isActive) {
-      throw new BadRequestException('WORKPLACE_INACTIVE: Assigned workplace is currently inactive');
+      throw new BadRequestException(
+        "WORKPLACE_INACTIVE: Assigned workplace is currently inactive",
+      );
     }
 
     if (!employee.schedule) {
-      throw new BadRequestException('SCHEDULE_NOT_ASSIGNED: No work schedule assigned to your profile');
+      throw new BadRequestException(
+        "SCHEDULE_NOT_ASSIGNED: No work schedule assigned to your profile",
+      );
     }
 
     // 1. Check Working Day via Server Clock
     const now = new Date();
     const currentDay = now.getDay(); // 0=Sunday, 1=Monday...
     if (!employee.schedule.workingDays.includes(currentDay)) {
-      await this.logRejection(userId, 'NON_WORKING_DAY', {
+      await this.logRejection(userId, "NON_WORKING_DAY", {
         currentDay,
         workingDays: employee.schedule.workingDays,
         requestId: dto.requestId,
       });
-      throw new BadRequestException('NON_WORKING_DAY: Today is not configured as a working day in your schedule');
+      throw new BadRequestException(
+        "NON_WORKING_DAY: Today is not configured as a working day in your schedule",
+      );
     }
 
     // 2. GPS Accuracy Check (Configurable threshold distinct from Geofence distance)
     const maxAccuracy = this.getMaxGpsAccuracyMeters();
     if (dto.accuracy !== undefined && dto.accuracy > maxAccuracy) {
-      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', {
+      await this.logRejection(userId, "GPS_ACCURACY_TOO_LOW", {
         accuracy: dto.accuracy,
         maxAllowedAccuracy: maxAccuracy,
         requestId: dto.requestId,
@@ -155,7 +177,7 @@ export class AttendanceService {
     const allowedRadiusMeters = employee.workplace.radiusMeters;
     const isWithinGeofence = distanceMeters <= allowedRadiusMeters;
     if (!isWithinGeofence) {
-      await this.logRejection(userId, 'OUTSIDE_WORKPLACE', {
+      await this.logRejection(userId, "OUTSIDE_WORKPLACE", {
         distanceMeters,
         allowedRadiusMeters,
         workplaceName: employee.workplace.name,
@@ -182,12 +204,15 @@ export class AttendanceService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [schedHours, schedMins] = employee.schedule.startTime.split(':').map(Number);
+    const [schedHours, schedMins] = employee.schedule.startTime
+      .split(":")
+      .map(Number);
     const scheduledCheckIn = new Date();
     scheduledCheckIn.setHours(schedHours, schedMins, 0, 0);
 
     const graceLimit = new Date(
-      scheduledCheckIn.getTime() + employee.schedule.graceMinutesCheckIn * 60000,
+      scheduledCheckIn.getTime() +
+        employee.schedule.graceMinutesCheckIn * 60000,
     );
 
     let status: AttendanceStatus = AttendanceStatus.PRESENT;
@@ -195,7 +220,9 @@ export class AttendanceService {
 
     if (now > graceLimit) {
       status = AttendanceStatus.LATE;
-      lateMinutes = Math.round((now.getTime() - scheduledCheckIn.getTime()) / 60000);
+      lateMinutes = Math.round(
+        (now.getTime() - scheduledCheckIn.getTime()) / 60000,
+      );
     }
 
     // 6. Atomic Database Transaction: Idempotency, Record creation, Event logging, Audit trail
@@ -220,7 +247,9 @@ export class AttendanceService {
       });
 
       if (existing && existing.checkInTime) {
-        throw new BadRequestException('ALREADY_CHECKED_IN: Attendance record for today has already been checked in');
+        throw new BadRequestException(
+          "ALREADY_CHECKED_IN: Attendance record for today has already been checked in",
+        );
       }
 
       const createdRecord = await tx.attendanceRecord.upsert({
@@ -274,7 +303,11 @@ export class AttendanceService {
           accuracy: dto.accuracy,
           distanceMeters,
           isWithinGeofence: true,
-          metadata: this.sanitizeTelemetry({ status, lateMinutes, isSuspicious }),
+          metadata: this.sanitizeTelemetry({
+            status,
+            lateMinutes,
+            isSuspicious,
+          }),
         },
       });
 
@@ -283,7 +316,7 @@ export class AttendanceService {
         data: {
           userId,
           action: AuditAction.ATTENDANCE_CHECK_IN,
-          entity: 'AttendanceRecord',
+          entity: "AttendanceRecord",
           entityId: createdRecord.id,
           payload: this.sanitizeTelemetry({
             status,
@@ -304,12 +337,16 @@ export class AttendanceService {
       this.notificationsService
         .sendNotification(
           userId,
-          'Check-In Successful',
-          `Checked in at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${status})`,
+          "Check-In Successful",
+          `Checked in at ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${status})`,
           NotificationType.ATTENDANCE_REMINDER,
           { recordId: record.id, status },
         )
-        .catch((e) => this.logger.warn(`Failed to dispatch checkin notification: ${e.message}`));
+        .catch((e) =>
+          this.logger.warn(
+            `Failed to dispatch checkin notification: ${e.message}`,
+          ),
+        );
     } catch (err: any) {
       this.logger.warn(`Notification dispatch error: ${err.message}`);
     }
@@ -334,7 +371,7 @@ export class AttendanceService {
     });
 
     if (!user || !user.employeeProfile) {
-      throw new BadRequestException('Employee profile required');
+      throw new BadRequestException("Employee profile required");
     }
 
     const employee = user.employeeProfile;
@@ -345,7 +382,7 @@ export class AttendanceService {
     // 1. GPS Accuracy Check
     const maxAccuracy = this.getMaxGpsAccuracyMeters();
     if (dto.accuracy !== undefined && dto.accuracy > maxAccuracy) {
-      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', {
+      await this.logRejection(userId, "GPS_ACCURACY_TOO_LOW", {
         accuracy: dto.accuracy,
         maxAllowedAccuracy: maxAccuracy,
         requestId: dto.requestId,
@@ -366,11 +403,15 @@ export class AttendanceService {
       });
 
       if (!record || !record.checkInTime) {
-        throw new BadRequestException('NO_ACTIVE_CHECK_IN: You must check in first before checking out');
+        throw new BadRequestException(
+          "NO_ACTIVE_CHECK_IN: You must check in first before checking out",
+        );
       }
 
       if (record.checkOutTime) {
-        throw new BadRequestException('ALREADY_CHECKED_OUT: You have already checked out today');
+        throw new BadRequestException(
+          "ALREADY_CHECKED_OUT: You have already checked out today",
+        );
       }
 
       let isWithinGeofence = true;
@@ -391,12 +432,16 @@ export class AttendanceService {
 
       let earlyLeaveMinutes = 0;
       if (employee.schedule) {
-        const [endHours, endMins] = employee.schedule.endTime.split(':').map(Number);
+        const [endHours, endMins] = employee.schedule.endTime
+          .split(":")
+          .map(Number);
         const scheduledCheckOut = new Date();
         scheduledCheckOut.setHours(endHours, endMins, 0, 0);
 
         if (now < scheduledCheckOut) {
-          earlyLeaveMinutes = Math.round((scheduledCheckOut.getTime() - now.getTime()) / 60000);
+          earlyLeaveMinutes = Math.round(
+            (scheduledCheckOut.getTime() - now.getTime()) / 60000,
+          );
         }
       }
 
@@ -425,7 +470,10 @@ export class AttendanceService {
           accuracy: dto.accuracy,
           distanceMeters,
           isWithinGeofence,
-          metadata: this.sanitizeTelemetry({ workDurationMinutes, earlyLeaveMinutes }),
+          metadata: this.sanitizeTelemetry({
+            workDurationMinutes,
+            earlyLeaveMinutes,
+          }),
         },
       });
 
@@ -434,7 +482,7 @@ export class AttendanceService {
         data: {
           userId,
           action: AuditAction.ATTENDANCE_CHECK_OUT,
-          entity: 'AttendanceRecord',
+          entity: "AttendanceRecord",
           entityId: record.id,
           payload: this.sanitizeTelemetry({
             workDurationMinutes,
@@ -454,12 +502,19 @@ export class AttendanceService {
       this.notificationsService
         .sendNotification(
           userId,
-          'Check-Out Successful',
-          `Checked out at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${updatedRecord.workDurationMinutes} mins worked)`,
+          "Check-Out Successful",
+          `Checked out at ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${updatedRecord.workDurationMinutes} mins worked)`,
           NotificationType.ATTENDANCE_REMINDER,
-          { recordId: updatedRecord.id, workDurationMinutes: updatedRecord.workDurationMinutes },
+          {
+            recordId: updatedRecord.id,
+            workDurationMinutes: updatedRecord.workDurationMinutes,
+          },
         )
-        .catch((e) => this.logger.warn(`Failed to dispatch checkout notification: ${e.message}`));
+        .catch((e) =>
+          this.logger.warn(
+            `Failed to dispatch checkout notification: ${e.message}`,
+          ),
+        );
     } catch (err: any) {
       this.logger.warn(`Notification dispatch error: ${err.message}`);
     }
@@ -477,7 +532,7 @@ export class AttendanceService {
     });
 
     if (!employee) {
-      throw new NotFoundException('Target employee profile not found');
+      throw new NotFoundException("Target employee profile not found");
     }
 
     const targetDate = new Date(dto.date);
@@ -504,7 +559,13 @@ export class AttendanceService {
       });
 
       const isUpdate = Boolean(existing);
-      const oldState = existing ? { status: existing.status, checkInTime: existing.checkInTime, checkOutTime: existing.checkOutTime } : null;
+      const oldState = existing
+        ? {
+            status: existing.status,
+            checkInTime: existing.checkInTime,
+            checkOutTime: existing.checkOutTime,
+          }
+        : null;
 
       const record = await tx.attendanceRecord.upsert({
         where: {
@@ -517,7 +578,8 @@ export class AttendanceService {
           status: dto.status,
           checkInTime: checkInDate ?? undefined,
           checkOutTime: checkOutDate ?? undefined,
-          workDurationMinutes: workDurationMinutes || existing?.workDurationMinutes,
+          workDurationMinutes:
+            workDurationMinutes || existing?.workDurationMinutes,
           isManualEntry: true,
           manualCorrectionReason: dto.reason,
           manualCorrectedByUserId: hrUserId,
@@ -546,7 +608,11 @@ export class AttendanceService {
             actorUserId: hrUserId,
             targetEmployeeId: employee.id,
             oldState,
-            newState: { status: dto.status, checkInTime: checkInDate, checkOutTime: checkOutDate },
+            newState: {
+              status: dto.status,
+              checkInTime: checkInDate,
+              checkOutTime: checkOutDate,
+            },
             isUpdate,
           }),
         },
@@ -559,7 +625,7 @@ export class AttendanceService {
           action: isUpdate
             ? AuditAction.MANUAL_ATTENDANCE_UPDATED
             : AuditAction.MANUAL_ATTENDANCE_CREATED,
-          entity: 'AttendanceRecord',
+          entity: "AttendanceRecord",
           entityId: record.id,
           payload: this.sanitizeTelemetry({
             actorUserId: hrUserId,
@@ -567,7 +633,11 @@ export class AttendanceService {
             date: dto.date,
             reason: dto.reason,
             oldState,
-            newState: { status: dto.status, checkInTime: checkInDate, checkOutTime: checkOutDate },
+            newState: {
+              status: dto.status,
+              checkInTime: checkInDate,
+              checkOutTime: checkOutDate,
+            },
           }),
         },
       });
@@ -577,12 +647,16 @@ export class AttendanceService {
         this.notificationsService
           .sendNotification(
             employee.user.id,
-            'Attendance Record Adjusted by HR',
+            "Attendance Record Adjusted by HR",
             `Your attendance for ${dto.date} was updated to ${dto.status}. Reason: ${dto.reason}`,
             NotificationType.SYSTEM_ALERT,
             { recordId: record.id, date: dto.date },
           )
-          .catch((e) => this.logger.warn(`Failed to dispatch adjustment notification: ${e.message}`));
+          .catch((e) =>
+            this.logger.warn(
+              `Failed to dispatch adjustment notification: ${e.message}`,
+            ),
+          );
       } catch (err: any) {
         this.logger.warn(`Notification dispatch error: ${err.message}`);
       }
@@ -601,7 +675,7 @@ export class AttendanceService {
     });
 
     if (!user?.employeeProfile) {
-      throw new NotFoundException('Employee profile not found');
+      throw new NotFoundException("Employee profile not found");
     }
 
     return this.queryAttendanceRecords({
@@ -613,13 +687,16 @@ export class AttendanceService {
   /**
    * HR Query: Get attendance for specific employee with IDOR prevention
    */
-  async getEmployeeAttendance(employeeId: string, query: QueryAttendanceDto = {}) {
+  async getEmployeeAttendance(
+    employeeId: string,
+    query: QueryAttendanceDto = {},
+  ) {
     const employee = await this.prisma.employeeProfile.findUnique({
       where: { id: employeeId },
     });
 
     if (!employee) {
-      throw new NotFoundException('Employee profile not found');
+      throw new NotFoundException("Employee profile not found");
     }
 
     return this.queryAttendanceRecords({
@@ -631,7 +708,10 @@ export class AttendanceService {
   /**
    * HR Query: Get attendance by workplace
    */
-  async getWorkplaceAttendance(workplaceId: string, query: QueryAttendanceDto = {}) {
+  async getWorkplaceAttendance(
+    workplaceId: string,
+    query: QueryAttendanceDto = {},
+  ) {
     return this.queryAttendanceRecords({
       ...query,
       workplaceId,
@@ -641,7 +721,10 @@ export class AttendanceService {
   /**
    * HR Query: Get attendance by department
    */
-  async getDepartmentAttendance(department: string, query: QueryAttendanceDto = {}) {
+  async getDepartmentAttendance(
+    department: string,
+    query: QueryAttendanceDto = {},
+  ) {
     return this.queryAttendanceRecords({
       ...query,
       department,
@@ -655,7 +738,7 @@ export class AttendanceService {
     });
 
     if (!user?.employeeProfile) {
-      throw new NotFoundException('Employee profile not found');
+      throw new NotFoundException("Employee profile not found");
     }
 
     const today = new Date();
@@ -668,7 +751,7 @@ export class AttendanceService {
           date: today,
         },
       },
-      include: { workplace: true, events: { orderBy: { timestamp: 'desc' } } },
+      include: { workplace: true, events: { orderBy: { timestamp: "desc" } } },
     });
 
     return record;
@@ -682,7 +765,11 @@ export class AttendanceService {
     });
   }
 
-  async getAttendanceList(startDate?: string, endDate?: string, workplaceId?: string) {
+  async getAttendanceList(
+    startDate?: string,
+    endDate?: string,
+    workplaceId?: string,
+  ) {
     return this.queryAttendanceRecords({
       startDate,
       endDate,
@@ -721,7 +808,7 @@ export class AttendanceService {
     }
 
     if (filters.month) {
-      const [year, month] = filters.month.split('-').map(Number);
+      const [year, month] = filters.month.split("-").map(Number);
       const startOfMonth = new Date(year, month - 1, 1);
       const endOfMonth = new Date(year, month, 0, 23, 59, 59);
       where.date = {
@@ -757,9 +844,9 @@ export class AttendanceService {
             },
           },
           workplace: { select: { id: true, name: true, code: true } },
-          events: { orderBy: { timestamp: 'desc' } },
+          events: { orderBy: { timestamp: "desc" } },
         },
-        orderBy: { date: 'desc' },
+        orderBy: { date: "desc" },
       }),
     ]);
 
@@ -807,7 +894,7 @@ export class AttendanceService {
         data: {
           userId,
           action: AuditAction.ATTENDANCE_REJECTED,
-          entity: 'AttendanceRecord',
+          entity: "AttendanceRecord",
           payload: this.sanitizeTelemetry({ reason, ...metadata }),
         },
       });

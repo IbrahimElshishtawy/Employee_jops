@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ApiResponseDto<T> {
   @ApiProperty({ example: true })
@@ -7,12 +7,14 @@ export class ApiResponseDto<T> {
   @ApiProperty({ example: 200 })
   statusCode: number;
 
-  @ApiPropertyOptional({ example: 'Operation completed successfully' })
+  @ApiPropertyOptional({ example: "Operation completed successfully" })
   message?: string;
 
   data: T;
 
-  @ApiPropertyOptional({ example: { page: 1, limit: 10, total: 100, totalPages: 10 } })
+  @ApiPropertyOptional({
+    example: { page: 1, limit: 10, total: 100, totalPages: 10 },
+  })
   meta?: {
     page?: number;
     limit?: number;
@@ -22,6 +24,6 @@ export class ApiResponseDto<T> {
     hasPrevPage?: boolean;
   };
 
-  @ApiProperty({ example: '2026-08-20T12:00:00.000Z' })
+  @ApiProperty({ example: "2026-08-20T12:00:00.000Z" })
   timestamp: string;
 }

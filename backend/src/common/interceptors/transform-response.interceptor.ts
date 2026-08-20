@@ -3,10 +3,10 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { FastifyReply } from 'fastify';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { FastifyReply } from "fastify";
 
 export interface StandardResponse<T> {
   success: boolean;
@@ -17,9 +17,10 @@ export interface StandardResponse<T> {
 }
 
 @Injectable()
-export class TransformResponseInterceptor<T>
-  implements NestInterceptor<T, StandardResponse<T>>
-{
+export class TransformResponseInterceptor<T> implements NestInterceptor<
+  T,
+  StandardResponse<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -32,9 +33,9 @@ export class TransformResponseInterceptor<T>
         // If data is already an object containing meta/data separation
         if (
           res &&
-          typeof res === 'object' &&
-          'data' in res &&
-          ('meta' in res || 'message' in res)
+          typeof res === "object" &&
+          "data" in res &&
+          ("meta" in res || "message" in res)
         ) {
           return {
             success: true,

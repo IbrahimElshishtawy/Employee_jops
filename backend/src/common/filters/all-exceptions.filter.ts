@@ -5,9 +5,9 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { Prisma } from '@prisma/client';
+} from "@nestjs/common";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { Prisma } from "@prisma/client";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -19,14 +19,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<FastifyRequest>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message: string | string[] = 'Internal server error';
-    let error = 'Internal Server Error';
+    let message: string | string[] = "Internal server error";
+    let error = "Internal Server Error";
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+      if (typeof exceptionResponse === "object" && exceptionResponse !== null) {
         const resObj = exceptionResponse as Record<string, any>;
         message = resObj.message || exception.message;
         error = resObj.error || exception.name;
@@ -36,29 +36,30 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       switch (exception.code) {
-        case 'P2002': {
+        case "P2002": {
           status = HttpStatus.CONFLICT;
-          const fields = (exception.meta?.target as string[])?.join(', ') || 'field';
+          const fields =
+            (exception.meta?.target as string[])?.join(", ") || "field";
           message = `Unique constraint violation on ${fields}`;
-          error = 'Conflict';
+          error = "Conflict";
           break;
         }
-        case 'P2025': {
+        case "P2025": {
           status = HttpStatus.NOT_FOUND;
-          message = 'The requested resource was not found';
-          error = 'Not Found';
+          message = "The requested resource was not found";
+          error = "Not Found";
           break;
         }
-        case 'P2003': {
+        case "P2003": {
           status = HttpStatus.BAD_REQUEST;
-          message = 'Foreign key constraint violation';
-          error = 'Bad Request';
+          message = "Foreign key constraint violation";
+          error = "Bad Request";
           break;
         }
         default: {
           status = HttpStatus.BAD_REQUEST;
           message = `Database query error (${exception.code})`;
-          error = 'Bad Request';
+          error = "Bad Request";
           break;
         }
       }

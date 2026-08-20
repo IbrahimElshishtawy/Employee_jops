@@ -1,33 +1,45 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as http from 'http';
+import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
-interface SwaggerSpec {
-  info: {
-    title: string;
-    description: string;
-    version: string;
-  };
-  paths: Record<string, Record<string, any>>;
-  components?: {
-    schemas?: Record<string, any>;
-  };
+async function bootstrap() {
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({ logger: false }),
+    { logger: false },
+  );
+
+  app.setGlobalPrefix('api/v1');
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('CyberWise IE — API')
+    .setDescription(
+      'Unified Backend REST API for CyberWise IE Employee Mobile App & HR Management Web Dashboard',
+    )
+    .setVersion('1.0.0')
+    .addBearerAuth()
+    .addTag('Authentication', 'Login, token refresh, password management')
+    .addTag('Employees', 'Employee profiles, lifecycle, and directory')
+    .addTag('Workplaces', 'Branches, locations, and GPS geofences')
+    .addTag('Attendance', 'GPS check-in/out, live status, history, logs')
+    .addTag('Requests', 'Leave, excuse, overtime, remote work workflows')
+    .addTag('Schedules', 'Shift schedules and working hours')
+    .addTag('Payroll & Advances', 'Salary advances, loans, and deductions')
+    .addTag('Notifications', 'In-app alerts and FCM device tokens')
+    .addTag('Messages', 'Internal chat and announcements')
+    .addTag('Reports & Analytics', 'Executive dashboard KPIs and department stats')
+    .addTag('Audit Logs', 'Compliance and audit trail')
+    .addTag('Health', 'Database and system health indicators')
+    .build();
+
+  const spec: any = SwaggerModule.createDocument(app, swaggerConfig);
+  generatePostman(spec);
+
+  await app.close();
 }
-
-http.get('http://127.0.0.1:3000/api/docs-json', (res) => {
-  let data = '';
-  res.on('data', (chunk) => (data += chunk));
-  res.on('end', () => {
-    try {
-      const spec: SwaggerSpec = JSON.parse(data);
-      generatePostman(spec);
-    } catch (e) {
-      console.error('Failed to parse OpenAPI JSON:', e);
-    }
-  });
-}).on('error', (err) => {
-  console.error('Error fetching swagger docs:', err);
-});
 
 function resolveSchema(schema: any, schemas: Record<string, any>): any {
   if (!schema) return {};
@@ -47,13 +59,13 @@ function resolveSchema(schema: any, schemas: Record<string, any>): any {
         } else if (prop.$ref) {
           obj[key] = resolveSchema(prop, schemas);
         } else if (prop.type === 'string') {
-          if (prop.format === 'date-time') obj[key] = new Date().toISOString();
+          if (prop.format === 'date-time' || prop.format === 'date') obj[key] = '2026-09-01';
           else if (prop.enum) obj[key] = prop.enum[0];
           else if (key.toLowerCase().includes('email')) obj[key] = 'admin@example.test';
           else if (key.toLowerCase().includes('password')) obj[key] = 'Test@123456';
           else obj[key] = `sample_${key}`;
         } else if (prop.type === 'number' || prop.type === 'integer') {
-          obj[key] = prop.default ?? 0;
+          obj[key] = prop.default ?? 1;
         } else if (prop.type === 'boolean') {
           obj[key] = prop.default ?? true;
         } else if (prop.type === 'array') {
@@ -68,13 +80,13 @@ function resolveSchema(schema: any, schemas: Record<string, any>): any {
   return {};
 }
 
-function generatePostman(spec: SwaggerSpec) {
+function generatePostman(spec: any) {
   const schemas = spec.components?.schemas || {};
 
   const collection: any = {
     info: {
       name: 'CyberWise IE — Backend API Collection',
-      description: spec.info.description || 'Collection for CyberWise IE Backend APIs',
+      description: spec.info?.description || 'Collection for CyberWise IE Backend APIs',
       schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
       _exporter_id: 'cyberwise-automation',
     },
@@ -126,8 +138,8 @@ function generatePostman(spec: SwaggerSpec) {
 
   const tagFolders: Record<string, any[]> = {};
 
-  for (const [routePath, methods] of Object.entries(spec.paths)) {
-    for (const [method, op] of Object.entries(methods)) {
+  for (const [routePath, methods] of Object.entries(spec.paths as Record<string, any>)) {
+    for (const [method, op] of Object.entries(methods as Record<string, any>)) {
       if (typeof op !== 'object' || !op.summary) continue;
 
       const tag = (op.tags && op.tags[0]) || 'General';
@@ -298,3 +310,8 @@ function generatePostman(spec: SwaggerSpec) {
   fs.writeFileSync(envFilePath, JSON.stringify(environment, null, 2), 'utf-8');
   console.log(`✅ Generated Postman Environment: ${envFilePath}`);
 }
+
+bootstrap().catch((err) => {
+  console.error('Error generating Postman artifacts:', err);
+  process.exit(1);
+});

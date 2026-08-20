@@ -5,20 +5,20 @@ import {
   BadRequestException,
   NotFoundException,
   Logger,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { OAuth2Client } from 'google-auth-library';
-import * as argon2 from 'argon2';
-import * as crypto from 'crypto';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
-import { GoogleLoginDto } from './dto/google-login.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
-import { UserStatus, AuditAction } from '@prisma/client';
-import { AccountState } from '../../common/enums/account-state.enum';
-import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { OAuth2Client } from "google-auth-library";
+import * as argon2 from "argon2";
+import * as crypto from "crypto";
+import { PrismaService } from "../../prisma/prisma.service";
+import { LoginDto } from "./dto/login.dto";
+import { GoogleLoginDto } from "./dto/google-login.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { AuthResponseDto } from "./dto/auth-response.dto";
+import { UserStatus, AuditAction } from "@prisma/client";
+import { AccountState } from "../../common/enums/account-state.enum";
+import { JwtPayload } from "../../common/interfaces/jwt-payload.interface";
 
 @Injectable()
 export class AuthService {
@@ -72,15 +72,19 @@ export class AuthService {
       await this.prisma.auditLog.create({
         data: {
           action: AuditAction.GOOGLE_LOGIN_FAILED,
-          entity: 'User',
-          payload: { email, reason: 'Google identity not associated with any authorized employee' },
+          entity: "User",
+          payload: {
+            email,
+            reason:
+              "Google identity not associated with any authorized employee",
+          },
           ipAddress: meta?.ipAddress,
           userAgent: meta?.userAgent,
         },
       });
 
       throw new UnauthorizedException(
-        'Your Google account is not associated with an authorized employee record. Please contact HR.',
+        "Your Google account is not associated with an authorized employee record. Please contact HR.",
       );
     }
 
@@ -89,18 +93,18 @@ export class AuthService {
         data: {
           userId: user.id,
           action: AuditAction.GOOGLE_LOGIN_FAILED,
-          entity: 'User',
+          entity: "User",
           entityId: user.id,
-          payload: { reason: 'Account suspended' },
+          payload: { reason: "Account suspended" },
           ipAddress: meta?.ipAddress,
           userAgent: meta?.userAgent,
         },
       });
-      throw new ForbiddenException('Account is suspended. Please contact HR.');
+      throw new ForbiddenException("Account is suspended. Please contact HR.");
     }
 
     if (user.status === UserStatus.INACTIVE) {
-      throw new ForbiddenException('Account is inactive. Please contact HR.');
+      throw new ForbiddenException("Account is inactive. Please contact HR.");
     }
 
     // Link googleId if not linked yet
@@ -132,7 +136,7 @@ export class AuthService {
       data: {
         userId: user.id,
         action: AuditAction.GOOGLE_LOGIN_SUCCESS,
-        entity: 'User',
+        entity: "User",
         entityId: user.id,
         payload: { accountState, isProfileComplete },
         ipAddress: meta?.ipAddress,
@@ -189,20 +193,25 @@ export class AuthService {
     });
 
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException('Account is suspended. Please contact HR.');
+      throw new ForbiddenException("Account is suspended. Please contact HR.");
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException(`Account is ${user.status.toLowerCase()}`);
+      throw new UnauthorizedException(
+        `Account is ${user.status.toLowerCase()}`,
+      );
     }
 
-    const isPasswordValid = await argon2.verify(user.passwordHash, dto.password);
+    const isPasswordValid = await argon2.verify(
+      user.passwordHash,
+      dto.password,
+    );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     const isProfileComplete = user.employeeProfile?.isProfileComplete ?? false;
@@ -225,7 +234,7 @@ export class AuthService {
       data: {
         userId: user.id,
         action: AuditAction.LOGIN,
-        entity: 'User',
+        entity: "User",
         entityId: user.id,
         ipAddress: meta?.ipAddress,
         userAgent: meta?.userAgent,
@@ -274,15 +283,15 @@ export class AuthService {
     });
 
     if (!existingToken || existingToken.revokedAt) {
-      throw new UnauthorizedException('Invalid or revoked refresh token');
+      throw new UnauthorizedException("Invalid or revoked refresh token");
     }
 
     if (new Date() > existingToken.expiresAt) {
-      throw new UnauthorizedException('Refresh token has expired');
+      throw new UnauthorizedException("Refresh token has expired");
     }
 
     if (existingToken.user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('User account is inactive or suspended');
+      throw new UnauthorizedException("User account is inactive or suspended");
     }
 
     // Revoke used refresh token (Token Rotation)
@@ -300,7 +309,11 @@ export class AuthService {
     );
 
     // Save new refresh token
-    await this.storeRefreshToken(existingToken.user.id, newTokens.refreshToken, meta);
+    await this.storeRefreshToken(
+      existingToken.user.id,
+      newTokens.refreshToken,
+      meta,
+    );
 
     return {
       accessToken: newTokens.accessToken,
@@ -322,7 +335,7 @@ export class AuthService {
       data: {
         userId,
         action: AuditAction.LOGOUT,
-        entity: 'User',
+        entity: "User",
         entityId: userId,
       },
     });
@@ -331,16 +344,18 @@ export class AuthService {
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     if (!user.passwordHash) {
-      throw new BadRequestException('Password change not applicable for pure Google Sign-In accounts');
+      throw new BadRequestException(
+        "Password change not applicable for pure Google Sign-In accounts",
+      );
     }
 
     const isMatch = await argon2.verify(user.passwordHash, dto.oldPassword);
     if (!isMatch) {
-      throw new BadRequestException('Current password does not match');
+      throw new BadRequestException("Current password does not match");
     }
 
     const newPasswordHash = await argon2.hash(dto.newPassword);
@@ -359,7 +374,7 @@ export class AuthService {
       data: {
         userId,
         action: AuditAction.PASSWORD_CHANGE,
-        entity: 'User',
+        entity: "User",
         entityId: userId,
       },
     });
@@ -392,7 +407,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User profile not found');
+      throw new NotFoundException("User profile not found");
     }
 
     // Mask sensitive national ID for safety
@@ -419,18 +434,20 @@ export class AuthService {
    */
   maskNationalId(nationalId?: string | null): string | undefined {
     if (!nationalId) return undefined;
-    if (nationalId.length <= 4) return '****';
+    if (nationalId.length <= 4) return "****";
     const last4 = nationalId.slice(-4);
-    return `${'*'.repeat(nationalId.length - 4)}${last4}`;
+    return `${"*".repeat(nationalId.length - 4)}${last4}`;
   }
 
-  private async verifyGoogleToken(idToken: string): Promise<{ email: string; sub: string }> {
+  private async verifyGoogleToken(
+    idToken: string,
+  ): Promise<{ email: string; sub: string }> {
     // 1. Support local/test tokens during testing (e.g., "test-google-token:email@test.com:google-sub-id")
-    if (idToken.startsWith('test-google-token:')) {
-      const parts = idToken.split(':');
+    if (idToken.startsWith("test-google-token:")) {
+      const parts = idToken.split(":");
       return {
-        email: parts[1] || 'test@example.com',
-        sub: parts[2] || 'test-google-sub-12345',
+        email: parts[1] || "test@example.com",
+        sub: parts[2] || "test-google-sub-12345",
       };
     }
 
@@ -441,7 +458,7 @@ export class AuthService {
       });
       const payload = ticket.getPayload();
       if (!payload || !payload.email || !payload.sub) {
-        throw new UnauthorizedException('Invalid Google ID token payload');
+        throw new UnauthorizedException("Invalid Google ID token payload");
       }
       return {
         email: payload.email,
@@ -449,7 +466,7 @@ export class AuthService {
       };
     } catch (err: any) {
       this.logger.warn(`Google token verification failed: ${err.message}`);
-      throw new UnauthorizedException('Google identity verification failed');
+      throw new UnauthorizedException("Google identity verification failed");
     }
   }
 
@@ -466,15 +483,17 @@ export class AuthService {
       employeeProfileId,
     };
 
-    const accessSecret = this.configService.get<string>('jwt.accessSecret') || 'default_secret';
-    const accessExpiration = this.configService.get<string>('jwt.accessExpiration') || '15m';
+    const accessSecret =
+      this.configService.get<string>("jwt.accessSecret") || "default_secret";
+    const accessExpiration =
+      this.configService.get<string>("jwt.accessExpiration") || "15m";
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: accessSecret,
       expiresIn: accessExpiration,
     });
 
-    const rawRefreshToken = crypto.randomBytes(40).toString('hex');
+    const rawRefreshToken = crypto.randomBytes(40).toString("hex");
 
     return {
       accessToken,
@@ -503,6 +522,6 @@ export class AuthService {
   }
 
   private hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 }

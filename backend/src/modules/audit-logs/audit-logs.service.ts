@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { PaginationQueryDto } from '../../common/dto/pagination.dto';
-import { AuditAction, Prisma } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { PaginationQueryDto } from "../../common/dto/pagination.dto";
+import { AuditAction, Prisma } from "@prisma/client";
 
 @Injectable()
 export class AuditLogsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: PaginationQueryDto, action?: AuditAction, entity?: string) {
+  async findAll(
+    query: PaginationQueryDto,
+    action?: AuditAction,
+    entity?: string,
+  ) {
     const { skip, limit } = query;
     const where: Prisma.AuditLogWhereInput = {};
 
@@ -37,7 +41,7 @@ export class AuditLogsService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
     ]);
 
