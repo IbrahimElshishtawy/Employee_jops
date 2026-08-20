@@ -10,9 +10,9 @@ import {
   MaxLength,
   Min,
   MinLength,
-} from 'class-validator';
-import { AdvanceStatus } from '@prisma/client';
-import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
+} from "class-validator";
+import { AdvanceStatus } from "@prisma/client";
+import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 export class RequestAdvanceDto {
   @ApiProperty({

@@ -153,6 +153,34 @@ enum NotificationType {
   GENERAL_ANNOUNCEMENT
   CHAT_MESSAGE
   SYSTEM_ALERT
+  ATTENDANCE
+  REQUEST
+  PAYROLL
+  ADVANCE
+  HR_MESSAGE
+  ANNOUNCEMENT
+  SECURITY
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  EXPIRED
+  CANCELLED
+}
+
+enum AnnouncementTarget {
+  ALL
+  DEPARTMENT
+  WORKPLACE
+  EMPLOYEES
 }
 
 enum DevicePlatform {
@@ -206,6 +234,12 @@ enum AuditAction {
   PAYROLL_FINALIZED
   PAYROLL_CORRECTED
   PAYROLL_LOCKED
+  NOTIFICATION_PREFERENCE_UPDATED
+  ANNOUNCEMENT_CREATED
+  ANNOUNCEMENT_PUBLISHED
+  ANNOUNCEMENT_CANCELLED
+  MESSAGE_SENT
+  MESSAGE_DELETED
 }
 
 // ============================================================
@@ -227,11 +261,13 @@ model User {
   employeeProfile           EmployeeProfile?
   refreshTokens             RefreshToken[]
   notifications             Notification[]
+  notificationPreference    NotificationPreference?
   deviceTokens              DeviceToken[]
   auditLogs                 AuditLog[]
   approvalSteps             ApprovalStep[]
   conversationParticipants  ConversationParticipant[]
   sentMessages              ChatMessage[]
+  announcementReads         AnnouncementRead[]
 
   @@index([email])
   @@index([googleId])
@@ -733,21 +769,43 @@ model PayrollAdjustment {
 // ============================================================
 
 model Notification {
-  id        String           @id @default(uuid())
+  id        String               @id @default(uuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   body      String
-  type      NotificationType @default(SYSTEM_ALERT)
+  type      NotificationType     @default(SYSTEM_ALERT)
+  priority  NotificationPriority @default(NORMAL)
   data      Json?
-  isRead    Boolean          @default(false)
+  isRead    Boolean              @default(false)
   readAt    DateTime?
+  expiresAt DateTime?
 
   createdAt DateTime @default(now())
 
-  @@index([userId])
-  @@index([isRead])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type])
   @@map("notifications")
+}
+
+model NotificationPreference {
+  id                        String   @id @default(uuid())
+  userId                    String   @unique
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendanceNotifications   Boolean  @default(true)
+  requestNotifications      Boolean  @default(true)
+  payrollNotifications      Boolean  @default(true)
+  advanceNotifications      Boolean  @default(true)
+  announcementNotifications  Boolean  @default(true)
+  messageNotifications       Boolean  @default(true)
+  emailNotifications        Boolean  @default(true)
+  pushNotifications         Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notification_preferences")
 }
 
 model DeviceToken {
@@ -768,20 +826,65 @@ model DeviceToken {
 }
 
 // ============================================================
-// CHAT & MESSAGING
+// HR ANNOUNCEMENTS & BROADCASTS
 // ============================================================
 
-model Conversation {
-  id      String   @id @default(uuid())
-  name    String?
-  isGroup Boolean  @default(false)
+model Announcement {
+  id                String               @id @default(uuid())
+  title             String
+  body              String
+  priority          NotificationPriority @default(NORMAL)
+  targetType        AnnouncementTarget   @default(ALL)
+  targetDepartment  String?
+  targetWorkplaceId String?
+  targetEmployeeIds Json?
+  status            AnnouncementStatus   @default(DRAFT)
+  publishedAt       DateTime?
+  expiresAt         DateTime?
+  createdById       String
 
-  participants ConversationParticipant[]
-  messages     ChatMessage[]
+  reads             AnnouncementRead[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status])
+  @@index([targetType])
+  @@index([publishedAt])
+  @@map("announcements")
+}
+
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+  @@index([userId])
+  @@map("announcement_reads")
+}
+
+// ============================================================
+// CHAT & MESSAGING
+// ============================================================
+
+model Conversation {
+  id              String   @id @default(uuid())
+  title           String?
+  isGroup         Boolean  @default(false)
+  createdByUserId String?
+  lastMessageAt   DateTime?
+
+  participants    ConversationParticipant[]
+  messages        ChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastMessageAt])
   @@map("conversations")
 }
 
@@ -791,9 +894,12 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role         @default(EMPLOYEE)
+  lastReadAt     DateTime?
   joinedAt       DateTime     @default(now())
 
   @@unique([conversationId, userId])
+  @@index([userId])
   @@map("conversation_participants")
 }
 
@@ -806,11 +912,17 @@ model ChatMessage {
   content        String
   attachmentUrl  String?
   isRead         Boolean      @default(false)
+  readAt         DateTime?
+  isDeleted      Boolean      @default(false)
+  deletedAt      DateTime?
+  deletedById    String?
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([conversationId])
+  @@index([conversationId, createdAt])
   @@index([senderId])
+  @@index([isRead])
   @@map("chat_messages")
 }
 
