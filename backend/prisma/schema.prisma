@@ -1,0 +1,503 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  SUPER_ADMIN
+  HR_ADMIN
+  HR_MANAGER
+  SUPERVISOR
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  EARLY_LEAVE
+  ABSENT
+  ON_LEAVE
+  HOLIDAY
+  WEEKEND
+}
+
+enum CheckInMethod {
+  GPS
+  WIFI
+  BEACON
+  MANUAL_HR
+}
+
+enum RequestType {
+  ANNUAL_LEAVE
+  SICK_LEAVE
+  UNPAID_LEAVE
+  EMERGENCY_LEAVE
+  EXCUSE
+  REMOTE_WORK
+  OVERTIME
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AdvanceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
+}
+
+enum DeductionType {
+  LATENESS
+  ABSENCE
+  PENALTY
+  DAMAGE
+  TAX
+  INSURANCE
+  OTHER
+}
+
+enum NotificationType {
+  ATTENDANCE_REMINDER
+  REQUEST_STATUS_UPDATE
+  ADVANCE_STATUS_UPDATE
+  DEDUCTION_ALERT
+  GENERAL_ANNOUNCEMENT
+  CHAT_MESSAGE
+  SYSTEM_ALERT
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  PASSWORD_CHANGE
+  CHECK_IN
+  CHECK_OUT
+  APPROVE
+  REJECT
+}
+
+// ============================================================
+// CORE USER & AUTHENTICATION
+// ============================================================
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(EMPLOYEE)
+  status       UserStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  employeeProfile           EmployeeProfile?
+  refreshTokens             RefreshToken[]
+  notifications             Notification[]
+  deviceTokens              DeviceToken[]
+  auditLogs                 AuditLog[]
+  approvalSteps             ApprovalStep[]
+  conversationParticipants  ConversationParticipant[]
+  sentMessages              ChatMessage[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// EMPLOYEE & PROFILE
+// ============================================================
+
+model EmployeeProfile {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeCode String    @unique
+  firstName    String
+  lastName     String
+  phone        String?   @unique
+  nationalId   String?   @unique
+  dateOfBirth  DateTime?
+  gender       Gender?
+  avatarUrl    String?
+  jobTitle     String
+  department   String
+  hireDate     DateTime  @default(now())
+  baseSalary   Decimal?  @db.Decimal(12, 2)
+
+  // Assigned Workplace
+  workplaceId String?
+  workplace   Workplace? @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+
+  // Direct Hierarchy
+  managerId     String?
+  manager       EmployeeProfile?  @relation("ManagerSubordinates", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports EmployeeProfile[] @relation("ManagerSubordinates")
+
+  // Assigned Schedule
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+
+  // Relationships
+  attendances AttendanceRecord[]
+  requests    Request[]
+  advances    FinancialAdvance[]
+  deductions  FinancialDeduction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeCode])
+  @@index([department])
+  @@index([workplaceId])
+  @@index([managerId])
+  @@map("employee_profiles")
+}
+
+// ============================================================
+// WORKPLACES & GEOFENCING
+// ============================================================
+
+model Workplace {
+  id           String  @id @default(uuid())
+  name         String
+  code         String  @unique
+  address      String?
+  latitude     Float
+  longitude    Float
+  radiusMeters Float   @default(100.0) // Geofence radius
+  wifiBssid    String? // Optional Wi-Fi BSSID constraint
+  wifiIp       String? // Optional Allowed Public IP
+  isActive     Boolean @default(true)
+
+  employees   EmployeeProfile[]
+  attendances AttendanceRecord[]
+  schedules   Schedule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@map("workplaces")
+}
+
+// ============================================================
+// SCHEDULES & SHIFTS
+// ============================================================
+
+model Schedule {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  workplaceId         String?
+  workplace           Workplace? @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+  startTime           String   // e.g. "09:00"
+  endTime             String   // e.g. "17:00"
+  graceMinutesCheckIn Int      @default(15)
+  graceMinutesCheckOut Int     @default(15)
+  workingDays         Int[]    // Array of day numbers: 0=Sun, 1=Mon, ..., 6=Sat
+  isDefault           Boolean  @default(false)
+
+  employees EmployeeProfile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("schedules")
+}
+
+// ============================================================
+// ATTENDANCE MANAGEMENT
+// ============================================================
+
+model AttendanceRecord {
+  id         String           @id @default(uuid())
+  employeeId String
+  employee   EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  workplaceId String?
+  workplace   Workplace?      @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+  
+  date       DateTime         @db.Date
+  status     AttendanceStatus @default(PRESENT)
+
+  checkInTime             DateTime?
+  checkInLat              Float?
+  checkInLng              Float?
+  checkInMethod           CheckInMethod? @default(GPS)
+  isCheckInWithinGeofence Boolean?       @default(true)
+
+  checkOutTime             DateTime?
+  checkOutLat              Float?
+  checkOutLng              Float?
+  checkOutMethod           CheckInMethod? @default(GPS)
+  isCheckOutWithinGeofence Boolean?       @default(true)
+
+  workDurationMinutes Int?     @default(0)
+  lateMinutes         Int?     @default(0)
+  earlyLeaveMinutes   Int?     @default(0)
+  notes               String?
+  verifiedByUserId    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+  @@map("attendance_records")
+}
+
+// ============================================================
+// REQUESTS & APPROVAL WORKFLOW
+// ============================================================
+
+model Request {
+  id           String        @id @default(uuid())
+  employeeId   String
+  employee     EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type         RequestType
+  startDate    DateTime      @db.Date
+  endDate      DateTime      @db.Date
+  startTime    String?       // For excuse / hourly leave
+  endTime      String?
+  reason       String
+  attachmentUrl String?
+  status       RequestStatus @default(PENDING)
+
+  approvalSteps ApprovalStep[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([type])
+  @@index([status])
+  @@map("requests")
+}
+
+model ApprovalStep {
+  id         String        @id @default(uuid())
+  requestId  String
+  request    Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approverId String
+  approver   User          @relation(fields: [approverId], references: [id], onDelete: Cascade)
+  stepOrder  Int           @default(1)
+  status     RequestStatus @default(PENDING)
+  comment    String?
+  actionDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requestId])
+  @@index([approverId])
+  @@map("approval_steps")
+}
+
+// ============================================================
+// PAYROLL: ADVANCES & DEDUCTIONS
+// ============================================================
+
+model FinancialAdvance {
+  id                    String        @id @default(uuid())
+  employeeId            String
+  employee              EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  amount                Decimal       @db.Decimal(10, 2)
+  approvedAmount        Decimal?      @db.Decimal(10, 2)
+  requestedInstallments Int           @default(1)
+  reason                String
+  status                AdvanceStatus @default(PENDING)
+  approvedById          String?
+  approvedAt            DateTime?
+  remarks               String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@map("financial_advances")
+}
+
+model FinancialDeduction {
+  id          String        @id @default(uuid())
+  employeeId  String
+  employee    EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        DeductionType
+  amount      Decimal       @db.Decimal(10, 2)
+  reason      String
+  effectiveDate DateTime    @db.Date
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([type])
+  @@map("financial_deductions")
+}
+
+// ============================================================
+// NOTIFICATIONS & FCM DEVICE TOKENS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      NotificationType @default(SYSTEM_ALERT)
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model DeviceToken {
+  id        String         @id @default(uuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fcmToken  String         @unique
+  platform  DevicePlatform @default(ANDROID)
+  deviceId  String?
+  isActive  Boolean        @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([fcmToken])
+  @@map("device_tokens")
+}
+
+// ============================================================
+// CHAT & MESSAGING
+// ============================================================
+
+model Conversation {
+  id        String   @id @default(uuid())
+  name      String?  // For group channels
+  isGroup   Boolean  @default(false)
+
+  participants ConversationParticipant[]
+  messages     ChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model ChatMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  attachmentUrl  String?
+  isRead         Boolean      @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+// ============================================================
+// AUDIT LOGGING
+// ============================================================
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  entity    String      // e.g. "EmployeeProfile", "AttendanceRecord"
+  entityId  String?
+  payload   Json?       // Diff or snapshot
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
