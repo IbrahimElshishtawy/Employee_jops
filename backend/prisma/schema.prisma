@@ -63,9 +63,20 @@ enum RequestType {
   SICK_LEAVE
   UNPAID_LEAVE
   EMERGENCY_LEAVE
-  EXCUSE
+  OFFICIAL_LEAVE
+  LEAVE
+  ABSENCE
+  PERMISSION
+  LATE_EXCUSE
+  EARLY_LEAVE
+  HALF_DAY
   REMOTE_WORK
   OVERTIME
+}
+
+enum HalfDayPeriod {
+  FIRST_HALF
+  SECOND_HALF
 }
 
 enum RequestStatus {
@@ -134,6 +145,14 @@ enum AuditAction {
   MANUAL_ATTENDANCE_CREATED
   MANUAL_ATTENDANCE_UPDATED
   SECURITY_ATTENDANCE_REJECTED
+  REQUEST_CREATED
+  REQUEST_SUBMITTED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  REQUEST_CANCELLED
+  REQUEST_MODIFIED
+  LEAVE_BALANCE_UPDATED
+  ATTENDANCE_UPDATED_FROM_REQUEST
 }
 
 // ============================================================
@@ -221,10 +240,11 @@ model EmployeeProfile {
   schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
   // Relationships
-  attendances AttendanceRecord[]
-  requests    Request[]
-  advances    FinancialAdvance[]
-  deductions  FinancialDeduction[]
+  attendances   AttendanceRecord[]
+  requests      Request[]
+  leaveBalances LeaveBalance[]
+  advances      FinancialAdvance[]
+  deductions    FinancialDeduction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -374,19 +394,29 @@ model AttendanceEvent {
 // ============================================================
 
 model Request {
-  id            String        @id @default(uuid())
-  employeeId    String
-  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type          RequestType
-  startDate     DateTime      @db.Date
-  endDate       DateTime      @db.Date
-  startTime     String?       // For excuse / hourly leave
-  endTime       String?
-  reason        String
-  attachmentUrl String?
-  status        RequestStatus @default(PENDING)
+  id               String          @id @default(uuid())
+  idempotencyKey   String?         @unique
+  employeeId       String
+  employee         EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type             RequestType
+  status           RequestStatus   @default(PENDING)
 
-  approvalSteps ApprovalStep[]
+  startDate        DateTime        @db.Date
+  endDate          DateTime        @db.Date
+  startTime        String?         // For excuse / permission / hourly leave (e.g. "09:00")
+  endTime          String?         // (e.g. "11:00")
+  halfDayPeriod    HalfDayPeriod?  // FIRST_HALF, SECOND_HALF
+
+  reason           String
+  rejectionReason  String?
+  attachmentUrl    String?
+
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+
+  metadata         Json?           // Extensible metadata (target attendance date, custom tags)
+
+  approvalSteps    ApprovalStep[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -394,7 +424,29 @@ model Request {
   @@index([employeeId])
   @@index([type])
   @@index([status])
+  @@index([startDate, endDate])
+  @@index([idempotencyKey])
   @@map("requests")
+}
+
+model LeaveBalance {
+  id            String          @id @default(uuid())
+  employeeId    String
+  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType     RequestType     @default(ANNUAL_LEAVE)
+  year          Int
+  totalDays     Float           @default(21)
+  usedDays      Float           @default(0)
+  pendingDays   Float           @default(0)
+  remainingDays Float           @default(21)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, leaveType, year])
+  @@index([employeeId])
+  @@index([year])
+  @@map("leave_balances")
 }
 
 model ApprovalStep {
