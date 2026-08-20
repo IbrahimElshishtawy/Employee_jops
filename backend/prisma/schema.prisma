@@ -348,6 +348,7 @@ model AttendanceRecord {
 
 model AttendanceEvent {
   id                 String              @id @default(uuid())
+  requestId          String?
   attendanceRecordId String
   attendanceRecord   AttendanceRecord    @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
   eventType          AttendanceEventType
@@ -363,6 +364,7 @@ model AttendanceEvent {
 
   @@index([attendanceRecordId])
   @@index([eventType])
+  @@index([requestId])
   @@index([timestamp])
   @@map("attendance_events")
 }

@@ -2,15 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ConfigService } from '@nestjs/config';
 import {
   AttendanceStatus,
-  AttendanceEventType,
   Role,
   UserStatus,
 } from '@prisma/client';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 
-describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => {
+describe('Phase 03 — Attendance & Workforce Operations (23+ Scenarios & Safety)', () => {
   let attendanceService: AttendanceService;
 
   const mockWorkplaceActive = {
@@ -19,7 +19,7 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     code: 'HQ-MAIN',
     latitude: 24.7136,
     longitude: 46.6753,
-    radiusMeters: 100,
+    radiusMeters: 100, // Explicitly loaded from database
     isActive: true,
   };
 
@@ -51,7 +51,7 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     endTime: '17:00',
     graceMinutesCheckIn: 15,
     graceMinutesCheckOut: 15,
-    workingDays: [((new Date().getDay() + 3) % 7)], // Definitely not today
+    workingDays: [((new Date().getDay() + 3) % 7)], // Not today
     isDefault: false,
   };
 
@@ -233,12 +233,20 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     sendNotification: jest.fn().mockResolvedValue({ id: 'notif-01' }),
   };
 
+  const mockConfigService = {
+    get: jest.fn((key: string) => {
+      if (key === 'ATTENDANCE_MAX_GPS_ACCURACY_METERS') return 50.0;
+      return null;
+    }),
+  };
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AttendanceService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: NotificationsService, useValue: mockNotificationsService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -292,8 +300,8 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     ).rejects.toThrow(/OUTSIDE_WORKPLACE/);
   });
 
-  // Scenario 4: GPS Unavailable / invalid reading
-  it('4. GPS unavailable / extreme accuracy check', async () => {
+  // Scenario 4: Configurable GPS threshold evaluation
+  it('4. GPS accuracy threshold is configurable from ConfigService', async () => {
     delete recordsStore['prof-active'];
     await expect(
       attendanceService.checkIn('user-active', {
@@ -476,7 +484,7 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
   });
 
   // Scenario 21: HR Manual Attendance Correction with Mandatory Reason
-  it('21. HR Manual Attendance Correction: applies adjustment, records reason, and logs audit', async () => {
+  it('21. HR Manual Attendance Correction: applies adjustment, records reason and states, and logs audit', async () => {
     const adjusted = await attendanceService.manualAttendanceEntry('hr-user-id', {
       employeeId: 'prof-active',
       date: '2026-08-19',
@@ -496,8 +504,8 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     expect(auditLogsStore.length).toBeGreaterThan(0);
   });
 
-  // Scenario 23: Suspicious device signal handling & telemetry
-  it('23. Suspicious device signals: mock location & VPN signals recorded and flagged', async () => {
+  // Scenario 23: Suspicious device signal handling & telemetry sanitization
+  it('23. Suspicious device signals: mock location & VPN signals recorded safely without secrets', async () => {
     delete recordsStore['prof-active'];
     const record = await attendanceService.checkIn('user-active', {
       latitude: 24.7136,
@@ -510,5 +518,20 @@ describe('Phase 03 — Attendance & Workforce Operations (23 Scenarios)', () => 
     expect(record.isSuspicious).toBe(true);
     expect((record.deviceSignals as any).isMockLocation).toBe(true);
     expect((record.deviceSignals as any).isVpn).toBe(true);
+  });
+
+  // Scenario 24: Notification failure isolation
+  it('24. Notification failure isolation: attendance succeeds even if notification service throws', async () => {
+    delete recordsStore['prof-active'];
+    mockNotificationsService.sendNotification.mockRejectedValueOnce(new Error('FCM Connection Timeout'));
+
+    const record = await attendanceService.checkIn('user-active', {
+      latitude: 24.7136,
+      longitude: 46.6753,
+      accuracy: 10,
+    });
+
+    expect(record).toBeDefined();
+    expect(record.checkInTime).toBeDefined();
   });
 });

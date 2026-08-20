@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CheckInDto } from './dto/check-in.dto';
@@ -20,7 +21,7 @@ import {
   UserStatus,
 } from '@prisma/client';
 
-export const MAX_ALLOWED_GPS_ACCURACY_METERS = 50.0;
+export const DEFAULT_MAX_ALLOWED_GPS_ACCURACY_METERS = 50.0;
 
 @Injectable()
 export class AttendanceService {
@@ -29,7 +30,48 @@ export class AttendanceService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
+    private configService: ConfigService,
   ) {}
+
+  /**
+   * Retrieves configurable max GPS accuracy threshold from environment/config
+   */
+  private getMaxGpsAccuracyMeters(): number {
+    const configValue = this.configService?.get<string | number>('ATTENDANCE_MAX_GPS_ACCURACY_METERS');
+    if (configValue !== undefined && configValue !== null && configValue !== '') {
+      const parsed = Number(configValue);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return DEFAULT_MAX_ALLOWED_GPS_ACCURACY_METERS;
+  }
+
+  /**
+   * Sanitizes operational telemetry to prevent leaking sensitive credentials,
+   * raw biometric data, or authentication secrets.
+   */
+  private sanitizeTelemetry(data: Record<string, any>): Record<string, any> {
+    const sensitiveKeys = [
+      'token',
+      'password',
+      'secret',
+      'biometrictemplate',
+      'faceid',
+      'fingerprint',
+      'auth',
+      'authorization',
+      'accesstoken',
+      'refreshtoken',
+    ];
+    const sanitized: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (!sensitiveKeys.some((s) => key.toLowerCase().includes(s))) {
+        sanitized[key] = value;
+      }
+    }
+    return sanitized;
+  }
 
   /**
    * Register employee check-in with geofencing, accuracy, and anti-fraud validation
@@ -81,19 +123,28 @@ export class AttendanceService {
     const now = new Date();
     const currentDay = now.getDay(); // 0=Sunday, 1=Monday...
     if (!employee.schedule.workingDays.includes(currentDay)) {
-      await this.logRejection(userId, 'NON_WORKING_DAY', { currentDay, workingDays: employee.schedule.workingDays });
+      await this.logRejection(userId, 'NON_WORKING_DAY', {
+        currentDay,
+        workingDays: employee.schedule.workingDays,
+        requestId: dto.requestId,
+      });
       throw new BadRequestException('NON_WORKING_DAY: Today is not configured as a working day in your schedule');
     }
 
-    // 2. GPS Accuracy Check
-    if (dto.accuracy !== undefined && dto.accuracy > MAX_ALLOWED_GPS_ACCURACY_METERS) {
-      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', { accuracy: dto.accuracy });
+    // 2. GPS Accuracy Check (Configurable threshold distinct from Geofence distance)
+    const maxAccuracy = this.getMaxGpsAccuracyMeters();
+    if (dto.accuracy !== undefined && dto.accuracy > maxAccuracy) {
+      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', {
+        accuracy: dto.accuracy,
+        maxAllowedAccuracy: maxAccuracy,
+        requestId: dto.requestId,
+      });
       throw new BadRequestException(
-        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${MAX_ALLOWED_GPS_ACCURACY_METERS}m)`,
+        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${maxAccuracy}m)`,
       );
     }
 
-    // 3. Geofence Boundary Check (Haversine Formula)
+    // 3. Geofence Boundary Check (Authoritative Workplace Radius from Database)
     const distanceMeters = this.calculateDistanceMeters(
       dto.latitude,
       dto.longitude,
@@ -101,28 +152,31 @@ export class AttendanceService {
       employee.workplace.longitude,
     );
 
-    const isWithinGeofence = distanceMeters <= employee.workplace.radiusMeters;
+    const allowedRadiusMeters = employee.workplace.radiusMeters;
+    const isWithinGeofence = distanceMeters <= allowedRadiusMeters;
     if (!isWithinGeofence) {
       await this.logRejection(userId, 'OUTSIDE_WORKPLACE', {
         distanceMeters,
-        allowedRadius: employee.workplace.radiusMeters,
+        allowedRadiusMeters,
+        workplaceName: employee.workplace.name,
+        requestId: dto.requestId,
       });
       throw new BadRequestException(
-        `OUTSIDE_WORKPLACE: You are ${distanceMeters}m away from your assigned workplace (${employee.workplace.name}). Maximum allowed radius is ${employee.workplace.radiusMeters}m.`,
+        `OUTSIDE_WORKPLACE: You are ${distanceMeters}m away from your assigned workplace (${employee.workplace.name}). Maximum allowed radius is ${allowedRadiusMeters}m.`,
       );
     }
 
-    // 4. Anti-Fraud & Security Signals
+    // 4. Anti-Fraud & Security Signals (No raw biometric data stored)
     const isSuspicious = Boolean(dto.isMockLocation || dto.isJailbroken);
 
-    const deviceSignals = {
+    const deviceSignals = this.sanitizeTelemetry({
       isMockLocation: Boolean(dto.isMockLocation),
       isVpn: Boolean(dto.isVpn),
       isJailbroken: Boolean(dto.isJailbroken),
       biometricVerified: Boolean(dto.biometricVerified),
       distanceMeters,
       accuracy: dto.accuracy,
-    };
+    });
 
     // 5. Server-Authoritative Shift Calculation
     const today = new Date();
@@ -144,9 +198,9 @@ export class AttendanceService {
       lateMinutes = Math.round((now.getTime() - scheduledCheckIn.getTime()) / 60000);
     }
 
-    // 6. Atomic Transaction: Check idempotency, check-in state, event log, and audit trail
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Check replay by requestId first for idempotency
+    // 6. Atomic Database Transaction: Idempotency, Record creation, Event logging, Audit trail
+    const record = await this.prisma.$transaction(async (tx) => {
+      // Check replay by requestId first for durable idempotency
       if (dto.requestId) {
         const replay = await tx.attendanceRecord.findUnique({
           where: { requestId: dto.requestId },
@@ -169,7 +223,7 @@ export class AttendanceService {
         throw new BadRequestException('ALREADY_CHECKED_IN: Attendance record for today has already been checked in');
       }
 
-      const record = await tx.attendanceRecord.upsert({
+      const createdRecord = await tx.attendanceRecord.upsert({
         where: {
           employeeId_date: {
             employeeId: employee.id,
@@ -209,38 +263,44 @@ export class AttendanceService {
         },
       });
 
-      // Record AttendanceEvent
+      // Record Sanitized AttendanceEvent
       await tx.attendanceEvent.create({
         data: {
-          attendanceRecordId: record.id,
+          requestId: dto.requestId,
+          attendanceRecordId: createdRecord.id,
           eventType: AttendanceEventType.CHECK_IN_ACCEPTED,
           latitude: dto.latitude,
           longitude: dto.longitude,
           accuracy: dto.accuracy,
           distanceMeters,
           isWithinGeofence: true,
-          metadata: { status, lateMinutes, isSuspicious },
+          metadata: this.sanitizeTelemetry({ status, lateMinutes, isSuspicious }),
         },
       });
 
-      // Audit Log
+      // Immutable Audit Log
       await tx.auditLog.create({
         data: {
           userId,
           action: AuditAction.ATTENDANCE_CHECK_IN,
           entity: 'AttendanceRecord',
-          entityId: record.id,
-          payload: {
+          entityId: createdRecord.id,
+          payload: this.sanitizeTelemetry({
             status,
             lateMinutes,
             distanceMeters,
             isSuspicious,
             deviceSignals,
-          },
+            requestId: dto.requestId,
+          }),
         },
       });
 
-      // Dispatch Push / In-App Notification asynchronously
+      return createdRecord;
+    });
+
+    // 7. Non-blocking Notification Dispatch (Isolated from transaction success)
+    try {
       this.notificationsService
         .sendNotification(
           userId,
@@ -250,9 +310,11 @@ export class AttendanceService {
           { recordId: record.id, status },
         )
         .catch((e) => this.logger.warn(`Failed to dispatch checkin notification: ${e.message}`));
+    } catch (err: any) {
+      this.logger.warn(`Notification dispatch error: ${err.message}`);
+    }
 
-      return record;
-    });
+    return record;
   }
 
   /**
@@ -281,14 +343,19 @@ export class AttendanceService {
     today.setHours(0, 0, 0, 0);
 
     // 1. GPS Accuracy Check
-    if (dto.accuracy !== undefined && dto.accuracy > MAX_ALLOWED_GPS_ACCURACY_METERS) {
-      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', { accuracy: dto.accuracy });
+    const maxAccuracy = this.getMaxGpsAccuracyMeters();
+    if (dto.accuracy !== undefined && dto.accuracy > maxAccuracy) {
+      await this.logRejection(userId, 'GPS_ACCURACY_TOO_LOW', {
+        accuracy: dto.accuracy,
+        maxAllowedAccuracy: maxAccuracy,
+        requestId: dto.requestId,
+      });
       throw new BadRequestException(
-        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${MAX_ALLOWED_GPS_ACCURACY_METERS}m)`,
+        `GPS_ACCURACY_TOO_LOW: Reading accuracy of ${dto.accuracy}m exceeds maximum allowed limit (${maxAccuracy}m)`,
       );
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const updatedRecord = await this.prisma.$transaction(async (tx) => {
       const record = await tx.attendanceRecord.findUnique({
         where: {
           employeeId_date: {
@@ -333,7 +400,7 @@ export class AttendanceService {
         }
       }
 
-      const updatedRecord = await tx.attendanceRecord.update({
+      const updated = await tx.attendanceRecord.update({
         where: { id: record.id },
         data: {
           checkOutTime: now,
@@ -350,6 +417,7 @@ export class AttendanceService {
       // Record Event
       await tx.attendanceEvent.create({
         data: {
+          requestId: dto.requestId,
           attendanceRecordId: record.id,
           eventType: AttendanceEventType.CHECK_OUT_ACCEPTED,
           latitude: dto.latitude,
@@ -357,7 +425,7 @@ export class AttendanceService {
           accuracy: dto.accuracy,
           distanceMeters,
           isWithinGeofence,
-          metadata: { workDurationMinutes, earlyLeaveMinutes },
+          metadata: this.sanitizeTelemetry({ workDurationMinutes, earlyLeaveMinutes }),
         },
       });
 
@@ -368,31 +436,39 @@ export class AttendanceService {
           action: AuditAction.ATTENDANCE_CHECK_OUT,
           entity: 'AttendanceRecord',
           entityId: record.id,
-          payload: {
+          payload: this.sanitizeTelemetry({
             workDurationMinutes,
             earlyLeaveMinutes,
             distanceMeters,
             isWithinGeofence,
-          },
+            requestId: dto.requestId,
+          }),
         },
       });
 
+      return updated;
+    });
+
+    // Isolated Notification Dispatch
+    try {
       this.notificationsService
         .sendNotification(
           userId,
           'Check-Out Successful',
-          `Checked out at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${workDurationMinutes} mins worked)`,
+          `Checked out at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${updatedRecord.workDurationMinutes} mins worked)`,
           NotificationType.ATTENDANCE_REMINDER,
-          { recordId: record.id, workDurationMinutes },
+          { recordId: updatedRecord.id, workDurationMinutes: updatedRecord.workDurationMinutes },
         )
         .catch((e) => this.logger.warn(`Failed to dispatch checkout notification: ${e.message}`));
+    } catch (err: any) {
+      this.logger.warn(`Notification dispatch error: ${err.message}`);
+    }
 
-      return updatedRecord;
-    });
+    return updatedRecord;
   }
 
   /**
-   * HR Manual Attendance Creation or Correction
+   * HR Manual Attendance Creation or Correction (Strict RBAC & Audit Requirements)
    */
   async manualAttendanceEntry(hrUserId: string, dto: ManualAttendanceDto) {
     const employee = await this.prisma.employeeProfile.findUnique({
@@ -428,6 +504,7 @@ export class AttendanceService {
       });
 
       const isUpdate = Boolean(existing);
+      const oldState = existing ? { status: existing.status, checkInTime: existing.checkInTime, checkOutTime: existing.checkOutTime } : null;
 
       const record = await tx.attendanceRecord.upsert({
         where: {
@@ -464,16 +541,18 @@ export class AttendanceService {
         data: {
           attendanceRecordId: record.id,
           eventType: AttendanceEventType.MANUAL_CORRECTION,
-          metadata: {
+          metadata: this.sanitizeTelemetry({
             reason: dto.reason,
-            hrUserId,
-            status: dto.status,
+            actorUserId: hrUserId,
+            targetEmployeeId: employee.id,
+            oldState,
+            newState: { status: dto.status, checkInTime: checkInDate, checkOutTime: checkOutDate },
             isUpdate,
-          },
+          }),
         },
       });
 
-      // Audit Log
+      // Audit Log with explicit old/new states
       await tx.auditLog.create({
         data: {
           userId: hrUserId,
@@ -482,25 +561,31 @@ export class AttendanceService {
             : AuditAction.MANUAL_ATTENDANCE_CREATED,
           entity: 'AttendanceRecord',
           entityId: record.id,
-          payload: {
+          payload: this.sanitizeTelemetry({
+            actorUserId: hrUserId,
             targetEmployeeId: employee.id,
             date: dto.date,
-            status: dto.status,
             reason: dto.reason,
-          },
+            oldState,
+            newState: { status: dto.status, checkInTime: checkInDate, checkOutTime: checkOutDate },
+          }),
         },
       });
 
-      // Notify Employee of HR Adjustment
-      this.notificationsService
-        .sendNotification(
-          employee.user.id,
-          'Attendance Record Adjusted by HR',
-          `Your attendance for ${dto.date} was updated to ${dto.status}. Reason: ${dto.reason}`,
-          NotificationType.SYSTEM_ALERT,
-          { recordId: record.id, date: dto.date },
-        )
-        .catch((e) => this.logger.warn(`Failed to dispatch adjustment notification: ${e.message}`));
+      // Notify Employee of HR Adjustment (isolated)
+      try {
+        this.notificationsService
+          .sendNotification(
+            employee.user.id,
+            'Attendance Record Adjusted by HR',
+            `Your attendance for ${dto.date} was updated to ${dto.status}. Reason: ${dto.reason}`,
+            NotificationType.SYSTEM_ALERT,
+            { recordId: record.id, date: dto.date },
+          )
+          .catch((e) => this.logger.warn(`Failed to dispatch adjustment notification: ${e.message}`));
+      } catch (err: any) {
+        this.logger.warn(`Notification dispatch error: ${err.message}`);
+      }
 
       return record;
     });
@@ -583,7 +668,7 @@ export class AttendanceService {
           date: today,
         },
       },
-      include: { workplace: true, events: true },
+      include: { workplace: true, events: { orderBy: { timestamp: 'desc' } } },
     });
 
     return record;
@@ -723,7 +808,7 @@ export class AttendanceService {
           userId,
           action: AuditAction.ATTENDANCE_REJECTED,
           entity: 'AttendanceRecord',
-          payload: { reason, ...metadata },
+          payload: this.sanitizeTelemetry({ reason, ...metadata }),
         },
       });
     } catch (e: any) {
