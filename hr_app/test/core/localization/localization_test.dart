@@ -86,11 +86,11 @@ void main() {
       expect(l10nAr.get('nav_advances'), equals('السلف المالية'));
       expect(l10nAr.get('nav_deductions'), equals('الخصومات والجزاءات'));
       expect(l10nAr.get('nav_schedules'), equals('جداول ومواعيد العمل'));
-      expect(l10nAr.get('nav_reports'), equals('التقارير والإحصائيات'));
-      expect(l10nAr.get('nav_notifications'), equals('إشعارات وتنبيهات HR'));
-      expect(l10nAr.get('nav_messages'), equals('المراسلات الداخلية المباشرة'));
+      expect(l10nAr.get('nav_reports'), equals('التقارير والتحليلات'));
+      expect(l10nAr.get('nav_notifications'), equals('الإشعارات والتنبيهات'));
+      expect(l10nAr.get('nav_messages'), equals('الرسائل والمراسلات الداخلية'));
       expect(l10nAr.get('nav_audit_logs'), equals('سجل التدقيق والأمان'));
-      expect(l10nAr.get('nav_settings'), equals('إعدادات النظام والسياسات'));
+      expect(l10nAr.get('nav_settings'), equals('إعدادات النظام'));
     });
 
     test('Translates backend enums without altering raw contract values', () {

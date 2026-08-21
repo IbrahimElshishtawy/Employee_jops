@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/app_role.dart';
 import '../../../../core/rbac/authorization_service.dart';
@@ -238,13 +239,13 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Back to Employees'),
+                label: Text(context.l10n.translate('emp_back_to_list')),
                 onPressed: () => context.go(RouteNames.employees),
               ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.refresh, size: 20),
-                tooltip: 'Refresh Employee Profile',
+                tooltip: context.l10n.translate('refresh'),
                 onPressed: _loadEmployeeData,
               ),
             ],
@@ -319,14 +320,14 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                     children: [
                       if (canUpdate)
                         HrButton(
-                          label: 'Edit Profile',
+                          label: context.l10n.translate('emp_edit'),
                           icon: Icons.edit_outlined,
                           variant: HrButtonVariant.outline,
                           onPressed: _openEditDialog,
                         ),
                       if (canAssign)
                         HrButton(
-                          label: 'Assign Workplace',
+                          label: context.l10n.translate('emp_assign'),
                           icon: Icons.transfer_within_a_station_outlined,
                           variant: HrButtonVariant.outline,
                           onPressed: _openAssignmentDialog,
@@ -334,7 +335,7 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                       if (canUpdate)
                         PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert),
-                          tooltip: 'Status & Operations',
+                          tooltip: context.l10n.translate('emp_status_management'),
                           onSelected: (val) {
                             if (val == 'activate') _confirmStatusChange(EmployeeStatus.active);
                             if (val == 'suspend') _confirmStatusChange(EmployeeStatus.suspended);
@@ -342,35 +343,35 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                           },
                           itemBuilder: (context) => [
                             if (emp.status != EmployeeStatus.active)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'activate',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.check_circle_outline, size: 16, color: AppColors.success),
-                                    SizedBox(width: 8),
-                                    Text('Activate Employee'),
+                                    const Icon(Icons.check_circle_outline, size: 16, color: AppColors.success),
+                                    const SizedBox(width: 8),
+                                    Text(context.l10n.translate('emp_activate')),
                                   ],
                                 ),
                               ),
                             if (emp.status != EmployeeStatus.suspended)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'suspend',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.pause_circle_outline, size: 16, color: AppColors.warning),
-                                    SizedBox(width: 8),
-                                    Text('Suspend Employee'),
+                                    const Icon(Icons.pause_circle_outline, size: 16, color: AppColors.warning),
+                                    const SizedBox(width: 8),
+                                    Text(context.l10n.translate('emp_suspend')),
                                   ],
                                 ),
                               ),
                             if (emp.status != EmployeeStatus.deactivated)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'deactivate',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.block_outlined, size: 16, color: AppColors.danger),
-                                    SizedBox(width: 8),
-                                    Text('Deactivate Employee', style: TextStyle(color: AppColors.danger)),
+                                    const Icon(Icons.block_outlined, size: 16, color: AppColors.danger),
+                                    const SizedBox(width: 8),
+                                    Text(context.l10n.translate('emp_deactivate'), style: const TextStyle(color: AppColors.danger)),
                                   ],
                                 ),
                               ),
@@ -389,14 +390,14 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
             controller: _tabController,
             isScrollable: true,
             tabAlignment: TabAlignment.start,
-            tabs: const [
-              Tab(icon: Icon(Icons.person_outline, size: 18), text: 'Overview'),
-              Tab(icon: Icon(Icons.access_time_outlined, size: 18), text: 'Attendance'),
-              Tab(icon: Icon(Icons.assignment_outlined, size: 18), text: 'Requests'),
-              Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 18), text: 'Salary & Compensation'),
-              Tab(icon: Icon(Icons.payments_outlined, size: 18), text: 'Salary Advances'),
-              Tab(icon: Icon(Icons.mail_outline, size: 18), text: 'Messages'),
-              Tab(icon: Icon(Icons.history_edu_outlined, size: 18), text: 'Activity & Audit'),
+            tabs: [
+              Tab(icon: const Icon(Icons.person_outline, size: 18), text: context.l10n.translate('emp_overview')),
+              Tab(icon: const Icon(Icons.access_time_outlined, size: 18), text: context.l10n.translate('nav_attendance')),
+              Tab(icon: const Icon(Icons.assignment_outlined, size: 18), text: context.l10n.translate('nav_requests')),
+              Tab(icon: const Icon(Icons.account_balance_wallet_outlined, size: 18), text: context.l10n.translate('emp_salary_comp')),
+              Tab(icon: const Icon(Icons.payments_outlined, size: 18), text: context.l10n.translate('nav_advances')),
+              Tab(icon: const Icon(Icons.mail_outline, size: 18), text: context.l10n.translate('nav_messages')),
+              Tab(icon: const Icon(Icons.history_edu_outlined, size: 18), text: context.l10n.translate('emp_activity_audit')),
             ],
           ),
           const SizedBox(height: AppDimensions.space16),
@@ -425,11 +426,11 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
   Widget _buildStatusBadge(EmployeeStatus status) {
     switch (status) {
       case EmployeeStatus.active:
-        return const StatusBadge(label: 'Active Roster', variant: BadgeVariant.success);
+        return StatusBadge(label: context.l10n.translateStatus('ACTIVE'), variant: BadgeVariant.success);
       case EmployeeStatus.suspended:
-        return const StatusBadge(label: 'Suspended', variant: BadgeVariant.warning);
+        return StatusBadge(label: context.l10n.translateStatus('SUSPENDED'), variant: BadgeVariant.warning);
       case EmployeeStatus.deactivated:
-        return const StatusBadge(label: 'Deactivated', variant: BadgeVariant.danger);
+        return StatusBadge(label: context.l10n.translateStatus('DEACTIVATED'), variant: BadgeVariant.danger);
     }
   }
 

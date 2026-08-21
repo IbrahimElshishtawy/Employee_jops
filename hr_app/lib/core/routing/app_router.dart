@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../localization/app_localizations.dart';
 import '../../features/advances/presentation/pages/advances_list_screen.dart';
 import '../../features/attendance/presentation/pages/attendance_list_screen.dart';
 import '../../features/audit_logs/presentation/pages/audit_logs_screen.dart';
@@ -61,7 +63,7 @@ class AppRouter {
           builder: (context, state, child) {
             final authCtrl = context.watch<AuthController>();
             final route = state.matchedLocation;
-            final title = _getTitleForRoute(route);
+            final title = _getTitleForRoute(context, route);
 
             return HrScaffold(
               title: title,
@@ -155,20 +157,20 @@ class AppRouter {
     return null;
   }
 
-  static String _getTitleForRoute(String route) {
-    if (route.startsWith(RouteNames.dashboard)) return 'Dashboard Overview';
-    if (route.startsWith(RouteNames.employees)) return 'Employee Management';
-    if (route.startsWith(RouteNames.attendance)) return 'Attendance & Logs';
-    if (route.startsWith(RouteNames.requests)) return 'Requests & Approvals';
-    if (route.startsWith(RouteNames.advances)) return 'Salary Advances';
-    if (route.startsWith(RouteNames.deductions)) return 'Deductions';
-    if (route.startsWith(RouteNames.workplaces)) return 'Workplaces';
-    if (route.startsWith(RouteNames.schedules)) return 'Work Schedules';
-    if (route.startsWith(RouteNames.reports)) return 'Reports & Exports';
-    if (route.startsWith(RouteNames.notifications)) return 'Notifications';
-    if (route.startsWith(RouteNames.messages)) return 'HR Messages';
-    if (route.startsWith(RouteNames.auditLogs)) return 'Audit Logs';
-    if (route.startsWith(RouteNames.settings)) return 'Settings';
-    return 'CyberWise IE HR';
+  static String _getTitleForRoute(BuildContext context, String route) {
+    if (route.startsWith(RouteNames.dashboard)) return context.l10n.translate('nav_dashboard');
+    if (route.startsWith(RouteNames.employees)) return context.l10n.translate('nav_employees');
+    if (route.startsWith(RouteNames.attendance)) return context.l10n.translate('nav_attendance');
+    if (route.startsWith(RouteNames.requests)) return context.l10n.translate('nav_requests');
+    if (route.startsWith(RouteNames.advances)) return context.l10n.translate('nav_advances');
+    if (route.startsWith(RouteNames.deductions)) return context.l10n.translate('nav_deductions');
+    if (route.startsWith(RouteNames.workplaces)) return context.l10n.translate('nav_workplaces');
+    if (route.startsWith(RouteNames.schedules)) return context.l10n.translate('nav_schedules');
+    if (route.startsWith(RouteNames.reports)) return context.l10n.translate('nav_reports');
+    if (route.startsWith(RouteNames.notifications)) return context.l10n.translate('nav_notifications');
+    if (route.startsWith(RouteNames.messages)) return context.l10n.translate('nav_messages');
+    if (route.startsWith(RouteNames.auditLogs)) return context.l10n.translate('nav_audit_logs');
+    if (route.startsWith(RouteNames.settings)) return context.l10n.translate('nav_settings');
+    return context.l10n.translate('app_title');
   }
 }
