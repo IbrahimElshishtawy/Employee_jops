@@ -28,7 +28,7 @@ class LoadingStateView extends StatelessWidget {
             const SizedBox(height: AppDimensions.space16),
             Text(
               message,
-              style: AppTypography.subtitle.copyWith(color: AppColors.textSecondaryLight),
+              style: AppTypography.subtitleOf(context),
             ),
           ],
         ),

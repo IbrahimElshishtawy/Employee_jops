@@ -18,6 +18,8 @@ class ErrorStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.space32),
@@ -27,8 +29,8 @@ class ErrorStateView extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(AppDimensions.space16),
-              decoration: const BoxDecoration(
-                color: AppColors.dangerBg,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.dangerBgDark : AppColors.dangerBg,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.danger),
@@ -38,7 +40,7 @@ class ErrorStateView extends StatelessWidget {
             const SizedBox(height: AppDimensions.space8),
             Text(
               message,
-              style: AppTypography.subtitle.copyWith(color: AppColors.textSecondaryLight),
+              style: AppTypography.subtitleOf(context),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[

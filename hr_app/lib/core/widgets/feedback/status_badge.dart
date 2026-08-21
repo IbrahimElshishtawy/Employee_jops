@@ -24,7 +24,21 @@ class StatusBadge extends StatelessWidget {
     this.icon,
   });
 
-  Color _getBgColor() {
+  Color _getBgColor(bool isDark) {
+    if (isDark) {
+      switch (variant) {
+        case BadgeVariant.success:
+          return AppColors.successBgDark;
+        case BadgeVariant.warning:
+          return AppColors.warningBgDark;
+        case BadgeVariant.danger:
+          return AppColors.dangerBgDark;
+        case BadgeVariant.info:
+          return AppColors.infoBgDark;
+        case BadgeVariant.neutral:
+          return AppColors.neutralBgDark;
+      }
+    }
     switch (variant) {
       case BadgeVariant.success:
         return AppColors.successBg;
@@ -39,33 +53,36 @@ class StatusBadge extends StatelessWidget {
     }
   }
 
-  Color _getTextColor() {
+  Color _getTextColor(bool isDark) {
     switch (variant) {
       case BadgeVariant.success:
-        return AppColors.success;
+        return isDark ? const Color(0xFF34D399) : AppColors.success;
       case BadgeVariant.warning:
-        return const Color(0xFFD97706);
+        return isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
       case BadgeVariant.danger:
-        return AppColors.danger;
+        return isDark ? const Color(0xFFF87171) : AppColors.danger;
       case BadgeVariant.info:
-        return AppColors.info;
+        return isDark ? const Color(0xFF38BDF8) : AppColors.info;
       case BadgeVariant.neutral:
-        return AppColors.neutral;
+        return isDark ? const Color(0xFF9CA3AF) : AppColors.neutral;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = _getTextColor();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = _getTextColor(isDark);
+    final bgColor = _getBgColor(isDark);
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.space8,
         vertical: AppDimensions.space4,
       ),
       decoration: BoxDecoration(
-        color: _getBgColor(),
+        color: bgColor,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-        border: Border.all(color: textColor.withValues(alpha: 0.3), width: 0.8),
+        border: Border.all(color: textColor.withValues(alpha: isDark ? 0.4 : 0.3), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

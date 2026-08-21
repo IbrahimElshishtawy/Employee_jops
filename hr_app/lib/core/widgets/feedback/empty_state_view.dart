@@ -20,6 +20,8 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.space32),
@@ -30,10 +32,14 @@ class EmptyStateView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppDimensions.space16),
               decoration: BoxDecoration(
-                color: AppColors.neutralBg,
+                color: isDark ? AppColors.surfaceDark : AppColors.neutralBg,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 48, color: AppColors.textMutedLight),
+              child: Icon(
+                icon,
+                size: 48,
+                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+              ),
             ),
             const SizedBox(height: AppDimensions.space16),
             Text(title, style: AppTypography.heading3, textAlign: TextAlign.center),
@@ -41,7 +47,7 @@ class EmptyStateView extends StatelessWidget {
               const SizedBox(height: AppDimensions.space8),
               Text(
                 subtitle!,
-                style: AppTypography.subtitle,
+                style: AppTypography.subtitleOf(context),
                 textAlign: TextAlign.center,
               ),
             ],

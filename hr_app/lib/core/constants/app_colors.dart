@@ -37,18 +37,48 @@ class AppColors {
   // Status & Semantic Colors
   static const Color success = Color(0xFF10B981); // Emerald
   static const Color successBg = Color(0xFFECFDF5);
+  static const Color successBgDark = Color(0xFF064E3B);
   static const Color warning = Color(0xFFF59E0B); // Amber
   static const Color warningBg = Color(0xFFFFFBEB);
+  static const Color warningBgDark = Color(0xFF78350F);
   static const Color danger = Color(0xFFEF4444); // Rose/Red
   static const Color dangerBg = Color(0xFFFEF2F2);
+  static const Color dangerBgDark = Color(0xFF7F1D1D);
   static const Color info = Color(0xFF0EA5E9); // Sky Blue
   static const Color infoBg = Color(0xFFF0F9FF);
+  static const Color infoBgDark = Color(0xFF0C4A6E);
   static const Color neutral = Color(0xFF6B7280);
   static const Color neutralBg = Color(0xFFF3F4F6);
+  static const Color neutralBgDark = Color(0xFF1F2937);
 
   // Sidebar Colors
   static const Color sidebarBg = Color(0xFF0F172A);
   static const Color sidebarText = Color(0xFF94A3B8);
   static const Color sidebarTextActive = Color(0xFFFFFFFF);
   static const Color sidebarActiveItem = Color(0xFF1E293B);
+
+  // Dynamic Theme Helpers
+  static Color background(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? bgDark : bgLight;
+
+  static Color surface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? surfaceDark : surfaceLight;
+
+  static Color card(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? cardDark : cardLight;
+
+  static Color border(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? borderDark : borderLight;
+
+  static Color divider(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? dividerDark : dividerLight;
+
+  static Color textPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textPrimaryDark : textPrimaryLight;
+
+  static Color textSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textSecondaryDark : textSecondaryLight;
+
+  static Color textMuted(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textMutedDark : textMutedLight;
 }

@@ -30,7 +30,7 @@ class FilterBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.border(context)),
       ),
       child: Wrap(
         spacing: AppDimensions.space12,
@@ -44,7 +44,7 @@ class FilterBar extends StatelessWidget {
               hint: searchHint,
               controller: searchController,
               onChanged: onSearchChanged,
-              prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMutedLight),
+              prefixIcon: Icon(Icons.search, size: 20, color: AppColors.textMuted(context)),
             ),
           ),
           Wrap(

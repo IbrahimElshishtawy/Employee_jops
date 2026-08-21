@@ -26,7 +26,6 @@ class AppTypography {
   static const TextStyle subtitle = TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w500,
-    color: AppColors.textSecondaryLight,
   );
 
   static const TextStyle body = TextStyle(
@@ -48,7 +47,6 @@ class AppTypography {
   static const TextStyle caption = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMutedLight,
   );
 
   static const TextStyle captionBold = TextStyle(
@@ -61,4 +59,14 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.2,
   );
+
+  // Dynamic context-aware typography helpers
+  static TextStyle subtitleOf(BuildContext context) =>
+      subtitle.copyWith(color: AppColors.textSecondary(context));
+
+  static TextStyle captionOf(BuildContext context) =>
+      caption.copyWith(color: AppColors.textMuted(context));
+
+  static TextStyle bodySecondaryOf(BuildContext context) =>
+      body.copyWith(color: AppColors.textSecondary(context));
 }

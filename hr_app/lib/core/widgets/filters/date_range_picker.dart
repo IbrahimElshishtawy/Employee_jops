@@ -48,14 +48,14 @@ class DateRangePickerField extends StatelessWidget {
           vertical: AppDimensions.space8,
         ),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.borderLight),
+          border: Border.all(color: AppColors.border(context)),
           borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
           color: Theme.of(context).cardTheme.color,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondaryLight),
+            Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary(context)),
             const SizedBox(width: AppDimensions.space8),
             Text(rangeText, style: AppTypography.bodyMedium),
           ],
