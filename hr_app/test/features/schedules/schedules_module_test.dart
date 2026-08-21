@@ -123,7 +123,16 @@ void main() {
     });
 
     testWidgets('ScheduleDetailsDialog renders shift hours, 7-day strip, and rules in Dark theme', (tester) async {
-      final sampleSchedule = await schRepo.getScheduleById('SCH-001');
+      const sampleSchedule = WorkScheduleEntity(
+        id: 'SCH-001',
+        name: 'Standard Core Business Hours',
+        startTime: '09:00',
+        endTime: '17:00',
+        workingDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'],
+        gracePeriodMinutes: 15,
+        assignedCount: 42,
+        isActive: true,
+      );
 
       await tester.binding.setSurfaceSize(const Size(1366, 850));
       await tester.pumpWidget(

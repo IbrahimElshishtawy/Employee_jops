@@ -14,6 +14,10 @@ import '../features/deductions/domain/entities/deduction_entity.dart';
 import '../features/deductions/presentation/controllers/deductions_controller.dart';
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/presentation/controllers/employee_controller.dart';
+import '../features/messages/domain/entities/message_entity.dart';
+import '../features/messages/presentation/controllers/messages_controller.dart';
+import '../features/notifications/domain/entities/notification_entity.dart';
+import '../features/notifications/presentation/controllers/notifications_controller.dart';
 import '../features/reports/domain/entities/report_entities.dart';
 import '../features/reports/presentation/controllers/reports_controller.dart';
 import '../features/requests/domain/entities/hr_request_entity.dart';
@@ -47,6 +51,8 @@ class HrApp extends StatelessWidget {
         Provider<WorkplacesRepository>.value(value: dependencies.workplacesRepository),
         Provider<SchedulesRepository>.value(value: dependencies.schedulesRepository),
         Provider<ReportsRepository>.value(value: dependencies.reportsRepository),
+        Provider<NotificationsRepository>.value(value: dependencies.notificationsRepository),
+        Provider<MessagesRepository>.value(value: dependencies.messagesRepository),
         ChangeNotifierProvider(
           create: (_) => DashboardController(dependencies.dashboardRepository),
         ),
@@ -76,6 +82,12 @@ class HrApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ReportsController(dependencies.reportsRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationsController(dependencies.notificationsRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MessagesController(dependencies.messagesRepository),
         ),
       ],
       child: Consumer<ThemeController>(

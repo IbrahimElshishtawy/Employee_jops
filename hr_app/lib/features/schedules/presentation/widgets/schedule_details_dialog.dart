@@ -211,7 +211,9 @@ class ScheduleDetailsDialog extends StatelessWidget {
                                 children: [
                                   const Icon(Icons.rule, size: 16, color: AppColors.primaryLight),
                                   const SizedBox(width: 8),
-                                  Text('Attendance Engine Punch Evaluation Rules', style: AppTypography.bodyBold),
+                                  Expanded(
+                                    child: Text('Attendance Engine Punch Evaluation Rules', style: AppTypography.bodyBold),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: AppDimensions.space12),
@@ -328,7 +330,13 @@ class ScheduleDetailsDialog extends StatelessWidget {
             children: [
               Icon(icon, size: 14, color: color ?? AppColors.primaryLight),
               const SizedBox(width: 6),
-              Text(title, style: AppTypography.captionOf(context)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.captionOf(context),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),

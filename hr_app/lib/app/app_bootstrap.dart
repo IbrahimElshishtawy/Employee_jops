@@ -27,6 +27,12 @@ import '../features/deductions/data/repositories/mock_deductions_repository.dart
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/data/repositories/api_employee_repository.dart';
 import '../features/employees/data/repositories/mock_employee_repository.dart';
+import '../features/messages/domain/entities/message_entity.dart';
+import '../features/messages/data/repositories/api_messages_repository.dart';
+import '../features/messages/data/repositories/mock_messages_repository.dart';
+import '../features/notifications/domain/entities/notification_entity.dart';
+import '../features/notifications/data/repositories/api_notifications_repository.dart';
+import '../features/notifications/data/repositories/mock_notifications_repository.dart';
 import '../features/reports/domain/entities/report_entities.dart';
 import '../features/reports/data/repositories/api_reports_repository.dart';
 import '../features/reports/data/repositories/mock_reports_repository.dart';
@@ -57,6 +63,8 @@ class AppDependencies {
   final WorkplacesRepository workplacesRepository;
   final SchedulesRepository schedulesRepository;
   final ReportsRepository reportsRepository;
+  final NotificationsRepository notificationsRepository;
+  final MessagesRepository messagesRepository;
 
   AppDependencies({
     required this.localStorage,
@@ -74,6 +82,8 @@ class AppDependencies {
     required this.workplacesRepository,
     required this.schedulesRepository,
     required this.reportsRepository,
+    required this.notificationsRepository,
+    required this.messagesRepository,
   });
 }
 
@@ -102,6 +112,8 @@ class AppBootstrap {
     final WorkplacesRepository workplacesRepository;
     final SchedulesRepository schedulesRepository;
     final ReportsRepository reportsRepository;
+    final NotificationsRepository notificationsRepository;
+    final MessagesRepository messagesRepository;
 
     if (EnvConfig.enableMockData) {
       authRepository = MockAuthRepository(tokenStorage);
@@ -114,6 +126,8 @@ class AppBootstrap {
       workplacesRepository = MockWorkplacesRepository();
       schedulesRepository = MockSchedulesRepository();
       reportsRepository = MockReportsRepository();
+      notificationsRepository = MockNotificationsRepository();
+      messagesRepository = MockMessagesRepository();
     } else {
       authRepository = ApiAuthRepository(apiClient, tokenStorage);
       dashboardRepository = ApiDashboardRepository(apiClient);
@@ -125,6 +139,8 @@ class AppBootstrap {
       workplacesRepository = ApiWorkplacesRepository(apiClient);
       schedulesRepository = ApiSchedulesRepository(apiClient);
       reportsRepository = ApiReportsRepository(apiClient);
+      notificationsRepository = ApiNotificationsRepository(apiClient);
+      messagesRepository = ApiMessagesRepository(apiClient);
     }
 
     final authController = AuthController(authRepository, sessionManager);
@@ -146,6 +162,8 @@ class AppBootstrap {
       workplacesRepository: workplacesRepository,
       schedulesRepository: schedulesRepository,
       reportsRepository: reportsRepository,
+      notificationsRepository: notificationsRepository,
+      messagesRepository: messagesRepository,
     );
   }
 }
