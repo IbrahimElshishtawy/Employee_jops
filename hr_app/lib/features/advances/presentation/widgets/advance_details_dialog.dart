@@ -75,7 +75,9 @@ class AdvanceDetailsDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text(adv.employeeName, style: AppTypography.heading2),
+                            Expanded(
+                              child: Text(adv.employeeName, style: AppTypography.heading2, overflow: TextOverflow.ellipsis),
+                            ),
                             const SizedBox(width: AppDimensions.space8),
                             _buildStatusBadge(adv.status),
                           ],
@@ -151,9 +153,20 @@ class AdvanceDetailsDialog extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Requested On: ${DateFormatter.toDisplayDate(adv.requestedAt)}', style: AppTypography.bodyBold),
-                                  if (adv.currentSalary != null)
-                                    Text('Monthly Salary: ${adv.currency} ${adv.currentSalary!.toStringAsFixed(2)}', style: AppTypography.captionOf(context)),
+                                  Expanded(
+                                    child: Text('Requested On: ${DateFormatter.toDisplayDate(adv.requestedAt)}', style: AppTypography.bodyBold, overflow: TextOverflow.ellipsis),
+                                  ),
+                                  if (adv.currentSalary != null) ...[
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Monthly Salary: ${adv.currency} ${adv.currentSalary!.toStringAsFixed(2)}',
+                                        style: AppTypography.captionOf(context),
+                                        textAlign: TextAlign.end,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -397,11 +410,13 @@ class AdvanceDetailsDialog extends StatelessWidget {
             children: [
               Icon(icon, size: 14, color: color ?? AppColors.primaryLight),
               const SizedBox(width: 6),
-              Text(title, style: AppTypography.captionOf(context)),
+              Expanded(
+                child: Text(title, style: AppTypography.captionOf(context), overflow: TextOverflow.ellipsis),
+              ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(value, style: AppTypography.bodyBold.copyWith(color: color, fontSize: 15)),
+          Text(value, style: AppTypography.bodyBold.copyWith(color: color, fontSize: 15), overflow: TextOverflow.ellipsis),
         ],
       ),
     );

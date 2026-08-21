@@ -308,7 +308,10 @@ class _AdvanceReviewDialogState extends State<AdvanceReviewDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.captionOf(context)),
+          Expanded(
+            child: Text(label, style: AppTypography.captionOf(context), overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
           Text(value, style: AppTypography.bodyBold),
         ],
       ),

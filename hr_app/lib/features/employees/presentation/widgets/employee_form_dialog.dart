@@ -355,11 +355,12 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Department', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
+                                          isExpanded: true,
                                           initialValue: kDepartments.contains(_departmentController.text)
                                               ? _departmentController.text
                                               : kDepartments.first,
                                           decoration: const InputDecoration(isDense: true),
-                                          items: kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                                          items: kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d, overflow: TextOverflow.ellipsis))).toList(),
                                           onChanged: (val) {
                                             if (val != null) {
                                               setState(() => _departmentController.text = val);
@@ -407,11 +408,12 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Assigned Workplace', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
+                                          isExpanded: true,
                                           initialValue: _selectedWorkplaceId,
                                           decoration: const InputDecoration(isDense: true),
                                           hint: const Text('Select workplace'),
                                           items: _workplaces
-                                              .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
+                                              .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, overflow: TextOverflow.ellipsis)))
                                               .toList(),
                                           onChanged: (val) {
                                             if (val != null) {
@@ -434,11 +436,12 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Assigned Schedule', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
+                                          isExpanded: true,
                                           initialValue: _selectedScheduleId,
                                           decoration: const InputDecoration(isDense: true),
                                           hint: const Text('Select schedule'),
                                           items: _schedules
-                                              .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
+                                              .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis)))
                                               .toList(),
                                           onChanged: (val) {
                                             if (val != null) {

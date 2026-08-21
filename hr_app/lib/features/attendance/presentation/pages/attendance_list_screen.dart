@@ -162,17 +162,20 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Attendance Control Center', style: AppTypography.heading1),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Monitor employee punches, GPS accuracy, geofence compliance, and security signals',
-                    style: AppTypography.subtitleOf(context),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Attendance Control Center', style: AppTypography.heading1),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Monitor employee punches, GPS accuracy, geofence compliance, and security signals',
+                      style: AppTypography.subtitleOf(context),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: AppDimensions.space16),
               Wrap(
                 spacing: AppDimensions.space12,
                 children: [
@@ -270,32 +273,35 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
               border: Border.all(color: AppColors.border(context)),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.date_range_outlined, size: 18, color: AppColors.primaryLight),
-                const SizedBox(width: 8),
-                Text('Date Filter:', style: AppTypography.bodyBold),
-                const SizedBox(width: 12),
-                Wrap(
-                  spacing: 6,
-                  children: DatePreset.values.map((preset) {
-                    final isSelected = controller.datePreset == preset;
-                    return ChoiceChip(
-                      label: Text(preset.label),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) controller.onSelectDatePreset(preset);
-                      },
-                    );
-                  }).toList(),
-                ),
-                const Spacer(),
-                DateRangePickerField(
-                  startDate: controller.dateRange?.start,
-                  endDate: controller.dateRange?.end,
-                  onRangeSelected: controller.onDateRangeSelected,
-                ),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const Icon(Icons.date_range_outlined, size: 18, color: AppColors.primaryLight),
+                  const SizedBox(width: 8),
+                  Text('Date Filter:', style: AppTypography.bodyBold),
+                  const SizedBox(width: 12),
+                  Wrap(
+                    spacing: 6,
+                    children: DatePreset.values.map((preset) {
+                      final isSelected = controller.datePreset == preset;
+                      return ChoiceChip(
+                        label: Text(preset.label),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) controller.onSelectDatePreset(preset);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(width: 16),
+                  DateRangePickerField(
+                    startDate: controller.dateRange?.start,
+                    endDate: controller.dateRange?.end,
+                    onRangeSelected: controller.onDateRangeSelected,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: AppDimensions.space16),

@@ -148,17 +148,20 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Employees Directory', style: AppTypography.heading1),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Manage employee profiles, assignments, attendance logs, and operational records',
-                    style: AppTypography.subtitleOf(context),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Employees Directory', style: AppTypography.heading1),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Manage employee profiles, assignments, attendance logs, and operational records',
+                      style: AppTypography.subtitleOf(context),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: AppDimensions.space16),
               if (canCreate)
                 HrButton(
                   label: 'Add Employee',

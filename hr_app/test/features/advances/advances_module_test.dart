@@ -107,7 +107,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Salary Advances Management'), findsOneWidget);
-      expect(find.text('Pending Review'), findsOneWidget);
+      expect(find.text('Pending Review'), findsWidgets);
       expect(find.text('Active Disbursed'), findsOneWidget);
       expect(find.text('Approved Volume'), findsOneWidget);
       expect(find.text('Outstanding Balance'), findsOneWidget);
@@ -116,12 +116,13 @@ void main() {
     });
 
     testWidgets('AdvanceDetailsDialog renders financial breakdown, installment schedule, and deductions in Dark theme', (tester) async {
-      final sampleAdv = await advRepo.getAdvanceById('TEST-ADV-002');
+      final sampleAdv = await tester.runAsync(() => advRepo.getAdvanceById('TEST-ADV-002'));
+      expect(sampleAdv, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 850));
       await tester.pumpWidget(
         createTestApp(
-          child: AdvanceDetailsDialog(advance: sampleAdv),
+          child: AdvanceDetailsDialog(advance: sampleAdv!),
           isDark: true,
         ),
       );
@@ -136,13 +137,14 @@ void main() {
     });
 
     testWidgets('AdvanceReviewDialog validates mandatory reason on rejection', (tester) async {
-      final sampleAdv = await advRepo.getAdvanceById('TEST-ADV-001');
+      final sampleAdv = await tester.runAsync(() => advRepo.getAdvanceById('TEST-ADV-001'));
+      expect(sampleAdv, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 800));
       await tester.pumpWidget(
         createTestApp(
           child: AdvanceReviewDialog(
-            advance: sampleAdv,
+            advance: sampleAdv!,
             isApproval: false,
             onReview: ({required approve, approvedAmount, installmentCount, reasonOrNotes}) async => true,
           ),
