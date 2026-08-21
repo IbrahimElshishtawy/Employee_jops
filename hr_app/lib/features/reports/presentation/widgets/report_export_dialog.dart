@@ -182,35 +182,35 @@ class _ReportExportDialogState extends State<ReportExportDialog> {
               const SizedBox(height: 8),
               ..._formats.map((f) {
                 final isSelected = _selectedFormat == f['key'];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primaryLight : AppColors.border(context),
-                      width: isSelected ? 2 : 1,
-                    ),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Material(
                     color: isSelected
                         ? AppColors.primaryLight.withValues(alpha: isDark ? 0.2 : 0.08)
                         : Theme.of(context).cardColor,
-                  ),
-                  child: ListTile(
-                    dense: true,
-                    leading: Icon(
-                      f['icon'] as IconData,
-                      color: isSelected ? AppColors.primaryLight : AppColors.textSecondary(context),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primaryLight : AppColors.border(context),
+                        width: isSelected ? 2 : 1,
+                      ),
                     ),
-                    title: Text(f['label'] as String, style: AppTypography.bodyBold),
-                    subtitle: Text(f['desc'] as String, style: AppTypography.captionOf(context)),
-                    trailing: Radio<String>(
-                      value: f['key'] as String,
-                      groupValue: _selectedFormat,
-                      activeColor: AppColors.primaryLight,
-                      onChanged: (v) {
-                        if (v != null) setState(() => _selectedFormat = v);
-                      },
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(
+                        f['icon'] as IconData,
+                        color: isSelected ? AppColors.primaryLight : AppColors.textSecondary(context),
+                      ),
+                      title: Text(f['label'] as String, style: AppTypography.bodyBold),
+                      subtitle: Text(f['desc'] as String, style: AppTypography.captionOf(context)),
+                      trailing: Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: isSelected ? AppColors.primaryLight : AppColors.textSecondary(context),
+                        size: 20,
+                      ),
+                      onTap: () => setState(() => _selectedFormat = f['key'] as String),
                     ),
-                    onTap: () => setState(() => _selectedFormat = f['key'] as String),
                   ),
                 );
               }),

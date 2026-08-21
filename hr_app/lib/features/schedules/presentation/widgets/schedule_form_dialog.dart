@@ -304,8 +304,9 @@ class _ScheduleFormDialogState extends State<ScheduleFormDialog> {
                   children: [
                     Text('Working Days (Select at least 1 day)', style: AppTypography.captionOf(context)),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: kAllWeekDays.map((day) {
                         final isSelected = _workingDays.contains(day);
                         return FilterChip(
@@ -322,15 +323,17 @@ class _ScheduleFormDialogState extends State<ScheduleFormDialog> {
 
                 // Active Switch
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Active Shift Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('Inactive schedules cannot be assigned to new staff', style: AppTypography.captionOf(context)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Active Shift Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text('Inactive schedules cannot be assigned to new staff', style: AppTypography.captionOf(context)),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Switch(
                       value: _isActive,
                       activeThumbColor: AppColors.primaryLight,

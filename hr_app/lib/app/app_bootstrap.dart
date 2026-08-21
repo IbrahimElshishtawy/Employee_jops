@@ -56,6 +56,7 @@ class AppDependencies {
   final DeductionsRepository deductionsRepository;
   final WorkplacesRepository workplacesRepository;
   final SchedulesRepository schedulesRepository;
+  final ReportsRepository reportsRepository;
 
   AppDependencies({
     required this.localStorage,
@@ -72,6 +73,7 @@ class AppDependencies {
     required this.deductionsRepository,
     required this.workplacesRepository,
     required this.schedulesRepository,
+    required this.reportsRepository,
   });
 }
 
@@ -99,6 +101,7 @@ class AppBootstrap {
     final DeductionsRepository deductionsRepository;
     final WorkplacesRepository workplacesRepository;
     final SchedulesRepository schedulesRepository;
+    final ReportsRepository reportsRepository;
 
     if (EnvConfig.enableMockData) {
       authRepository = MockAuthRepository(tokenStorage);
@@ -110,6 +113,7 @@ class AppBootstrap {
       deductionsRepository = MockDeductionsRepository();
       workplacesRepository = MockWorkplacesRepository();
       schedulesRepository = MockSchedulesRepository();
+      reportsRepository = MockReportsRepository();
     } else {
       authRepository = ApiAuthRepository(apiClient, tokenStorage);
       dashboardRepository = ApiDashboardRepository(apiClient);
@@ -120,6 +124,7 @@ class AppBootstrap {
       deductionsRepository = ApiDeductionsRepository(apiClient);
       workplacesRepository = ApiWorkplacesRepository(apiClient);
       schedulesRepository = ApiSchedulesRepository(apiClient);
+      reportsRepository = ApiReportsRepository(apiClient);
     }
 
     final authController = AuthController(authRepository, sessionManager);
@@ -140,6 +145,7 @@ class AppBootstrap {
       deductionsRepository: deductionsRepository,
       workplacesRepository: workplacesRepository,
       schedulesRepository: schedulesRepository,
+      reportsRepository: reportsRepository,
     );
   }
 }
