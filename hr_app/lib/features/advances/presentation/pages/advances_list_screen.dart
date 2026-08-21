@@ -20,9 +20,10 @@ class AdvancesListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<AdvancesController>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         FilterBar(
           searchHint: 'Search employee, amount, reason...',
           onSearchChanged: controller.onSearch,

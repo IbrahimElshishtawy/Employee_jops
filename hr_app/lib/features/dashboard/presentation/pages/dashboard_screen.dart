@@ -35,11 +35,10 @@ class DashboardScreen extends StatelessWidget {
     final m = controller.metrics;
     if (m == null) return const SizedBox.shrink();
 
-    final isMobile = ResponsiveLayout.isMobile(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         // Welcome Banner
         Card(
           child: Padding(
@@ -226,6 +225,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 

@@ -20,9 +20,10 @@ class RequestsListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<RequestsController>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         // Filters
         FilterBar(
           searchHint: 'Search employee, reason...',
@@ -139,6 +140,7 @@ class RequestsListScreen extends StatelessWidget {
           ],
         ),
       ],
+      ),
     );
   }
 

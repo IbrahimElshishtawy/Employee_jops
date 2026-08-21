@@ -18,9 +18,10 @@ class AttendanceListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<AttendanceController>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         // Filter Bar with Date Range and Status Filter
         FilterBar(
           searchHint: 'Search employee name, workplace...',
@@ -117,6 +118,7 @@ class AttendanceListScreen extends StatelessWidget {
           ],
         ),
       ],
+      ),
     );
   }
 }

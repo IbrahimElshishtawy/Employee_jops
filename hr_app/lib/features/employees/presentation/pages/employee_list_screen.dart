@@ -19,9 +19,10 @@ class EmployeeListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<EmployeeController>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         // Filter Bar
         FilterBar(
           searchHint: 'Search by name, ID, department...',
@@ -149,6 +150,7 @@ class EmployeeListScreen extends StatelessWidget {
           ],
         ),
       ],
+      ),
     );
   }
 

@@ -10,45 +10,47 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text('Operational Reports & Data Exports', style: AppTypography.heading2),
-        const SizedBox(height: AppDimensions.space8),
-        Text('Generate, view, and export workforce analytics.', style: AppTypography.subtitle),
-        const SizedBox(height: AppDimensions.space24),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Operational Reports & Data Exports', style: AppTypography.heading2),
+          const SizedBox(height: AppDimensions.space8),
+          Text('Generate, view, and export workforce analytics.', style: AppTypography.subtitle),
+          const SizedBox(height: AppDimensions.space24),
 
-        Wrap(
-          spacing: AppDimensions.space16,
-          runSpacing: AppDimensions.space16,
-          children: [
-            _buildReportCard(
-              context,
-              title: 'Monthly Attendance Summary',
-              description: 'Detailed check-in, check-out, tardiness, and overtime records across departments.',
-              icon: Icons.calendar_today_outlined,
-            ),
-            _buildReportCard(
-              context,
-              title: 'Leave & Absences Audit',
-              description: 'Historical records of all approved, rejected, and pending leaves by reason.',
-              icon: Icons.assignment_turned_in_outlined,
-            ),
-            _buildReportCard(
-              context,
-              title: 'Salary Advances & Deductions',
-              description: 'Payroll adjustments, disbursements, and disciplinary deduction breakdowns.',
-              icon: Icons.account_balance_wallet_outlined,
-            ),
-            _buildReportCard(
-              context,
-              title: 'Workplace Geofencing Compliance',
-              description: 'Analysis of attendance punches within allowed workplace radii vs rejected attempts.',
-              icon: Icons.pin_drop_outlined,
-            ),
-          ],
-        ),
-      ],
+          Wrap(
+            spacing: AppDimensions.space16,
+            runSpacing: AppDimensions.space16,
+            children: [
+              _buildReportCard(
+                context,
+                title: 'Monthly Attendance Summary',
+                description: 'Detailed check-in, check-out, tardiness, and overtime records across departments.',
+                icon: Icons.calendar_today_outlined,
+              ),
+              _buildReportCard(
+                context,
+                title: 'Leave & Absences Audit',
+                description: 'Historical records of all approved, rejected, and pending leaves by reason.',
+                icon: Icons.assignment_turned_in_outlined,
+              ),
+              _buildReportCard(
+                context,
+                title: 'Salary Advances & Deductions',
+                description: 'Payroll adjustments, disbursements, and disciplinary deduction breakdowns.',
+                icon: Icons.account_balance_wallet_outlined,
+              ),
+              _buildReportCard(
+                context,
+                title: 'Workplace Geofencing Compliance',
+                description: 'Analysis of attendance punches within allowed workplace radii vs rejected attempts.',
+                icon: Icons.pin_drop_outlined,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
