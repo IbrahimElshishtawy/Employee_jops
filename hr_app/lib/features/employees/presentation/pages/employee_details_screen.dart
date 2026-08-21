@@ -81,7 +81,7 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
       final att = await attRepo.getAttendanceRecords(AttendanceFilter(page: 1, pageSize: 50));
       final req = await reqRepo.getRequests(const RequestFilter(page: 1, pageSize: 50));
       final adv = await advRepo.getAdvances(const AdvanceFilter(page: 1, pageSize: 50));
-      final ded = await dedRepo.getDeductions(1, 50);
+      final ded = await dedRepo.getDeductions(const DeductionFilter(page: 1, pageSize: 50));
 
       if (mounted) {
         setState(() {
@@ -277,7 +277,7 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                       children: [
                         Row(
                           children: [
-                            Text(emp.fullName, style: AppTypography.heading1),
+                            Flexible(child: Text(emp.fullName, style: AppTypography.heading1, overflow: TextOverflow.ellipsis)),
                             const SizedBox(width: AppDimensions.space12),
                             _buildStatusBadge(emp.status),
                           ],
@@ -288,15 +288,27 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                           style: AppTypography.subtitleOf(context),
                         ),
                         const SizedBox(height: 4),
-                        Row(
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Icon(Icons.place_outlined, size: 14, color: AppColors.textSecondary(context)),
-                            const SizedBox(width: 4),
-                            Text(emp.workplaceName, style: AppTypography.captionOf(context)),
-                            const SizedBox(width: 16),
-                            Icon(Icons.access_time_outlined, size: 14, color: AppColors.textSecondary(context)),
-                            const SizedBox(width: 4),
-                            Text(emp.scheduleName, style: AppTypography.captionOf(context)),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.place_outlined, size: 14, color: AppColors.textSecondary(context)),
+                                const SizedBox(width: 4),
+                                Text(emp.workplaceName, style: AppTypography.captionOf(context)),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.access_time_outlined, size: 14, color: AppColors.textSecondary(context)),
+                                const SizedBox(width: 4),
+                                Text(emp.scheduleName, style: AppTypography.captionOf(context)),
+                              ],
+                            ),
                           ],
                         ),
                       ],

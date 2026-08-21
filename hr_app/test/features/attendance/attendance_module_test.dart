@@ -99,12 +99,13 @@ void main() {
     late MockEmployeeRepository empRepo;
     late AuthController authController;
 
-    setUp(() {
+    setUp(() async {
       attRepo = MockAttendanceRepository();
       wpRepo = MockWorkplacesRepository();
       empRepo = MockEmployeeRepository();
       final tokenStorage = InMemoryTokenStorage();
       authController = AuthController(MockAuthRepository(tokenStorage), SessionManager(tokenStorage));
+      await authController.login('admin@cyberwise.test', 'password123');
     });
 
     Widget createTestApp({required Widget child, bool isDark = false}) {

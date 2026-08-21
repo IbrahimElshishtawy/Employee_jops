@@ -32,7 +32,7 @@ class RequestDetailsDialog extends StatelessWidget {
         onReview: onReview!,
       ),
     ).then((result) {
-      if (result == true) {
+      if (result == true && context.mounted) {
         Navigator.of(context).pop();
       }
     });
@@ -242,7 +242,7 @@ class RequestDetailsDialog extends StatelessWidget {
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemCount: req.history.length,
-                                  separatorBuilder: (_, __) => const Divider(height: 16),
+                                  separatorBuilder: (_, _) => const Divider(height: 16),
                                   itemBuilder: (context, index) {
                                     final event = req.history[index];
                                     return Row(

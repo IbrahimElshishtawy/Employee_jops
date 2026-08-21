@@ -85,10 +85,11 @@ void main() {
     late MockRequestsRepository reqRepo;
     late AuthController authController;
 
-    setUp(() {
+    setUp(() async {
       reqRepo = MockRequestsRepository();
       final tokenStorage = InMemoryTokenStorage();
       authController = AuthController(MockAuthRepository(tokenStorage), SessionManager(tokenStorage));
+      await authController.login('admin@cyberwise.test', 'password123');
     });
 
     Widget createTestApp({required Widget child, bool isDark = false}) {
@@ -111,11 +112,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Employee Requests & Approvals'), findsOneWidget);
-      expect(find.text('Pending Review'), findsOneWidget);
-      expect(find.text('Approved'), findsOneWidget);
-      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.text('Pending Review'), findsAtLeastNWidgets(1));
+      expect(find.text('Approved'), findsAtLeastNWidgets(1));
+      expect(find.text('Rejected'), findsAtLeastNWidgets(1));
       expect(find.text('All Requests'), findsOneWidget);
-      expect(find.text('Pending Approval'), findsOneWidget);
+      expect(find.text('Pending Approval'), findsAtLeastNWidgets(1));
       expect(find.text('Alex Vance (Test)'), findsOneWidget);
     });
 

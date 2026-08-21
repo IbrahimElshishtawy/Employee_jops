@@ -1,10 +1,31 @@
 import '../../../employees/domain/entities/employee_entity.dart';
 
+enum DeductionStatus {
+  scheduled('SCHEDULED', 'Scheduled for Payroll'),
+  applied('APPLIED', 'Applied & Deducted'),
+  cancelled('CANCELLED', 'Cancelled / Waived'),
+  reversed('REVERSED', 'Reversed');
+
+  final String key;
+  final String label;
+
+  const DeductionStatus(this.key, this.label);
+
+  static DeductionStatus fromKey(String? key) {
+    if (key == null) return DeductionStatus.scheduled;
+    return DeductionStatus.values.firstWhere(
+      (s) => s.key.toUpperCase() == key.toUpperCase(),
+      orElse: () => DeductionStatus.scheduled,
+    );
+  }
+}
+
 enum DeductionType {
+  salaryAdvance('SALARY_ADVANCE', 'Salary Advance Installment'),
   penalty('PENALTY', 'Disciplinary Penalty'),
   absence('ABSENCE', 'Unexcused Absence'),
-  loanRepayment('LOAN_REPAYMENT', 'Loan Repayment'),
-  damage('DAMAGE', 'Asset Damage'),
+  lateArrival('LATE_ARRIVAL', 'Late Arrival Penalty'),
+  damage('DAMAGE', 'Asset Damage / Loss'),
   other('OTHER', 'Other / Miscellaneous');
 
   final String key;
@@ -21,78 +42,150 @@ enum DeductionType {
   }
 }
 
+/// Aggregated Financial KPIs for Deductions
+class DeductionKpiSummary {
+  final int totalCount;
+  final double totalAmount;
+  final int scheduledCount;
+  final double scheduledAmount;
+  final int appliedCount;
+  final double appliedAmount;
+  final double advanceDeductionTotal;
+  final double attendanceDeductionTotal;
+
+  const DeductionKpiSummary({
+    required this.totalCount,
+    required this.totalAmount,
+    required this.scheduledCount,
+    required this.scheduledAmount,
+    required this.appliedCount,
+    required this.appliedAmount,
+    required this.advanceDeductionTotal,
+    required this.attendanceDeductionTotal,
+  });
+}
+
 /// Deduction Record Entity
 class DeductionEntity {
   final String id;
   final String employeeId;
   final String employeeName;
   final String employeeCode;
+  final String? department;
   final DeductionType type;
   final double amount;
+  final String currency;
+  final DeductionStatus status;
+  final String payrollPeriod; // e.g. "August 2026 Payroll"
   final String reason;
   final DateTime date;
+  final DateTime? appliedDate;
   final String createdBy;
+  final String? approvedBy;
+  final String? relatedAdvanceId;
+  final int? installmentNumber;
+  final int? totalInstallments;
+  final double? remainingBalance;
+  final String? cancellationReason;
 
   const DeductionEntity({
     required this.id,
     required this.employeeId,
     required this.employeeName,
     required this.employeeCode,
+    this.department = 'Engineering',
     required this.type,
     required this.amount,
+    this.currency = 'USD',
+    this.status = DeductionStatus.scheduled,
+    this.payrollPeriod = 'August 2026 Payroll',
     required this.reason,
     required this.date,
+    this.appliedDate,
     required this.createdBy,
+    this.approvedBy,
+    this.relatedAdvanceId,
+    this.installmentNumber,
+    this.totalInstallments,
+    this.remainingBalance,
+    this.cancellationReason,
+  });
+
+  DeductionEntity copyWith({
+    String? id,
+    String? employeeId,
+    String? employeeName,
+    String? employeeCode,
+    String? department,
+    DeductionType? type,
+    double? amount,
+    String? currency,
+    DeductionStatus? status,
+    String? payrollPeriod,
+    String? reason,
+    DateTime? date,
+    DateTime? appliedDate,
+    String? createdBy,
+    String? approvedBy,
+    String? relatedAdvanceId,
+    int? installmentNumber,
+    int? totalInstallments,
+    double? remainingBalance,
+    String? cancellationReason,
+  }) {
+    return DeductionEntity(
+      id: id ?? this.id,
+      employeeId: employeeId ?? this.employeeId,
+      employeeName: employeeName ?? this.employeeName,
+      employeeCode: employeeCode ?? this.employeeCode,
+      department: department ?? this.department,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      status: status ?? this.status,
+      payrollPeriod: payrollPeriod ?? this.payrollPeriod,
+      reason: reason ?? this.reason,
+      date: date ?? this.date,
+      appliedDate: appliedDate ?? this.appliedDate,
+      createdBy: createdBy ?? this.createdBy,
+      approvedBy: approvedBy ?? this.approvedBy,
+      relatedAdvanceId: relatedAdvanceId ?? this.relatedAdvanceId,
+      installmentNumber: installmentNumber ?? this.installmentNumber,
+      totalInstallments: totalInstallments ?? this.totalInstallments,
+      remainingBalance: remainingBalance ?? this.remainingBalance,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+    );
+  }
+}
+
+class DeductionFilter {
+  final String? searchQuery;
+  final DeductionType? type;
+  final DeductionStatus? status;
+  final String? department;
+  final String? payrollPeriod;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int page;
+  final int pageSize;
+
+  const DeductionFilter({
+    this.searchQuery,
+    this.type,
+    this.status,
+    this.department,
+    this.payrollPeriod,
+    this.startDate,
+    this.endDate,
+    this.page = 1,
+    this.pageSize = 10,
   });
 }
 
 abstract class DeductionsRepository {
-  Future<PaginatedList<DeductionEntity>> getDeductions(int page, int pageSize);
+  Future<PaginatedList<DeductionEntity>> getDeductions(DeductionFilter filter);
+  Future<DeductionEntity> getDeductionById(String id);
+  Future<DeductionKpiSummary> getDeductionKpis();
   Future<DeductionEntity> createDeduction(DeductionEntity deduction);
-}
-
-class MockDeductionsRepository implements DeductionsRepository {
-  final List<DeductionEntity> _mockDeductions = [
-    DeductionEntity(
-      id: 'TEST-DED-001',
-      employeeId: 'TEST-EMP-003',
-      employeeName: 'Taylor Morgan (Test)',
-      employeeCode: 'CW-003',
-      type: DeductionType.absence,
-      amount: 75.00,
-      reason: 'Unexcused full-day absence without prior notice',
-      date: DateTime.now().subtract(const Duration(days: 4)),
-      createdBy: 'HR Admin (Test)',
-    ),
-    DeductionEntity(
-      id: 'TEST-DED-002',
-      employeeId: 'TEST-EMP-005',
-      employeeName: 'Casey Davis (Test)',
-      employeeCode: 'CW-005',
-      type: DeductionType.penalty,
-      amount: 50.00,
-      reason: 'Repeated unexcused late arrivals (>30m)',
-      date: DateTime.now().subtract(const Duration(days: 8)),
-      createdBy: 'HR Admin (Test)',
-    ),
-  ];
-
-  @override
-  Future<PaginatedList<DeductionEntity>> getDeductions(int page, int pageSize) async {
-    await Future.delayed(const Duration(milliseconds: 250));
-    return PaginatedList<DeductionEntity>(
-      items: _mockDeductions,
-      totalCount: _mockDeductions.length,
-      page: page,
-      pageSize: pageSize,
-      totalPages: 1,
-    );
-  }
-
-  @override
-  Future<DeductionEntity> createDeduction(DeductionEntity deduction) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _mockDeductions.add(deduction);
-    return deduction;
-  }
+  Future<void> cancelDeduction(String id, {required String reason});
 }

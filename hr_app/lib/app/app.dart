@@ -11,6 +11,7 @@ import '../features/attendance/presentation/controllers/attendance_controller.da
 import '../features/dashboard/domain/entities/dashboard_metrics.dart';
 import '../features/dashboard/presentation/controllers/dashboard_controller.dart';
 import '../features/deductions/domain/entities/deduction_entity.dart';
+import '../features/deductions/presentation/controllers/deductions_controller.dart';
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/presentation/controllers/employee_controller.dart';
 import '../features/requests/domain/entities/hr_request_entity.dart';
@@ -56,6 +57,9 @@ class HrApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => AdvancesController(dependencies.advancesRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DeductionsController(dependencies.deductionsRepository),
         ),
         ChangeNotifierProvider(
           create: (_) => WorkplaceController(

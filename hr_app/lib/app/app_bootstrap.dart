@@ -22,6 +22,8 @@ import '../features/dashboard/domain/entities/dashboard_metrics.dart';
 import '../features/dashboard/data/repositories/api_dashboard_repository.dart';
 import '../features/dashboard/data/repositories/mock_dashboard_repository.dart';
 import '../features/deductions/domain/entities/deduction_entity.dart';
+import '../features/deductions/data/repositories/api_deductions_repository.dart';
+import '../features/deductions/data/repositories/mock_deductions_repository.dart';
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/data/repositories/api_employee_repository.dart';
 import '../features/employees/data/repositories/mock_employee_repository.dart';
@@ -110,7 +112,7 @@ class AppBootstrap {
       attendanceRepository = ApiAttendanceRepository(apiClient);
       requestsRepository = ApiRequestsRepository(apiClient);
       advancesRepository = ApiAdvancesRepository(apiClient);
-      deductionsRepository = MockDeductionsRepository(); // Fallback for dev
+      deductionsRepository = ApiDeductionsRepository(apiClient);
       workplacesRepository = ApiWorkplacesRepository(apiClient);
       schedulesRepository = MockSchedulesRepository();
     }

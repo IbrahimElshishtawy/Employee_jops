@@ -8,7 +8,6 @@ import '../../features/authentication/presentation/pages/login_screen.dart';
 import '../../features/authentication/presentation/pages/not_found_screen.dart';
 import '../../features/authentication/presentation/pages/unauthorized_screen.dart';
 import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
-import '../../features/deductions/domain/entities/deduction_entity.dart';
 import '../../features/deductions/presentation/pages/deductions_list_screen.dart';
 import '../../features/employees/presentation/pages/employee_details_screen.dart';
 import '../../features/employees/presentation/pages/employee_list_screen.dart';
@@ -110,9 +109,7 @@ class AppRouter {
             GoRoute(
               path: RouteNames.deductions,
               redirect: (context, state) => _guardPermission(authController, AppPermission.deductionsRead),
-              builder: (context, state) => DeductionsListScreen(
-                repository: context.read<DeductionsRepository>(),
-              ),
+              builder: (context, state) => const DeductionsListScreen(),
             ),
             GoRoute(
               path: RouteNames.workplaces,

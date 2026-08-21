@@ -9,6 +9,7 @@ import 'package:hr_app/features/attendance/data/repositories/mock_attendance_rep
 import 'package:hr_app/features/attendance/domain/entities/attendance_record.dart';
 import 'package:hr_app/features/authentication/data/repositories/mock_auth_repository.dart';
 import 'package:hr_app/features/authentication/presentation/controllers/auth_controller.dart';
+import 'package:hr_app/features/deductions/data/repositories/mock_deductions_repository.dart';
 import 'package:hr_app/features/deductions/domain/entities/deduction_entity.dart';
 import 'package:hr_app/features/employees/data/repositories/mock_employee_repository.dart';
 import 'package:hr_app/features/employees/domain/entities/employee_entity.dart';
