@@ -232,7 +232,7 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                           Text(w.name, style: AppTypography.bodyBold),
                           Text(
                             w.address,
-                            style: AppTypography.caption,
+                            style: AppTypography.captionOf(context),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -293,7 +293,7 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                 cellBuilder: (w) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.people_outline, size: 16, color: AppColors.textSecondaryLight),
+                    Icon(Icons.people_outline, size: 16, color: AppColors.textSecondary(context)),
                     const SizedBox(width: 4),
                     Text('${w.assignedEmployeesCount} staff', style: AppTypography.body),
                   ],

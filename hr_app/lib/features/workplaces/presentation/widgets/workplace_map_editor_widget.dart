@@ -314,7 +314,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                 onPressed: _polygonPoints.isNotEmpty ? _undoLastPoint : null,
               ),
               TextButton.icon(
-                icon: const Icon(Icons.clear_all, size: 16, color: AppColors.textSecondaryLight),
+                icon: Icon(Icons.clear_all, size: 16, color: AppColors.textSecondary(context)),
                 label: const Text('Clear All'),
                 onPressed: _polygonPoints.isNotEmpty ? _clearAllPoints : null,
               ),
@@ -329,7 +329,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
           child: Container(
             height: 380,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
               border: Border.all(
                 color: validationError != null
                     ? AppColors.danger
@@ -370,17 +370,20 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.75),
+                          color: isDark ? Colors.black.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.95),
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isDark ? Colors.white12 : AppColors.borderLight,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               widget.geofenceType == GeofenceType.polygon
-                                  ? Icons.touch_app_outlined
+                                   ? Icons.touch_app_outlined
                                   : Icons.gps_fixed,
-                              color: Colors.white,
+                              color: isDark ? Colors.white : AppColors.primary,
                               size: 14,
                             ),
                             const SizedBox(width: 6),
@@ -388,7 +391,11 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                               widget.geofenceType == GeofenceType.polygon
                                   ? 'Click map to place points. Drag points to adjust.'
                                   : 'Click map to set center location.',
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -403,16 +410,23 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: validationError != null
-                              ? AppColors.danger.withValues(alpha: 0.9)
-                              : Colors.black.withValues(alpha: 0.8),
+                              ? AppColors.danger.withValues(alpha: isDark ? 0.9 : 0.95)
+                              : (isDark ? Colors.black.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.95)),
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: validationError != null
+                                ? AppColors.danger
+                                : (isDark ? Colors.white12 : AppColors.borderLight),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               validationError != null ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                              color: Colors.white,
+                              color: validationError != null
+                                  ? Colors.white
+                                  : (isDark ? const Color(0xFF34D399) : const Color(0xFF059669)),
                               size: 14,
                             ),
                             const SizedBox(width: 6),
@@ -421,7 +435,13 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                                   (widget.geofenceType == GeofenceType.polygon
                                       ? 'Valid Boundary • ${_polygonPoints.length} Points • ~${GeofenceMath.calculateAreaSquareMeters(_polygonPoints).toInt()} m²'
                                       : 'Radius: ${_radiusMeters.toInt()}m • Area: ~${(math.pi * _radiusMeters * _radiusMeters).toInt()} m²'),
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: validationError != null
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : AppColors.textPrimaryLight),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -435,12 +455,19 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
+                          color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isDark ? Colors.white12 : AppColors.borderLight,
+                          ),
                         ),
                         child: Text(
                           'Center: ${_centerLat.toStringAsFixed(5)}, ${_centerLng.toStringAsFixed(5)}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'monospace'),
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppColors.textSecondaryLight,
+                            fontSize: 11,
+                            fontFamily: 'monospace',
+                          ),
                         ),
                       ),
                     ),
@@ -507,7 +534,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                   return ChoiceChip(
                     label: Text('${pt.label ?? 'P${idx + 1}'} (${pt.latitude.toStringAsFixed(4)}, ${pt.longitude.toStringAsFixed(4)})'),
                     selected: isSelected,
-                    selectedColor: AppColors.primaryLight.withValues(alpha: 0.3),
+                    selectedColor: AppColors.primaryLight.withValues(alpha: isDark ? 0.3 : 0.2),
                     onSelected: (selected) {
                       setState(() => _selectedVertexIndex = selected ? idx : null);
                     },
@@ -547,9 +574,9 @@ class _MapCanvasPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final centerPixel = Offset(size.width / 2, size.height / 2) + panOffset;
 
-    // 1. Draw Grid Lines (Blueprint map aesthetic)
+    // 1. Draw Grid Lines (Blueprint map aesthetic in dark, crisp architectural grid in light)
     final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.07)
+      ..color = isDark ? Colors.white.withValues(alpha: 0.07) : const Color(0xFF0F172A).withValues(alpha: 0.08)
       ..strokeWidth = 1.0;
 
     const gridSize = 40.0;
@@ -565,7 +592,7 @@ class _MapCanvasPainter extends CustomPainter {
 
     // 2. Draw Crosshairs at Center
     final crosshairPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
+      ..color = isDark ? Colors.white.withValues(alpha: 0.25) : const Color(0xFF0F172A).withValues(alpha: 0.25)
       ..strokeWidth = 1.0;
     canvas.drawLine(Offset(centerPixel.dx - 12, centerPixel.dy), Offset(centerPixel.dx + 12, centerPixel.dy), crosshairPaint);
     canvas.drawLine(Offset(centerPixel.dx, centerPixel.dy - 12), Offset(centerPixel.dx, centerPixel.dy + 12), crosshairPaint);
@@ -577,19 +604,19 @@ class _MapCanvasPainter extends CustomPainter {
 
       // Fill
       final fillPaint = Paint()
-        ..color = AppColors.primaryLight.withValues(alpha: 0.18)
+        ..color = AppColors.primaryLight.withValues(alpha: isDark ? 0.18 : 0.14)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(centerPixel, pixelRadius, fillPaint);
 
       // Stroke
       final strokePaint = Paint()
-        ..color = AppColors.primaryLight
+        ..color = isDark ? AppColors.primaryLight : AppColors.primary
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5;
       canvas.drawCircle(centerPixel, pixelRadius, strokePaint);
 
       // Center Pin
-      final pinPaint = Paint()..color = AppColors.primaryLight;
+      final pinPaint = Paint()..color = isDark ? AppColors.primaryLight : AppColors.primary;
       canvas.drawCircle(centerPixel, 7, pinPaint);
       canvas.drawCircle(centerPixel, 3, Paint()..color = Colors.white);
     } else {
@@ -607,12 +634,12 @@ class _MapCanvasPainter extends CustomPainter {
           path.close();
 
           final fillPaint = Paint()
-            ..color = const Color(0xFF10B981).withValues(alpha: 0.20)
+            ..color = const Color(0xFF10B981).withValues(alpha: isDark ? 0.20 : 0.16)
             ..style = PaintingStyle.fill;
           canvas.drawPath(path, fillPaint);
 
           final strokePaint = Paint()
-            ..color = const Color(0xFF10B981)
+            ..color = isDark ? const Color(0xFF10B981) : const Color(0xFF059669)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.5
             ..strokeCap = StrokeCap.round
@@ -621,7 +648,7 @@ class _MapCanvasPainter extends CustomPainter {
         } else if (pixelPoints.length == 2) {
           // Draw single line segment between 2 points
           final linePaint = Paint()
-            ..color = const Color(0xFF10B981)
+            ..color = isDark ? const Color(0xFF10B981) : const Color(0xFF059669)
             ..strokeWidth = 2.5;
           canvas.drawLine(pixelPoints[0], pixelPoints[1], linePaint);
         }
@@ -637,7 +664,7 @@ class _MapCanvasPainter extends CustomPainter {
           }
 
           // Vertex Point
-          final vertexPaint = Paint()..color = isSelected ? Colors.amber : const Color(0xFF10B981);
+          final vertexPaint = Paint()..color = isSelected ? Colors.amber : (isDark ? const Color(0xFF10B981) : const Color(0xFF059669));
           canvas.drawCircle(pt, 8, vertexPaint);
           canvas.drawCircle(pt, 4, Paint()..color = Colors.white);
 
@@ -645,7 +672,12 @@ class _MapCanvasPainter extends CustomPainter {
           final textPainter = TextPainter(
             text: TextSpan(
               text: 'P${i + 1}',
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                backgroundColor: isDark ? Colors.black54 : Colors.white70,
+              ),
             ),
             textDirection: TextDirection.ltr,
           )..layout();
@@ -676,6 +708,7 @@ class _MapCanvasPainter extends CustomPainter {
         oldDelegate.polygonPoints != polygonPoints ||
         oldDelegate.selectedVertexIndex != selectedVertexIndex ||
         oldDelegate.zoomLevel != zoomLevel ||
-        oldDelegate.panOffset != panOffset;
+        oldDelegate.panOffset != panOffset ||
+        oldDelegate.isDark != isDark;
   }
 }

@@ -88,7 +88,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Assign Staff to Workplace', style: AppTypography.heading2),
-                      Text(widget.workplace.name, style: AppTypography.caption),
+                      Text(widget.workplace.name, style: AppTypography.captionOf(context)),
                     ],
                   ),
                 ),
@@ -103,7 +103,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
             // Search Bar
             TextField(
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, size: 20),
+                prefixIcon: Icon(Icons.search, size: 20, color: AppColors.textMuted(context)),
                 hintText: 'Search employees by name, ID, or department...',
                 isDense: true,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMedium)),
@@ -170,7 +170,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
                               title: Text(emp.fullName, style: AppTypography.bodyBold),
                               subtitle: Text(
                                 '${emp.employeeCode} • ${emp.department} • ${emp.jobTitle}',
-                                style: AppTypography.caption,
+                                style: AppTypography.captionOf(context),
                               ),
                               onChanged: (val) {
                                 setState(() {

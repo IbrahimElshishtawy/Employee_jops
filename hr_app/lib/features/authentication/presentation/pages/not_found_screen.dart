@@ -12,6 +12,8 @@ class NotFoundScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -26,18 +28,22 @@ class NotFoundScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(AppDimensions.space16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.neutralBg,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : AppColors.neutralBg,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.search_off_outlined, size: 48, color: AppColors.textMutedLight),
+                      child: Icon(
+                        Icons.search_off_outlined,
+                        size: 48,
+                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                      ),
                     ),
                     const SizedBox(height: AppDimensions.space20),
                     const Text('Page Not Found (404)', style: AppTypography.heading2),
                     const SizedBox(height: AppDimensions.space8),
-                    const Text(
+                    Text(
                       'The requested page or route does not exist in CyberWise IE HR Portal.',
-                      style: AppTypography.subtitle,
+                      style: AppTypography.subtitleOf(context),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimensions.space24),

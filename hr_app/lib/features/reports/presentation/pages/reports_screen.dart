@@ -16,7 +16,7 @@ class ReportsScreen extends StatelessWidget {
         children: [
           const Text('Operational Reports & Data Exports', style: AppTypography.heading2),
           const SizedBox(height: AppDimensions.space8),
-          Text('Generate, view, and export workforce analytics.', style: AppTypography.subtitle),
+          Text('Generate, view, and export workforce analytics.', style: AppTypography.subtitleOf(context)),
           const SizedBox(height: AppDimensions.space24),
 
           Wrap(

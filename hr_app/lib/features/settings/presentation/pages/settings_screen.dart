@@ -19,6 +19,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authCtrl = context.watch<AuthController>();
     final themeCtrl = context.watch<ThemeController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
       child: Column(
@@ -26,7 +27,10 @@ class SettingsScreen extends StatelessWidget {
         children: [
           const Text('HR Portal Settings & Environment', style: AppTypography.heading2),
           const SizedBox(height: AppDimensions.space8),
-          Text('System runtime configuration, theme preferences, and RBAC matrix.', style: AppTypography.subtitle),
+          Text(
+            'System runtime configuration, theme preferences, and RBAC matrix.',
+            style: AppTypography.subtitleOf(context),
+          ),
           const SizedBox(height: AppDimensions.space24),
 
           // System Info Card
@@ -72,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: AppDimensions.space8),
                     Text(
                       'Simulate different HR user roles to verify UI permission guards and route gating.',
-                      style: AppTypography.caption,
+                      style: AppTypography.captionOf(context),
                     ),
                     const SizedBox(height: AppDimensions.space16),
                     Wrap(
@@ -83,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                         return ChoiceChip(
                           label: Text(role.label),
                           selected: isSelected,
-                          selectedColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                          selectedColor: AppColors.primaryLight.withValues(alpha: isDark ? 0.3 : 0.2),
                           onSelected: (_) => authCtrl.switchMockRole(role),
                         );
                       }).toList(),
@@ -100,7 +104,7 @@ class SettingsScreen extends StatelessWidget {
                       children: AuthorizationService.getPermissionsForRole(authCtrl.currentRole).map((p) {
                         return Chip(
                           label: Text(p.key, style: const TextStyle(fontSize: 11)),
-                          backgroundColor: AppColors.neutralBg,
+                          backgroundColor: isDark ? AppColors.surfaceDark : AppColors.neutralBg,
                           padding: EdgeInsets.zero,
                         );
                       }).toList(),
@@ -128,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Color Scheme', style: AppTypography.bodyBold),
-                            Text('Switch between Dark, Light, or System appearance.', style: AppTypography.caption),
+                            Text('Switch between Dark, Light, or System appearance.', style: AppTypography.captionOf(context)),
                           ],
                         ),
                       ),

@@ -88,7 +88,10 @@ class AuditLogsScreen extends StatelessWidget {
         children: [
           const Text('System Audit Logs & Security Trail', style: AppTypography.heading2),
           const SizedBox(height: AppDimensions.space8),
-          Text('Immutable, tamper-evident record of all administrative HR actions.', style: AppTypography.subtitle),
+          Text(
+            'Immutable, tamper-evident record of all administrative HR actions.',
+            style: AppTypography.subtitleOf(context),
+          ),
           const SizedBox(height: AppDimensions.space24),
           HrDataTable<AuditLogEntry>(
             items: _mockLogs,
@@ -105,7 +108,7 @@ class AuditLogsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(l.actorName, style: AppTypography.bodyBold),
-                    Text(l.actorRole, style: AppTypography.caption),
+                    Text(l.actorRole, style: AppTypography.captionOf(context)),
                   ],
                 ),
               ),
@@ -119,7 +122,7 @@ class AuditLogsScreen extends StatelessWidget {
               ),
               HrColumn<AuditLogEntry>(
                 title: 'IP Address',
-                cellBuilder: (l) => Text(l.ipAddress, style: AppTypography.caption),
+                cellBuilder: (l) => Text(l.ipAddress, style: AppTypography.captionOf(context)),
               ),
               HrColumn<AuditLogEntry>(
                 title: 'Status',

@@ -60,7 +60,7 @@ class NotificationsScreen extends StatelessWidget {
         children: [
           const Text('System Notifications & Alerts', style: AppTypography.heading2),
           const SizedBox(height: AppDimensions.space8),
-          Text('Real-time operational alerts and submission notices.', style: AppTypography.subtitle),
+          Text('Real-time operational alerts and submission notices.', style: AppTypography.subtitleOf(context)),
           const SizedBox(height: AppDimensions.space24),
           Card(
             child: ListView.separated(
@@ -80,8 +80,8 @@ class NotificationsScreen extends StatelessWidget {
                     child: Icon(Icons.notifications_active_outlined, color: _getColor(n.severity), size: 20),
                   ),
                   title: Text(n.title, style: n.isRead ? AppTypography.body : AppTypography.bodyBold),
-                  subtitle: Text(n.message, style: AppTypography.caption),
-                  trailing: Text(DateFormatter.toDisplayDateTime(n.timestamp), style: AppTypography.caption),
+                  subtitle: Text(n.message, style: AppTypography.captionOf(context)),
+                  trailing: Text(DateFormatter.toDisplayDateTime(n.timestamp), style: AppTypography.captionOf(context)),
                 );
               },
             ),

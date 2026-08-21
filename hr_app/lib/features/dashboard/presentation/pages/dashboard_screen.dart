@@ -55,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(height: AppDimensions.space8),
                       Text(
                         'Monitor workforce operations, attendance, leaves, and approvals in real-time.',
-                        style: AppTypography.subtitle,
+                        style: AppTypography.subtitleOf(context),
                       ),
                     ],
                   ),

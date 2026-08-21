@@ -12,6 +12,8 @@ class UnauthorizedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -26,8 +28,8 @@ class UnauthorizedScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(AppDimensions.space16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.dangerBg,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.dangerBgDark : AppColors.dangerBg,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.lock_person_outlined, size: 48, color: AppColors.danger),
@@ -35,9 +37,9 @@ class UnauthorizedScreen extends StatelessWidget {
                     const SizedBox(height: AppDimensions.space20),
                     const Text('Access Denied (403)', style: AppTypography.heading2),
                     const SizedBox(height: AppDimensions.space8),
-                    const Text(
+                    Text(
                       'Your role does not have the required permissions to view this module. Please contact your system administrator if you believe this is an error.',
-                      style: AppTypography.subtitle,
+                      style: AppTypography.subtitleOf(context),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimensions.space24),

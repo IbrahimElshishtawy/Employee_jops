@@ -7,6 +7,7 @@ import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/routing/route_names.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/utils/validator.dart';
 import '../../../../core/widgets/forms/hr_button.dart';
 import '../../../../core/widgets/forms/hr_text_field.dart';
@@ -49,8 +50,28 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authCtrl = context.watch<AuthController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          Consumer<ThemeController>(
+            builder: (context, themeCtrl, _) {
+              return IconButton(
+                tooltip: 'Toggle Theme',
+                icon: Icon(
+                  themeCtrl.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                  size: 22,
+                ),
+                onPressed: () => themeCtrl.toggleTheme(),
+              );
+            },
+          ),
+          const SizedBox(width: AppDimensions.space16),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppDimensions.space24),
@@ -71,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(AppDimensions.space16),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryLight.withValues(alpha: 0.1),
+                            color: AppColors.primaryLight.withValues(alpha: isDark ? 0.2 : 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -90,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: AppDimensions.space8),
                       Text(
                         AppStrings.loginSubtitle,
-                        style: AppTypography.subtitle,
+                        style: AppTypography.subtitleOf(context),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppDimensions.space24),
@@ -100,9 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           padding: const EdgeInsets.all(AppDimensions.space12),
                           decoration: BoxDecoration(
-                            color: AppColors.dangerBg,
+                            color: isDark ? AppColors.dangerBgDark : AppColors.dangerBg,
                             borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-                            border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                            border: Border.all(color: AppColors.danger.withValues(alpha: isDark ? 0.5 : 0.3)),
                           ),
                           child: Row(
                             children: [
@@ -111,7 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               Expanded(
                                 child: Text(
                                   authCtrl.errorMessage!,
-                                  style: AppTypography.captionBold.copyWith(color: AppColors.danger),
+                                  style: AppTypography.captionBold.copyWith(
+                                    color: isDark ? const Color(0xFFF87171) : AppColors.danger,
+                                  ),
                                 ),
                               ),
                             ],
@@ -126,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         hint: 'hr.admin@cyberwise.internal',
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                        prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.textMuted(context)),
                         validator: Validator.email,
                       ),
                       const SizedBox(height: AppDimensions.space16),
@@ -137,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         hint: '••••••••',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        prefixIcon: Icon(Icons.lock_outline, size: 20, color: AppColors.textMuted(context)),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
@@ -165,12 +188,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           padding: const EdgeInsets.all(AppDimensions.space8),
                           decoration: BoxDecoration(
-                            color: AppColors.warningBg,
+                            color: isDark ? AppColors.warningBgDark : AppColors.warningBg,
                             borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
                           ),
                           child: Text(
                             AppStrings.mockLoginNote,
-                            style: AppTypography.caption.copyWith(color: const Color(0xFFD97706)),
+                            style: AppTypography.caption.copyWith(
+                              color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),

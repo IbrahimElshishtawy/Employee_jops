@@ -16,7 +16,10 @@ class MessagesScreen extends StatelessWidget {
         children: [
           const Text('HR Internal Communications', style: AppTypography.heading2),
           const SizedBox(height: AppDimensions.space8),
-          Text('Send direct messages or company-wide announcements to employee mobile apps.', style: AppTypography.subtitle),
+          Text(
+            'Send direct messages or company-wide announcements to employee mobile apps.',
+            style: AppTypography.subtitleOf(context),
+          ),
           const SizedBox(height: AppDimensions.space24),
           Card(
             child: Padding(

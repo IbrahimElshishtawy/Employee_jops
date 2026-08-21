@@ -105,7 +105,10 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
           child: Container(
             height: 280,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              ),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -120,6 +123,7 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
                         painter: _BoundaryPreviewPainter(
                           workplace: wp,
                           simulatedPoint: _simulatedPoint,
+                          isDark: isDark,
                         ),
                       ),
                     ),
@@ -129,12 +133,18 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: isDark ? Colors.black.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.92),
                           borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isDark ? Colors.white12 : AppColors.borderLight,
+                          ),
                         ),
                         child: Text(
                           'Click canvas to simulate employee punch position',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppColors.textSecondaryLight,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ),
@@ -152,10 +162,12 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
             padding: const EdgeInsets.all(AppDimensions.space12),
             decoration: BoxDecoration(
               color: _isInsideGeofence == true
-                  ? AppColors.success.withValues(alpha: 0.12)
-                  : AppColors.danger.withValues(alpha: 0.12),
+                  ? (isDark ? AppColors.successBgDark : AppColors.success.withValues(alpha: 0.12))
+                  : (isDark ? AppColors.dangerBgDark : AppColors.danger.withValues(alpha: 0.12)),
               border: Border.all(
-                color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
+                color: _isInsideGeofence == true
+                    ? (isDark ? const Color(0xFF34D399) : AppColors.success)
+                    : (isDark ? const Color(0xFFF87171) : AppColors.danger),
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
@@ -164,7 +176,9 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
               children: [
                 Icon(
                   _isInsideGeofence == true ? Icons.verified_outlined : Icons.gpp_bad_outlined,
-                  color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
+                  color: _isInsideGeofence == true
+                      ? (isDark ? const Color(0xFF34D399) : AppColors.success)
+                      : (isDark ? const Color(0xFFF87171) : AppColors.danger),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -177,12 +191,14 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
                             ? 'PUNCH PERMITTED — Inside Boundary'
                             : 'PUNCH REJECTED — Outside Boundary',
                         style: AppTypography.bodyBold.copyWith(
-                          color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
+                          color: _isInsideGeofence == true
+                              ? (isDark ? const Color(0xFF34D399) : AppColors.success)
+                              : (isDark ? const Color(0xFFF87171) : AppColors.danger),
                         ),
                       ),
                       Text(
                         'Simulated GPS: ${_simulatedPoint!.latitude.toStringAsFixed(5)}, ${_simulatedPoint!.longitude.toStringAsFixed(5)} (${_distanceFromCenter?.toInt()}m from center)',
-                        style: AppTypography.caption,
+                        style: AppTypography.captionOf(context),
                       ),
                     ],
                   ),
@@ -206,17 +222,19 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
           ),
           child: Column(
             children: [
-              _buildSpecRow('Geofence Model', wp.geofenceType.label),
+              _buildSpecRow(context, 'Geofence Model', wp.geofenceType.label),
               _buildSpecRow(
+                context,
                 wp.geofenceType == GeofenceType.polygon ? 'Polygon Vertices' : 'Allowed Radius',
                 wp.geofenceType == GeofenceType.polygon
                     ? '${wp.polygonPoints.length} GPS Coordinates'
                     : '${wp.allowedRadiusMeters.toInt()} meters',
               ),
-              _buildSpecRow('Boundary Area', '~${areaMeters.toInt()} m²'),
-              _buildSpecRow('Perimeter', '~${perimeterMeters.toInt()} m'),
-              _buildSpecRow('Assigned Staff', '${wp.assignedEmployeesCount} active employees'),
+              _buildSpecRow(context, 'Boundary Area', '~${areaMeters.toInt()} m²'),
+              _buildSpecRow(context, 'Perimeter', '~${perimeterMeters.toInt()} m'),
+              _buildSpecRow(context, 'Assigned Staff', '${wp.assignedEmployeesCount} active employees'),
               _buildSpecRow(
+                context,
                 'Status',
                 wp.isActive ? 'Active & Authoritative' : 'Inactive (Punches Blocked)',
               ),
@@ -227,14 +245,14 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
     );
   }
 
-  Widget _buildSpecRow(String label, String value) {
+  Widget _buildSpecRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTypography.captionBold),
-          Text(value, style: AppTypography.caption),
+          Text(value, style: AppTypography.captionOf(context)),
         ],
       ),
     );
@@ -244,10 +262,12 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
 class _BoundaryPreviewPainter extends CustomPainter {
   final WorkplaceEntity workplace;
   final GeoCoordinate? simulatedPoint;
+  final bool isDark;
 
   _BoundaryPreviewPainter({
     required this.workplace,
     this.simulatedPoint,
+    required this.isDark,
   });
 
   @override
@@ -257,7 +277,7 @@ class _BoundaryPreviewPainter extends CustomPainter {
 
     // Grid
     final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
+      ..color = isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF0F172A).withValues(alpha: 0.08)
       ..strokeWidth = 1;
     for (double x = 0; x < size.width; x += 30) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
@@ -269,18 +289,18 @@ class _BoundaryPreviewPainter extends CustomPainter {
     if (workplace.geofenceType == GeofenceType.circle) {
       final pixelRadius = workplace.allowedRadiusMeters * (zoomLevel / 1.0);
       final fillPaint = Paint()
-        ..color = AppColors.primaryLight.withValues(alpha: 0.2)
+        ..color = AppColors.primaryLight.withValues(alpha: isDark ? 0.2 : 0.15)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(centerPixel, pixelRadius, fillPaint);
 
       final strokePaint = Paint()
-        ..color = AppColors.primaryLight
+        ..color = isDark ? AppColors.primaryLight : AppColors.primary
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
       canvas.drawCircle(centerPixel, pixelRadius, strokePaint);
 
       // Center
-      canvas.drawCircle(centerPixel, 5, Paint()..color = AppColors.primaryLight);
+      canvas.drawCircle(centerPixel, 5, Paint()..color = isDark ? AppColors.primaryLight : AppColors.primary);
     } else {
       if (workplace.polygonPoints.length >= 3) {
         final pixelPoints = workplace.polygonPoints
@@ -295,18 +315,18 @@ class _BoundaryPreviewPainter extends CustomPainter {
         path.close();
 
         final fillPaint = Paint()
-          ..color = const Color(0xFF10B981).withValues(alpha: 0.25)
+          ..color = const Color(0xFF10B981).withValues(alpha: isDark ? 0.25 : 0.18)
           ..style = PaintingStyle.fill;
         canvas.drawPath(path, fillPaint);
 
         final strokePaint = Paint()
-          ..color = const Color(0xFF10B981)
+          ..color = isDark ? const Color(0xFF10B981) : const Color(0xFF059669)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.5;
         canvas.drawPath(path, strokePaint);
 
         for (final pt in pixelPoints) {
-          canvas.drawCircle(pt, 5, Paint()..color = const Color(0xFF10B981));
+          canvas.drawCircle(pt, 5, Paint()..color = isDark ? const Color(0xFF10B981) : const Color(0xFF059669));
           canvas.drawCircle(pt, 2, Paint()..color = Colors.white);
         }
       }
@@ -323,13 +343,13 @@ class _BoundaryPreviewPainter extends CustomPainter {
       );
 
       final pulsePaint = Paint()
-        ..color = Colors.cyanAccent.withValues(alpha: 0.3)
+        ..color = (isDark ? Colors.cyanAccent : const Color(0xFF0284C7)).withValues(alpha: 0.3)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(simPixel, 12, pulsePaint);
 
-      final simPaint = Paint()..color = Colors.cyanAccent;
+      final simPaint = Paint()..color = isDark ? Colors.cyanAccent : const Color(0xFF0284C7);
       canvas.drawCircle(simPixel, 6, simPaint);
-      canvas.drawCircle(simPixel, 2, Paint()..color = Colors.black);
+      canvas.drawCircle(simPixel, 2, Paint()..color = Colors.white);
     }
   }
 
@@ -354,6 +374,8 @@ class _BoundaryPreviewPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BoundaryPreviewPainter oldDelegate) {
-    return oldDelegate.workplace != workplace || oldDelegate.simulatedPoint != simulatedPoint;
+    return oldDelegate.workplace != workplace ||
+        oldDelegate.simulatedPoint != simulatedPoint ||
+        oldDelegate.isDark != isDark;
   }
 }

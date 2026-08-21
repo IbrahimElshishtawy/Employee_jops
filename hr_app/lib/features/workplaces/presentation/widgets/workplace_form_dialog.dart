@@ -171,7 +171,9 @@ class _WorkplaceFormDialogState extends State<WorkplaceFormDialog> with SingleTi
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.12),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.dangerBgDark
+                      : AppColors.danger.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
                   border: Border.all(color: AppColors.danger),
                 ),
