@@ -55,7 +55,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
       final wpRepo = context.read<WorkplacesRepository>();
       final schRepo = context.read<SchedulesRepository>();
 
-      final wpResult = await wpRepo.getWorkplaces(page: 1, pageSize: 50);
+      final wpResult = await wpRepo.getWorkplaces(const WorkplaceFilter(page: 1, pageSize: 50));
       final schResult = await schRepo.getSchedules(1, 50);
 
       if (mounted) {
@@ -176,7 +176,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                 Text('Authoritative Workplace', style: AppTypography.bodyBold),
                 const SizedBox(height: AppDimensions.space8),
                 DropdownButtonFormField<String>(
-                  value: _workplaces.any((w) => w.id == _selectedWorkplaceId) ? _selectedWorkplaceId : null,
+                  initialValue: _workplaces.any((w) => w.id == _selectedWorkplaceId) ? _selectedWorkplaceId : null,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.place_outlined, size: 18),
                     isDense: true,
@@ -204,7 +204,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                 Text('Assigned Shift Schedule', style: AppTypography.bodyBold),
                 const SizedBox(height: AppDimensions.space8),
                 DropdownButtonFormField<String>(
-                  value: _schedules.any((s) => s.id == _selectedScheduleId) ? _selectedScheduleId : null,
+                  initialValue: _schedules.any((s) => s.id == _selectedScheduleId) ? _selectedScheduleId : null,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.access_time_outlined, size: 18),
                     isDense: true,

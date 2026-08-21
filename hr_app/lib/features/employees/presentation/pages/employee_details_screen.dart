@@ -18,11 +18,9 @@ import '../../../../core/widgets/forms/hr_button.dart';
 import '../../../../core/widgets/tables/hr_data_table.dart';
 import '../../../advances/domain/entities/advance_entity.dart';
 import '../../../attendance/domain/entities/attendance_record.dart';
-import '../../../attendance/presentation/controllers/attendance_controller.dart';
 import '../../../authentication/presentation/controllers/auth_controller.dart';
 import '../../../deductions/domain/entities/deduction_entity.dart';
 import '../../../requests/domain/entities/hr_request_entity.dart';
-import '../../../requests/presentation/controllers/requests_controller.dart';
 import '../../domain/entities/employee_entity.dart';
 import '../controllers/employee_controller.dart';
 import '../widgets/employee_assignment_dialog.dart';
@@ -164,10 +162,11 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
           required TimeOfDay checkOut,
           required String reason,
         }) async {
+          final messenger = ScaffoldMessenger.of(context);
           // Add attendance log and reload
           await Future.delayed(const Duration(milliseconds: 300));
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               const SnackBar(content: Text('Manual attendance entry submitted successfully.')),
             );
             _loadEmployeeData();
@@ -584,11 +583,11 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                     ),
                     HrColumn<AttendanceRecord>(
                       title: 'Check-in',
-                      cellBuilder: (a) => Text(a.checkInTime != null ? DateFormatter.toDisplayTime(a.checkInTime!) : '--:--', style: AppTypography.body),
+                      cellBuilder: (a) => Text(a.checkInTime != null ? DateFormatter.toTimeOnly(a.checkInTime!) : '--:--', style: AppTypography.body),
                     ),
                     HrColumn<AttendanceRecord>(
                       title: 'Check-out',
-                      cellBuilder: (a) => Text(a.checkOutTime != null ? DateFormatter.toDisplayTime(a.checkOutTime!) : '--:--', style: AppTypography.body),
+                      cellBuilder: (a) => Text(a.checkOutTime != null ? DateFormatter.toTimeOnly(a.checkOutTime!) : '--:--', style: AppTypography.body),
                     ),
                     HrColumn<AttendanceRecord>(
                       title: 'Workplace',
@@ -801,7 +800,8 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
                       padding: EdgeInsets.all(AppDimensions.space16),
                       child: Text('No active deductions recorded for this employee.'),
                     )
-                  : ListView.separated(
+                  else
+                    ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _employeeDeductions.length,

@@ -295,7 +295,7 @@ class _ManualAttendanceDialogState extends State<ManualAttendanceDialog> {
                   hint: 'e.g. Employee biometric terminal network outage / Approved remote work',
                   controller: _reasonController,
                   maxLines: 3,
-                  validator: (v) => Validator.required(v, 'A justified adjustment reason is mandatory'),
+                  validator: (v) => Validator.requiredField(v, 'A justified adjustment reason is mandatory'),
                 ),
                 const SizedBox(height: AppDimensions.space24),
 

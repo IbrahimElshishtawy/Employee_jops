@@ -7,7 +7,6 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
 import '../../../../core/utils/date_formatter.dart';
-import '../../../../core/widgets/feedback/empty_state_view.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/filter_bar.dart';
 import '../../../../core/widgets/forms/hr_button.dart';
@@ -50,7 +49,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Future<void> _loadWorkplaces() async {
     try {
       final wpRepo = context.read<WorkplacesRepository>();
-      final wpResult = await wpRepo.getWorkplaces(page: 1, pageSize: 50);
+      final wpResult = await wpRepo.getWorkplaces(const WorkplaceFilter(page: 1, pageSize: 50));
       if (mounted) {
         setState(() => _workplaces = wpResult.items);
       }
@@ -231,11 +230,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchEmployees(page: page),
             onRowTap: (emp) => context.go('/employees/${emp.id}'),
-            emptyState: const EmptyStateView(
-              title: 'No employees found',
-              subtitle: 'No employees match the current search query or active filter settings.',
-              icon: Icons.person_search_outlined,
-            ),
+            emptyMessage: 'No employees match the current search query or active filter settings.',
             columns: [
               HrColumn<EmployeeEntity>(
                 title: 'Employee',

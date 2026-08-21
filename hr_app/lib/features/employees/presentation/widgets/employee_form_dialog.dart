@@ -93,7 +93,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
       final wpRepo = context.read<WorkplacesRepository>();
       final schRepo = context.read<SchedulesRepository>();
 
-      final wpResult = await wpRepo.getWorkplaces(page: 1, pageSize: 50);
+      final wpResult = await wpRepo.getWorkplaces(const WorkplaceFilter(page: 1, pageSize: 50));
       final schResult = await schRepo.getSchedules(1, 50);
 
       if (mounted) {
@@ -276,7 +276,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                       hint: 'e.g. Alex Vance',
                                       controller: _fullNameController,
                                       prefixIcon: const Icon(Icons.person_outline, size: 18),
-                                      validator: (v) => Validator.required(v, 'Full name is required'),
+                                      validator: (v) => Validator.requiredField(v, 'Full name is required'),
                                     ),
                                   ),
                                   const SizedBox(width: AppDimensions.space12),
@@ -312,7 +312,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                       controller: _phoneController,
                                       keyboardType: TextInputType.phone,
                                       prefixIcon: const Icon(Icons.phone_outlined, size: 18),
-                                      validator: (v) => Validator.required(v, 'Phone is required'),
+                                      validator: (v) => Validator.requiredField(v, 'Phone is required'),
                                     ),
                                   ),
                                 ],
@@ -330,7 +330,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                       hint: 'CW-001',
                                       controller: _employeeCodeController,
                                       prefixIcon: const Icon(Icons.tag_outlined, size: 18),
-                                      validator: (v) => Validator.required(v, 'Employee code is required'),
+                                      validator: (v) => Validator.requiredField(v, 'Employee code is required'),
                                     ),
                                   ),
                                   const SizedBox(width: AppDimensions.space12),
@@ -340,7 +340,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                       hint: 'e.g. Senior Software Engineer',
                                       controller: _jobTitleController,
                                       prefixIcon: const Icon(Icons.badge_outlined, size: 18),
-                                      validator: (v) => Validator.required(v, 'Job title is required'),
+                                      validator: (v) => Validator.requiredField(v, 'Job title is required'),
                                     ),
                                   ),
                                 ],
