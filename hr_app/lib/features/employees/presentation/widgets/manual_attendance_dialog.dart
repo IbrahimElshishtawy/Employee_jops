@@ -211,7 +211,7 @@ class _ManualAttendanceDialogState extends State<ManualAttendanceDialog> {
                           Text('Attendance Status', style: AppTypography.bodyBold),
                           const SizedBox(height: AppDimensions.space8),
                           DropdownButtonFormField<AttendanceStatus>(
-                            value: _status,
+                            initialValue: _status,
                             decoration: const InputDecoration(isDense: true),
                             items: AttendanceStatus.values
                                 .map((s) => DropdownMenuItem(value: s, child: Text(s.label)))

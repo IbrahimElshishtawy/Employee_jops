@@ -355,7 +355,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Department', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
-                                          value: kDepartments.contains(_departmentController.text)
+                                          initialValue: kDepartments.contains(_departmentController.text)
                                               ? _departmentController.text
                                               : kDepartments.first,
                                           decoration: const InputDecoration(isDense: true),
@@ -377,7 +377,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Employment Status', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<EmployeeStatus>(
-                                          value: _status,
+                                          initialValue: _status,
                                           decoration: const InputDecoration(isDense: true),
                                           items: EmployeeStatus.values
                                               .map((s) => DropdownMenuItem(value: s, child: Text(s.label)))
@@ -407,7 +407,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Assigned Workplace', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
-                                          value: _selectedWorkplaceId,
+                                          initialValue: _selectedWorkplaceId,
                                           decoration: const InputDecoration(isDense: true),
                                           hint: const Text('Select workplace'),
                                           items: _workplaces
@@ -434,7 +434,7 @@ class _EmployeeFormDialogState extends State<EmployeeFormDialog> {
                                         Text('Assigned Schedule', style: AppTypography.bodyBold),
                                         const SizedBox(height: AppDimensions.space8),
                                         DropdownButtonFormField<String>(
-                                          value: _selectedScheduleId,
+                                          initialValue: _selectedScheduleId,
                                           decoration: const InputDecoration(isDense: true),
                                           hint: const Text('Select schedule'),
                                           items: _schedules

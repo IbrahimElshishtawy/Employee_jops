@@ -46,3 +46,34 @@ class SharedPrefsTokenStorage implements TokenStorage {
     return token != null && token.isNotEmpty;
   }
 }
+
+/// In-memory token storage for tests and ephemeral sessions
+class InMemoryTokenStorage implements TokenStorage {
+  String? _accessToken;
+  String? _refreshToken;
+
+  InMemoryTokenStorage({String? initialAccessToken, String? initialRefreshToken})
+      : _accessToken = initialAccessToken,
+        _refreshToken = initialRefreshToken;
+
+  @override
+  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+    _accessToken = accessToken;
+    _refreshToken = refreshToken;
+  }
+
+  @override
+  Future<String?> getAccessToken() async => _accessToken;
+
+  @override
+  Future<String?> getRefreshToken() async => _refreshToken;
+
+  @override
+  Future<void> clearTokens() async {
+    _accessToken = null;
+    _refreshToken = null;
+  }
+
+  @override
+  Future<bool> hasValidToken() async => _accessToken != null && _accessToken!.isNotEmpty;
+}

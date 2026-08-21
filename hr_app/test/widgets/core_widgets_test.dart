@@ -84,6 +84,9 @@ void main() {
 
     testWidgets('ThemeController toggles between Light and Dark mode', (tester) async {
       final controller = ThemeController();
+      expect(controller.themeMode, ThemeMode.system);
+
+      controller.setThemeMode(ThemeMode.dark);
       expect(controller.themeMode, ThemeMode.dark);
       expect(controller.isDarkMode, true);
 
