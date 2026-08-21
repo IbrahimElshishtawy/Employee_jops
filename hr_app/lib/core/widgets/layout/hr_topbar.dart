@@ -122,7 +122,7 @@ class HrTopbar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(userName, style: AppTypography.bodyBold),
-                    Text(userRole.label, style: AppTypography.caption),
+                    Text(userRole.label, style: AppTypography.captionOf(context)),
                     const Divider(),
                   ],
                 ),
@@ -154,10 +154,10 @@ class HrTopbar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(userName, style: AppTypography.bodyMedium),
-                    Text(userRole.label, style: AppTypography.caption),
+                    Text(userRole.label, style: AppTypography.captionOf(context)),
                   ],
                 ),
-                const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textSecondaryLight),
+                Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textSecondary(context)),
               ],
             ),
           ),

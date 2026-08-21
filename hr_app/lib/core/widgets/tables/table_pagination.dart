@@ -32,15 +32,15 @@ class TablePagination extends StatelessWidget {
         horizontal: AppDimensions.space16,
         vertical: AppDimensions.space12,
       ),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderLight)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border(context))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Showing $startItem to $endItem of $totalItems entries',
-            style: AppTypography.caption,
+            style: AppTypography.captionOf(context),
           ),
           Row(
             children: [

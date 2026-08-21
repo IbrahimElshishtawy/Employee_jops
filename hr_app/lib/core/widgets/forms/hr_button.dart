@@ -91,7 +91,7 @@ class HrButton extends StatelessWidget {
         btn = OutlinedButton(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryLight,
-            side: const BorderSide(color: AppColors.borderLight),
+            side: BorderSide(color: AppColors.border(context)),
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.space20,
               vertical: AppDimensions.space12,
@@ -107,7 +107,7 @@ class HrButton extends StatelessWidget {
       case HrButtonVariant.ghost:
         btn = TextButton(
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.textPrimaryLight,
+            foregroundColor: AppColors.textPrimary(context),
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.space16,
               vertical: AppDimensions.space12,

@@ -30,8 +30,9 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveIconColor = iconColor ?? AppColors.primaryLight;
-    final effectiveBgColor = iconBgColor ?? effectiveIconColor.withValues(alpha: 0.1);
+    final effectiveBgColor = iconBgColor ?? effectiveIconColor.withValues(alpha: isDark ? 0.18 : 0.12);
 
     return InkWell(
       onTap: onTap,
@@ -49,7 +50,7 @@ class StatCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: AppTypography.subtitle,
+                      style: AppTypography.subtitleOf(context),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -88,7 +89,7 @@ class StatCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           subtitle!,
-                          style: AppTypography.caption,
+                          style: AppTypography.captionOf(context),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

@@ -112,7 +112,7 @@ class HrDataTable<T> extends StatelessWidget {
                       : const Color(0xFFF8FAFC),
                 ),
                 headingTextStyle: AppTypography.captionBold.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
                   letterSpacing: 0.5,
                 ),
                 dataTextStyle: AppTypography.body,
@@ -133,7 +133,7 @@ class HrDataTable<T> extends StatelessWidget {
                             size: 14,
                             color: sortedColumnKey == col.sortKey
                                 ? AppColors.primaryLight
-                                : AppColors.textMutedLight,
+                                : AppColors.textMuted(context),
                           ),
                         ],
                       ],

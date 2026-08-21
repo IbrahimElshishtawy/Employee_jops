@@ -34,11 +34,11 @@ class ChartCard extends StatelessWidget {
                     Text(title, style: AppTypography.heading3),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
-                      Text(subtitle!, style: AppTypography.caption),
+                      Text(subtitle!, style: AppTypography.captionOf(context)),
                     ],
                   ],
                 ),
-                ?trailing,
+                if (trailing != null) trailing!,
               ],
             ),
             const SizedBox(height: AppDimensions.space20),
