@@ -63,7 +63,7 @@ class AttendanceDetailsDialog extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${record.employeeCode} • ${record.department} • ${record.workplaceName}',
+                          '${record.employeeCode}${record.department != null && record.department!.isNotEmpty ? ' • ${record.department}' : ''} • ${record.workplaceName}',
                           style: AppTypography.captionOf(context),
                         ),
                       ],

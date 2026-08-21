@@ -140,7 +140,7 @@ class ApiAttendanceRepository implements AttendanceRepository {
         '${ApiEndpoints.attendanceHistory}/$id/offline-review',
         body: {
           'approve': approve,
-          if (reason != null) 'reason': reason,
+          'reason': ?reason,
         },
       );
     } catch (e) {
@@ -179,15 +179,15 @@ class ApiAttendanceRepository implements AttendanceRepository {
   @override
   Future<String> exportAttendanceReport(AttendanceFilter filter) async {
     try {
-      final queryParams = <String, String>{};
-      if (filter.startDate != null) queryParams['startDate'] = filter.startDate!.toIso8601String();
-      if (filter.endDate != null) queryParams['endDate'] = filter.endDate!.toIso8601String();
-      if (filter.status != null) queryParams['status'] = filter.status!.key;
-      if (filter.workplaceId != null) queryParams['workplaceId'] = filter.workplaceId!;
+      final body = <String, String>{};
+      if (filter.startDate != null) body['startDate'] = filter.startDate!.toIso8601String();
+      if (filter.endDate != null) body['endDate'] = filter.endDate!.toIso8601String();
+      if (filter.status != null) body['status'] = filter.status!.key;
+      if (filter.workplaceId != null) body['workplaceId'] = filter.workplaceId!;
 
       final response = await _apiClient.post(
         ApiEndpoints.attendanceExport,
-        queryParams: queryParams,
+        body: body,
         parser: (data) => (data as Map<String, dynamic>)['downloadUrl'] as String,
       );
       return response.data!;

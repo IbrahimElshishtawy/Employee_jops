@@ -263,7 +263,7 @@ class MockAttendanceRepository implements AttendanceRepository {
       results = results.where((r) =>
           r.employeeName.toLowerCase().contains(q) ||
           r.employeeCode.toLowerCase().contains(q) ||
-          r.department.toLowerCase().contains(q) ||
+          (r.department?.toLowerCase().contains(q) ?? false) ||
           r.workplaceName.toLowerCase().contains(q)).toList();
     }
 
@@ -276,7 +276,7 @@ class MockAttendanceRepository implements AttendanceRepository {
     }
 
     if (filter.department != null && filter.department!.isNotEmpty) {
-      results = results.where((r) => r.department.toLowerCase() == filter.department!.toLowerCase()).toList();
+      results = results.where((r) => r.department?.toLowerCase() == filter.department!.toLowerCase()).toList();
     }
 
     if (filter.workplaceId != null && filter.workplaceId!.isNotEmpty) {

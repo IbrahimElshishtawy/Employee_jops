@@ -112,7 +112,7 @@ void main() {
     late MockDeductionsRepository dedRepo;
     late AuthController authController;
 
-    setUp(() {
+    setUp(() async {
       empRepo = MockEmployeeRepository();
       wpRepo = MockWorkplacesRepository();
       schRepo = MockSchedulesRepository();
@@ -120,8 +120,9 @@ void main() {
       reqRepo = MockRequestsRepository();
       advRepo = MockAdvancesRepository();
       dedRepo = MockDeductionsRepository();
-     final tokenStorage = InMemoryTokenStorage();
+      final tokenStorage = InMemoryTokenStorage();
       authController = AuthController(MockAuthRepository(tokenStorage), SessionManager(tokenStorage));
+      await authController.login('admin@cyberwise.test', 'password123');
     });
 
     Widget createTestApp({required Widget child, bool isDark = false}) {

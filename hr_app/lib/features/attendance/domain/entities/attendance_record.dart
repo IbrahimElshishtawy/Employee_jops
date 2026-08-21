@@ -111,8 +111,8 @@ class AttendanceRecord {
   final String employeeId;
   final String employeeName;
   final String employeeCode;
-  final String department;
-  final String workplaceId;
+  final String? department;
+  final String? workplaceId;
   final String workplaceName;
   final DateTime date;
   final DateTime? checkInTime;

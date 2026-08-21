@@ -104,7 +104,6 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       builder: (context) => ManualAttendanceDialog(
         employee: sampleEmp,
         onSave: ({required checkIn, required checkOut, required date, required reason, required status}) async {
-          final now = DateTime.now();
           final checkInDt = DateTime(date.year, date.month, date.day, checkIn.hour, checkIn.minute);
           final checkOutDt = DateTime(date.year, date.month, date.day, checkOut.hour, checkOut.minute);
 
@@ -416,7 +415,12 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(rec.employeeName, style: AppTypography.bodyBold),
-                        Text('${rec.employeeCode} • ${rec.department}', style: AppTypography.captionOf(context)),
+                        Text(
+                          rec.department != null && rec.department!.isNotEmpty
+                              ? '${rec.employeeCode} • ${rec.department}'
+                              : rec.employeeCode,
+                          style: AppTypography.captionOf(context),
+                        ),
                       ],
                     ),
                   ],

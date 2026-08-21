@@ -974,7 +974,7 @@ class _EmployeeDetailsScreenState extends State<EmployeeDetailsScreen> with Sing
       children: [
         Icon(icon, size: 18, color: AppColors.primaryLight),
         const SizedBox(width: 8),
-        Text(title, style: AppTypography.heading3),
+        Expanded(child: Text(title, style: AppTypography.heading3)),
       ],
     );
   }
