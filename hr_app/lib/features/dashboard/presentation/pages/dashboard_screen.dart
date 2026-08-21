@@ -35,6 +35,8 @@ class DashboardScreen extends StatelessWidget {
     final m = controller.metrics;
     if (m == null) return const SizedBox.shrink();
 
+    final isMobile = ResponsiveLayout.isMobile(context);
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

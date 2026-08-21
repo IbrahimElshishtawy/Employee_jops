@@ -82,51 +82,53 @@ class AuditLogsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text('System Audit Logs & Security Trail', style: AppTypography.heading2),
-        const SizedBox(height: AppDimensions.space8),
-        Text('Immutable, tamper-evident record of all administrative HR actions.', style: AppTypography.subtitle),
-        const SizedBox(height: AppDimensions.space24),
-        HrDataTable<AuditLogEntry>(
-          items: _mockLogs,
-          totalItems: _mockLogs.length,
-          columns: [
-            HrColumn<AuditLogEntry>(
-              title: 'Timestamp',
-              cellBuilder: (l) => Text(DateFormatter.toDisplayDateTime(l.timestamp), style: AppTypography.body),
-            ),
-            HrColumn<AuditLogEntry>(
-              title: 'Actor (User)',
-              cellBuilder: (l) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(l.actorName, style: AppTypography.bodyBold),
-                  Text(l.actorRole, style: AppTypography.caption),
-                ],
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('System Audit Logs & Security Trail', style: AppTypography.heading2),
+          const SizedBox(height: AppDimensions.space8),
+          Text('Immutable, tamper-evident record of all administrative HR actions.', style: AppTypography.subtitle),
+          const SizedBox(height: AppDimensions.space24),
+          HrDataTable<AuditLogEntry>(
+            items: _mockLogs,
+            totalItems: _mockLogs.length,
+            columns: [
+              HrColumn<AuditLogEntry>(
+                title: 'Timestamp',
+                cellBuilder: (l) => Text(DateFormatter.toDisplayDateTime(l.timestamp), style: AppTypography.body),
               ),
-            ),
-            HrColumn<AuditLogEntry>(
-              title: 'Action Performed',
-              cellBuilder: (l) => Text(l.action, style: AppTypography.bodyMedium),
-            ),
-            HrColumn<AuditLogEntry>(
-              title: 'Target Entity',
-              cellBuilder: (l) => Text('${l.targetType}: ${l.targetId}', style: AppTypography.body),
-            ),
-            HrColumn<AuditLogEntry>(
-              title: 'IP Address',
-              cellBuilder: (l) => Text(l.ipAddress, style: AppTypography.caption),
-            ),
-            HrColumn<AuditLogEntry>(
-              title: 'Status',
-              cellBuilder: (l) => const StatusBadge(label: 'VERIFIED', variant: BadgeVariant.success),
-            ),
-          ],
-        ),
-      ],
+              HrColumn<AuditLogEntry>(
+                title: 'Actor (User)',
+                cellBuilder: (l) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(l.actorName, style: AppTypography.bodyBold),
+                    Text(l.actorRole, style: AppTypography.caption),
+                  ],
+                ),
+              ),
+              HrColumn<AuditLogEntry>(
+                title: 'Action Performed',
+                cellBuilder: (l) => Text(l.action, style: AppTypography.bodyMedium),
+              ),
+              HrColumn<AuditLogEntry>(
+                title: 'Target Entity',
+                cellBuilder: (l) => Text('${l.targetType}: ${l.targetId}', style: AppTypography.body),
+              ),
+              HrColumn<AuditLogEntry>(
+                title: 'IP Address',
+                cellBuilder: (l) => Text(l.ipAddress, style: AppTypography.caption),
+              ),
+              HrColumn<AuditLogEntry>(
+                title: 'Status',
+                cellBuilder: (l) => const StatusBadge(label: 'VERIFIED', variant: BadgeVariant.success),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

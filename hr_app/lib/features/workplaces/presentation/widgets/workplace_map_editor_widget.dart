@@ -266,7 +266,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
                   color: isDark ? AppColors.surfaceDark : Colors.white,
                 ),
                 child: Row(
@@ -304,8 +304,8 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
             if (widget.geofenceType == GeofenceType.polygon) ...[
               if (_selectedVertexIndex != null)
                 TextButton.icon(
-                  icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.errorLight),
-                  label: Text('Delete Point P${_selectedVertexIndex! + 1}', style: const TextStyle(color: AppColors.errorLight)),
+                  icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.danger),
+                  label: Text('Delete Point P${_selectedVertexIndex! + 1}', style: const TextStyle(color: AppColors.danger)),
                   onPressed: _removeSelectedPoint,
                 ),
               TextButton.icon(
@@ -325,14 +325,14 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
 
         // Interactive Map Canvas Area
         ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
           child: Container(
             height: 380,
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B),
               border: Border.all(
                 color: validationError != null
-                    ? AppColors.errorLight
+                    ? AppColors.danger
                     : (isDark ? AppColors.borderDark : AppColors.borderLight),
                 width: validationError != null ? 2 : 1,
               ),
@@ -403,7 +403,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: validationError != null
-                              ? AppColors.errorLight.withValues(alpha: 0.9)
+                              ? AppColors.danger.withValues(alpha: 0.9)
                               : Colors.black.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -500,7 +500,7 @@ class _WorkplaceMapEditorWidgetState extends State<WorkplaceMapEditorWidget> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _polygonPoints.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, idx) {
                   final pt = _polygonPoints[idx];
                   final isSelected = _selectedVertexIndex == idx;

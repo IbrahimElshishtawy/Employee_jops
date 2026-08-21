@@ -61,8 +61,6 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final filtered = _allEmployees.where((emp) {
       if (_searchQuery.isEmpty) return true;
       final q = _searchQuery.toLowerCase();
@@ -72,7 +70,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
     }).toList();
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusLg)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusLarge)),
       child: Container(
         width: 620,
         height: 600,
@@ -108,7 +106,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
                 prefixIcon: const Icon(Icons.search, size: 20),
                 hintText: 'Search employees by name, ID, or department...',
                 isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMedium)),
               ),
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
             ),
@@ -150,7 +148,7 @@ class _WorkplaceAssignStaffDialogState extends State<WorkplaceAssignStaffDialog>
                       ? const Center(child: Text('No employees found.'))
                       : ListView.separated(
                           itemCount: filtered.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (context, index) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final emp = filtered[index];
                             final isChecked = _selectedEmployeeIds.contains(emp.id);

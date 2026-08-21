@@ -124,11 +124,10 @@ class _WorkplaceFormDialogState extends State<WorkplaceFormDialog> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEdit = widget.workplace != null;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusLg)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusLarge)),
       child: Container(
         width: 820,
         height: 720,
@@ -172,15 +171,15 @@ class _WorkplaceFormDialogState extends State<WorkplaceFormDialog> with SingleTi
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.errorLight.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                  border: Border.all(color: AppColors.errorLight),
+                  color: AppColors.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+                  border: Border.all(color: AppColors.danger),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.errorLight, size: 18),
+                    const Icon(Icons.error_outline, color: AppColors.danger, size: 18),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(_formError!, style: const TextStyle(color: AppColors.errorLight, fontSize: 13))),
+                    Expanded(child: Text(_formError!, style: const TextStyle(color: AppColors.danger, fontSize: 13))),
                   ],
                 ),
               ),

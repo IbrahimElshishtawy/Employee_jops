@@ -54,38 +54,40 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text('System Notifications & Alerts', style: AppTypography.heading2),
-        const SizedBox(height: AppDimensions.space8),
-        Text('Real-time operational alerts and submission notices.', style: AppTypography.subtitle),
-        const SizedBox(height: AppDimensions.space24),
-        Card(
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _mockNotifications.length,
-            separatorBuilder: (context, index) => const Divider(),
-            itemBuilder: (context, index) {
-              final n = _mockNotifications[index];
-              return ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(AppDimensions.space8),
-                  decoration: BoxDecoration(
-                    color: _getColor(n.severity).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('System Notifications & Alerts', style: AppTypography.heading2),
+          const SizedBox(height: AppDimensions.space8),
+          Text('Real-time operational alerts and submission notices.', style: AppTypography.subtitle),
+          const SizedBox(height: AppDimensions.space24),
+          Card(
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _mockNotifications.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final n = _mockNotifications[index];
+                return ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(AppDimensions.space8),
+                    decoration: BoxDecoration(
+                      color: _getColor(n.severity).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.notifications_active_outlined, color: _getColor(n.severity), size: 20),
                   ),
-                  child: Icon(Icons.notifications_active_outlined, color: _getColor(n.severity), size: 20),
-                ),
-                title: Text(n.title, style: n.isRead ? AppTypography.body : AppTypography.bodyBold),
-                subtitle: Text(n.message, style: AppTypography.caption),
-                trailing: Text(DateFormatter.toDisplayDateTime(n.timestamp), style: AppTypography.caption),
-              );
-            },
+                  title: Text(n.title, style: n.isRead ? AppTypography.body : AppTypography.bodyBold),
+                  subtitle: Text(n.message, style: AppTypography.caption),
+                  trailing: Text(DateFormatter.toDisplayDateTime(n.timestamp), style: AppTypography.caption),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

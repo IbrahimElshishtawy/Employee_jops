@@ -4,7 +4,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
-import '../../../../core/widgets/forms/hr_button.dart';
 import '../../domain/entities/workplace_entity.dart';
 import '../../domain/utils/geofence_math.dart';
 
@@ -102,7 +101,7 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
       children: [
         // Boundary Canvas
         ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
           child: Container(
             height: 280,
             decoration: BoxDecoration(
@@ -153,19 +152,19 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
             padding: const EdgeInsets.all(AppDimensions.space12),
             decoration: BoxDecoration(
               color: _isInsideGeofence == true
-                  ? AppColors.successLight.withValues(alpha: 0.12)
-                  : AppColors.errorLight.withValues(alpha: 0.12),
+                  ? AppColors.success.withValues(alpha: 0.12)
+                  : AppColors.danger.withValues(alpha: 0.12),
               border: Border.all(
-                color: _isInsideGeofence == true ? AppColors.successLight : AppColors.errorLight,
+                color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
                 width: 1.5,
               ),
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
             ),
             child: Row(
               children: [
                 Icon(
                   _isInsideGeofence == true ? Icons.verified_outlined : Icons.gpp_bad_outlined,
-                  color: _isInsideGeofence == true ? AppColors.successLight : AppColors.errorLight,
+                  color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -178,7 +177,7 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
                             ? 'PUNCH PERMITTED — Inside Boundary'
                             : 'PUNCH REJECTED — Outside Boundary',
                         style: AppTypography.bodyBold.copyWith(
-                          color: _isInsideGeofence == true ? AppColors.successLight : AppColors.errorLight,
+                          color: _isInsideGeofence == true ? AppColors.success : AppColors.danger,
                         ),
                       ),
                       Text(
@@ -202,7 +201,7 @@ class _WorkplaceBoundaryPreviewWidgetState extends State<WorkplaceBoundaryPrevie
           padding: const EdgeInsets.all(AppDimensions.space12),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
             border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
           ),
           child: Column(

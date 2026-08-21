@@ -18,7 +18,6 @@ import '../../features/requests/presentation/pages/requests_list_screen.dart';
 import '../../features/schedules/domain/entities/schedule_entity.dart';
 import '../../features/schedules/presentation/pages/schedules_list_screen.dart';
 import '../../features/settings/presentation/pages/settings_screen.dart';
-import '../../features/workplaces/domain/entities/workplace_entity.dart';
 import '../../features/workplaces/presentation/pages/workplaces_list_screen.dart';
 import '../rbac/app_permission.dart';
 import '../rbac/authorization_service.dart';

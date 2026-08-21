@@ -38,9 +38,10 @@ class _SchedulesListScreenState extends State<SchedulesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         FilterBar(
           searchHint: 'Search schedules...',
           onRefresh: _loadSchedules,
@@ -87,6 +88,7 @@ class _SchedulesListScreenState extends State<SchedulesListScreen> {
           ],
         ),
       ],
+      ),
     );
   }
 }

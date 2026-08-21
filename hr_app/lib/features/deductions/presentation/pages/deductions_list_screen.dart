@@ -39,9 +39,10 @@ class _DeductionsListScreenState extends State<DeductionsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         FilterBar(
           searchHint: 'Search deductions by employee, reason...',
           onRefresh: _loadDeductions,
@@ -96,6 +97,7 @@ class _DeductionsListScreenState extends State<DeductionsListScreen> {
           ],
         ),
       ],
+      ),
     );
   }
 }
