@@ -18,6 +18,10 @@ class MockEmployeeRepository implements EmployeeRepository {
       managerName: 'Sarah Jenkins (Test)',
       status: EmployeeStatus.active,
       joinedDate: DateTime(2023, 1, 15),
+      nationalId: '29301011234567',
+      basicSalary: 2850.00,
+      allowances: 450.00,
+      bankAccountNumber: 'EG3800020001000000123456789',
     ),
     EmployeeEntity(
       id: 'TEST-EMP-002',
@@ -34,6 +38,10 @@ class MockEmployeeRepository implements EmployeeRepository {
       managerName: 'Sarah Jenkins (Test)',
       status: EmployeeStatus.active,
       joinedDate: DateTime(2023, 3, 1),
+      nationalId: '29402021234568',
+      basicSalary: 2100.00,
+      allowances: 300.00,
+      bankAccountNumber: 'EG3800020001000000123456790',
     ),
     EmployeeEntity(
       id: 'TEST-EMP-003',
@@ -50,6 +58,10 @@ class MockEmployeeRepository implements EmployeeRepository {
       managerName: 'Sarah Jenkins (Test)',
       status: EmployeeStatus.suspended,
       joinedDate: DateTime(2023, 6, 20),
+      nationalId: '29503031234569',
+      basicSalary: 1850.00,
+      allowances: 250.00,
+      bankAccountNumber: 'EG3800020001000000123456791',
     ),
     EmployeeEntity(
       id: 'TEST-EMP-004',
@@ -66,6 +78,10 @@ class MockEmployeeRepository implements EmployeeRepository {
       managerName: 'Sarah Jenkins (Test)',
       status: EmployeeStatus.active,
       joinedDate: DateTime(2023, 9, 10),
+      nationalId: '29604041234570',
+      basicSalary: 2400.00,
+      allowances: 350.00,
+      bankAccountNumber: 'EG3800020001000000123456792',
     ),
     EmployeeEntity(
       id: 'TEST-EMP-005',
@@ -82,25 +98,42 @@ class MockEmployeeRepository implements EmployeeRepository {
       managerName: 'Sarah Jenkins (Test)',
       status: EmployeeStatus.deactivated,
       joinedDate: DateTime(2022, 11, 5),
+      nationalId: '29205051234571',
+      basicSalary: 1950.00,
+      allowances: 200.00,
+      bankAccountNumber: 'EG3800020001000000123456793',
     ),
   ];
 
   @override
   Future<PaginatedList<EmployeeEntity>> getEmployees(EmployeeFilter filter) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 200));
     var results = List<EmployeeEntity>.from(_mockEmployees);
 
-    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
-      final q = filter.searchQuery!.toLowerCase();
+    if (filter.searchQuery != null && filter.searchQuery!.trim().isNotEmpty) {
+      final q = filter.searchQuery!.trim().toLowerCase();
       results = results.where((e) =>
           e.fullName.toLowerCase().contains(q) ||
           e.email.toLowerCase().contains(q) ||
           e.employeeCode.toLowerCase().contains(q) ||
-          e.department.toLowerCase().contains(q)).toList();
+          e.department.toLowerCase().contains(q) ||
+          e.jobTitle.toLowerCase().contains(q)).toList();
+    }
+
+    if (filter.department != null && filter.department!.isNotEmpty) {
+      results = results.where((e) => e.department.toLowerCase() == filter.department!.toLowerCase()).toList();
     }
 
     if (filter.status != null) {
       results = results.where((e) => e.status == filter.status).toList();
+    }
+
+    if (filter.workplaceId != null && filter.workplaceId!.isNotEmpty) {
+      results = results.where((e) => e.workplaceId == filter.workplaceId).toList();
+    }
+
+    if (filter.scheduleId != null && filter.scheduleId!.isNotEmpty) {
+      results = results.where((e) => e.scheduleId == filter.scheduleId).toList();
     }
 
     final totalCount = results.length;
@@ -120,48 +153,59 @@ class MockEmployeeRepository implements EmployeeRepository {
 
   @override
   Future<EmployeeEntity> getEmployeeById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _mockEmployees.firstWhere((e) => e.id == id);
+    await Future.delayed(const Duration(milliseconds: 150));
+    return _mockEmployees.firstWhere(
+      (e) => e.id == id,
+      orElse: () => throw Exception('Employee not found with ID: $id'),
+    );
   }
 
   @override
   Future<EmployeeEntity> createEmployee(EmployeeEntity employee) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _mockEmployees.add(employee);
-    return employee;
+    await Future.delayed(const Duration(milliseconds: 200));
+    final newEmp = employee.id.isEmpty
+        ? employee.copyWith(id: 'EMP-${DateTime.now().millisecondsSinceEpoch}')
+        : employee;
+    _mockEmployees.insert(0, newEmp);
+    return newEmp;
   }
 
   @override
   Future<EmployeeEntity> updateEmployee(EmployeeEntity employee) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 200));
     final index = _mockEmployees.indexWhere((e) => e.id == employee.id);
     if (index != -1) {
       _mockEmployees[index] = employee;
+      return employee;
     }
-    return employee;
+    throw Exception('Employee not found with ID: ${employee.id}');
   }
 
   @override
   Future<void> updateStatus(String id, EmployeeStatus status) async {
-    await Future.delayed(const Duration(milliseconds: 250));
+    await Future.delayed(const Duration(milliseconds: 150));
     final index = _mockEmployees.indexWhere((e) => e.id == id);
     if (index != -1) {
-      final existing = _mockEmployees[index];
-      _mockEmployees[index] = EmployeeEntity(
-        id: existing.id,
-        employeeCode: existing.employeeCode,
-        fullName: existing.fullName,
-        email: existing.email,
-        phone: existing.phone,
-        department: existing.department,
-        jobTitle: existing.jobTitle,
-        workplaceId: existing.workplaceId,
-        workplaceName: existing.workplaceName,
-        scheduleId: existing.scheduleId,
-        scheduleName: existing.scheduleName,
-        managerName: existing.managerName,
-        status: status,
-        joinedDate: existing.joinedDate,
+      _mockEmployees[index] = _mockEmployees[index].copyWith(status: status);
+    }
+  }
+
+  @override
+  Future<void> assignWorkplaceAndSchedule(
+    String id, {
+    required String workplaceId,
+    required String workplaceName,
+    required String scheduleId,
+    required String scheduleName,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final index = _mockEmployees.indexWhere((e) => e.id == id);
+    if (index != -1) {
+      _mockEmployees[index] = _mockEmployees[index].copyWith(
+        workplaceId: workplaceId,
+        workplaceName: workplaceName,
+        scheduleId: scheduleId,
+        scheduleName: scheduleName,
       );
     }
   }

@@ -33,6 +33,10 @@ class EmployeeEntity {
   final String? managerName;
   final EmployeeStatus status;
   final DateTime joinedDate;
+  final String? nationalId;
+  final double? basicSalary;
+  final double? allowances;
+  final String? bankAccountNumber;
 
   const EmployeeEntity({
     required this.id,
@@ -49,7 +53,53 @@ class EmployeeEntity {
     this.managerName,
     required this.status,
     required this.joinedDate,
+    this.nationalId,
+    this.basicSalary,
+    this.allowances,
+    this.bankAccountNumber,
   });
+
+  EmployeeEntity copyWith({
+    String? id,
+    String? employeeCode,
+    String? fullName,
+    String? email,
+    String? phone,
+    String? department,
+    String? jobTitle,
+    String? workplaceId,
+    String? workplaceName,
+    String? scheduleId,
+    String? scheduleName,
+    String? managerName,
+    EmployeeStatus? status,
+    DateTime? joinedDate,
+    String? nationalId,
+    double? basicSalary,
+    double? allowances,
+    String? bankAccountNumber,
+  }) {
+    return EmployeeEntity(
+      id: id ?? this.id,
+      employeeCode: employeeCode ?? this.employeeCode,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      department: department ?? this.department,
+      jobTitle: jobTitle ?? this.jobTitle,
+      workplaceId: workplaceId ?? this.workplaceId,
+      workplaceName: workplaceName ?? this.workplaceName,
+      scheduleId: scheduleId ?? this.scheduleId,
+      scheduleName: scheduleName ?? this.scheduleName,
+      managerName: managerName ?? this.managerName,
+      status: status ?? this.status,
+      joinedDate: joinedDate ?? this.joinedDate,
+      nationalId: nationalId ?? this.nationalId,
+      basicSalary: basicSalary ?? this.basicSalary,
+      allowances: allowances ?? this.allowances,
+      bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
+    );
+  }
 }
 
 class EmployeeFilter {
@@ -57,6 +107,7 @@ class EmployeeFilter {
   final String? department;
   final EmployeeStatus? status;
   final String? workplaceId;
+  final String? scheduleId;
   final int page;
   final int pageSize;
 
@@ -65,6 +116,7 @@ class EmployeeFilter {
     this.department,
     this.status,
     this.workplaceId,
+    this.scheduleId,
     this.page = 1,
     this.pageSize = 10,
   });
@@ -92,4 +144,11 @@ abstract class EmployeeRepository {
   Future<EmployeeEntity> createEmployee(EmployeeEntity employee);
   Future<EmployeeEntity> updateEmployee(EmployeeEntity employee);
   Future<void> updateStatus(String id, EmployeeStatus status);
+  Future<void> assignWorkplaceAndSchedule(
+    String id, {
+    required String workplaceId,
+    required String workplaceName,
+    required String scheduleId,
+    required String scheduleName,
+  });
 }

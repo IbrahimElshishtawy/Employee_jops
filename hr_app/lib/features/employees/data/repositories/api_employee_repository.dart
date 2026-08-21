@@ -129,4 +129,25 @@ class ApiEmployeeRepository implements EmployeeRepository {
       throw ErrorHandler.mapExceptionToFailure(e);
     }
   }
+
+  @override
+  Future<void> assignWorkplaceAndSchedule(
+    String id, {
+    required String workplaceId,
+    required String workplaceName,
+    required String scheduleId,
+    required String scheduleName,
+  }) async {
+    try {
+      await _apiClient.patch(
+        ApiEndpoints.employeeDetails(id),
+        body: {
+          'workplaceId': workplaceId,
+          'scheduleId': scheduleId,
+        },
+      );
+    } catch (e) {
+      throw ErrorHandler.mapExceptionToFailure(e);
+    }
+  }
 }

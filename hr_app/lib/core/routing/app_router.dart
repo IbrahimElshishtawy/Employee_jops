@@ -10,6 +10,7 @@ import '../../features/authentication/presentation/pages/unauthorized_screen.dar
 import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../../features/deductions/domain/entities/deduction_entity.dart';
 import '../../features/deductions/presentation/pages/deductions_list_screen.dart';
+import '../../features/employees/presentation/pages/employee_details_screen.dart';
 import '../../features/employees/presentation/pages/employee_list_screen.dart';
 import '../../features/messages/presentation/pages/messages_screen.dart';
 import '../../features/notifications/presentation/pages/notifications_screen.dart';
@@ -82,6 +83,14 @@ class AppRouter {
               path: RouteNames.employees,
               redirect: (context, state) => _guardPermission(authController, AppPermission.employeesRead),
               builder: (context, state) => const EmployeeListScreen(),
+            ),
+            GoRoute(
+              path: RouteNames.employeeDetails,
+              redirect: (context, state) => _guardPermission(authController, AppPermission.employeesRead),
+              builder: (context, state) {
+                final id = state.pathParameters['id'] ?? '';
+                return EmployeeDetailsScreen(employeeId: id);
+              },
             ),
             GoRoute(
               path: RouteNames.attendance,

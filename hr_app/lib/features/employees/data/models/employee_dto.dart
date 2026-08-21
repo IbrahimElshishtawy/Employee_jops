@@ -15,6 +15,10 @@ class EmployeeDto {
   final String? managerName;
   final String status;
   final String joinedDate;
+  final String? nationalId;
+  final double? basicSalary;
+  final double? allowances;
+  final String? bankAccountNumber;
 
   const EmployeeDto({
     required this.id,
@@ -31,6 +35,10 @@ class EmployeeDto {
     this.managerName,
     required this.status,
     required this.joinedDate,
+    this.nationalId,
+    this.basicSalary,
+    this.allowances,
+    this.bankAccountNumber,
   });
 
   factory EmployeeDto.fromJson(Map<String, dynamic> json) {
@@ -49,6 +57,10 @@ class EmployeeDto {
       managerName: json['managerName'] as String?,
       status: json['status'] as String? ?? 'ACTIVE',
       joinedDate: json['joinedDate'] as String? ?? DateTime.now().toIso8601String(),
+      nationalId: json['nationalId'] as String?,
+      basicSalary: (json['basicSalary'] as num?)?.toDouble(),
+      allowances: (json['allowances'] as num?)?.toDouble(),
+      bankAccountNumber: json['bankAccountNumber'] as String?,
     );
   }
 
@@ -68,6 +80,10 @@ class EmployeeDto {
       managerName: managerName,
       status: EmployeeStatus.fromKey(status),
       joinedDate: DateTime.tryParse(joinedDate) ?? DateTime.now(),
+      nationalId: nationalId,
+      basicSalary: basicSalary,
+      allowances: allowances,
+      bankAccountNumber: bankAccountNumber,
     );
   }
 
@@ -86,5 +102,9 @@ class EmployeeDto {
         'managerName': managerName,
         'status': status,
         'joinedDate': joinedDate,
+        if (nationalId != null) 'nationalId': nationalId,
+        if (basicSalary != null) 'basicSalary': basicSalary,
+        if (allowances != null) 'allowances': allowances,
+        if (bankAccountNumber != null) 'bankAccountNumber': bankAccountNumber,
       };
 }
