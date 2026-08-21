@@ -8,6 +8,9 @@ import '../features/advances/domain/entities/advance_entity.dart';
 import '../features/advances/presentation/controllers/advances_controller.dart';
 import '../features/attendance/domain/entities/attendance_record.dart';
 import '../features/attendance/presentation/controllers/attendance_controller.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import '../core/localization/app_localizations.dart';
+import '../core/localization/locale_controller.dart';
 import '../features/audit_logs/domain/entities/audit_log_entity.dart';
 import '../features/audit_logs/presentation/controllers/audit_logs_controller.dart';
 import '../features/dashboard/domain/entities/dashboard_metrics.dart';
@@ -45,6 +48,7 @@ class HrApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: dependencies.themeController),
+        ChangeNotifierProvider.value(value: dependencies.localeController),
         ChangeNotifierProvider.value(value: dependencies.authController),
         Provider<DashboardRepository>.value(value: dependencies.dashboardRepository),
         Provider<EmployeeRepository>.value(value: dependencies.employeeRepository),
@@ -102,14 +106,22 @@ class HrApp extends StatelessWidget {
           create: (_) => SettingsController(dependencies.settingsRepository),
         ),
       ],
-      child: Consumer<ThemeController>(
-        builder: (context, themeCtrl, _) {
+      child: Consumer2<ThemeController, LocaleController>(
+        builder: (context, themeCtrl, localeCtrl, _) {
           return MaterialApp.router(
             title: AppConfig.appName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeCtrl.themeMode,
+            locale: localeCtrl.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             routerConfig: router,
           );
         },

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/config/env_config.dart';
+import '../core/localization/locale_controller.dart';
 import '../core/network/api_client.dart';
 import '../core/network/auth_interceptor.dart';
 import '../core/security/session_manager.dart';
@@ -58,6 +60,7 @@ class AppDependencies {
   final TokenStorage tokenStorage;
   final SessionManager sessionManager;
   final ThemeController themeController;
+  final LocaleController localeController;
   final AuthRepository authRepository;
   final AuthController authController;
   final DashboardRepository dashboardRepository;
@@ -79,6 +82,7 @@ class AppDependencies {
     required this.tokenStorage,
     required this.sessionManager,
     required this.themeController,
+    required this.localeController,
     required this.authRepository,
     required this.authController,
     required this.dashboardRepository,
@@ -107,6 +111,10 @@ class AppBootstrap {
     final tokenStorage = SharedPrefsTokenStorage(prefs);
     final sessionManager = SessionManager(tokenStorage);
     final themeController = ThemeController(localStorage);
+    final localeController = LocaleController(localStorage);
+
+    await initializeDateFormatting('en');
+    await initializeDateFormatting('ar');
 
     final httpClient = http.Client();
     final authInterceptor = AuthInterceptor(tokenStorage);
@@ -167,6 +175,7 @@ class AppBootstrap {
       tokenStorage: tokenStorage,
       sessionManager: sessionManager,
       themeController: themeController,
+      localeController: localeController,
       authRepository: authRepository,
       authController: authController,
       dashboardRepository: dashboardRepository,

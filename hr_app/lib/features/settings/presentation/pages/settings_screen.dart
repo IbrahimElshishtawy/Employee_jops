@@ -5,6 +5,7 @@ import '../../../../core/config/env_config.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/widgets/language_switcher.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/app_role.dart';
 import '../../../../core/rbac/authorization_service.dart';
@@ -608,6 +609,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       selected: {themeCtrl.themeMode},
                       onSelectionChanged: (set) => themeCtrl.setThemeMode(set.first),
                     ),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.space20),
+                const Divider(),
+                const SizedBox(height: AppDimensions.space16),
+
+                // Language & Regional Preference
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Dashboard Language & Regional Format', style: AppTypography.bodyBold),
+                          Text('Switch between English (LTR) and العربية (RTL).', style: AppTypography.captionOf(context)),
+                        ],
+                      ),
+                    ),
+                    const LanguageSwitcher(compact: false),
                   ],
                 ),
               ],

@@ -4,6 +4,7 @@ import '../../config/env_config.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimensions.dart';
 import '../../constants/app_typography.dart';
+import '../../localization/widgets/language_switcher.dart';
 import '../../rbac/app_role.dart';
 import '../../theme/theme_controller.dart';
 import '../feedback/status_badge.dart';
@@ -61,6 +62,10 @@ class HrTopbar extends StatelessWidget {
               variant: BadgeVariant.warning,
             ),
           const Spacer(),
+
+          // Language Switcher (EN / عربي)
+          const LanguageSwitcher(compact: true),
+          const SizedBox(width: AppDimensions.space8),
 
           // Theme Toggle
           Consumer<ThemeController>(
