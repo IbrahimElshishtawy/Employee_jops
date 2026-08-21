@@ -17,6 +17,7 @@ import '../features/requests/domain/entities/hr_request_entity.dart';
 import '../features/requests/presentation/controllers/requests_controller.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
+import '../features/workplaces/presentation/controllers/workplace_controller.dart';
 import 'app_bootstrap.dart';
 
 /// Root HR Portal Application Widget
@@ -55,6 +56,12 @@ class HrApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => AdvancesController(dependencies.advancesRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WorkplaceController(
+            dependencies.workplacesRepository,
+            dependencies.employeeRepository,
+          ),
         ),
       ],
       child: Consumer<ThemeController>(

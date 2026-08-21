@@ -109,9 +109,7 @@ class AppRouter {
             GoRoute(
               path: RouteNames.workplaces,
               redirect: (context, state) => _guardPermission(authController, AppPermission.workplacesRead),
-              builder: (context, state) => WorkplacesListScreen(
-                repository: context.read<WorkplacesRepository>(),
-              ),
+              builder: (context, state) => const WorkplacesListScreen(),
             ),
             GoRoute(
               path: RouteNames.schedules,

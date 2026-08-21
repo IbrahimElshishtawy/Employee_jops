@@ -30,6 +30,8 @@ import '../features/requests/data/repositories/api_requests_repository.dart';
 import '../features/requests/data/repositories/mock_requests_repository.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
+import '../features/workplaces/data/repositories/api_workplaces_repository.dart';
+import '../features/workplaces/data/repositories/mock_workplaces_repository.dart';
 
 /// Dependency Injection Container holding app services & repositories
 class AppDependencies {
@@ -109,7 +111,7 @@ class AppBootstrap {
       requestsRepository = ApiRequestsRepository(apiClient);
       advancesRepository = ApiAdvancesRepository(apiClient);
       deductionsRepository = MockDeductionsRepository(); // Fallback for dev
-      workplacesRepository = MockWorkplacesRepository();
+      workplacesRepository = ApiWorkplacesRepository(apiClient);
       schedulesRepository = MockSchedulesRepository();
     }
 

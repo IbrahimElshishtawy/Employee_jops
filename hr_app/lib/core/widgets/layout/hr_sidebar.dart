@@ -207,35 +207,35 @@ class HrSidebar extends StatelessWidget {
   }
 
   Widget _buildNavItem(BuildContext context, NavItemData item, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
         color: isSelected ? AppColors.sidebarActiveItem : Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: isCollapsed ? 16 : AppDimensions.space12,
-          vertical: 0,
-        ),
-        leading: Icon(
-          item.icon,
-          size: 20,
-          color: isSelected ? AppColors.primaryLight : AppColors.sidebarText,
-        ),
-        title: isCollapsed
-            ? null
-            : Text(
-                item.label,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isSelected ? AppColors.sidebarTextActive : AppColors.sidebarText,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: isCollapsed ? 16 : AppDimensions.space12,
+            vertical: 0,
+          ),
+          leading: Icon(
+            item.icon,
+            size: 20,
+            color: isSelected ? AppColors.primaryLight : AppColors.sidebarText,
+          ),
+          title: isCollapsed
+              ? null
+              : Text(
+                  item.label,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: isSelected ? AppColors.sidebarTextActive : AppColors.sidebarText,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
-              ),
-        dense: true,
-        onTap: () {
-          context.go(item.route);
-        },
+          dense: true,
+          onTap: () {
+            context.go(item.route);
+          },
+        ),
       ),
     );
   }
