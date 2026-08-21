@@ -177,13 +177,14 @@ void main() {
     });
 
     testWidgets('EmployeeAssignmentDialog renders workplace and schedule selectors', (tester) async {
-      final sampleEmp = await empRepo.getEmployeeById('TEST-EMP-001');
+      final sampleEmp = await tester.runAsync(() => empRepo.getEmployeeById('TEST-EMP-001'));
+      expect(sampleEmp, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1280, 800));
       await tester.pumpWidget(
         createTestApp(
           child: EmployeeAssignmentDialog(
-            employee: sampleEmp,
+            employee: sampleEmp!,
             onSave: ({required scheduleId, required scheduleName, required workplaceId, required workplaceName}) async => true,
           ),
         ),
@@ -196,13 +197,14 @@ void main() {
     });
 
     testWidgets('ManualAttendanceDialog renders punch adjustment form', (tester) async {
-      final sampleEmp = await empRepo.getEmployeeById('TEST-EMP-001');
+      final sampleEmp = await tester.runAsync(() => empRepo.getEmployeeById('TEST-EMP-001'));
+      expect(sampleEmp, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1280, 800));
       await tester.pumpWidget(
         createTestApp(
           child: ManualAttendanceDialog(
-            employee: sampleEmp,
+            employee: sampleEmp!,
             onSave: ({required checkIn, required checkOut, required date, required reason, required status}) async => true,
           ),
         ),

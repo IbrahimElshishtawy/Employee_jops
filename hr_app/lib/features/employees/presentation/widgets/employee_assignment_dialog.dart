@@ -176,6 +176,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                 Text('Authoritative Workplace', style: AppTypography.bodyBold),
                 const SizedBox(height: AppDimensions.space8),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _workplaces.any((w) => w.id == _selectedWorkplaceId) ? _selectedWorkplaceId : null,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.place_outlined, size: 18),
@@ -185,7 +186,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                   items: _workplaces.map((w) {
                     return DropdownMenuItem(
                       value: w.id,
-                      child: Text('${w.name} (${w.geofenceType.label})'),
+                      child: Text('${w.name} (${w.geofenceType.label})', overflow: TextOverflow.ellipsis),
                     );
                   }).toList(),
                   onChanged: (val) {
@@ -204,6 +205,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                 Text('Assigned Shift Schedule', style: AppTypography.bodyBold),
                 const SizedBox(height: AppDimensions.space8),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _schedules.any((s) => s.id == _selectedScheduleId) ? _selectedScheduleId : null,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.access_time_outlined, size: 18),
@@ -213,7 +215,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
                   items: _schedules.map((s) {
                     return DropdownMenuItem(
                       value: s.id,
-                      child: Text('${s.name} (${s.startTime} - ${s.endTime})'),
+                      child: Text('${s.name} (${s.startTime} - ${s.endTime})', overflow: TextOverflow.ellipsis),
                     );
                   }).toList(),
                   onChanged: (val) {

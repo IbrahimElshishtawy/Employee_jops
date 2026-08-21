@@ -129,12 +129,13 @@ void main() {
     });
 
     testWidgets('DeductionDetailsDialog renders breakdown, advance links, and cancellation in Dark theme', (tester) async {
-      final sampleDed = await dedRepo.getDeductionById('TEST-DED-001');
+      final sampleDed = await tester.runAsync(() => dedRepo.getDeductionById('TEST-DED-001'));
+      expect(sampleDed, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 850));
       await tester.pumpWidget(
         createTestApp(
-          child: DeductionDetailsDialog(deduction: sampleDed),
+          child: DeductionDetailsDialog(deduction: sampleDed!),
           isDark: true,
         ),
       );

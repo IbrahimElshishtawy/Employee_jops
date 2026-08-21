@@ -184,15 +184,16 @@ class _OfflineReviewDialogState extends State<OfflineReviewDialog> {
                 ],
 
                 // Actions Footer
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: AppDimensions.space8,
+                  runSpacing: AppDimensions.space8,
                   children: [
                     HrButton(
                       label: 'Cancel',
                       variant: HrButtonVariant.outline,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
-                    const SizedBox(width: AppDimensions.space12),
                     if (!_isRejecting) ...[
                       HrButton(
                         label: 'Reject Punch',
@@ -200,7 +201,6 @@ class _OfflineReviewDialogState extends State<OfflineReviewDialog> {
                         icon: Icons.cancel_outlined,
                         onPressed: () => setState(() => _isRejecting = true),
                       ),
-                      const SizedBox(width: AppDimensions.space8),
                       HrButton(
                         label: 'Approve Punch',
                         variant: HrButtonVariant.primary,
@@ -232,9 +232,23 @@ class _OfflineReviewDialogState extends State<OfflineReviewDialog> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.captionOf(context)),
-          Text(value, style: AppTypography.bodyBold),
+          Expanded(
+            flex: 2,
+            child: Text(label, style: AppTypography.captionOf(context)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: AppTypography.bodyBold,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
         ],
       ),
     );

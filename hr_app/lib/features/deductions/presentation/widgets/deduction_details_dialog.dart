@@ -82,7 +82,9 @@ class _DeductionDetailsDialogState extends State<DeductionDetailsDialog> {
                       children: [
                         Row(
                           children: [
-                            Text(d.employeeName, style: AppTypography.heading2),
+                            Expanded(
+                              child: Text(d.employeeName, style: AppTypography.heading2, overflow: TextOverflow.ellipsis),
+                            ),
                             const SizedBox(width: AppDimensions.space8),
                             _buildStatusBadge(d.status),
                           ],

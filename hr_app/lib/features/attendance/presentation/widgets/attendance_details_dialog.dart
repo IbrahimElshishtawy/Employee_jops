@@ -49,7 +49,9 @@ class AttendanceDetailsDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text(record.employeeName, style: AppTypography.heading2),
+                            Expanded(
+                              child: Text(record.employeeName, style: AppTypography.heading2, overflow: TextOverflow.ellipsis),
+                            ),
                             const SizedBox(width: AppDimensions.space8),
                             _buildStatusBadge(record.status),
                             if (record.securityStatus != SecurityStatus.normal) ...[
@@ -272,8 +274,10 @@ class AttendanceDetailsDialog extends StatelessWidget {
               children: [
                 Icon(icon, size: 16, color: AppColors.primaryLight),
                 const SizedBox(width: 8),
-                Text(title, style: AppTypography.bodyBold),
-                const Spacer(),
+                Expanded(
+                  child: Text(title, style: AppTypography.bodyBold, overflow: TextOverflow.ellipsis),
+                ),
+                const SizedBox(width: 8),
                 Text(timeStr, style: AppTypography.bodyBold.copyWith(color: AppColors.primaryLight)),
               ],
             ),
@@ -305,7 +309,10 @@ class AttendanceDetailsDialog extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Expanded(
+            child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: TextStyle(
@@ -313,6 +320,7 @@ class AttendanceDetailsDialog extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: color,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -324,7 +332,9 @@ class AttendanceDetailsDialog extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.primaryLight),
         const SizedBox(width: 8),
-        Text(title, style: AppTypography.bodyBold),
+        Expanded(
+          child: Text(title, style: AppTypography.bodyBold, overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }

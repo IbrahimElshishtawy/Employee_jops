@@ -211,10 +211,11 @@ class _ManualAttendanceDialogState extends State<ManualAttendanceDialog> {
                           Text('Attendance Status', style: AppTypography.bodyBold),
                           const SizedBox(height: AppDimensions.space8),
                           DropdownButtonFormField<AttendanceStatus>(
+                            isExpanded: true,
                             initialValue: _status,
                             decoration: const InputDecoration(isDense: true),
                             items: AttendanceStatus.values
-                                .map((s) => DropdownMenuItem(value: s, child: Text(s.label)))
+                                .map((s) => DropdownMenuItem(value: s, child: Text(s.label, overflow: TextOverflow.ellipsis)))
                                 .toList(),
                             onChanged: (val) {
                               if (val != null) setState(() => _status = val);

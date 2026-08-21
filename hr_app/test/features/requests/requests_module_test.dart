@@ -121,12 +121,13 @@ void main() {
     });
 
     testWidgets('RequestDetailsDialog renders information and history in Dark theme', (tester) async {
-      final sampleReq = await reqRepo.getRequestById('TEST-REQ-002');
+      final sampleReq = await tester.runAsync(() => reqRepo.getRequestById('TEST-REQ-002'));
+      expect(sampleReq, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 850));
       await tester.pumpWidget(
         createTestApp(
-          child: RequestDetailsDialog(request: sampleReq),
+          child: RequestDetailsDialog(request: sampleReq!),
           isDark: true,
         ),
       );
@@ -139,13 +140,14 @@ void main() {
     });
 
     testWidgets('RequestReviewDialog validates mandatory reason on rejection', (tester) async {
-      final sampleReq = await reqRepo.getRequestById('TEST-REQ-001');
+      final sampleReq = await tester.runAsync(() => reqRepo.getRequestById('TEST-REQ-001'));
+      expect(sampleReq, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 800));
       await tester.pumpWidget(
         createTestApp(
           child: RequestReviewDialog(
-            request: sampleReq,
+            request: sampleReq!,
             isApproval: false,
             onReview: ({required approve, comment}) async => true,
           ),

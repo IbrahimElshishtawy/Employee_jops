@@ -70,7 +70,9 @@ class RequestDetailsDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text(req.employeeName, style: AppTypography.heading2),
+                            Expanded(
+                              child: Text(req.employeeName, style: AppTypography.heading2, overflow: TextOverflow.ellipsis),
+                            ),
                             const SizedBox(width: AppDimensions.space8),
                             _buildStatusBadge(req.status),
                           ],
@@ -271,7 +273,10 @@ class RequestDetailsDialog extends StatelessWidget {
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  Text('Actor: ${event.actor}', style: AppTypography.bodyBold),
+                                                  Expanded(
+                                                    child: Text('Actor: ${event.actor}', style: AppTypography.bodyBold, overflow: TextOverflow.ellipsis),
+                                                  ),
+                                                  const SizedBox(width: 8),
                                                   Text(
                                                     DateFormatter.toDisplayDateTime(event.timestamp),
                                                     style: AppTypography.captionOf(context),

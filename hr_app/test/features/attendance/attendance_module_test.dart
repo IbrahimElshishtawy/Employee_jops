@@ -140,12 +140,13 @@ void main() {
     });
 
     testWidgets('AttendanceDetailsDialog renders telemetry, geofence, and event timeline', (tester) async {
-      final sampleRecord = await attRepo.getAttendanceDetails('TEST-ATT-001');
+      final sampleRecord = await tester.runAsync(() => attRepo.getAttendanceDetails('TEST-ATT-001'));
+      expect(sampleRecord, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 900));
       await tester.pumpWidget(
         createTestApp(
-          child: AttendanceDetailsDialog(record: sampleRecord),
+          child: AttendanceDetailsDialog(record: sampleRecord!),
           isDark: true,
         ),
       );
@@ -160,13 +161,14 @@ void main() {
     });
 
     testWidgets('OfflineReviewDialog renders offline review and rejection form', (tester) async {
-      final sampleRecord = await attRepo.getAttendanceDetails('TEST-ATT-007');
+      final sampleRecord = await tester.runAsync(() => attRepo.getAttendanceDetails('TEST-ATT-007'));
+      expect(sampleRecord, isNotNull);
 
       await tester.binding.setSurfaceSize(const Size(1366, 800));
       await tester.pumpWidget(
         createTestApp(
           child: OfflineReviewDialog(
-            record: sampleRecord,
+            record: sampleRecord!,
             onReview: ({required approve, reason}) async => true,
           ),
         ),
