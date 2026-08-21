@@ -20,8 +20,9 @@ class AuditLogDetailsDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMedium)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 720),
+      child: SizedBox(
+        width: 640,
+        height: 720,
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.space24),
           child: Column(
@@ -174,13 +175,18 @@ class AuditLogDetailsDialog extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.data_object, size: 16, color: AppColors.primaryLight),
-                                      const SizedBox(width: 6),
-                                      Text('Event Structured Metadata Payload', style: AppTypography.captionOf(context)),
-                                    ],
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.data_object, size: 16, color: AppColors.primaryLight),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text('Event Structured Metadata Payload', style: AppTypography.captionOf(context), overflow: TextOverflow.ellipsis),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(width: 8),
                                   const StatusBadge(label: 'IMMUTABLE', variant: BadgeVariant.neutral),
                                 ],
                               ),

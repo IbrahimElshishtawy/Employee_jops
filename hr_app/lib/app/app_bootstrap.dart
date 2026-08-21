@@ -27,6 +27,9 @@ import '../features/deductions/data/repositories/mock_deductions_repository.dart
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/data/repositories/api_employee_repository.dart';
 import '../features/employees/data/repositories/mock_employee_repository.dart';
+import '../features/audit_logs/domain/entities/audit_log_entity.dart';
+import '../features/audit_logs/data/repositories/api_audit_logs_repository.dart';
+import '../features/audit_logs/data/repositories/mock_audit_logs_repository.dart';
 import '../features/messages/domain/entities/message_entity.dart';
 import '../features/messages/data/repositories/api_messages_repository.dart';
 import '../features/messages/data/repositories/mock_messages_repository.dart';
@@ -42,6 +45,9 @@ import '../features/requests/data/repositories/mock_requests_repository.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
 import '../features/schedules/data/repositories/api_schedules_repository.dart';
 import '../features/schedules/data/repositories/mock_schedules_repository.dart';
+import '../features/settings/domain/entities/settings_entity.dart';
+import '../features/settings/data/repositories/api_settings_repository.dart';
+import '../features/settings/data/repositories/mock_settings_repository.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
 import '../features/workplaces/data/repositories/api_workplaces_repository.dart';
 import '../features/workplaces/data/repositories/mock_workplaces_repository.dart';
@@ -65,6 +71,8 @@ class AppDependencies {
   final ReportsRepository reportsRepository;
   final NotificationsRepository notificationsRepository;
   final MessagesRepository messagesRepository;
+  final AuditLogsRepository auditLogsRepository;
+  final SettingsRepository settingsRepository;
 
   AppDependencies({
     required this.localStorage,
@@ -84,6 +92,8 @@ class AppDependencies {
     required this.reportsRepository,
     required this.notificationsRepository,
     required this.messagesRepository,
+    required this.auditLogsRepository,
+    required this.settingsRepository,
   });
 }
 
@@ -114,6 +124,8 @@ class AppBootstrap {
     final ReportsRepository reportsRepository;
     final NotificationsRepository notificationsRepository;
     final MessagesRepository messagesRepository;
+    final AuditLogsRepository auditLogsRepository;
+    final SettingsRepository settingsRepository;
 
     if (EnvConfig.enableMockData) {
       authRepository = MockAuthRepository(tokenStorage);
@@ -128,6 +140,8 @@ class AppBootstrap {
       reportsRepository = MockReportsRepository();
       notificationsRepository = MockNotificationsRepository();
       messagesRepository = MockMessagesRepository();
+      auditLogsRepository = MockAuditLogsRepository();
+      settingsRepository = MockSettingsRepository();
     } else {
       authRepository = ApiAuthRepository(apiClient, tokenStorage);
       dashboardRepository = ApiDashboardRepository(apiClient);
@@ -141,6 +155,8 @@ class AppBootstrap {
       reportsRepository = ApiReportsRepository(apiClient);
       notificationsRepository = ApiNotificationsRepository(apiClient);
       messagesRepository = ApiMessagesRepository(apiClient);
+      auditLogsRepository = ApiAuditLogsRepository(apiClient);
+      settingsRepository = ApiSettingsRepository(apiClient);
     }
 
     final authController = AuthController(authRepository, sessionManager);
@@ -164,6 +180,8 @@ class AppBootstrap {
       reportsRepository: reportsRepository,
       notificationsRepository: notificationsRepository,
       messagesRepository: messagesRepository,
+      auditLogsRepository: auditLogsRepository,
+      settingsRepository: settingsRepository,
     );
   }
 }

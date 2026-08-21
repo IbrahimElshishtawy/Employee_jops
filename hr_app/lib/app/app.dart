@@ -8,6 +8,8 @@ import '../features/advances/domain/entities/advance_entity.dart';
 import '../features/advances/presentation/controllers/advances_controller.dart';
 import '../features/attendance/domain/entities/attendance_record.dart';
 import '../features/attendance/presentation/controllers/attendance_controller.dart';
+import '../features/audit_logs/domain/entities/audit_log_entity.dart';
+import '../features/audit_logs/presentation/controllers/audit_logs_controller.dart';
 import '../features/dashboard/domain/entities/dashboard_metrics.dart';
 import '../features/dashboard/presentation/controllers/dashboard_controller.dart';
 import '../features/deductions/domain/entities/deduction_entity.dart';
@@ -24,6 +26,8 @@ import '../features/requests/domain/entities/hr_request_entity.dart';
 import '../features/requests/presentation/controllers/requests_controller.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
 import '../features/schedules/presentation/controllers/schedule_controller.dart';
+import '../features/settings/domain/entities/settings_entity.dart';
+import '../features/settings/presentation/controllers/settings_controller.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
 import '../features/workplaces/presentation/controllers/workplace_controller.dart';
 import 'app_bootstrap.dart';
@@ -53,6 +57,8 @@ class HrApp extends StatelessWidget {
         Provider<ReportsRepository>.value(value: dependencies.reportsRepository),
         Provider<NotificationsRepository>.value(value: dependencies.notificationsRepository),
         Provider<MessagesRepository>.value(value: dependencies.messagesRepository),
+        Provider<AuditLogsRepository>.value(value: dependencies.auditLogsRepository),
+        Provider<SettingsRepository>.value(value: dependencies.settingsRepository),
         ChangeNotifierProvider(
           create: (_) => DashboardController(dependencies.dashboardRepository),
         ),
@@ -88,6 +94,12 @@ class HrApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => MessagesController(dependencies.messagesRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AuditLogsController(dependencies.auditLogsRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsController(dependencies.settingsRepository),
         ),
       ],
       child: Consumer<ThemeController>(

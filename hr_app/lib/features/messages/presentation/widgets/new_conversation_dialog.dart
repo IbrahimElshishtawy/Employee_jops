@@ -189,7 +189,7 @@ class _NewConversationDialogState extends State<NewConversationDialog> {
                             : ListView.separated(
                                 itemCount: _searchResults.length,
                                 separatorBuilder: (context, index) => const Divider(height: 1),
-                                itemBuilder: (context, index) {
+                                  itemBuilder: (context, index) {
                                   final emp = _searchResults[index];
                                   final isSelected = _selectedEmployee?.id == emp.id;
 

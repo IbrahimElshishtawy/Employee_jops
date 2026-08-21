@@ -124,7 +124,7 @@ class AuditLogsScreen extends StatelessWidget {
           FilterBar(
             searchHint: 'Search by action, actor, entity ID, or IP...',
             onSearchChanged: controller.onSearch,
-            onRefresh: controller.fetchAuditLogs,
+            onRefresh: () => controller.fetchAuditLogs(),
             filterActions: [
               DropdownButton<AuditActionCategory?>(
                 value: controller.categoryFilter,
@@ -144,7 +144,7 @@ class AuditLogsScreen extends StatelessWidget {
           HrDataTable<AuditLogItemEntity>(
             isLoading: controller.isLoading && controller.logs.isEmpty,
             errorMessage: controller.errorMessage,
-            onRetry: controller.fetchAuditLogs,
+            onRetry: () => controller.fetchAuditLogs(),
             items: controller.logs,
             totalItems: controller.totalCount,
             currentPage: controller.currentPage,
