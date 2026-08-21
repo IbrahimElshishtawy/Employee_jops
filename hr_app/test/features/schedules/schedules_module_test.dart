@@ -93,24 +93,25 @@ void main() {
       await authController.login('admin@cyberwise.test', 'password123');
     });
 
-    Widget createTestApp({required Widget child, bool isDark = false}) {
+    Widget createTestApp({required Widget child, bool isDark = false, bool autoFetch = false}) {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: authController),
           Provider<SchedulesRepository>.value(value: schRepo),
-          ChangeNotifierProvider(create: (_) => ScheduleController(schRepo)),
+          ChangeNotifierProvider(create: (_) => ScheduleController(schRepo, autoFetch: autoFetch)),
         ],
         child: MaterialApp(
           theme: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
-          home: Scaffold(body: child),
+          home: Scaffold(body: Center(child: child)),
         ),
       );
     }
 
     testWidgets('SchedulesListScreen renders KPI cards, subtabs, and data table', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1366, 800));
-      await tester.pumpWidget(createTestApp(child: const SchedulesListScreen()));
-      await tester.pumpAndSettle();
+      await tester.pumpWidget(createTestApp(child: const SchedulesListScreen(), autoFetch: true));
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump(const Duration(milliseconds: 350));
 
       expect(find.text('Work Schedules & Shifts Management'), findsOneWidget);
       expect(find.text('Active Shifts'), findsAtLeastNWidgets(1));
@@ -131,7 +132,8 @@ void main() {
           isDark: true,
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Standard Core Business Hours'), findsOneWidget);
       expect(find.text('Shift Start'), findsOneWidget);
@@ -149,7 +151,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Create Work Schedule'), findsOneWidget);
       expect(find.text('Schedule Name'), findsOneWidget);

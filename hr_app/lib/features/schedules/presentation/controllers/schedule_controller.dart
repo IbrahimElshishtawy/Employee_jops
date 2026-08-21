@@ -30,9 +30,11 @@ class ScheduleController extends ChangeNotifier {
   String? _departmentFilter;
   String? _errorMessage;
 
-  ScheduleController(this._repository) {
-    fetchSchedules();
-    fetchKpis();
+  ScheduleController(this._repository, {bool autoFetch = true}) {
+    if (autoFetch) {
+      fetchSchedules();
+      fetchKpis();
+    }
   }
 
   SchedulesViewStatus get status => _status;
