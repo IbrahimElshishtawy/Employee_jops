@@ -5,6 +5,7 @@ import '../../../../core/config/env_config.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/widgets/language_switcher.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/app_role.dart';
@@ -125,6 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (controller.settings != null) {
       _syncFromBundle(controller.settings!);
     }
+    final l10n = context.l10n;
 
     return SingleChildScrollView(
       child: Column(
@@ -139,17 +141,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('HR Portal Settings & System Policies', style: AppTypography.heading1),
+                    Text(l10n.translate('set_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'System runtime configuration, organization parameters, attendance rules, and security controls',
+                      l10n.translate('set_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
                 ),
               ),
               StatusBadge(
-                label: canManage ? 'SETTINGS ADMIN' : 'READ ONLY',
+                label: canManage ? (l10n.isArabic ? 'إدارة الإعدادات' : 'SETTINGS ADMIN') : (l10n.isArabic ? 'للقراءة فقط' : 'READ ONLY'),
                 variant: canManage ? BadgeVariant.success : BadgeVariant.neutral,
               ),
             ],

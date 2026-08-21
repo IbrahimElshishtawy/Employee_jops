@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
@@ -102,6 +103,8 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
     final canCreate = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.workplacesCreate);
     final canUpdate = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.workplacesUpdate);
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -111,8 +114,8 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Total Workplaces',
-                  value: controller.totalCount.toString(),
+                  title: l10n.translate('wp_total'),
+                  value: l10n.formatNumber(controller.totalCount),
                   icon: Icons.business_outlined,
                   iconColor: AppColors.primaryLight,
                 ),
@@ -120,8 +123,8 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
               const SizedBox(width: AppDimensions.space16),
               Expanded(
                 child: StatCard(
-                  title: 'Active Geofences',
-                  value: controller.activeGeofenceCount.toString(),
+                  title: l10n.translate('wp_active_geofences'),
+                  value: l10n.formatNumber(controller.activeGeofenceCount),
                   icon: Icons.verified_user_outlined,
                   iconColor: AppColors.success,
                 ),
@@ -129,8 +132,8 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
               const SizedBox(width: AppDimensions.space16),
               Expanded(
                 child: StatCard(
-                  title: 'Polygon Boundaries',
-                  value: controller.polygonCount.toString(),
+                  title: l10n.translate('wp_polygon_boundaries'),
+                  value: l10n.formatNumber(controller.polygonCount),
                   icon: Icons.polyline_outlined,
                   iconColor: const Color(0xFF10B981),
                 ),
@@ -138,8 +141,8 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
               const SizedBox(width: AppDimensions.space16),
               Expanded(
                 child: StatCard(
-                  title: 'Circle Radii',
-                  value: controller.circleCount.toString(),
+                  title: l10n.translate('wp_circle_radii'),
+                  value: l10n.formatNumber(controller.circleCount),
                   icon: Icons.radar_outlined,
                   iconColor: const Color(0xFF6366F1),
                 ),
@@ -150,17 +153,17 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search workplaces by name or address...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchWorkplaces,
             filterActions: [
               // Geofence Type Filter Dropdown
               DropdownButton<GeofenceType?>(
                 value: controller.geofenceTypeFilter,
-                hint: const Text('All Geofence Types'),
+                hint: Text(l10n.translate('wp_all_types')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Geofence Types')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('wp_all_types'))),
                   ...GeofenceType.values.map(
                     (t) => DropdownMenuItem(value: t, child: Text(t.label)),
                   ),
@@ -172,12 +175,12 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
               // Status Filter Dropdown
               DropdownButton<bool?>(
                 value: controller.statusFilter,
-                hint: const Text('All Statuses'),
+                hint: Text(l10n.translate('emp_all_statuses')),
                 underline: const SizedBox.shrink(),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('All Statuses')),
-                  DropdownMenuItem(value: true, child: Text('Active Only')),
-                  DropdownMenuItem(value: false, child: Text('Inactive Only')),
+                items: [
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_statuses'))),
+                  DropdownMenuItem(value: true, child: Text(l10n.translate('wp_active_only'))),
+                  DropdownMenuItem(value: false, child: Text(l10n.translate('wp_inactive_only'))),
                 ],
                 onChanged: controller.onFilterStatus,
               ),
@@ -185,7 +188,7 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
 
               if (canCreate)
                 HrButton(
-                  label: 'Add Workplace',
+                  label: l10n.translate('wp_add_btn'),
                   icon: Icons.add_location_alt_outlined,
                   onPressed: () => _openCreateDialog(context, controller),
                 ),
@@ -204,9 +207,10 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
             totalPages: controller.totalPages,
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchWorkplaces(page: page),
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<WorkplaceEntity>(
-                title: 'Workplace Name & Location',
+                title: l10n.translate('wp_name_loc'),
                 cellBuilder: (w) => Row(
                   children: [
                     Container(
@@ -242,7 +246,7 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                 ),
               ),
               HrColumn<WorkplaceEntity>(
-                title: 'Geofence Model',
+                title: l10n.translate('wp_geofence_model'),
                 cellBuilder: (w) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -278,7 +282,7 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                 ),
               ),
               HrColumn<WorkplaceEntity>(
-                title: 'Boundary Specs',
+                title: l10n.translate('wp_boundary_specs'),
                 cellBuilder: (w) {
                   if (w.geofenceType == GeofenceType.polygon) {
                     final area = GeofenceMath.calculateAreaSquareMeters(w.polygonPoints).toInt();
@@ -289,41 +293,41 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                 },
               ),
               HrColumn<WorkplaceEntity>(
-                title: 'Assigned Staff',
+                title: l10n.translate('wp_assigned_staff'),
                 cellBuilder: (w) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.people_outline, size: 16, color: AppColors.textSecondary(context)),
                     const SizedBox(width: 4),
-                    Text('${w.assignedEmployeesCount} staff', style: AppTypography.body),
+                    Text('${w.assignedEmployeesCount}', style: AppTypography.body),
                   ],
                 ),
               ),
               HrColumn<WorkplaceEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (w) => w.isActive
-                    ? const StatusBadge(label: 'Active Geofence', variant: BadgeVariant.success)
-                    : const StatusBadge(label: 'Inactive', variant: BadgeVariant.neutral),
+                    ? StatusBadge(label: l10n.translate('wp_active_only'), variant: BadgeVariant.success)
+                    : StatusBadge(label: l10n.translate('wp_inactive_only'), variant: BadgeVariant.neutral),
               ),
               HrColumn<WorkplaceEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (w) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.preview_outlined, size: 18),
-                      tooltip: 'Preview & Test Boundary',
+                      tooltip: l10n.translate('wp_preview_btn'),
                       onPressed: () => _openPreviewDialog(context, w),
                     ),
                     if (canUpdate) ...[
                       IconButton(
                         icon: const Icon(Icons.person_add_alt_outlined, size: 18),
-                        tooltip: 'Assign Staff',
+                        tooltip: l10n.translate('wp_assign_staff'),
                         onPressed: () => _openAssignStaffDialog(context, w, controller),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        tooltip: 'Edit Geofence',
+                        tooltip: l10n.translate('wp_edit'),
                         onPressed: () => _openEditDialog(context, w, controller),
                       ),
                       PopupMenuButton<String>(
@@ -338,11 +342,11 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
                         itemBuilder: (context) => [
                           PopupMenuItem(
                             value: 'toggle_status',
-                            child: Text(w.isActive ? 'Deactivate Workplace' : 'Activate Workplace'),
+                            child: Text(w.isActive ? l10n.translate('emp_deactivate') : l10n.translate('emp_activate')),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
-                            child: Text('Delete Workplace', style: TextStyle(color: AppColors.danger)),
+                            child: Text(l10n.translate('wp_delete'), style: const TextStyle(color: AppColors.danger)),
                           ),
                         ],
                       ),
@@ -358,19 +362,22 @@ class _WorkplacesListScreenState extends State<WorkplacesListScreen> {
   }
 
   void _confirmDelete(BuildContext context, WorkplaceEntity wp, WorkplaceController controller) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Workplace'),
-        content: Text('Are you sure you want to delete "${wp.name}"? This action cannot be undone.'),
+        title: Text(l10n.translate('wp_delete')),
+        content: Text(l10n.isArabic
+            ? 'هل أنت متأكد من رغبتك في حذف "${wp.name}"؟ لا يمكن التراجع عن هذا الإجراء.'
+            : 'Are you sure you want to delete "${wp.name}"? This action cannot be undone.'),
         actions: [
           HrButton(
-            label: 'Cancel',
+            label: l10n.translate('cancel'),
             variant: HrButtonVariant.outline,
             onPressed: () => Navigator.of(context).pop(),
           ),
           HrButton(
-            label: 'Delete',
+            label: l10n.translate('delete'),
             variant: HrButtonVariant.danger,
             onPressed: () {
               controller.deleteWorkplace(wp.id);

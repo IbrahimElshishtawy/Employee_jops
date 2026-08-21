@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/filter_bar.dart';
 import '../../../../core/widgets/forms/hr_button.dart';
@@ -140,6 +140,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     final canUpdate = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.employeesUpdate);
     final canAssign = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.workplacesUpdate) || canUpdate;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -152,10 +154,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Employees Directory', style: AppTypography.heading1),
+                    Text(l10n.translate('nav_employees'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Manage employee profiles, assignments, attendance logs, and operational records',
+                      l10n.translate('emp_directory_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -164,7 +166,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               const SizedBox(width: AppDimensions.space16),
               if (canCreate)
                 HrButton(
-                  label: 'Add Employee',
+                  label: l10n.translate('emp_add_btn'),
                   icon: Icons.person_add_alt_1_outlined,
                   onPressed: () => _openCreateDialog(context),
                 ),
@@ -174,17 +176,17 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search by name, ID, department, email...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchEmployees,
             filterActions: [
               // Department Filter Dropdown
               DropdownButton<String?>(
                 value: controller.departmentFilter,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Departments')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterDepartment,
@@ -194,10 +196,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               // Workplace Filter Dropdown
               DropdownButton<String?>(
                 value: controller.workplaceFilter,
-                hint: const Text('All Workplaces'),
+                hint: Text(l10n.translate('emp_all_workplaces')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Workplaces')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_workplaces'))),
                   ..._workplaces.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))),
                 ],
                 onChanged: controller.onFilterWorkplace,
@@ -207,12 +209,12 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               // Status Filter Dropdown
               DropdownButton<EmployeeStatus?>(
                 value: controller.statusFilter,
-                hint: const Text('All Statuses'),
+                hint: Text(l10n.translate('emp_all_statuses')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Statuses')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_statuses'))),
                   ...EmployeeStatus.values.map(
-                    (s) => DropdownMenuItem(value: s, child: Text(s.label)),
+                    (s) => DropdownMenuItem(value: s, child: Text(l10n.translateStatus(s.name))),
                   ),
                 ],
                 onChanged: controller.onFilterStatus,
@@ -233,10 +235,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchEmployees(page: page),
             onRowTap: (emp) => context.go('/employees/${emp.id}'),
-            emptyMessage: 'No employees match the current search query or active filter settings.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<EmployeeEntity>(
-                title: 'Employee',
+                title: l10n.translate('emp_name'),
                 cellBuilder: (emp) => Row(
                   children: [
                     CircleAvatar(
@@ -260,7 +262,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 ),
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Department & Role',
+                title: l10n.translate('emp_dept_role'),
                 cellBuilder: (emp) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -271,7 +273,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 ),
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Workplace',
+                title: l10n.translate('emp_workplace'),
                 cellBuilder: (emp) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -282,7 +284,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 ),
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Schedule',
+                title: l10n.translate('emp_schedule'),
                 cellBuilder: (emp) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -293,48 +295,48 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 ),
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Joined Date',
-                cellBuilder: (emp) => Text(DateFormatter.toDisplayDate(emp.joinedDate), style: AppTypography.body),
+                title: l10n.translate('emp_joined_date'),
+                cellBuilder: (emp) => Text(l10n.formatDate(emp.joinedDate), style: AppTypography.body),
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (emp) {
                   switch (emp.status) {
                     case EmployeeStatus.active:
-                      return const StatusBadge(label: 'Active', variant: BadgeVariant.success);
+                      return StatusBadge(label: l10n.translateStatus(emp.status.name), variant: BadgeVariant.success);
                     case EmployeeStatus.suspended:
-                      return const StatusBadge(label: 'Suspended', variant: BadgeVariant.warning);
+                      return StatusBadge(label: l10n.translateStatus(emp.status.name), variant: BadgeVariant.warning);
                     case EmployeeStatus.deactivated:
-                      return const StatusBadge(label: 'Deactivated', variant: BadgeVariant.danger);
+                      return StatusBadge(label: l10n.translateStatus(emp.status.name), variant: BadgeVariant.danger);
                   }
                 },
               ),
               HrColumn<EmployeeEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (emp) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Full Profile',
+                      tooltip: l10n.translate('emp_view_profile'),
                       onPressed: () => context.go('/employees/${emp.id}'),
                     ),
                     if (canUpdate)
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        tooltip: 'Edit Employee',
+                        tooltip: l10n.translate('emp_edit'),
                         onPressed: () => _openEditDialog(context, emp),
                       ),
                     if (canAssign)
                       IconButton(
                         icon: const Icon(Icons.transfer_within_a_station_outlined, size: 18),
-                        tooltip: 'Assign Workplace / Schedule',
+                        tooltip: l10n.translate('emp_assign'),
                         onPressed: () => _openAssignmentDialog(context, emp),
                       ),
                     if (canUpdate)
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, size: 18),
-                        tooltip: 'Status Management',
+                        tooltip: l10n.translate('emp_status_management'),
                         onSelected: (action) {
                           if (action == 'activate') {
                             _confirmStatusChange(context, emp, EmployeeStatus.active);
@@ -346,35 +348,35 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                         },
                         itemBuilder: (context) => [
                           if (emp.status != EmployeeStatus.active)
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'activate',
                               child: Row(
                                 children: [
-                                  Icon(Icons.check_circle_outline, size: 16, color: AppColors.success),
-                                  SizedBox(width: 8),
-                                  Text('Activate'),
+                                  const Icon(Icons.check_circle_outline, size: 16, color: AppColors.success),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.translate('emp_activate')),
                                 ],
                               ),
                             ),
                           if (emp.status != EmployeeStatus.suspended)
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'suspend',
                               child: Row(
                                 children: [
-                                  Icon(Icons.pause_circle_outline, size: 16, color: AppColors.warning),
-                                  SizedBox(width: 8),
-                                  Text('Suspend'),
+                                  const Icon(Icons.pause_circle_outline, size: 16, color: AppColors.warning),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.translate('emp_suspend')),
                                 ],
                               ),
                             ),
                           if (emp.status != EmployeeStatus.deactivated)
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'deactivate',
                               child: Row(
                                 children: [
-                                  Icon(Icons.block_outlined, size: 16, color: AppColors.danger),
-                                  SizedBox(width: 8),
-                                  Text('Deactivate', style: TextStyle(color: AppColors.danger)),
+                                  const Icon(Icons.block_outlined, size: 16, color: AppColors.danger),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.translate('emp_deactivate'), style: const TextStyle(color: AppColors.danger)),
                                 ],
                               ),
                             ),

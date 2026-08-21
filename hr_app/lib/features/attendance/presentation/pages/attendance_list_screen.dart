@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -154,6 +155,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,10 +169,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Attendance Control Center', style: AppTypography.heading1),
+                    Text(l10n.translate('att_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Monitor employee punches, GPS accuracy, geofence compliance, and security signals',
+                      l10n.translate('att_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -181,14 +184,14 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 children: [
                   if (canCorrect)
                     HrButton(
-                      label: 'Manual Correction',
+                      label: l10n.translate('att_manual_correction'),
                       icon: Icons.edit_calendar_outlined,
                       variant: HrButtonVariant.outline,
                       onPressed: _openManualCorrection,
                     ),
                   if (canExport)
                     HrButton(
-                      label: 'Export Report',
+                      label: l10n.translate('att_export_report'),
                       icon: Icons.file_download_outlined,
                       isLoading: controller.isExporting,
                       onPressed: _exportReport,
@@ -204,9 +207,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Present Today',
-                  value: kpis != null ? '${kpis.presentCount}' : '—',
-                  subtitle: 'On-time punches',
+                  title: l10n.translate('dash_present_today'),
+                  value: kpis != null ? l10n.formatNumber(kpis.presentCount) : '—',
+                  subtitle: l10n.translate('dash_on_time'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -214,9 +217,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Late Arrivals',
-                  value: kpis != null ? '${kpis.lateCount}' : '—',
-                  subtitle: 'Past grace window',
+                  title: l10n.translate('dash_late_arrivals'),
+                  value: kpis != null ? l10n.formatNumber(kpis.lateCount) : '—',
+                  subtitle: l10n.translate('dash_today_records'),
                   icon: Icons.timer_outlined,
                   iconColor: AppColors.warning,
                 ),
@@ -224,9 +227,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Absences',
-                  value: kpis != null ? '${kpis.absentCount}' : '—',
-                  subtitle: 'Unregistered punches',
+                  title: l10n.translate('dash_absent'),
+                  value: kpis != null ? l10n.formatNumber(kpis.absentCount) : '—',
+                  subtitle: l10n.translate('dash_absent_sub'),
                   icon: Icons.cancel_outlined,
                   iconColor: AppColors.danger,
                 ),
@@ -234,9 +237,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Early Departures',
-                  value: kpis != null ? '${kpis.earlyDepartureCount}' : '—',
-                  subtitle: 'Prior to shift end',
+                  title: l10n.translate('att_early_dep'),
+                  value: kpis != null ? l10n.formatNumber(kpis.earlyDepartureCount) : '—',
+                  subtitle: l10n.translate('att_status_early_leave'),
                   icon: Icons.logout_outlined,
                   iconColor: const Color(0xFFF97316),
                 ),
@@ -244,9 +247,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Offline Pending',
-                  value: kpis != null ? '${kpis.offlinePendingCount}' : '—',
-                  subtitle: 'Requires HR review',
+                  title: l10n.translate('att_offline_pending'),
+                  value: kpis != null ? l10n.formatNumber(kpis.offlinePendingCount) : '—',
+                  subtitle: l10n.translate('dash_requires_action'),
                   icon: Icons.cloud_sync_outlined,
                   iconColor: AppColors.info,
                 ),
@@ -254,9 +257,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Security Flags',
-                  value: kpis != null ? '${kpis.suspiciousCount}' : '—',
-                  subtitle: 'VPN / Mock Location',
+                  title: l10n.translate('att_security_flags'),
+                  value: kpis != null ? l10n.formatNumber(kpis.suspiciousCount) : '—',
+                  subtitle: 'VPN / Mock',
                   icon: Icons.security,
                   iconColor: AppColors.danger,
                 ),
@@ -279,7 +282,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 children: [
                   const Icon(Icons.date_range_outlined, size: 18, color: AppColors.primaryLight),
                   const SizedBox(width: 8),
-                  Text('Date Filter:', style: AppTypography.bodyBold),
+                  Text(l10n.translate('att_date_filter'), style: AppTypography.bodyBold),
                   const SizedBox(width: 12),
                   Wrap(
                     spacing: 6,
@@ -327,17 +330,17 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search employee name, code, workplace, department...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchRecords,
             filterActions: [
               // Department Filter
               DropdownButton<String?>(
                 value: controller.departmentFilter,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Departments')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterDepartment,
@@ -347,10 +350,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               // Workplace Filter
               DropdownButton<String?>(
                 value: controller.workplaceFilter,
-                hint: const Text('All Workplaces'),
+                hint: Text(l10n.translate('emp_all_workplaces')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Workplaces')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_workplaces'))),
                   ..._workplaces.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))),
                 ],
                 onChanged: controller.onFilterWorkplace,
@@ -360,12 +363,12 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               // Attendance Status Filter
               DropdownButton<AttendanceStatus?>(
                 value: controller.statusFilter,
-                hint: const Text('All Statuses'),
+                hint: Text(l10n.translate('emp_all_statuses')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Statuses')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_statuses'))),
                   ...AttendanceStatus.values.map(
-                    (s) => DropdownMenuItem(value: s, child: Text(s.label)),
+                    (s) => DropdownMenuItem(value: s, child: Text(l10n.translateStatus(s.name))),
                   ),
                 ],
                 onChanged: controller.onFilterStatus,
@@ -375,10 +378,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               // Security Status Filter
               DropdownButton<SecurityStatus?>(
                 value: controller.securityFilter,
-                hint: const Text('All Security States'),
+                hint: Text(l10n.translate('att_all_security')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Security States')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('att_all_security'))),
                   ...SecurityStatus.values.map(
                     (s) => DropdownMenuItem(value: s, child: Text(s.label)),
                   ),
@@ -401,10 +404,10 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchRecords(page: page),
             onRowTap: _showRecordDetails,
-            emptyMessage: 'No attendance records match the selected dates and filter settings.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<AttendanceRecord>(
-                title: 'Employee',
+                title: l10n.translate('emp_name'),
                 cellBuilder: (rec) => Row(
                   children: [
                     CircleAvatar(
@@ -433,18 +436,18 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 ),
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Date & Shift',
+                title: l10n.translate('att_date_shift'),
                 cellBuilder: (rec) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(DateFormatter.toDisplayDate(rec.date), style: AppTypography.bodyBold),
+                    Text(l10n.formatDate(rec.date), style: AppTypography.bodyBold),
                     Text(rec.scheduleName ?? 'Standard Core', style: AppTypography.captionOf(context)),
                   ],
                 ),
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Check-In',
+                title: l10n.translate('att_check_in'),
                 cellBuilder: (rec) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -462,59 +465,59 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 ),
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Check-Out',
+                title: l10n.translate('att_check_out'),
                 cellBuilder: (rec) => Text(
                   rec.checkOutTime != null ? DateFormatter.toTimeOnly(rec.checkOutTime) : '—',
                   style: AppTypography.body,
                 ),
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Workplace',
+                title: l10n.translate('emp_workplace'),
                 cellBuilder: (rec) => Text(rec.workplaceName, style: AppTypography.body),
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Attendance Status',
+                title: l10n.translate('status'),
                 cellBuilder: (rec) {
                   switch (rec.status) {
                     case AttendanceStatus.present:
-                      return const StatusBadge(label: 'Present', variant: BadgeVariant.success);
+                      return StatusBadge(label: l10n.translateStatus(rec.status.name), variant: BadgeVariant.success);
                     case AttendanceStatus.late:
-                      return StatusBadge(label: 'Late (${rec.lateMinutes ?? 0}m)', variant: BadgeVariant.warning);
+                      return StatusBadge(label: '${l10n.translateStatus(rec.status.name)} (${rec.lateMinutes ?? 0}m)', variant: BadgeVariant.warning);
                     case AttendanceStatus.absent:
-                      return const StatusBadge(label: 'Absent', variant: BadgeVariant.danger);
+                      return StatusBadge(label: l10n.translateStatus(rec.status.name), variant: BadgeVariant.danger);
                     case AttendanceStatus.earlyDeparture:
-                      return const StatusBadge(label: 'Early Departure', variant: BadgeVariant.warning);
+                      return StatusBadge(label: l10n.translateStatus(rec.status.name), variant: BadgeVariant.warning);
                     case AttendanceStatus.overtime:
-                      return StatusBadge(label: 'Overtime (+${rec.overtimeMinutes ?? 0}m)', variant: BadgeVariant.info);
+                      return StatusBadge(label: '${l10n.translateStatus(rec.status.name)} (+${rec.overtimeMinutes ?? 0}m)', variant: BadgeVariant.info);
                   }
                 },
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Security & Integrity',
+                title: l10n.translate('att_sec_integrity'),
                 cellBuilder: (rec) {
                   if (rec.isOfflinePending) {
-                    return const StatusBadge(label: 'Offline Pending', variant: BadgeVariant.warning);
+                    return StatusBadge(label: l10n.translate('att_offline_pending'), variant: BadgeVariant.warning);
                   }
                   if (rec.securityStatus == SecurityStatus.suspicious || rec.isFlagged) {
-                    return const StatusBadge(label: 'Security Flagged', variant: BadgeVariant.danger);
+                    return StatusBadge(label: l10n.translate('att_security_flagged'), variant: BadgeVariant.danger);
                   }
-                  return const StatusBadge(label: 'Verified Secure', variant: BadgeVariant.success);
+                  return StatusBadge(label: l10n.translate('att_verified_secure'), variant: BadgeVariant.success);
                 },
               ),
               HrColumn<AttendanceRecord>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (rec) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Full Telemetry & Timeline',
+                      tooltip: l10n.translate('att_view_telemetry'),
                       onPressed: () => _showRecordDetails(rec),
                     ),
                     if (rec.isOfflinePending)
                       IconButton(
                         icon: const Icon(Icons.rate_review_outlined, size: 18, color: AppColors.warning),
-                        tooltip: 'Review Offline Submission',
+                        tooltip: l10n.translate('att_review_offline'),
                         onPressed: () => _showOfflineReview(rec),
                       ),
                   ],

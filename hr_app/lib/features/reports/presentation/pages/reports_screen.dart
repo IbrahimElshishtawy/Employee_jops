@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/filter_bar.dart';
@@ -33,6 +34,7 @@ class ReportsScreen extends StatelessWidget {
     final controller = context.watch<ReportsController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final overview = controller.overview;
+    final l10n = context.l10n;
 
     return SingleChildScrollView(
       child: Column(
@@ -47,17 +49,17 @@ class ReportsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Executive Reports & Workforce Analytics', style: AppTypography.heading1),
+                    Text(l10n.translate('rep_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Aggregated workforce attendance, punctuality trends, late arrival audits, and financial summaries',
+                      l10n.translate('rep_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
                 ),
               ),
               HrButton(
-                label: 'Export Report',
+                label: l10n.translate('rep_export_btn'),
                 icon: Icons.file_download_outlined,
                 variant: HrButtonVariant.primary,
                 onPressed: () => _openExportDialog(context, controller),
@@ -68,7 +70,7 @@ class ReportsScreen extends StatelessWidget {
 
           // Date Preset & Department Global Filters
           FilterBar(
-            searchHint: 'Filter reports...',
+            searchHint: l10n.translate('search_placeholder'),
             onRefresh: controller.loadReports,
             filterActions: [
               // Date Presets
@@ -86,10 +88,10 @@ class ReportsScreen extends StatelessWidget {
               // Department Filter
               DropdownButton<String?>(
                 value: controller.filter.department,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem<String?>(value: null, child: Text('All Departments')),
+                  DropdownMenuItem<String?>(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...[
                     'Engineering',
                     'Operations',
@@ -144,7 +146,7 @@ class ReportsScreen extends StatelessWidget {
                       child: Text(controller.errorMessage!, style: const TextStyle(color: AppColors.danger)),
                     ),
                     HrButton(
-                      label: 'Retry',
+                      label: l10n.translate('retry'),
                       variant: HrButtonVariant.outline,
                       onPressed: controller.loadReports,
                     ),
@@ -177,6 +179,7 @@ class ReportsScreen extends StatelessWidget {
 
   Widget _buildOverviewTab(BuildContext context, ReportsController controller, bool isDark) {
     final o = controller.overview!;
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -186,9 +189,9 @@ class ReportsScreen extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                title: 'Attendance Rate',
-                value: '${o.attendanceRate.toStringAsFixed(1)}%',
-                subtitle: '${o.presentCount} of ${o.totalEmployees} present',
+                title: l10n.translate('rep_attendance_rate'),
+                value: '${l10n.formatNumber(o.attendanceRate)}%',
+                subtitle: '${l10n.formatNumber(o.presentCount)} / ${l10n.formatNumber(o.totalEmployees)}',
                 icon: Icons.check_circle_outline,
                 iconColor: AppColors.success,
               ),
@@ -196,9 +199,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Punctuality Rate',
-                value: '${o.punctualityRate.toStringAsFixed(1)}%',
-                subtitle: '${o.presentCount - o.lateCount} arrived on time',
+                title: l10n.translate('rep_punctuality'),
+                value: '${l10n.formatNumber(o.punctualityRate)}%',
+                subtitle: '${l10n.formatNumber(o.presentCount - o.lateCount)} ${l10n.translate("rep_on_time")}',
                 icon: Icons.timer_outlined,
                 iconColor: AppColors.primaryLight,
               ),
@@ -206,9 +209,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Late Arrivals',
-                value: '${o.lateCount}',
-                subtitle: 'Checked in past grace',
+                title: l10n.translate('rep_late_arrivals'),
+                value: l10n.formatNumber(o.lateCount),
+                subtitle: l10n.translate('rep_late'),
                 icon: Icons.warning_amber_outlined,
                 iconColor: AppColors.warning,
               ),
@@ -216,9 +219,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Absences',
-                value: '${o.absentCount}',
-                subtitle: 'Unexcused / unscheduled',
+                title: l10n.translate('rep_absences'),
+                value: l10n.formatNumber(o.absentCount),
+                subtitle: l10n.translate('rep_absent'),
                 icon: Icons.cancel_outlined,
                 iconColor: AppColors.danger,
               ),
@@ -232,9 +235,9 @@ class ReportsScreen extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                title: 'Pending Requests',
-                value: '${o.pendingRequestsCount}',
-                subtitle: 'Leaves & permissions pending',
+                title: l10n.translate('rep_pending_requests'),
+                value: l10n.formatNumber(o.pendingRequestsCount),
+                subtitle: l10n.translate('req_title'),
                 icon: Icons.assignment_outlined,
                 iconColor: AppColors.info,
               ),
@@ -242,9 +245,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Salary Advances',
-                value: 'EGP ${o.approvedAdvancesAmount.toStringAsFixed(0)}',
-                subtitle: 'Approved advance disbursements',
+                title: l10n.translate('rep_total_advances'),
+                value: l10n.formatCurrency(o.approvedAdvancesAmount),
+                subtitle: l10n.translate('adv_approved_volume'),
                 icon: Icons.payments_outlined,
                 iconColor: AppColors.primaryLight,
               ),
@@ -252,9 +255,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Total Deductions',
-                value: 'EGP ${o.totalDeductionsAmount.toStringAsFixed(0)}',
-                subtitle: 'Applied payroll adjustments',
+                title: l10n.translate('rep_total_deductions'),
+                value: l10n.formatCurrency(o.totalDeductionsAmount),
+                subtitle: l10n.translate('ded_applied_payroll'),
                 icon: Icons.account_balance_wallet_outlined,
                 iconColor: AppColors.neutral,
               ),
@@ -273,8 +276,8 @@ class ReportsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Today\'s Workforce Presence Breakdown', style: AppTypography.heading3),
-                    Text('Total: ${o.totalEmployees} Active Headcount', style: AppTypography.captionOf(context)),
+                    Text(l10n.translate('rep_presence_breakdown'), style: AppTypography.heading3),
+                    Text('${l10n.translate("emp_total")}: ${l10n.formatNumber(o.totalEmployees)}', style: AppTypography.captionOf(context)),
                   ],
                 ),
                 const SizedBox(height: AppDimensions.space16),
@@ -304,9 +307,9 @@ class ReportsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildLegendItem('On-Time: ${o.presentCount - o.lateCount}', AppColors.success),
-                    _buildLegendItem('Late: ${o.lateCount}', AppColors.warning),
-                    _buildLegendItem('Absent: ${o.absentCount}', AppColors.danger),
+                    _buildLegendItem('${l10n.translate("rep_on_time")}: ${l10n.formatNumber(o.presentCount - o.lateCount)}', AppColors.success),
+                    _buildLegendItem('${l10n.translate("rep_late")}: ${l10n.formatNumber(o.lateCount)}', AppColors.warning),
+                    _buildLegendItem('${l10n.translate("rep_absent")}: ${l10n.formatNumber(o.absentCount)}', AppColors.danger),
                   ],
                 ),
               ],
@@ -318,6 +321,8 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildAttendanceTab(BuildContext context, ReportsController controller, bool isDark) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -327,32 +332,32 @@ class ReportsScreen extends StatelessWidget {
           totalItems: controller.trends.length,
           columns: [
             HrColumn<AttendanceDailyTrend>(
-              title: 'Date',
+              title: l10n.translate('emp_joined_date'),
               cellBuilder: (t) => Text(
                 '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}-${t.date.day.toString().padLeft(2, '0')}',
                 style: AppTypography.bodyBold,
               ),
             ),
             HrColumn<AttendanceDailyTrend>(
-              title: 'Present Headcount',
-              cellBuilder: (t) => Text('${t.present}', style: AppTypography.body),
+              title: l10n.translate('rep_present_headcount'),
+              cellBuilder: (t) => Text(l10n.formatNumber(t.present), style: AppTypography.body),
             ),
             HrColumn<AttendanceDailyTrend>(
-              title: 'Late Arrivals',
-              cellBuilder: (t) => Text('${t.late}', style: AppTypography.body.copyWith(color: AppColors.warning)),
+              title: l10n.translate('rep_late_arrivals'),
+              cellBuilder: (t) => Text(l10n.formatNumber(t.late), style: AppTypography.body.copyWith(color: AppColors.warning)),
             ),
             HrColumn<AttendanceDailyTrend>(
-              title: 'Absences',
-              cellBuilder: (t) => Text('${t.absent}', style: AppTypography.body.copyWith(color: AppColors.danger)),
+              title: l10n.translate('rep_absences'),
+              cellBuilder: (t) => Text(l10n.formatNumber(t.absent), style: AppTypography.body.copyWith(color: AppColors.danger)),
             ),
             HrColumn<AttendanceDailyTrend>(
-              title: 'Early Checkouts',
-              cellBuilder: (t) => Text('${t.earlyCheckout}', style: AppTypography.body),
+              title: l10n.translate('rep_early_checkouts'),
+              cellBuilder: (t) => Text(l10n.formatNumber(t.earlyCheckout), style: AppTypography.body),
             ),
             HrColumn<AttendanceDailyTrend>(
-              title: 'Attendance Rate',
+              title: l10n.translate('rep_attendance_rate'),
               cellBuilder: (t) => StatusBadge(
-                label: '${t.attendanceRate.toStringAsFixed(1)}%',
+                label: '${l10n.formatNumber(t.attendanceRate)}%',
                 variant: t.attendanceRate >= 90 ? BadgeVariant.success : BadgeVariant.warning,
               ),
             ),
@@ -363,6 +368,8 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildLateArrivalsTab(BuildContext context, ReportsController controller, bool isDark) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -372,7 +379,7 @@ class ReportsScreen extends StatelessWidget {
           totalItems: controller.lateArrivals.length,
           columns: [
             HrColumn<LateArrivalReportItem>(
-              title: 'Employee',
+              title: l10n.translate('emp_name'),
               cellBuilder: (item) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -383,36 +390,36 @@ class ReportsScreen extends StatelessWidget {
               ),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Department',
+              title: l10n.translate('emp_department'),
               cellBuilder: (item) => Text(item.department, style: AppTypography.body),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Date',
+              title: l10n.translate('emp_joined_date'),
               cellBuilder: (item) => Text(
                 '${item.date.year}-${item.date.month.toString().padLeft(2, '0')}-${item.date.day.toString().padLeft(2, '0')}',
                 style: AppTypography.bodyMedium,
               ),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Scheduled Start',
+              title: l10n.translate('rep_scheduled_start'),
               cellBuilder: (item) => Text(item.scheduledStartTime, style: AppTypography.body),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Actual Check-in',
+              title: l10n.translate('rep_actual_checkin'),
               cellBuilder: (item) => Text(item.actualCheckInTime, style: AppTypography.bodyBold),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Late Duration',
+              title: l10n.translate('rep_late_duration'),
               cellBuilder: (item) => StatusBadge(
-                label: '+${item.lateMinutes} mins',
+                label: '+${l10n.formatNumber(item.lateMinutes)} ${l10n.isArabic ? "د" : "mins"}',
                 variant: BadgeVariant.danger,
               ),
             ),
             HrColumn<LateArrivalReportItem>(
-              title: 'Permission Status',
+              title: l10n.translate('rep_permission_status'),
               cellBuilder: (item) => item.hasApprovedExcuse
-                  ? const StatusBadge(label: 'Excused', variant: BadgeVariant.info)
-                  : const StatusBadge(label: 'Unexcused', variant: BadgeVariant.neutral),
+                  ? StatusBadge(label: l10n.translate('rep_excused'), variant: BadgeVariant.info)
+                  : StatusBadge(label: l10n.translate('rep_unexcused'), variant: BadgeVariant.neutral),
             ),
           ],
         ),
@@ -421,6 +428,8 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildDepartmentsTab(BuildContext context, ReportsController controller, bool isDark) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -430,27 +439,27 @@ class ReportsScreen extends StatelessWidget {
           totalItems: controller.departments.length,
           columns: [
             HrColumn<DepartmentAttendanceMetric>(
-              title: 'Department',
+              title: l10n.translate('emp_department'),
               cellBuilder: (d) => Text(d.department, style: AppTypography.bodyBold),
             ),
             HrColumn<DepartmentAttendanceMetric>(
-              title: 'Active Headcount',
-              cellBuilder: (d) => Text('${d.headcount}', style: AppTypography.body),
+              title: l10n.translate('emp_total'),
+              cellBuilder: (d) => Text(l10n.formatNumber(d.headcount), style: AppTypography.body),
             ),
             HrColumn<DepartmentAttendanceMetric>(
-              title: 'Attendance Rate',
+              title: l10n.translate('rep_attendance_rate'),
               cellBuilder: (d) => StatusBadge(
-                label: '${d.presentRate.toStringAsFixed(1)}%',
+                label: '${l10n.formatNumber(d.presentRate)}%',
                 variant: d.presentRate >= 90 ? BadgeVariant.success : BadgeVariant.warning,
               ),
             ),
             HrColumn<DepartmentAttendanceMetric>(
-              title: 'Late Occurrences',
-              cellBuilder: (d) => Text('${d.lateCount}', style: AppTypography.body),
+              title: l10n.translate('rep_late_incidents'),
+              cellBuilder: (d) => Text(l10n.formatNumber(d.lateCount), style: AppTypography.body),
             ),
             HrColumn<DepartmentAttendanceMetric>(
-              title: 'Absences',
-              cellBuilder: (d) => Text('${d.absenceCount}', style: AppTypography.body),
+              title: l10n.translate('rep_absences'),
+              cellBuilder: (d) => Text(l10n.formatNumber(d.absenceCount), style: AppTypography.body),
             ),
           ],
         ),
@@ -460,6 +469,7 @@ class ReportsScreen extends StatelessWidget {
 
   Widget _buildFinancialsTab(BuildContext context, ReportsController controller, bool isDark) {
     final o = controller.overview!;
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -468,9 +478,9 @@ class ReportsScreen extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                title: 'Disbursed Salary Advances',
-                value: 'EGP ${o.approvedAdvancesAmount.toStringAsFixed(2)}',
-                subtitle: 'Approved employee advances',
+                title: l10n.translate('rep_disbursed_advances'),
+                value: l10n.formatCurrency(o.approvedAdvancesAmount),
+                subtitle: l10n.translate('adv_approved_volume'),
                 icon: Icons.payments_outlined,
                 iconColor: AppColors.primaryLight,
               ),
@@ -478,9 +488,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Collected Deductions',
-                value: 'EGP ${o.totalDeductionsAmount.toStringAsFixed(2)}',
-                subtitle: 'Applied payroll adjustments',
+                title: l10n.translate('rep_collected_deductions'),
+                value: l10n.formatCurrency(o.totalDeductionsAmount),
+                subtitle: l10n.translate('ded_applied_payroll'),
                 icon: Icons.account_balance_wallet_outlined,
                 iconColor: AppColors.success,
               ),
@@ -488,9 +498,9 @@ class ReportsScreen extends StatelessWidget {
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: StatCard(
-                title: 'Net Recovery Balance',
-                value: 'EGP ${(o.approvedAdvancesAmount - o.totalDeductionsAmount).toStringAsFixed(2)}',
-                subtitle: 'Outstanding advance balance',
+                title: l10n.translate('rep_net_recovery'),
+                value: l10n.formatCurrency(o.approvedAdvancesAmount - o.totalDeductionsAmount),
+                subtitle: l10n.translate('adv_remaining_col'),
                 icon: Icons.trending_up_outlined,
                 iconColor: AppColors.info,
               ),

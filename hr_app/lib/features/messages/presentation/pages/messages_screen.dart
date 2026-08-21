@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -74,6 +75,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final controller = context.watch<MessagesController>();
     final authCtrl = context.watch<AuthController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     final canManage = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.messagesManage);
     final kpis = controller.kpis;
@@ -92,10 +94,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('HR Internal Communications & Direct Messages', style: AppTypography.heading1),
+                    Text(l10n.translate('msg_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Direct two-way messaging with employees, inquiry resolution, and staff assistance',
+                      l10n.translate('msg_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -103,7 +105,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               ),
               if (canManage)
                 HrButton(
-                  label: 'New Direct Message',
+                  label: l10n.translate('msg_new_btn'),
                   icon: Icons.chat_bubble_outline,
                   variant: HrButtonVariant.primary,
                   onPressed: () => _openNewMessageDialog(context),
@@ -117,9 +119,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Total Conversations',
-                  value: kpis != null ? '${kpis.totalConversations}' : '—',
-                  subtitle: 'Employee direct threads',
+                  title: l10n.translate('msg_total_conv'),
+                  value: kpis != null ? l10n.formatNumber(kpis.totalConversations) : '—',
+                  subtitle: l10n.translate('msg_title'),
                   icon: Icons.forum_outlined,
                   iconColor: AppColors.primaryLight,
                 ),
@@ -127,9 +129,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Unread Inquiries',
-                  value: kpis != null ? '${kpis.activeUnreadConversations}' : '—',
-                  subtitle: 'Needs HR response',
+                  title: l10n.translate('msg_unread_inquiries'),
+                  value: kpis != null ? l10n.formatNumber(kpis.activeUnreadConversations) : '—',
+                  subtitle: l10n.translate('dash_requires_action'),
                   icon: Icons.mark_chat_unread_outlined,
                   iconColor: AppColors.warning,
                 ),
@@ -137,9 +139,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Unread Messages',
-                  value: kpis != null ? '${kpis.totalUnreadMessages}' : '—',
-                  subtitle: 'Pending staff messages',
+                  title: l10n.translate('msg_unread_messages'),
+                  value: kpis != null ? l10n.formatNumber(kpis.totalUnreadMessages) : '—',
+                  subtitle: l10n.translate('msg_unread_messages'),
                   icon: Icons.mail_outline,
                   iconColor: AppColors.info,
                 ),
@@ -147,9 +149,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Resolved Threads',
-                  value: kpis != null ? '${kpis.resolvedConversations}' : '—',
-                  subtitle: 'Inquiries closed',
+                  title: l10n.translate('msg_resolved_threads'),
+                  value: kpis != null ? l10n.formatNumber(kpis.resolvedConversations) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -196,7 +198,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             ),
                             const SizedBox(height: AppDimensions.space12),
                             HrTextField(
-                              hint: 'Search by name, code, message...',
+                              hint: l10n.translate('search_placeholder'),
                               prefixIcon: const Icon(Icons.search),
                               onChanged: controller.onSearch,
                             ),
@@ -214,7 +216,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(AppDimensions.space16),
                                       child: Text(
-                                        'No conversations found.',
+                                        l10n.translate('msg_no_conversations'),
                                         style: AppTypography.captionOf(context),
                                       ),
                                     ),
@@ -502,7 +504,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       minLines: 1,
                                       maxLines: 4,
                                       decoration: InputDecoration(
-                                        hintText: 'Type your message to ${selectedConv.employeeName}... (Press Enter)',
+                                        hintText: '${l10n.translate("msg_type_hint")} (${selectedConv.employeeName})',
                                         isDense: true,
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                         border: OutlineInputBorder(

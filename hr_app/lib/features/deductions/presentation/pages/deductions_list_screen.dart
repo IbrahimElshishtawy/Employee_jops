@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/date_range_picker.dart';
@@ -82,6 +82,8 @@ class DeductionsListScreen extends StatelessWidget {
     final canCreate = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.deductionsCreate);
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,10 +97,10 @@ class DeductionsListScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Payroll Deductions Management', style: AppTypography.heading1),
+                    Text(l10n.translate('ded_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Track scheduled salary deductions, advance installment recoveries, and attendance adjustments',
+                      l10n.translate('ded_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -106,7 +108,7 @@ class DeductionsListScreen extends StatelessWidget {
               ),
               if (canCreate)
                 HrButton(
-                  label: 'New Deduction',
+                  label: l10n.translate('ded_new_btn'),
                   icon: Icons.add,
                   variant: HrButtonVariant.primary,
                   onPressed: () => _showCreateDeductionDialog(context),
@@ -120,9 +122,9 @@ class DeductionsListScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Scheduled Deductions',
-                  value: kpis != null ? '${kpis.scheduledCount}' : '—',
-                  subtitle: kpis != null ? '\$${kpis.scheduledAmount.toStringAsFixed(0)} pending' : 'Pending payroll',
+                  title: l10n.translate('ded_scheduled_ded'),
+                  value: kpis != null ? l10n.formatNumber(kpis.scheduledCount) : '—',
+                  subtitle: kpis != null ? '${l10n.formatCurrency(kpis.scheduledAmount)} ${l10n.translate("req_status_pending")}' : l10n.translate('req_status_pending'),
                   icon: Icons.schedule,
                   iconColor: AppColors.warning,
                 ),
@@ -130,9 +132,9 @@ class DeductionsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Applied in Payroll',
-                  value: kpis != null ? '${kpis.appliedCount}' : '—',
-                  subtitle: kpis != null ? '\$${kpis.appliedAmount.toStringAsFixed(0)} deducted' : 'Processed cycles',
+                  title: l10n.translate('ded_applied_payroll'),
+                  value: kpis != null ? l10n.formatNumber(kpis.appliedCount) : '—',
+                  subtitle: kpis != null ? l10n.formatCurrency(kpis.appliedAmount) : l10n.translate('verified_badge'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -140,9 +142,9 @@ class DeductionsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Advance Recoveries',
-                  value: kpis != null ? '\$${kpis.advanceDeductionTotal.toStringAsFixed(0)}' : '—',
-                  subtitle: 'Salary advance repayment',
+                  title: l10n.translate('ded_advance_rec'),
+                  value: kpis != null ? l10n.formatCurrency(kpis.advanceDeductionTotal) : '—',
+                  subtitle: l10n.translate('adv_title'),
                   icon: Icons.monetization_on_outlined,
                   iconColor: AppColors.info,
                 ),
@@ -150,9 +152,9 @@ class DeductionsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Workforce Penalties',
-                  value: kpis != null ? '\$${kpis.attendanceDeductionTotal.toStringAsFixed(0)}' : '—',
-                  subtitle: 'Absence / late arrival',
+                  title: l10n.translate('ded_workforce_pen'),
+                  value: kpis != null ? l10n.formatCurrency(kpis.attendanceDeductionTotal) : '—',
+                  subtitle: l10n.translate('att_title'),
                   icon: Icons.report_problem_outlined,
                   iconColor: const Color(0xFFF97316),
                 ),
@@ -182,17 +184,17 @@ class DeductionsListScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search employee name, code, reason, period...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchDeductions,
             filterActions: [
               // Deduction Type Filter
               DropdownButton<DeductionType?>(
                 value: controller.typeFilter,
-                hint: const Text('All Deduction Types'),
+                hint: Text(l10n.translate('ded_all_types')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Deduction Types')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('ded_all_types'))),
                   ...DeductionType.values.map((t) => DropdownMenuItem(value: t, child: Text(t.label))),
                 ],
                 onChanged: controller.onFilterType,
@@ -203,11 +205,11 @@ class DeductionsListScreen extends StatelessWidget {
               if (controller.activeTab == DeductionsTab.all) ...[
                 DropdownButton<DeductionStatus?>(
                   value: controller.statusFilter,
-                  hint: const Text('All Statuses'),
+                  hint: Text(l10n.translate('emp_all_statuses')),
                   underline: const SizedBox.shrink(),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('All Statuses')),
-                    ...DeductionStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.label))),
+                    DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_statuses'))),
+                    ...DeductionStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(l10n.translateStatus(s.name)))),
                   ],
                   onChanged: controller.onFilterStatus,
                 ),
@@ -217,10 +219,10 @@ class DeductionsListScreen extends StatelessWidget {
               // Department Filter
               DropdownButton<String?>(
                 value: controller.departmentFilter,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Departments')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterDepartment,
@@ -249,10 +251,10 @@ class DeductionsListScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchDeductions(page: page),
             onRowTap: (d) => _showDeductionDetails(context, d, canCreate),
-            emptyMessage: 'No deduction records found matching the selected filters.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<DeductionEntity>(
-                title: 'Employee',
+                title: l10n.translate('emp_name'),
                 cellBuilder: (d) => Row(
                   children: [
                     CircleAvatar(
@@ -279,63 +281,63 @@ class DeductionsListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<DeductionEntity>(
-                title: 'Deduction Type',
+                title: l10n.translate('ded_title'),
                 cellBuilder: (d) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(d.type.label, style: AppTypography.bodyBold),
                     if (d.relatedAdvanceId != null)
-                      Text('Advance: ${d.relatedAdvanceId}', style: AppTypography.captionOf(context)),
+                      Text('${l10n.translate("adv_title")}: ${d.relatedAdvanceId}', style: AppTypography.captionOf(context)),
                   ],
                 ),
               ),
               HrColumn<DeductionEntity>(
-                title: 'Amount',
+                title: l10n.translate('adv_amount'),
                 cellBuilder: (d) => Text(
-                  '- ${d.currency} ${d.amount.toStringAsFixed(2)}',
+                  '- ${l10n.formatCurrency(d.amount)}',
                   style: AppTypography.bodyBold.copyWith(
                     color: d.status == DeductionStatus.cancelled ? AppColors.textSecondary(context) : AppColors.danger,
                   ),
                 ),
               ),
               HrColumn<DeductionEntity>(
-                title: 'Payroll Period',
+                title: l10n.translate('ded_period'),
                 cellBuilder: (d) => Text(d.payrollPeriod, style: AppTypography.bodyMedium),
               ),
               HrColumn<DeductionEntity>(
-                title: 'Date',
-                cellBuilder: (d) => Text(DateFormatter.toDisplayDate(d.date), style: AppTypography.body),
+                title: l10n.translate('emp_joined_date'),
+                cellBuilder: (d) => Text(l10n.formatDate(d.date), style: AppTypography.body),
               ),
               HrColumn<DeductionEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (d) {
                   switch (d.status) {
                     case DeductionStatus.scheduled:
-                      return const StatusBadge(label: 'Scheduled', variant: BadgeVariant.warning, icon: Icons.schedule);
+                      return StatusBadge(label: l10n.translateStatus(d.status.name), variant: BadgeVariant.warning, icon: Icons.schedule);
                     case DeductionStatus.applied:
-                      return const StatusBadge(label: 'Applied', variant: BadgeVariant.success, icon: Icons.check_circle_outline);
+                      return StatusBadge(label: l10n.translateStatus(d.status.name), variant: BadgeVariant.success, icon: Icons.check_circle_outline);
                     case DeductionStatus.cancelled:
-                      return const StatusBadge(label: 'Cancelled', variant: BadgeVariant.neutral, icon: Icons.block);
+                      return StatusBadge(label: l10n.translateStatus(d.status.name), variant: BadgeVariant.neutral, icon: Icons.block);
                     case DeductionStatus.reversed:
-                      return const StatusBadge(label: 'Reversed', variant: BadgeVariant.danger, icon: Icons.undo);
+                      return StatusBadge(label: l10n.translateStatus(d.status.name), variant: BadgeVariant.danger, icon: Icons.undo);
                   }
                 },
               ),
               HrColumn<DeductionEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (d) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Details',
+                      tooltip: l10n.translate('details'),
                       onPressed: () => _showDeductionDetails(context, d, canCreate),
                     ),
                     if (d.status == DeductionStatus.scheduled && canCreate)
                       IconButton(
                         icon: const Icon(Icons.block, size: 18, color: AppColors.danger),
-                        tooltip: 'Cancel / Waive',
+                        tooltip: l10n.translate('ded_cancel_btn'),
                         onPressed: () => _showDeductionDetails(context, d, true),
                       ),
                   ],

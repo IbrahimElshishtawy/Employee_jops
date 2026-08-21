@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
-import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/filter_bar.dart';
@@ -28,6 +28,7 @@ class AuditLogsScreen extends StatelessWidget {
     final controller = context.watch<AuditLogsController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final kpis = controller.kpis;
+    final l10n = context.l10n;
 
     return SingleChildScrollView(
       child: Column(
@@ -42,16 +43,16 @@ class AuditLogsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('System Audit Logs & Security Trail', style: AppTypography.heading1),
+                    Text(l10n.translate('aud_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Immutable, tamper-evident audit records of all administrative HR decisions and security events',
+                      l10n.translate('aud_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
                 ),
               ),
-              const StatusBadge(label: 'TAMPER-EVIDENT READ-ONLY', variant: BadgeVariant.success),
+              StatusBadge(label: l10n.translate('aud_tamper_evident'), variant: BadgeVariant.success),
             ],
           ),
           const SizedBox(height: AppDimensions.space20),
@@ -61,9 +62,9 @@ class AuditLogsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Total Logs',
-                  value: kpis != null ? '${kpis.totalLogs}' : '—',
-                  subtitle: 'Audit ledger entries',
+                  title: l10n.translate('aud_total'),
+                  value: kpis != null ? l10n.formatNumber(kpis.totalLogs) : '—',
+                  subtitle: l10n.translate('aud_title'),
                   icon: Icons.receipt_long_outlined,
                   iconColor: AppColors.primaryLight,
                 ),
@@ -71,9 +72,9 @@ class AuditLogsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Security Events',
-                  value: kpis != null ? '${kpis.securityEvents}' : '—',
-                  subtitle: 'Auth & geofence events',
+                  title: l10n.translate('aud_security_events'),
+                  value: kpis != null ? l10n.formatNumber(kpis.securityEvents) : '—',
+                  subtitle: l10n.translate('sec_dashboard'),
                   icon: Icons.shield_outlined,
                   iconColor: AppColors.info,
                 ),
@@ -81,9 +82,9 @@ class AuditLogsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Admin Actions',
-                  value: kpis != null ? '${kpis.adminActions}' : '—',
-                  subtitle: 'Decisions & modifications',
+                  title: l10n.translate('aud_admin_actions'),
+                  value: kpis != null ? l10n.formatNumber(kpis.adminActions) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.manage_accounts_outlined,
                   iconColor: AppColors.success,
                 ),
@@ -91,9 +92,9 @@ class AuditLogsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Failed Operations',
-                  value: kpis != null ? '${kpis.failedOperations}' : '—',
-                  subtitle: 'Rejections & blocks',
+                  title: l10n.translate('aud_failed_ops'),
+                  value: kpis != null ? l10n.formatNumber(kpis.failedOperations) : '—',
+                  subtitle: l10n.translate('req_status_rejected'),
                   icon: Icons.warning_amber_outlined,
                   iconColor: AppColors.warning,
                 ),
@@ -122,16 +123,16 @@ class AuditLogsScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search by action, actor, entity ID, or IP...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: () => controller.fetchAuditLogs(),
             filterActions: [
               DropdownButton<AuditActionCategory?>(
                 value: controller.categoryFilter,
-                hint: const Text('All Categories'),
+                hint: Text(l10n.translate('aud_all_categories')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Categories')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('aud_all_categories'))),
                   ...AuditActionCategory.values.map((c) => DropdownMenuItem(value: c, child: Text(c.label))),
                 ],
                 onChanged: controller.onFilterCategory,
@@ -152,17 +153,17 @@ class AuditLogsScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchAuditLogs(page: page),
             onRowTap: (log) => _showDetails(context, log),
-            emptyMessage: 'No audit records found matching the active filter criteria.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<AuditLogItemEntity>(
-                title: 'Timestamp',
+                title: l10n.translate('aud_timestamp'),
                 cellBuilder: (log) => Text(
-                  DateFormatter.toDisplayDateTime(log.timestamp),
+                  l10n.formatDate(log.timestamp),
                   style: AppTypography.bodyMedium,
                 ),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'Actor (User)',
+                title: l10n.translate('aud_actor'),
                 cellBuilder: (log) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -173,7 +174,7 @@ class AuditLogsScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'Action Performed',
+                title: l10n.translate('aud_action_performed'),
                 cellBuilder: (log) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -184,7 +185,7 @@ class AuditLogsScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'Target Entity',
+                title: l10n.translate('aud_target_entity'),
                 cellBuilder: (log) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -201,21 +202,21 @@ class AuditLogsScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'IP Address',
+                title: l10n.translate('aud_ip_address'),
                 cellBuilder: (log) => Text(log.ipAddress, style: AppTypography.body),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'Result',
+                title: l10n.translate('aud_result'),
                 cellBuilder: (log) => StatusBadge(
                   label: log.result.label.toUpperCase(),
                   variant: _getStatusVariant(log.result),
                 ),
               ),
               HrColumn<AuditLogItemEntity>(
-                title: 'Details',
+                title: l10n.translate('details'),
                 cellBuilder: (log) => IconButton(
                   icon: const Icon(Icons.visibility_outlined, size: 18),
-                  tooltip: 'Inspect Audit Record & Metadata',
+                  tooltip: l10n.translate('aud_inspect'),
                   onPressed: () => _showDetails(context, log),
                 ),
               ),

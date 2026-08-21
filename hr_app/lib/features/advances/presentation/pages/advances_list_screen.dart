@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/date_range_picker.dart';
@@ -108,6 +108,8 @@ class AdvancesListScreen extends StatelessWidget {
 
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -116,10 +118,10 @@ class AdvancesListScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Salary Advances Management', style: AppTypography.heading1),
+              Text(l10n.translate('adv_title'), style: AppTypography.heading1),
               const SizedBox(height: 4),
               Text(
-                'Review employee advance requests, monitor installment schedules, and track outstanding balances',
+                l10n.translate('adv_subtitle'),
                 style: AppTypography.subtitleOf(context),
               ),
             ],
@@ -131,9 +133,9 @@ class AdvancesListScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Pending Review',
-                  value: kpis != null ? '${kpis.pendingCount}' : '—',
-                  subtitle: 'Action required by HR',
+                  title: l10n.translate('req_status_pending'),
+                  value: kpis != null ? l10n.formatNumber(kpis.pendingCount) : '—',
+                  subtitle: l10n.translate('dash_requires_action'),
                   icon: Icons.hourglass_empty,
                   iconColor: AppColors.warning,
                 ),
@@ -141,9 +143,9 @@ class AdvancesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Active Disbursed',
-                  value: kpis != null ? '${kpis.approvedCount}' : '—',
-                  subtitle: 'Approved & active plans',
+                  title: l10n.translate('adv_active_disbursed'),
+                  value: kpis != null ? l10n.formatNumber(kpis.approvedCount) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.verified_outlined,
                   iconColor: AppColors.info,
                 ),
@@ -151,9 +153,9 @@ class AdvancesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Approved Volume',
-                  value: kpis != null ? '\$${kpis.totalApprovedAmount.toStringAsFixed(0)}' : '—',
-                  subtitle: 'Total principal disbursed',
+                  title: l10n.translate('adv_approved_volume'),
+                  value: kpis != null ? l10n.formatCurrency(kpis.totalApprovedAmount) : '—',
+                  subtitle: l10n.translate('adv_approved_volume'),
                   icon: Icons.monetization_on_outlined,
                   iconColor: AppColors.success,
                 ),
@@ -161,9 +163,9 @@ class AdvancesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Outstanding Balance',
-                  value: kpis != null ? '\$${kpis.outstandingBalance.toStringAsFixed(0)}' : '—',
-                  subtitle: 'Pending payroll collection',
+                  title: l10n.translate('adv_outstanding_balance'),
+                  value: kpis != null ? l10n.formatCurrency(kpis.outstandingBalance) : '—',
+                  subtitle: l10n.translate('adv_remaining_col'),
                   icon: Icons.account_balance_wallet_outlined,
                   iconColor: const Color(0xFFF97316),
                 ),
@@ -193,7 +195,7 @@ class AdvancesListScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search employee name, code, reason...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchAdvances,
             filterActions: [
@@ -201,11 +203,11 @@ class AdvancesListScreen extends StatelessWidget {
               if (controller.activeTab == AdvancesTab.all) ...[
                 DropdownButton<AdvanceStatus?>(
                   value: controller.statusFilter,
-                  hint: const Text('All Advance Statuses'),
+                  hint: Text(l10n.translate('adv_all_statuses')),
                   underline: const SizedBox.shrink(),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('All Advance Statuses')),
-                    ...AdvanceStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.label))),
+                    DropdownMenuItem(value: null, child: Text(l10n.translate('adv_all_statuses'))),
+                    ...AdvanceStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(l10n.translateStatus(s.name)))),
                   ],
                   onChanged: controller.onFilterStatus,
                 ),
@@ -215,10 +217,10 @@ class AdvancesListScreen extends StatelessWidget {
               // Department Filter
               DropdownButton<String?>(
                 value: controller.departmentFilter,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Departments')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterDepartment,
@@ -247,10 +249,10 @@ class AdvancesListScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchAdvances(page: page),
             onRowTap: (adv) => _showAdvanceDetails(context, adv, canReview),
-            emptyMessage: 'No salary advances found matching the selected filters.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<AdvanceEntity>(
-                title: 'Employee',
+                title: l10n.translate('emp_name'),
                 cellBuilder: (adv) => Row(
                   children: [
                     CircleAvatar(
@@ -279,91 +281,91 @@ class AdvancesListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Requested vs Approved',
+                title: l10n.translate('adv_req_vs_app'),
                 cellBuilder: (adv) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '${adv.currency} ${adv.amount.toStringAsFixed(2)} req.',
+                      l10n.formatCurrency(adv.amount),
                       style: AppTypography.bodyBold,
                     ),
                     if (adv.approvedAmount != null)
                       Text(
-                        '${adv.currency} ${adv.approvedAmount!.toStringAsFixed(2)} app.',
+                        l10n.formatCurrency(adv.approvedAmount!),
                         style: AppTypography.captionOf(context).copyWith(color: AppColors.success, fontWeight: FontWeight.w600),
                       ),
                   ],
                 ),
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Installments',
+                title: l10n.translate('adv_installments_col'),
                 cellBuilder: (adv) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '${adv.installmentCount} ${adv.installmentCount == 1 ? "Month" : "Months"}',
+                      '${l10n.formatNumber(adv.installmentCount)} ${l10n.isArabic ? "أشهر" : "Months"}',
                       style: AppTypography.bodyBold,
                     ),
                     if (adv.status == AdvanceStatus.approved || adv.status == AdvanceStatus.paid)
                       Text(
-                        '${adv.paidInstallmentCount} of ${adv.installmentCount} Paid',
+                        '${l10n.formatNumber(adv.paidInstallmentCount)} / ${l10n.formatNumber(adv.installmentCount)}',
                         style: AppTypography.captionOf(context),
                       ),
                   ],
                 ),
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Remaining Balance',
+                title: l10n.translate('adv_remaining_col'),
                 cellBuilder: (adv) => Text(
-                  '${adv.currency} ${adv.remainingBalance.toStringAsFixed(2)}',
+                  l10n.formatCurrency(adv.remainingBalance),
                   style: AppTypography.bodyBold.copyWith(
                     color: adv.remainingBalance > 0 ? AppColors.warning : AppColors.success,
                   ),
                 ),
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Request Date',
-                cellBuilder: (adv) => Text(DateFormatter.toDisplayDate(adv.requestedAt), style: AppTypography.body),
+                title: l10n.translate('adv_request_date'),
+                cellBuilder: (adv) => Text(l10n.formatDate(adv.requestedAt), style: AppTypography.body),
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (adv) {
                   switch (adv.status) {
                     case AdvanceStatus.pending:
-                      return const StatusBadge(label: 'Pending', variant: BadgeVariant.warning, icon: Icons.hourglass_empty);
+                      return StatusBadge(label: l10n.translateStatus(adv.status.name), variant: BadgeVariant.warning, icon: Icons.hourglass_empty);
                     case AdvanceStatus.approved:
-                      return const StatusBadge(label: 'Approved & Active', variant: BadgeVariant.info, icon: Icons.verified_outlined);
+                      return StatusBadge(label: l10n.translateStatus(adv.status.name), variant: BadgeVariant.info, icon: Icons.verified_outlined);
                     case AdvanceStatus.paid:
-                      return const StatusBadge(label: 'Settled', variant: BadgeVariant.success, icon: Icons.check_circle_outline);
+                      return StatusBadge(label: l10n.translateStatus(adv.status.name), variant: BadgeVariant.success, icon: Icons.check_circle_outline);
                     case AdvanceStatus.rejected:
-                      return const StatusBadge(label: 'Rejected', variant: BadgeVariant.danger, icon: Icons.cancel_outlined);
+                      return StatusBadge(label: l10n.translateStatus(adv.status.name), variant: BadgeVariant.danger, icon: Icons.cancel_outlined);
                     case AdvanceStatus.cancelled:
-                      return const StatusBadge(label: 'Cancelled', variant: BadgeVariant.neutral, icon: Icons.block);
+                      return StatusBadge(label: l10n.translateStatus(adv.status.name), variant: BadgeVariant.neutral, icon: Icons.block);
                   }
                 },
               ),
               HrColumn<AdvanceEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (adv) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Details & Schedule',
+                      tooltip: l10n.translate('adv_view_schedule'),
                       onPressed: () => _showAdvanceDetails(context, adv, canReview),
                     ),
                     if (adv.status == AdvanceStatus.pending && canApprove)
                       IconButton(
                         icon: const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
-                        tooltip: 'Approve Advance',
+                        tooltip: l10n.translate('adv_approve_btn'),
                         onPressed: () => _openReviewDialog(context, adv, true),
                       ),
                     if (adv.status == AdvanceStatus.pending && canReject)
                       IconButton(
                         icon: const Icon(Icons.cancel_outlined, size: 18, color: AppColors.danger),
-                        tooltip: 'Reject Advance',
+                        tooltip: l10n.translate('adv_reject_btn'),
                         onPressed: () => _openReviewDialog(context, adv, false),
                       ),
                   ],

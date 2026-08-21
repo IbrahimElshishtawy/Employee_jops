@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/filter_bar.dart';
@@ -63,6 +63,8 @@ class NotificationsScreen extends StatelessWidget {
     final canManage = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.notificationsManage);
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -76,10 +78,10 @@ class NotificationsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('HR Notifications & Announcements Management', style: AppTypography.heading1),
+                    Text(l10n.translate('notif_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Broadcast company notices, manage system alerts, and track push delivery status to employee devices',
+                      l10n.translate('notif_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -88,7 +90,7 @@ class NotificationsScreen extends StatelessWidget {
               Row(
                 children: [
                   HrButton(
-                    label: 'Mark All Read',
+                    label: l10n.translate('notif_mark_all_read'),
                     icon: Icons.done_all,
                     variant: HrButtonVariant.outline,
                     onPressed: controller.markAllAsRead,
@@ -96,7 +98,7 @@ class NotificationsScreen extends StatelessWidget {
                   if (canManage) ...[
                     const SizedBox(width: AppDimensions.space12),
                     HrButton(
-                      label: 'New Announcement',
+                      label: l10n.translate('notif_new'),
                       icon: Icons.campaign_outlined,
                       variant: HrButtonVariant.primary,
                       onPressed: () => _showCreateDialog(context, controller),
@@ -113,9 +115,9 @@ class NotificationsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Total Notifications',
-                  value: kpis != null ? '${kpis.totalCount}' : '—',
-                  subtitle: 'All notices & alerts',
+                  title: l10n.translate('notif_total'),
+                  value: kpis != null ? l10n.formatNumber(kpis.totalCount) : '—',
+                  subtitle: l10n.translate('notif_title'),
                   icon: Icons.notifications_none_outlined,
                   iconColor: AppColors.primaryLight,
                 ),
@@ -123,9 +125,9 @@ class NotificationsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Sent Broadcasts',
-                  value: kpis != null ? '${kpis.sentCount}' : '—',
-                  subtitle: 'Delivered to devices',
+                  title: l10n.translate('notif_sent'),
+                  value: kpis != null ? l10n.formatNumber(kpis.sentCount) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -133,9 +135,9 @@ class NotificationsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Scheduled',
-                  value: kpis != null ? '${kpis.scheduledCount}' : '—',
-                  subtitle: 'Pending dispatch',
+                  title: l10n.translate('notif_scheduled'),
+                  value: kpis != null ? l10n.formatNumber(kpis.scheduledCount) : '—',
+                  subtitle: l10n.translate('req_status_pending'),
                   icon: Icons.alarm,
                   iconColor: AppColors.warning,
                 ),
@@ -143,9 +145,9 @@ class NotificationsScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Unread Alerts',
-                  value: kpis != null ? '${kpis.unreadCount}' : '—',
-                  subtitle: 'Requires attention',
+                  title: l10n.translate('notif_unread'),
+                  value: kpis != null ? l10n.formatNumber(kpis.unreadCount) : '—',
+                  subtitle: l10n.translate('dash_requires_action'),
                   icon: Icons.mark_email_unread_outlined,
                   iconColor: AppColors.info,
                 ),
@@ -174,17 +176,17 @@ class NotificationsScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search notifications by title, message, creator...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchNotifications,
             filterActions: [
               // Category Filter
               DropdownButton<NotificationType?>(
                 value: controller.typeFilter,
-                hint: const Text('All Categories'),
+                hint: Text(l10n.translate('notif_all_categories')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Categories')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('notif_all_categories'))),
                   ...NotificationType.values.map((t) => DropdownMenuItem(value: t, child: Text(t.label))),
                 ],
                 onChanged: controller.onFilterType,
@@ -205,10 +207,10 @@ class NotificationsScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchNotifications(page: page),
             onRowTap: (item) => _showDetails(context, item, controller),
-            emptyMessage: 'No notifications found matching the selected filters.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<NotificationItemEntity>(
-                title: 'Notification Title & Message',
+                title: l10n.translate('notif_title_col'),
                 cellBuilder: (item) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -245,61 +247,61 @@ class NotificationsScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Category',
+                title: l10n.translate('notif_category_col'),
                 cellBuilder: (item) => StatusBadge(
                   label: item.type.label,
                   variant: _getTypeVariant(item.type),
                 ),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Target Audience',
+                title: l10n.translate('notif_target_col'),
                 cellBuilder: (item) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(item.targetType.label, style: AppTypography.bodyBold),
-                    Text('${item.targetCount} recipients', style: AppTypography.captionOf(context)),
+                    Text('${l10n.formatNumber(item.targetCount)} ${l10n.isArabic ? "مستلم" : "recipients"}', style: AppTypography.captionOf(context)),
                   ],
                 ),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (item) => StatusBadge(
                   label: item.status.label,
                   variant: _getStatusVariant(item.status),
                 ),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Date & Time',
+                title: l10n.translate('notif_date_col'),
                 cellBuilder: (item) => Text(
-                  DateFormatter.toDisplayDateTime(item.scheduledAt ?? item.sentAt ?? item.createdAt),
+                  l10n.formatDate(item.scheduledAt ?? item.sentAt ?? item.createdAt),
                   style: AppTypography.bodyMedium,
                 ),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Read Count',
-                cellBuilder: (item) => Text('${item.readCount} read', style: AppTypography.body),
+                title: l10n.translate('notif_read_count'),
+                cellBuilder: (item) => Text(l10n.formatNumber(item.readCount), style: AppTypography.body),
               ),
               HrColumn<NotificationItemEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (item) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Details & Preview',
+                      tooltip: l10n.translate('details'),
                       onPressed: () => _showDetails(context, item, controller),
                     ),
                     if (item.status == NotificationStatus.scheduled && canManage)
                       IconButton(
                         icon: const Icon(Icons.cancel_outlined, size: 18, color: AppColors.danger),
-                        tooltip: 'Cancel Scheduled Broadcast',
+                        tooltip: l10n.translate('delete'),
                         onPressed: () => controller.cancelScheduled(item.id),
                       )
                     else if (!item.isRead)
                       IconButton(
                         icon: const Icon(Icons.done, size: 18),
-                        tooltip: 'Mark as Read',
+                        tooltip: l10n.translate('notif_mark_all_read'),
                         onPressed: () => controller.markAsRead(item.id),
                       ),
                   ],

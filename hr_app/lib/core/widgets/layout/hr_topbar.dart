@@ -4,6 +4,7 @@ import '../../config/env_config.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimensions.dart';
 import '../../constants/app_typography.dart';
+import '../../localization/app_localizations.dart';
 import '../../localization/widgets/language_switcher.dart';
 import '../../rbac/app_role.dart';
 import '../../theme/theme_controller.dart';
@@ -114,7 +115,7 @@ class HrTopbar extends StatelessWidget {
 
           // User Profile Menu
           PopupMenuButton<String>(
-            tooltip: 'Account Menu',
+            tooltip: context.l10n.translate('admin'),
             onSelected: (value) {
               if (value == 'logout') {
                 onLogout?.call();
@@ -127,18 +128,18 @@ class HrTopbar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(userName, style: AppTypography.bodyBold),
-                    Text(userRole.label, style: AppTypography.captionOf(context)),
+                    Text(context.l10n.translateRole(userRole.name), style: AppTypography.captionOf(context)),
                     const Divider(),
                   ],
                 ),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(Icons.logout, size: 18, color: AppColors.danger),
-                    SizedBox(width: 8),
-                    Text('Sign Out', style: TextStyle(color: AppColors.danger)),
+                    const Icon(Icons.logout, size: 18, color: AppColors.danger),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.translate('nav_logout'), style: const TextStyle(color: AppColors.danger)),
                   ],
                 ),
               ),
@@ -159,7 +160,7 @@ class HrTopbar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(userName, style: AppTypography.bodyMedium),
-                    Text(userRole.label, style: AppTypography.captionOf(context)),
+                    Text(context.l10n.translateRole(userRole.name), style: AppTypography.captionOf(context)),
                   ],
                 ),
                 Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textSecondary(context)),

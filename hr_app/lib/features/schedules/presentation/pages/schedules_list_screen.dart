@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
@@ -95,6 +96,8 @@ class SchedulesListScreen extends StatelessWidget {
     final canUpdate = AuthorizationService.hasPermission(authCtrl.currentRole, AppPermission.schedulesUpdate);
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -108,10 +111,10 @@ class SchedulesListScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Work Schedules & Shifts Management', style: AppTypography.heading1),
+                    Text(l10n.translate('sch_title'), style: AppTypography.heading1),
                     const SizedBox(height: 4),
                     Text(
-                      'Define operational working hours, grace periods, and working day configurations for workforce attendance',
+                      l10n.translate('sch_subtitle'),
                       style: AppTypography.subtitleOf(context),
                     ),
                   ],
@@ -119,7 +122,7 @@ class SchedulesListScreen extends StatelessWidget {
               ),
               if (canCreate)
                 HrButton(
-                  label: 'New Schedule',
+                  label: l10n.translate('sch_new_btn'),
                   icon: Icons.add_alarm_outlined,
                   variant: HrButtonVariant.primary,
                   onPressed: () => _showCreateScheduleDialog(context),
@@ -133,9 +136,9 @@ class SchedulesListScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Active Shifts',
-                  value: kpis != null ? '${kpis.activeCount}' : '—',
-                  subtitle: 'Operational schedules',
+                  title: l10n.translate('sch_active_shifts'),
+                  value: kpis != null ? l10n.formatNumber(kpis.activeCount) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -143,9 +146,9 @@ class SchedulesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Total Schedules',
-                  value: kpis != null ? '${kpis.totalCount}' : '—',
-                  subtitle: 'All configured shifts',
+                  title: l10n.translate('sch_total_schedules'),
+                  value: kpis != null ? l10n.formatNumber(kpis.totalCount) : '—',
+                  subtitle: l10n.translate('sch_title'),
                   icon: Icons.schedule,
                   iconColor: AppColors.primaryLight,
                 ),
@@ -153,9 +156,9 @@ class SchedulesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Assigned Workforce',
-                  value: kpis != null ? '${kpis.assignedEmployeesCount}' : '—',
-                  subtitle: 'Staff bound to shifts',
+                  title: l10n.translate('sch_assigned_workforce'),
+                  value: kpis != null ? l10n.formatNumber(kpis.assignedEmployeesCount) : '—',
+                  subtitle: l10n.translate('emp_total'),
                   icon: Icons.people_outline,
                   iconColor: AppColors.info,
                 ),
@@ -163,9 +166,9 @@ class SchedulesListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Inactive Shifts',
-                  value: kpis != null ? '${kpis.inactiveCount}' : '—',
-                  subtitle: 'Disabled/archived',
+                  title: l10n.translate('sch_inactive_shifts'),
+                  value: kpis != null ? l10n.formatNumber(kpis.inactiveCount) : '—',
+                  subtitle: l10n.translate('wp_inactive_only'),
                   icon: Icons.pause_circle_outline,
                   iconColor: AppColors.neutral,
                 ),
@@ -195,17 +198,17 @@ class SchedulesListScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search schedule name, department, workplace...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchSchedules,
             filterActions: [
               // Working Day Filter
               DropdownButton<String?>(
                 value: controller.workingDayFilter,
-                hint: const Text('All Working Days'),
+                hint: Text(l10n.translate('sch_all_working_days')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Working Days')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('sch_all_working_days'))),
                   ...kWeekDays.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterWorkingDay,
@@ -226,10 +229,10 @@ class SchedulesListScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchSchedules(page: page),
             onRowTap: (s) => _showScheduleDetails(context, s, canUpdate),
-            emptyMessage: 'No work schedules found matching the selected filters.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<WorkScheduleEntity>(
-                title: 'Schedule Name',
+                title: l10n.translate('sch_name_col'),
                 cellBuilder: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -241,44 +244,44 @@ class SchedulesListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Working Hours',
+                title: l10n.translate('sch_working_hours'),
                 cellBuilder: (s) => Text(
                   '${s.startTime} - ${s.endTime}',
                   style: AppTypography.bodyBold.copyWith(color: AppColors.primaryLight),
                 ),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Working Days',
+                title: l10n.translate('sch_working_days'),
                 cellBuilder: (s) => Text(s.workingDays.join(', '), style: AppTypography.body),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Grace Period',
-                cellBuilder: (s) => Text('${s.gracePeriodMinutes} mins', style: AppTypography.bodyMedium),
+                title: l10n.translate('sch_grace_period'),
+                cellBuilder: (s) => Text('${l10n.formatNumber(s.gracePeriodMinutes)} ${l10n.isArabic ? "دقيقة" : "mins"}', style: AppTypography.bodyMedium),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Assigned Staff',
-                cellBuilder: (s) => Text('${s.assignedCount} employees', style: AppTypography.body),
+                title: l10n.translate('wp_assigned_staff'),
+                cellBuilder: (s) => Text(l10n.formatNumber(s.assignedCount), style: AppTypography.body),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (s) => s.isActive
-                    ? const StatusBadge(label: 'Active', variant: BadgeVariant.success, icon: Icons.check_circle_outline)
-                    : const StatusBadge(label: 'Inactive', variant: BadgeVariant.neutral, icon: Icons.pause_circle_outline),
+                    ? StatusBadge(label: l10n.translate('wp_active_only'), variant: BadgeVariant.success, icon: Icons.check_circle_outline)
+                    : StatusBadge(label: l10n.translate('wp_inactive_only'), variant: BadgeVariant.neutral, icon: Icons.pause_circle_outline),
               ),
               HrColumn<WorkScheduleEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (s) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Details & Rules',
+                      tooltip: l10n.translate('sch_view_details'),
                       onPressed: () => _showScheduleDetails(context, s, canUpdate),
                     ),
                     if (canUpdate) ...[
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        tooltip: 'Edit Schedule',
+                        tooltip: l10n.translate('sch_edit'),
                         onPressed: () => _showEditScheduleDialog(context, s),
                       ),
                       IconButton(
@@ -287,7 +290,7 @@ class SchedulesListScreen extends StatelessWidget {
                           size: 24,
                           color: s.isActive ? AppColors.success : AppColors.neutral,
                         ),
-                        tooltip: s.isActive ? 'Deactivate Shift' : 'Activate Shift',
+                        tooltip: s.isActive ? l10n.translate('emp_deactivate') : l10n.translate('emp_activate'),
                         onPressed: () => controller.toggleStatus(s.id, !s.isActive),
                       ),
                     ],

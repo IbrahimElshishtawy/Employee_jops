@@ -5,7 +5,8 @@ import '../../../../core/config/env_config.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
-import '../../../../core/localization/app_strings.dart';
+import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/widgets/language_switcher.dart';
 import '../../../../core/routing/route_names.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/utils/validator.dart';
@@ -51,16 +52,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final authCtrl = context.watch<AuthController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          const LanguageSwitcher(compact: true),
+          const SizedBox(width: AppDimensions.space8),
           Consumer<ThemeController>(
             builder: (context, themeCtrl, _) {
               return IconButton(
-                tooltip: 'Toggle Theme',
+                tooltip: l10n.isArabic ? 'تبديل المظهر' : 'Toggle Theme',
                 icon: Icon(
                   themeCtrl.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
                   size: 22,
@@ -104,13 +108,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppDimensions.space20),
                       Text(
-                        AppStrings.loginTitle,
+                        l10n.translate('auth_login_title'),
                         style: AppTypography.heading2,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppDimensions.space8),
                       Text(
-                        AppStrings.loginSubtitle,
+                        l10n.translate('auth_login_subtitle'),
                         style: AppTypography.subtitleOf(context),
                         textAlign: TextAlign.center,
                       ),
@@ -145,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Email Field
                       HrTextField(
-                        label: AppStrings.email,
+                        label: l10n.translate('auth_email'),
                         hint: 'hr.admin@cyberwise.internal',
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -156,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Password Field
                       HrTextField(
-                        label: AppStrings.password,
+                        label: l10n.translate('auth_password'),
                         hint: '••••••••',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -172,13 +176,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
                           },
                         ),
-                        validator: (v) => Validator.minLength(v, 6, 'Password must be at least 6 characters'),
+                        validator: (v) => Validator.minLength(v, 6, l10n.isArabic ? 'يجب أن لا تقل كلمة المرور عن 6 أحرف' : 'Password must be at least 6 characters'),
                       ),
                       const SizedBox(height: AppDimensions.space24),
 
                       // Submit Button
                       HrButton(
-                        label: AppStrings.signIn,
+                        label: l10n.translate('auth_sign_in'),
                         onPressed: _handleSubmit,
                         isLoading: authCtrl.isLoading,
                       ),
@@ -192,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
                           ),
                           child: Text(
-                            AppStrings.mockLoginNote,
+                            l10n.translate('auth_mock_note'),
                             style: AppTypography.caption.copyWith(
                               color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
                             ),

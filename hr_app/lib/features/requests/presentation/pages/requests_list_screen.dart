@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/rbac/app_permission.dart';
 import '../../../../core/rbac/authorization_service.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/cards/stat_card.dart';
 import '../../../../core/widgets/feedback/status_badge.dart';
 import '../../../../core/widgets/filters/date_range_picker.dart';
@@ -89,6 +89,8 @@ class RequestsListScreen extends StatelessWidget {
 
     final kpis = controller.kpis;
 
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,10 +99,10 @@ class RequestsListScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Employee Requests & Approvals', style: AppTypography.heading1),
+              Text(l10n.translate('req_title'), style: AppTypography.heading1),
               const SizedBox(height: 4),
               Text(
-                'Review and process employee leave, permissions, late arrivals, and absence requests',
+                l10n.translate('req_subtitle'),
                 style: AppTypography.subtitleOf(context),
               ),
             ],
@@ -112,9 +114,9 @@ class RequestsListScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: StatCard(
-                  title: 'Pending Review',
-                  value: kpis != null ? '${kpis.pendingCount}' : '—',
-                  subtitle: 'Action required by HR',
+                  title: l10n.translate('req_status_pending'),
+                  value: kpis != null ? l10n.formatNumber(kpis.pendingCount) : '—',
+                  subtitle: l10n.translate('dash_requires_action'),
                   icon: Icons.hourglass_empty,
                   iconColor: AppColors.warning,
                 ),
@@ -122,9 +124,9 @@ class RequestsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Approved',
-                  value: kpis != null ? '${kpis.approvedCount}' : '—',
-                  subtitle: 'Confirmed within policy',
+                  title: l10n.translate('req_status_approved'),
+                  value: kpis != null ? l10n.formatNumber(kpis.approvedCount) : '—',
+                  subtitle: l10n.translate('verified_badge'),
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.success,
                 ),
@@ -132,9 +134,9 @@ class RequestsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Rejected',
-                  value: kpis != null ? '${kpis.rejectedCount}' : '—',
-                  subtitle: 'With formal justification',
+                  title: l10n.translate('req_status_rejected'),
+                  value: kpis != null ? l10n.formatNumber(kpis.rejectedCount) : '—',
+                  subtitle: l10n.translate('req_reason_just'),
                   icon: Icons.cancel_outlined,
                   iconColor: AppColors.danger,
                 ),
@@ -142,9 +144,9 @@ class RequestsListScreen extends StatelessWidget {
               const SizedBox(width: AppDimensions.space12),
               Expanded(
                 child: StatCard(
-                  title: 'Cancelled',
-                  value: kpis != null ? '${kpis.cancelledCount}' : '—',
-                  subtitle: 'Self-cancelled by staff',
+                  title: l10n.translate('req_status_cancelled'),
+                  value: kpis != null ? l10n.formatNumber(kpis.cancelledCount) : '—',
+                  subtitle: l10n.translate('req_status_cancelled'),
                   icon: Icons.block,
                   iconColor: const Color(0xFF64748B),
                 ),
@@ -174,17 +176,17 @@ class RequestsListScreen extends StatelessWidget {
 
           // Filter Bar
           FilterBar(
-            searchHint: 'Search employee name, code, reason...',
+            searchHint: l10n.translate('search_placeholder'),
             onSearchChanged: controller.onSearch,
             onRefresh: controller.fetchRequests,
             filterActions: [
               // Request Type Filter
               DropdownButton<RequestType?>(
                 value: controller.typeFilter,
-                hint: const Text('All Request Types'),
+                hint: Text(l10n.translate('req_all_types')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Request Types')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('req_all_types'))),
                   ...RequestType.values.map(
                     (t) => DropdownMenuItem(value: t, child: Text(t.label)),
                   ),
@@ -197,12 +199,12 @@ class RequestsListScreen extends StatelessWidget {
               if (controller.activeTab == RequestsTab.all) ...[
                 DropdownButton<RequestStatus?>(
                   value: controller.statusFilter,
-                  hint: const Text('All Statuses'),
+                  hint: Text(l10n.translate('emp_all_statuses')),
                   underline: const SizedBox.shrink(),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('All Statuses')),
+                    DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_statuses'))),
                     ...RequestStatus.values.map(
-                      (s) => DropdownMenuItem(value: s, child: Text(s.label)),
+                      (s) => DropdownMenuItem(value: s, child: Text(l10n.translateStatus(s.name))),
                     ),
                   ],
                   onChanged: controller.onFilterStatus,
@@ -213,10 +215,10 @@ class RequestsListScreen extends StatelessWidget {
               // Department Filter
               DropdownButton<String?>(
                 value: controller.departmentFilter,
-                hint: const Text('All Departments'),
+                hint: Text(l10n.translate('emp_all_departments')),
                 underline: const SizedBox.shrink(),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('All Departments')),
+                  DropdownMenuItem(value: null, child: Text(l10n.translate('emp_all_departments'))),
                   ...kDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d))),
                 ],
                 onChanged: controller.onFilterDepartment,
@@ -245,10 +247,10 @@ class RequestsListScreen extends StatelessWidget {
             pageSize: controller.pageSize,
             onPageChanged: (page) => controller.fetchRequests(page: page),
             onRowTap: (req) => _showRequestDetails(context, req, canReview),
-            emptyMessage: 'No requests match the selected criteria.',
+            emptyMessage: l10n.translate('no_data'),
             columns: [
               HrColumn<HrRequestEntity>(
-                title: 'Employee',
+                title: l10n.translate('emp_name'),
                 cellBuilder: (req) => Row(
                   children: [
                     CircleAvatar(
@@ -266,9 +268,7 @@ class RequestsListScreen extends StatelessWidget {
                       children: [
                         Text(req.employeeName, style: AppTypography.bodyBold),
                         Text(
-                          req.department != null && req.department!.isNotEmpty
-                              ? '${req.employeeCode} • ${req.department}'
-                              : req.employeeCode,
+                          recDepartmentText(req),
                           style: AppTypography.captionOf(context),
                         ),
                       ],
@@ -277,7 +277,7 @@ class RequestsListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Request Type',
+                title: l10n.translate('req_title'),
                 cellBuilder: (req) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -291,15 +291,15 @@ class RequestsListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Period / Time',
+                title: l10n.translate('req_period_time'),
                 cellBuilder: (req) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       req.startDate == req.endDate
-                          ? DateFormatter.toDisplayDate(req.startDate)
-                          : '${DateFormatter.toDisplayDate(req.startDate)} → ${DateFormatter.toDisplayDate(req.endDate)}',
+                          ? l10n.formatDate(req.startDate)
+                          : '${l10n.formatDate(req.startDate)} → ${l10n.formatDate(req.endDate)}',
                       style: AppTypography.bodyBold,
                     ),
                     if (req.startTime != null && req.endTime != null)
@@ -308,7 +308,7 @@ class RequestsListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Reason Justification',
+                title: l10n.translate('req_reason_just'),
                 cellBuilder: (req) => SizedBox(
                   width: 200,
                   child: Text(
@@ -320,44 +320,44 @@ class RequestsListScreen extends StatelessWidget {
                 ),
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Submitted At',
-                cellBuilder: (req) => Text(DateFormatter.toDisplayDate(req.createdAt), style: AppTypography.body),
+                title: l10n.translate('req_submitted_at'),
+                cellBuilder: (req) => Text(l10n.formatDate(req.createdAt), style: AppTypography.body),
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Status',
+                title: l10n.translate('status'),
                 cellBuilder: (req) {
                   switch (req.status) {
                     case RequestStatus.pending:
-                      return const StatusBadge(label: 'Pending', variant: BadgeVariant.warning, icon: Icons.hourglass_empty);
+                      return StatusBadge(label: l10n.translateStatus(req.status.name), variant: BadgeVariant.warning, icon: Icons.hourglass_empty);
                     case RequestStatus.approved:
-                      return const StatusBadge(label: 'Approved', variant: BadgeVariant.success, icon: Icons.check_circle_outline);
+                      return StatusBadge(label: l10n.translateStatus(req.status.name), variant: BadgeVariant.success, icon: Icons.check_circle_outline);
                     case RequestStatus.rejected:
-                      return const StatusBadge(label: 'Rejected', variant: BadgeVariant.danger, icon: Icons.cancel_outlined);
+                      return StatusBadge(label: l10n.translateStatus(req.status.name), variant: BadgeVariant.danger, icon: Icons.cancel_outlined);
                     case RequestStatus.cancelled:
-                      return const StatusBadge(label: 'Cancelled', variant: BadgeVariant.neutral, icon: Icons.block);
+                      return StatusBadge(label: l10n.translateStatus(req.status.name), variant: BadgeVariant.neutral, icon: Icons.block);
                   }
                 },
               ),
               HrColumn<HrRequestEntity>(
-                title: 'Actions',
+                title: l10n.translate('actions'),
                 cellBuilder: (req) => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.visibility_outlined, size: 18),
-                      tooltip: 'View Details',
+                      tooltip: l10n.translate('details'),
                       onPressed: () => _showRequestDetails(context, req, canReview),
                     ),
                     if (req.status == RequestStatus.pending && canApprove)
                       IconButton(
                         icon: const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
-                        tooltip: 'Approve Request',
+                        tooltip: l10n.translate('req_approve_btn'),
                         onPressed: () => _openReviewDialog(context, req, true),
                       ),
                     if (req.status == RequestStatus.pending && canReject)
                       IconButton(
                         icon: const Icon(Icons.cancel_outlined, size: 18, color: AppColors.danger),
-                        tooltip: 'Reject Request',
+                        tooltip: l10n.translate('req_reject_btn'),
                         onPressed: () => _openReviewDialog(context, req, false),
                       ),
                   ],
@@ -368,5 +368,12 @@ class RequestsListScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  static String recDepartmentText(HrRequestEntity req) {
+    if (req.department != null && req.department!.isNotEmpty) {
+      return '${req.employeeCode} • ${req.department}';
+    }
+    return req.employeeCode;
   }
 }

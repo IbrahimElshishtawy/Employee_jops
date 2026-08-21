@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hr_app/core/localization/app_localizations.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_dimensions.dart';
 import '../../constants/app_typography.dart';
@@ -149,18 +150,20 @@ class HrSidebar extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              AppStrings.appTitle,
+                              context.l10n.translate('app_title'),
                               style: AppTypography.heading3.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              'HR Dashboard',
+                              context.l10n.translate('hr_portal'),
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.sidebarText,
                                 fontSize: 10,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -195,7 +198,9 @@ class HrSidebar extends StatelessWidget {
               ),
               child: IconButton(
                 icon: Icon(
-                  isCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                  isCollapsed
+                      ? (context.l10n.isArabic ? Icons.chevron_left : Icons.chevron_right)
+                      : (context.l10n.isArabic ? Icons.chevron_right : Icons.chevron_left),
                   color: AppColors.sidebarText,
                 ),
                 onPressed: onToggleCollapse,
@@ -207,6 +212,7 @@ class HrSidebar extends StatelessWidget {
   }
 
   Widget _buildNavItem(BuildContext context, NavItemData item, bool isSelected) {
+    final localizedLabel = _getLocalizedNavLabel(context, item.route, item.label);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Material(
@@ -225,11 +231,12 @@ class HrSidebar extends StatelessWidget {
           title: isCollapsed
               ? null
               : Text(
-                  item.label,
+                  localizedLabel,
                   style: AppTypography.bodyMedium.copyWith(
                     color: isSelected ? AppColors.sidebarTextActive : AppColors.sidebarText,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
           dense: true,
           onTap: () {
@@ -238,5 +245,38 @@ class HrSidebar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getLocalizedNavLabel(BuildContext context, String route, String fallback) {
+    switch (route) {
+      case RouteNames.dashboard:
+        return context.l10n.translate('nav_dashboard');
+      case RouteNames.employees:
+        return context.l10n.translate('nav_employees');
+      case RouteNames.attendance:
+        return context.l10n.translate('nav_attendance');
+      case RouteNames.requests:
+        return context.l10n.translate('nav_requests');
+      case RouteNames.advances:
+        return context.l10n.translate('nav_advances');
+      case RouteNames.deductions:
+        return context.l10n.translate('nav_deductions');
+      case RouteNames.workplaces:
+        return context.l10n.translate('nav_workplaces');
+      case RouteNames.schedules:
+        return context.l10n.translate('nav_schedules');
+      case RouteNames.reports:
+        return context.l10n.translate('nav_reports');
+      case RouteNames.notifications:
+        return context.l10n.translate('nav_notifications');
+      case RouteNames.messages:
+        return context.l10n.translate('nav_messages');
+      case RouteNames.auditLogs:
+        return context.l10n.translate('nav_audit_logs');
+      case RouteNames.settings:
+        return context.l10n.translate('nav_settings');
+      default:
+        return fallback;
+    }
   }
 }
