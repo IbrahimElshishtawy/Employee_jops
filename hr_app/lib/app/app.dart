@@ -14,9 +14,12 @@ import '../features/deductions/domain/entities/deduction_entity.dart';
 import '../features/deductions/presentation/controllers/deductions_controller.dart';
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/presentation/controllers/employee_controller.dart';
+import '../features/reports/domain/entities/report_entities.dart';
+import '../features/reports/presentation/controllers/reports_controller.dart';
 import '../features/requests/domain/entities/hr_request_entity.dart';
 import '../features/requests/presentation/controllers/requests_controller.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
+import '../features/schedules/presentation/controllers/schedule_controller.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
 import '../features/workplaces/presentation/controllers/workplace_controller.dart';
 import 'app_bootstrap.dart';
@@ -43,6 +46,7 @@ class HrApp extends StatelessWidget {
         Provider<DeductionsRepository>.value(value: dependencies.deductionsRepository),
         Provider<WorkplacesRepository>.value(value: dependencies.workplacesRepository),
         Provider<SchedulesRepository>.value(value: dependencies.schedulesRepository),
+        Provider<ReportsRepository>.value(value: dependencies.reportsRepository),
         ChangeNotifierProvider(
           create: (_) => DashboardController(dependencies.dashboardRepository),
         ),
@@ -62,10 +66,16 @@ class HrApp extends StatelessWidget {
           create: (_) => DeductionsController(dependencies.deductionsRepository),
         ),
         ChangeNotifierProvider(
+          create: (_) => ScheduleController(dependencies.schedulesRepository),
+        ),
+        ChangeNotifierProvider(
           create: (_) => WorkplaceController(
             dependencies.workplacesRepository,
             dependencies.employeeRepository,
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ReportsController(dependencies.reportsRepository),
         ),
       ],
       child: Consumer<ThemeController>(

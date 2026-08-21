@@ -215,6 +215,7 @@ class _AdvanceReviewDialogState extends State<AdvanceReviewDialog> {
                             const SizedBox(height: 6),
                             DropdownButtonFormField<int>(
                               initialValue: _installmentCount,
+                              isExpanded: true,
                               decoration: InputDecoration(
                                 isDense: true,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSmall)),

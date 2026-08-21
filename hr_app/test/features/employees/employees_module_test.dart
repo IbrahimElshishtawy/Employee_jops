@@ -21,6 +21,7 @@ import 'package:hr_app/features/employees/presentation/widgets/employee_form_dia
 import 'package:hr_app/features/employees/presentation/widgets/manual_attendance_dialog.dart';
 import 'package:hr_app/features/requests/data/repositories/mock_requests_repository.dart';
 import 'package:hr_app/features/requests/domain/entities/hr_request_entity.dart';
+import 'package:hr_app/features/schedules/data/repositories/mock_schedules_repository.dart';
 import 'package:hr_app/features/schedules/domain/entities/schedule_entity.dart';
 import 'package:hr_app/features/workplaces/data/repositories/mock_workplaces_repository.dart';
 import 'package:hr_app/features/workplaces/domain/entities/workplace_entity.dart';

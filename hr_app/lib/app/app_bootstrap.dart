@@ -27,10 +27,15 @@ import '../features/deductions/data/repositories/mock_deductions_repository.dart
 import '../features/employees/domain/entities/employee_entity.dart';
 import '../features/employees/data/repositories/api_employee_repository.dart';
 import '../features/employees/data/repositories/mock_employee_repository.dart';
+import '../features/reports/domain/entities/report_entities.dart';
+import '../features/reports/data/repositories/api_reports_repository.dart';
+import '../features/reports/data/repositories/mock_reports_repository.dart';
 import '../features/requests/domain/entities/hr_request_entity.dart';
 import '../features/requests/data/repositories/api_requests_repository.dart';
 import '../features/requests/data/repositories/mock_requests_repository.dart';
 import '../features/schedules/domain/entities/schedule_entity.dart';
+import '../features/schedules/data/repositories/api_schedules_repository.dart';
+import '../features/schedules/data/repositories/mock_schedules_repository.dart';
 import '../features/workplaces/domain/entities/workplace_entity.dart';
 import '../features/workplaces/data/repositories/api_workplaces_repository.dart';
 import '../features/workplaces/data/repositories/mock_workplaces_repository.dart';
@@ -114,7 +119,7 @@ class AppBootstrap {
       advancesRepository = ApiAdvancesRepository(apiClient);
       deductionsRepository = ApiDeductionsRepository(apiClient);
       workplacesRepository = ApiWorkplacesRepository(apiClient);
-      schedulesRepository = MockSchedulesRepository();
+      schedulesRepository = ApiSchedulesRepository(apiClient);
     }
 
     final authController = AuthController(authRepository, sessionManager);

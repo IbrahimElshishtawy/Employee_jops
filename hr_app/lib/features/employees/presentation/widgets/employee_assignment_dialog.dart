@@ -56,7 +56,7 @@ class _EmployeeAssignmentDialogState extends State<EmployeeAssignmentDialog> {
       final schRepo = context.read<SchedulesRepository>();
 
       final wpResult = await wpRepo.getWorkplaces(const WorkplaceFilter(page: 1, pageSize: 50));
-      final schResult = await schRepo.getSchedules(1, 50);
+      final schResult = await schRepo.getSchedules(const ScheduleFilter(page: 1, pageSize: 50));
 
       if (mounted) {
         setState(() {

@@ -188,6 +188,7 @@ class _DeductionFormDialogState extends State<DeductionFormDialog> {
                           const SizedBox(height: 6),
                           DropdownButtonFormField<DeductionType>(
                             initialValue: _selectedType,
+                            isExpanded: true,
                             decoration: InputDecoration(
                               isDense: true,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSmall)),
@@ -198,7 +199,7 @@ class _DeductionFormDialogState extends State<DeductionFormDialog> {
                               DeductionType.lateArrival,
                               DeductionType.damage,
                               DeductionType.other,
-                            ].map((t) => DropdownMenuItem(value: t, child: Text(t.label))).toList(),
+                            ].map((t) => DropdownMenuItem(value: t, child: Text(t.label, overflow: TextOverflow.ellipsis))).toList(),
                             onChanged: (v) {
                               if (v != null) setState(() => _selectedType = v);
                             },
@@ -215,6 +216,7 @@ class _DeductionFormDialogState extends State<DeductionFormDialog> {
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
                             initialValue: _department,
+                            isExpanded: true,
                             decoration: InputDecoration(
                               isDense: true,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSmall)),
@@ -226,7 +228,7 @@ class _DeductionFormDialogState extends State<DeductionFormDialog> {
                               'Finance',
                               'Marketing',
                               'Legal',
-                            ].map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                            ].map((d) => DropdownMenuItem(value: d, child: Text(d, overflow: TextOverflow.ellipsis))).toList(),
                             onChanged: (v) {
                               if (v != null) setState(() => _department = v);
                             },
