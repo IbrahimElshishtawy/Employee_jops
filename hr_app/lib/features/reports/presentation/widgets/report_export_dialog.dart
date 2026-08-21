@@ -188,7 +188,6 @@ class _ReportExportDialogState extends State<ReportExportDialog> {
                     color: isSelected
                         ? AppColors.primaryLight.withValues(alpha: isDark ? 0.2 : 0.08)
                         : Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
                       side: BorderSide(

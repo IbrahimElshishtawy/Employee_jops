@@ -106,19 +106,18 @@ class ReportsScreen extends StatelessWidget {
           const SizedBox(height: AppDimensions.space20),
 
           // Subtabs
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: ReportsTab.values.map((tab) {
               final isSelected = controller.activeTab == tab;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(tab.label),
-                  selected: isSelected,
-                  selectedColor: AppColors.primaryLight.withValues(alpha: isDark ? 0.3 : 0.15),
-                  onSelected: (selected) {
-                    if (selected) controller.setActiveTab(tab);
-                  },
-                ),
+              return ChoiceChip(
+                label: Text(tab.label),
+                selected: isSelected,
+                selectedColor: AppColors.primaryLight.withValues(alpha: isDark ? 0.3 : 0.15),
+                onSelected: (selected) {
+                  if (selected) controller.setActiveTab(tab);
+                },
               );
             }).toList(),
           ),

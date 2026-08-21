@@ -77,7 +77,7 @@ void main() {
         ],
         child: MaterialApp(
           theme: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
-          home: Scaffold(body: child),
+          home: Scaffold(body: Center(child: child)),
         ),
       );
     }
