@@ -169,8 +169,7 @@ void main() {
 
       await tester.tap(checkInButton);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1000));
-      await tester.pump(const Duration(milliseconds: 1000));
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
       // Should now show Check Out available
       final checkOutButton = find.widgetWithText(AppButton, 'تسجيل الانصراف');
