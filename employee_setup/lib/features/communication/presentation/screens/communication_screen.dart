@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../providers/departments_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../providers/department_requests_provider.dart';
 import '../widgets/communication_header.dart';
 import '../widgets/active_requests_card.dart';
-import '../widgets/department_grid.dart';
+import '../widgets/department_card.dart';
 import '../widgets/conversation_tile.dart';
 import '../widgets/request_card.dart';
 import '../widgets/communication_empty_state.dart';
@@ -51,48 +53,219 @@ class CommunicationScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // 2. Active Requests Banner
-                ActiveRequestsCard(
-                  activeCount: activeCount,
-                  onTap: () {
-                    context.push(AppRoutes.myDepartmentRequests);
-                  },
-                ),
-                if (activeCount > 0) const SizedBox(height: 20),
+                // 2. Main Entry Action Hub (دليل الأقسام والعمليات)
+                Row(
+                  children: [
+                    // Card A: Browse All Departments
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          context.push(AppRoutes.departments);
+                        },
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+                        child: AppCard(
+                          padding: const EdgeInsets.all(12),
+                          backgroundColor: isDark
+                              ? AppColors.primary.withValues(alpha: 0.15)
+                              : AppColors.primaryLight,
+                          borderColor: AppColors.primary.withValues(alpha: 0.3),
+                          borderRadius: AppDimensions.radiusMedium,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.corporate_fare_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  Icon(
+                                    isArabic
+                                        ? Icons.arrow_back_ios_new_rounded
+                                        : Icons.arrow_forward_ios_rounded,
+                                    size: 14,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                isArabic ? 'دليل الأقسام' : 'Departments Directory',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isArabic ? '15 قسماً فندقياً' : '15 Departments',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
 
-                // 3. Departments Section
+                    // Card B: Create Operational Request
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          context.push(AppRoutes.newDepartmentRequest);
+                        },
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+                        child: AppCard(
+                          padding: const EdgeInsets.all(12),
+                          backgroundColor: isDark
+                              ? AppColors.surfaceDark
+                              : AppColors.surfaceLight,
+                          borderColor: isDark ? AppColors.borderDark : AppColors.borderLight,
+                          borderRadius: AppDimensions.radiusMedium,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.info.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.add_task_rounded,
+                                      color: AppColors.info,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    size: 18,
+                                    color: AppColors.info,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                isArabic ? 'طلب تشغيلي' : 'New Request',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isArabic ? 'إرسال طلب فوري' : 'Instant Dispatch',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // 3. Active Requests Banner (if any)
+                if (activeCount > 0) ...[
+                  ActiveRequestsCard(
+                    activeCount: activeCount,
+                    onTap: () {
+                      context.push(AppRoutes.myDepartmentRequests);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // 4. Quick Access Departments (Top 4)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       isArabic ? 'أقسام الفندق' : 'Hotel Departments',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w800,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
                     ),
-                    Text(
-                      isArabic ? 'اختر للبدء' : 'Select to start',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
+                    TextButton.icon(
+                      onPressed: () {
+                        context.push(AppRoutes.departments);
+                      },
+                      icon: Icon(
+                        isArabic
+                            ? Icons.arrow_back_ios_new_rounded
+                            : Icons.arrow_forward_ios_rounded,
+                        size: 12,
+                      ),
+                      label: Text(
+                        isArabic ? 'عرض كل الأقسام (15)' : 'View All (15)',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 departmentsAsync.when(
-                  data: (departments) => DepartmentGrid(
-                    departments: departments,
-                    onDepartmentSelected: (dept) {
-                      context.push('/communication/department/${dept.id}');
-                    },
-                  ),
+                  data: (departments) {
+                    final quickDepts = departments.take(4).toList();
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 2.3,
+                      ),
+                      itemCount: quickDepts.length,
+                      itemBuilder: (context, index) {
+                        final dept = quickDepts[index];
+                        return DepartmentCard(
+                          department: dept,
+                          onTap: () {
+                            context.push('/communication/department/${dept.id}');
+                          },
+                        );
+                      },
+                    );
+                  },
                   loading: () => const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
+                      padding: EdgeInsets.all(16),
                       child: CircularProgressIndicator(),
                     ),
                   ),
@@ -102,23 +275,23 @@ class CommunicationScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // 4. Conversations Section
+                // 5. My Conversations Section
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       isArabic ? 'محادثاتي الأخيرة' : 'My Conversations',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w800,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 conversationsAsync.when(
                   data: (conversations) {
@@ -159,16 +332,16 @@ class CommunicationScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // 5. My Recent Requests Section
+                // 6. My Recent Requests Section
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       isArabic ? 'طلباتي التشغيلية' : 'My Department Requests',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w800,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
@@ -180,7 +353,7 @@ class CommunicationScreen extends ConsumerWidget {
                       child: Text(
                         isArabic ? 'عرض الكل' : 'View All',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
                         ),
@@ -229,6 +402,7 @@ class CommunicationScreen extends ConsumerWidget {
                     onRetry: () => ref.invalidate(myDepartmentRequestsProvider),
                   ),
                 ),
+
                 const SizedBox(height: 24),
               ],
             ),

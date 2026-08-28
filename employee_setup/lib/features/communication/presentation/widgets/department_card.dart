@@ -79,103 +79,112 @@ class DepartmentCard extends StatelessWidget {
       onTap: isDisabled || isLoading ? null : onTap,
       backgroundColor: bg,
       borderColor: borderColor,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      borderRadius: AppDimensions.radiusLarge,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      borderRadius: AppDimensions.radiusMedium,
       child: Stack(
+        alignment: Alignment.center,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : (isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.primaryLight),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      iconData,
-                      size: 22,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.white : AppColors.primary),
-                    ),
-                  ),
-                  if (department.availableEmployeesCount > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+              // 1. Compact Icon Container
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.primaryLight),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  iconData,
+                  size: 20,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white : AppColors.primary),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 2. Title & Availability Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      department.localizedName(isArabic),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
-                      decoration: BoxDecoration(
-                        color: AppColors.successLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        if (department.availableEmployeesCount > 0) ...[
                           Container(
-                            width: 6,
-                            height: 6,
+                            width: 5,
+                            height: 5,
                             decoration: const BoxDecoration(
                               color: AppColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 3),
                           Text(
                             '${department.availableEmployeesCount}',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.successDark,
+                              color: AppColors.success,
+                            ),
+                          ),
+                          Text(
+                            isArabic ? ' متاح' : ' online',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                          Text(
+                            ' • ',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark
+                                  ? AppColors.textMutedDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    department.localizedName(isArabic),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
-                      height: 1.25,
-                    ),
-                  ),
-                  if (department.totalEmployeesCount > 0) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      isArabic
-                          ? '${department.totalEmployeesCount} موظف'
-                          : '${department.totalEmployeesCount} members',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? AppColors.textMutedDark
-                            : AppColors.textSecondaryLight,
-                      ),
+                        Flexible(
+                          child: Text(
+                            isArabic
+                                ? '${department.totalEmployeesCount} موظف'
+                                : '${department.totalEmployeesCount} members',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark
+                                  ? AppColors.textMutedDark
+                                  : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ],
+                ),
               ),
             ],
           ),
@@ -183,8 +192,8 @@ class DepartmentCard extends StatelessWidget {
             const Positioned.fill(
               child: Center(
                 child: SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 18,
+                  height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
