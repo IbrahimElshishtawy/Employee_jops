@@ -39,6 +39,7 @@ import '../../features/communication/presentation/screens/create_request_screen.
 import '../../features/communication/presentation/screens/request_details_screen.dart';
 import '../../features/communication/presentation/screens/my_requests_screen.dart';
 import '../../features/communication/presentation/screens/departments_screen.dart';
+import '../../features/communication/presentation/screens/conversations_screen.dart';
 import 'app_routes.dart';
 import 'main_shell_screen.dart';
 
@@ -324,6 +325,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.departments,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const DepartmentsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.conversations,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ConversationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.departmentEmployees,

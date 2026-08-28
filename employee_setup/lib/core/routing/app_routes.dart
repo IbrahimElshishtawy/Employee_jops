@@ -20,6 +20,7 @@ class AppRoutes {
 
   // Communication Sub-routes
   static const String departments = '/communication/departments';
+  static const String conversations = '/communication/conversations';
   static const String departmentEmployees = '/communication/department/:departmentId';
   static const String employeeContact = '/communication/employee/:employeeId';
   static const String chat = '/communication/chat/:conversationId';
