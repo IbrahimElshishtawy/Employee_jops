@@ -1,6 +1,5 @@
 import 'package:employee_setup/app/app_providers.dart';
 import 'package:employee_setup/core/localization/app_localizations.dart';
-import 'package:employee_setup/core/mock/mock_database.dart';
 import 'package:employee_setup/core/mock/seeds/employee_seed.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _buildTestApp({
   required Widget child,
@@ -38,28 +38,25 @@ Widget _buildTestApp({
 void main() {
   testWidgets('EmployeeHeaderCard renders employee details correctly',
       (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
     final storage = SharedPrefsStorage();
     await storage.init();
     await storage.clear();
-
-    final dbNotifier = MockDatabaseNotifier();
-    dbNotifier.replaceState(
-      MockDatabase.seed().copyWith(
-        employee: EmployeeSeed.employee.copyWith(avatarUrl: ''),
-      ),
-    );
 
     await tester.pumpWidget(
       _buildTestApp(
         child: const EmployeeHeaderCard(),
         overrides: [
           localStorageProvider.overrideWithValue(storage),
-          mockDatabaseProvider.overrideWith((ref) => dbNotifier),
+          employeeProvider.overrideWithValue(
+            EmployeeSeed.employee.copyWith(avatarUrl: ''),
+          ),
         ],
       ),
     );
 
     await tester.pumpAndSettle();
     expect(find.byType(EmployeeHeaderCard), findsOneWidget);
+    expect(find.text(EmployeeSeed.employee.name), findsOneWidget);
   });
 }

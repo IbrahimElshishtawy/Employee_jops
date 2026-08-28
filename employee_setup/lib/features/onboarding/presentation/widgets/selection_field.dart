@@ -4,14 +4,16 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 
-/// Modern interactive selection tile for Job Title, Department, Region, Manager.
+/// Modern interactive selection tile for Job Title, Department, etc.
 class SelectionField extends StatelessWidget {
   final String label;
   final String? value;
   final String placeholder;
   final IconData icon;
+  final String? leadingEmoji;
   final VoidCallback onTap;
   final bool hasError;
+  final String? errorText;
 
   const SelectionField({
     super.key,
@@ -19,8 +21,10 @@ class SelectionField extends StatelessWidget {
     this.value,
     required this.placeholder,
     required this.icon,
+    this.leadingEmoji,
     required this.onTap,
     this.hasError = false,
+    this.errorText,
   });
 
   @override
@@ -57,13 +61,13 @@ class SelectionField extends StatelessWidget {
                 color: hasError
                     ? AppColors.error
                     : (isSelected
-                        ? (isDark ? AppColors.primary : AppColors.primary)
+                        ? AppColors.primary
                         : (isDark ? AppColors.borderDark : AppColors.borderLight)),
                 width: isSelected || hasError ? 1.4 : 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isDark ? Colors.black : Colors.black).withValues(alpha: 0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -71,28 +75,49 @@ class SelectionField extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Leading Icon Container
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.12)
-                        : (isDark
-                            ? AppColors.surfaceVariantDark
-                            : AppColors.surfaceVariantLight),
-                    borderRadius: BorderRadius.circular(10),
+                // Leading Icon or Emoji Container
+                if (leadingEmoji != null && leadingEmoji!.isNotEmpty) ...[
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.12)
+                          : (isDark
+                              ? AppColors.surfaceVariantDark
+                              : AppColors.surfaceVariantLight),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      leadingEmoji!,
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 18,
-                    color: isSelected
-                        ? AppColors.primary
-                        : (isDark
-                            ? AppColors.textMutedDark
-                            : AppColors.textMutedLight),
+                  const SizedBox(width: 14),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.12)
+                          : (isDark
+                              ? AppColors.surfaceVariantDark
+                              : AppColors.surfaceVariantLight),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 18,
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark
+                              ? AppColors.textMutedDark
+                              : AppColors.textMutedLight),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
+                  const SizedBox(width: 14),
+                ],
 
                 // Selected Value or Placeholder
                 Expanded(
@@ -112,7 +137,7 @@ class SelectionField extends StatelessWidget {
                   ),
                 ),
 
-                // Chevron
+                // Directional Chevron
                 Icon(
                   context.isRtl
                       ? Icons.arrow_back_ios_new_rounded
@@ -126,6 +151,22 @@ class SelectionField extends StatelessWidget {
             ),
           ),
         ),
+
+        // Inline Error Message
+        if (hasError && errorText != null && errorText!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              errorText!,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.error,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

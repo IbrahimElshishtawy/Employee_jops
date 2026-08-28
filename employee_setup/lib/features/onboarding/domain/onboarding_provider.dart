@@ -49,7 +49,9 @@ class OnboardingFormState {
   final String phone;
 
   // Step 2: Job & Department
+  final String jobTitleId;
   final String jobTitle;
+  final String departmentId;
   final String department;
   final EmployeeRole role;
   final HierarchyLevel hierarchyLevel;
@@ -73,7 +75,9 @@ class OnboardingFormState {
     this.fullName = '',
     this.email = '',
     this.phone = '',
+    this.jobTitleId = '',
     this.jobTitle = '',
+    this.departmentId = '',
     this.department = '',
     this.role = EmployeeRole.employee,
     this.hierarchyLevel = HierarchyLevel.staff,
@@ -94,7 +98,9 @@ class OnboardingFormState {
     String? fullName,
     String? email,
     String? phone,
+    String? jobTitleId,
     String? jobTitle,
+    String? departmentId,
     String? department,
     EmployeeRole? role,
     HierarchyLevel? hierarchyLevel,
@@ -114,7 +120,9 @@ class OnboardingFormState {
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      jobTitleId: jobTitleId ?? this.jobTitleId,
       jobTitle: jobTitle ?? this.jobTitle,
+      departmentId: departmentId ?? this.departmentId,
       department: department ?? this.department,
       role: role ?? this.role,
       hierarchyLevel: hierarchyLevel ?? this.hierarchyLevel,
@@ -183,14 +191,21 @@ class OnboardingNotifier extends StateNotifier<OnboardingFormState> {
   void setStep2Data({
     required String jobTitle,
     required String department,
+    String? jobTitleId,
+    String? departmentId,
     EmployeeRole role = EmployeeRole.employee,
     HierarchyLevel hierarchyLevel = HierarchyLevel.staff,
     String? region,
     String? managerId,
     String? managerName,
   }) {
+    final resolvedJob = OnboardingCatalog.findJobTitle(jobTitleId ?? jobTitle);
+    final resolvedDept = OnboardingCatalog.findDepartment(departmentId ?? department);
+
     state = state.copyWith(
+      jobTitleId: resolvedJob?.id ?? (jobTitleId ?? ''),
       jobTitle: jobTitle.trim(),
+      departmentId: resolvedDept?.id ?? (departmentId ?? ''),
       department: department.trim(),
       role: role,
       hierarchyLevel: hierarchyLevel,

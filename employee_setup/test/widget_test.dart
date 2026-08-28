@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _buildTestApp({
   required Widget child,
@@ -36,6 +37,7 @@ Widget _buildTestApp({
 void main() {
   testWidgets('TodayAttendanceStatusCard initial load test',
       (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
     final storage = SharedPrefsStorage();
     await storage.init();
     await storage.clear();
@@ -49,8 +51,7 @@ void main() {
       ),
     );
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
     expect(find.byType(TodayAttendanceStatusCard), findsOneWidget);
   });
 }

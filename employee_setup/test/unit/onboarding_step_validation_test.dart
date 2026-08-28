@@ -95,58 +95,92 @@ void main() {
     // ──────────────────────────────────────────────────────────
     // Step 2 — Job & Department Selection Tests
     // ──────────────────────────────────────────────────────────
-    group('Step 2 — Job & Department Selection', () {
-      test('2.1 Job and Department selection from centralized catalog', () {
-        final catalog = container.read(onboardingCatalogProvider);
-        expect(catalog.jobTitles, contains('Receptionist'));
-        expect(catalog.jobTitles, contains('Security Guard'));
-        expect(catalog.jobTitles, contains('Software Engineer'));
+    group('Step 2 — Job & Department Selection & Localization', () {
+      test('2.1 Job and Department selection from centralized catalog with stable IDs', () {
+        final job = OnboardingCatalog.findJobTitle('RECEPTIONIST');
+        expect(job, isNotNull);
+        expect(job!.nameEn, equals('Receptionist'));
+        expect(job.nameAr, equals('موظف استقبال'));
+        expect(job.localizedName(true), equals('موظف استقبال'));
+        expect(job.localizedName(false), equals('Receptionist'));
 
-        expect(catalog.departments, contains('Front Office'));
-        expect(catalog.departments, contains('Security'));
-        expect(catalog.departments, contains('Human Resources'));
+        final dept = OnboardingCatalog.findDepartment('FRONT_OFFICE');
+        expect(dept, isNotNull);
+        expect(dept!.nameEn, equals('Front Office'));
+        expect(dept.nameAr, equals('مكتب الاستقبال'));
+        expect(dept.emoji, equals('🏨'));
+        expect(dept.localizedName(true), equals('مكتب الاستقبال'));
+        expect(dept.localizedName(false), equals('Front Office'));
 
         final notifier = container.read(onboardingProvider.notifier);
         notifier.setStep2Data(
+          jobTitleId: 'RECEPTIONIST',
           jobTitle: 'Receptionist',
+          departmentId: 'FRONT_OFFICE',
           department: 'Front Office',
           role: EmployeeRole.employee,
           hierarchyLevel: HierarchyLevel.staff,
         );
 
         final state = container.read(onboardingProvider);
+        expect(state.jobTitleId, equals('RECEPTIONIST'));
         expect(state.jobTitle, equals('Receptionist'));
+        expect(state.departmentId, equals('FRONT_OFFICE'));
         expect(state.department, equals('Front Office'));
         expect(state.role, equals(EmployeeRole.employee));
         expect(state.hierarchyLevel, equals(HierarchyLevel.staff));
       });
 
-      test('2.2 Concept separation: Department, Job Title, Role, and Hierarchy Level are separate', () {
+      test('2.2 Bilingual search lookup: Arabic & English queries match correctly', () {
+        // Arabic search queries
+        final arabicSearch1 = OnboardingCatalog.findJobTitle('استقبال');
+        expect(arabicSearch1, isNotNull);
+        expect(arabicSearch1!.id, equals('RECEPTIONIST'));
+
+        final arabicDeptSearch = OnboardingCatalog.findDepartment('الأمن');
+        expect(arabicDeptSearch, isNotNull);
+        expect(arabicDeptSearch!.id, equals('SECURITY'));
+
+        // English search queries
+        final englishSearch1 = OnboardingCatalog.findJobTitle('security guard');
+        expect(englishSearch1, isNotNull);
+        expect(englishSearch1!.id, equals('SECURITY_GUARD'));
+
+        final englishDeptSearch = OnboardingCatalog.findDepartment('housekeeping');
+        expect(englishDeptSearch, isNotNull);
+        expect(englishDeptSearch!.id, equals('HOUSEKEEPING'));
+      });
+
+      test('2.3 Concept separation: Department, Job Title, Role, and Hierarchy Level are separate', () {
         final notifier = container.read(onboardingProvider.notifier);
 
-        // Scenario A: Staff Employee
+        // Staff employee
         notifier.setStep2Data(
+          jobTitleId: 'RECEPTIONIST',
           jobTitle: 'Receptionist',
+          departmentId: 'FRONT_OFFICE',
           department: 'Front Office',
           role: EmployeeRole.employee,
           hierarchyLevel: HierarchyLevel.staff,
         );
         var state = container.read(onboardingProvider);
-        expect(state.department, equals('Front Office'));
-        expect(state.jobTitle, equals('Receptionist'));
+        expect(state.departmentId, equals('FRONT_OFFICE'));
+        expect(state.jobTitleId, equals('RECEPTIONIST'));
         expect(state.role, equals(EmployeeRole.employee));
         expect(state.hierarchyLevel, equals(HierarchyLevel.staff));
 
-        // Scenario B: Supervisor
+        // Supervisor
         notifier.setStep2Data(
+          jobTitleId: 'SECURITY_SUPERVISOR',
           jobTitle: 'Security Supervisor',
+          departmentId: 'SECURITY',
           department: 'Security',
           role: EmployeeRole.supervisor,
           hierarchyLevel: HierarchyLevel.supervisor,
         );
         state = container.read(onboardingProvider);
-        expect(state.department, equals('Security'));
-        expect(state.jobTitle, equals('Security Supervisor'));
+        expect(state.departmentId, equals('SECURITY'));
+        expect(state.jobTitleId, equals('SECURITY_SUPERVISOR'));
         expect(state.role, equals(EmployeeRole.supervisor));
         expect(state.hierarchyLevel, equals(HierarchyLevel.supervisor));
       });
@@ -168,8 +202,10 @@ void main() {
 
         // Enter Step 2
         notifier.setStep2Data(
-          jobTitle: 'Software Engineer',
-          department: 'الهندسة البرمجية',
+          jobTitleId: 'ENGINEER',
+          jobTitle: 'Engineer',
+          departmentId: 'ENGINEERING',
+          department: 'Engineering',
         );
 
         // Inspect Review state (Step 3)
@@ -177,8 +213,10 @@ void main() {
         expect(state.fullName, equals('Ahmed Mohamed'));
         expect(state.email, equals('ahmed.mohamed@gmail.com'));
         expect(state.phone, equals('01099887766'));
-        expect(state.jobTitle, equals('Software Engineer'));
-        expect(state.department, equals('الهندسة البرمجية'));
+        expect(state.jobTitleId, equals('ENGINEER'));
+        expect(state.jobTitle, equals('Engineer'));
+        expect(state.departmentId, equals('ENGINEERING'));
+        expect(state.department, equals('Engineering'));
 
         // Simulate going back to Step 1 and updating name
         notifier.setStep1Data(
@@ -190,8 +228,10 @@ void main() {
         // Verify Step 2 data was NOT lost
         state = container.read(onboardingProvider);
         expect(state.fullName, equals('Ahmed M. Ali'));
-        expect(state.jobTitle, equals('Software Engineer'));
-        expect(state.department, equals('الهندسة البرمجية'));
+        expect(state.jobTitleId, equals('ENGINEER'));
+        expect(state.jobTitle, equals('Engineer'));
+        expect(state.departmentId, equals('ENGINEERING'));
+        expect(state.department, equals('Engineering'));
       });
 
       test('3.2 Confirm & Continue completes profile and updates session', () async {
@@ -207,7 +247,9 @@ void main() {
           phone: '01012345678',
         );
         notifier.setStep2Data(
+          jobTitleId: 'RECEPTIONIST',
           jobTitle: 'Receptionist',
+          departmentId: 'FRONT_OFFICE',
           department: 'Front Office',
         );
 
@@ -241,7 +283,9 @@ void main() {
           phone: '01012345678',
         );
         notifier.setStep2Data(
+          jobTitleId: 'RECEPTIONIST',
           jobTitle: 'Receptionist',
+          departmentId: 'FRONT_OFFICE',
           department: 'Front Office',
         );
 
@@ -338,7 +382,9 @@ void main() {
           phone: '01012345678',
         );
         notifier.setStep2Data(
+          jobTitleId: 'CHEF',
           jobTitle: 'Chef',
+          departmentId: 'KITCHEN',
           department: 'Kitchen',
         );
 
@@ -365,8 +411,10 @@ void main() {
           phone: '01012345678',
         );
         notifier.setStep2Data(
+          jobTitleId: 'ACCOUNTANT',
           jobTitle: 'Accountant',
-          department: 'Finance / Accounting',
+          departmentId: 'FINANCE_AND_ACCOUNTING',
+          department: 'Finance & Accounting',
         );
 
         await notifier.completeProfile();

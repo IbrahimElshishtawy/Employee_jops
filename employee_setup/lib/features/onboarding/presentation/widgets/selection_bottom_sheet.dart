@@ -9,12 +9,14 @@ class SelectionItem {
   final String title;
   final String? subtitle;
   final IconData? icon;
+  final String? emoji;
 
   const SelectionItem({
     required this.id,
     required this.title,
     this.subtitle,
     this.icon,
+    this.emoji,
   });
 }
 
@@ -224,7 +226,26 @@ class _SelectionBottomSheetState extends State<SelectionBottomSheet> {
                                 : Colors.transparent,
                             child: Row(
                               children: [
-                                if (item.icon != null) ...[
+                                if (item.emoji != null) ...[
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary.withValues(alpha: 0.15)
+                                          : (isDark
+                                              ? AppColors.surfaceVariantDark
+                                              : AppColors.surfaceVariantLight),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      item.emoji!,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                ] else if (item.icon != null) ...[
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
