@@ -31,12 +31,20 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/vacations/presentation/screens/new_vacation_screen.dart';
 import '../../features/vacations/presentation/screens/vacation_details_screen.dart';
 import '../../features/vacations/presentation/screens/vacations_list_screen.dart';
+import '../../features/communication/presentation/screens/communication_screen.dart';
+import '../../features/communication/presentation/screens/department_employees_screen.dart';
+import '../../features/communication/presentation/screens/employee_contact_screen.dart';
+import '../../features/communication/presentation/screens/chat_screen.dart';
+import '../../features/communication/presentation/screens/create_request_screen.dart';
+import '../../features/communication/presentation/screens/request_details_screen.dart';
+import '../../features/communication/presentation/screens/my_requests_screen.dart';
 import 'app_routes.dart';
 import 'main_shell_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _requestsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'requests');
+final _communicationNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'communication');
 final _notificationsNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'notifications',
 );
@@ -151,7 +159,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // 3. Notifications Branch
+          // 3. Communication Branch
+          StatefulShellBranch(
+            navigatorKey: _communicationNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.communication,
+                builder: (context, state) => const CommunicationScreen(),
+              ),
+            ],
+          ),
+
+          // 4. Notifications Branch
           StatefulShellBranch(
             navigatorKey: _notificationsNavigatorKey,
             routes: [
@@ -162,7 +181,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // 4. Profile Branch
+          // 5. Profile Branch
           StatefulShellBranch(
             navigatorKey: _profileNavigatorKey,
             routes: [
@@ -297,6 +316,57 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DeveloperDemoScreen(),
           ),
         ],
+      ),
+
+      // Communication Sub-routes
+      GoRoute(
+        path: AppRoutes.departmentEmployees,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final deptId = state.pathParameters['departmentId'] ?? '';
+          return DepartmentEmployeesScreen(departmentId: deptId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.employeeContact,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final empId = state.pathParameters['employeeId'] ?? '';
+          return EmployeeContactScreen(employeeId: empId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.chat,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final convId = state.pathParameters['conversationId'] ?? '';
+          return ChatScreen(conversationId: convId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.newDepartmentRequest,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final deptId = state.uri.queryParameters['deptId'];
+          final recipientId = state.uri.queryParameters['recipientId'];
+          return CreateRequestScreen(
+            initialDepartmentId: deptId,
+            initialRecipientId: recipientId,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.departmentRequestDetails,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['requestId'] ?? '';
+          return RequestDetailsScreen(requestId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.myDepartmentRequests,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyRequestsScreen(),
       ),
     ],
   );

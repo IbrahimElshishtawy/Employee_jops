@@ -31,7 +31,7 @@ class RequestSummary extends StatelessWidget {
     return AppCard(
       padding: const EdgeInsets.all(14),
       backgroundColor: isDark
-          ? AppColors.surfaceVariantDark.withOpacity(0.5)
+          ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
           : AppColors.backgroundLight,
       borderRadius: AppDimensions.radiusLarge,
       child: Column(

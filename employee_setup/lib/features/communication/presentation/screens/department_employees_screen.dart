@@ -76,7 +76,7 @@ class _DepartmentEmployeesScreenState
                   : AppColors.textPrimaryLight,
             ),
           ),
-          error: (_, __) => Text(
+          error: (_, _) => Text(
             widget.departmentId,
             style: TextStyle(
               fontSize: 16,
@@ -105,7 +105,7 @@ class _DepartmentEmployeesScreenState
                 children: [
                   // Department Request Shortcut Button
                   AppButton(
-                    text: isArabic
+                    label: isArabic
                         ? 'إنشاء طلب تشغيلي لهذا القسم'
                         : 'Create Department Request',
                     icon: Icons.add_task_rounded,

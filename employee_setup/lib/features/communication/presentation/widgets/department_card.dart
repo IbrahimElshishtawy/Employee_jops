@@ -68,7 +68,7 @@ class DepartmentCard extends StatelessWidget {
     Color borderColor;
 
     if (isSelected) {
-      bg = isDark ? AppColors.primary.withOpacity(0.2) : AppColors.primaryLight;
+      bg = isDark ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primaryLight;
       borderColor = AppColors.primary;
     } else {
       bg = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;

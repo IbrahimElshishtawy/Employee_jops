@@ -56,7 +56,7 @@ class PrioritySelector extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? activeColor.withOpacity(isDark ? 0.25 : 0.12)
+                          ? activeColor.withValues(alpha: isDark ? 0.25 : 0.12)
                           : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(

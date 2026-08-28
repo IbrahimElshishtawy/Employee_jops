@@ -29,7 +29,7 @@ class ChatErrorState extends StatelessWidget {
               height: 64,
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppColors.error.withOpacity(0.15)
+                    ? AppColors.error.withValues(alpha: 0.15)
                     : AppColors.errorLight,
                 shape: BoxShape.circle,
               ),
@@ -65,7 +65,7 @@ class ChatErrorState extends StatelessWidget {
             ],
             const SizedBox(height: 20),
             AppButton(
-              text: isArabic ? 'إعادة المحاولة' : 'Retry',
+              label: isArabic ? 'إعادة المحاولة' : 'Retry',
               onPressed: onRetry,
               icon: Icons.refresh_rounded,
               isFullWidth: false,

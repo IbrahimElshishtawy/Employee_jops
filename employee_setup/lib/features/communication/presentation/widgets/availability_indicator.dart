@@ -55,7 +55,7 @@ class AvailabilityIndicator extends StatelessWidget {
             boxShadow: availability.isAvailable
                 ? [
                     BoxShadow(
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       blurRadius: 4,
                       spreadRadius: 1,
                     )

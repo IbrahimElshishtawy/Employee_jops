@@ -392,7 +392,7 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
 
               // 7. Submit Button
               AppButton(
-                text: isArabic ? 'إرسال الطلب التشغيلي' : 'Submit Request',
+                label: isArabic ? 'إرسال الطلب التشغيلي' : 'Submit Request',
                 icon: Icons.send_rounded,
                 isLoading: isLoading,
                 onPressed: isLoading ? null : _submitRequest,

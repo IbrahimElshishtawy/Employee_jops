@@ -149,7 +149,7 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen>
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final req = list[index];
         return RequestCard(

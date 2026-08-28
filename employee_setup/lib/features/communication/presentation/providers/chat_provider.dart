@@ -1,7 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/app_providers.dart';
-import '../../../../core/mock/models/hr_message.dart';
-import '../../../notifications/domain/models/app_notification.dart';
 import '../../domain/entities/message.dart';
 import 'communication_providers.dart';
 import 'conversations_provider.dart';

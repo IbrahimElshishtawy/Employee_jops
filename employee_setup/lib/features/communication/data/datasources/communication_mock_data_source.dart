@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../../domain/entities/employee_contact.dart';
+import '../../domain/entities/conversation.dart';
 import '../../domain/entities/department_request.dart';
 import '../../domain/entities/message.dart';
 import '../models/department_model.dart';

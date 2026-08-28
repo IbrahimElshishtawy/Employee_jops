@@ -23,7 +23,7 @@ final communicationMockDataSourceProvider = Provider<CommunicationRemoteDataSour
   final employee = ref.watch(employeeProvider);
   return CommunicationMockDataSource(
     currentUserId: employee.id.isNotEmpty ? employee.id : 'EMP-001',
-    currentUserName: employee.fullName.isNotEmpty ? employee.fullName : 'Ibrahim Elshishtawy',
+    currentUserName: employee.name.isNotEmpty ? employee.name : 'Ibrahim Elshishtawy',
   );
 });
 
@@ -33,7 +33,7 @@ final communicationRepositoryProvider = Provider<CommunicationRepository>((ref) 
   return CommunicationRepositoryImpl(
     remoteDataSource: ds,
     currentUserId: employee.id.isNotEmpty ? employee.id : 'EMP-001',
-    currentUserName: employee.fullName.isNotEmpty ? employee.fullName : 'Ibrahim Elshishtawy',
+    currentUserName: employee.name.isNotEmpty ? employee.name : 'Ibrahim Elshishtawy',
   );
 });
 

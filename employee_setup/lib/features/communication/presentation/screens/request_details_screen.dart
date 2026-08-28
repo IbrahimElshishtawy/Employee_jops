@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
@@ -90,9 +89,6 @@ class RequestDetailsScreen extends ConsumerWidget {
     final requestAsync = ref.watch(departmentRequestByIdProvider(requestId));
     final actionState = ref.watch(departmentRequestActionProvider);
     final isActionLoading = actionState.isLoading;
-
-    final currentEmp = ref.watch(employeeProvider);
-    final currentUserId = currentEmp.id.isNotEmpty ? currentEmp.id : 'EMP-001';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
@@ -298,7 +294,7 @@ class RequestDetailsScreen extends ConsumerWidget {
                     AppCard(
                       padding: const EdgeInsets.all(16),
                       backgroundColor: isDark
-                          ? AppColors.error.withOpacity(0.15)
+                          ? AppColors.error.withValues(alpha: 0.15)
                           : AppColors.errorLight,
                       borderColor: AppColors.error,
                       borderRadius: AppDimensions.radiusLarge,
@@ -341,7 +337,7 @@ class RequestDetailsScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: AppButton(
-                            text: isArabic ? 'قبول الطلب' : 'Accept Request',
+                            label: isArabic ? 'قبول الطلب' : 'Accept Request',
                             icon: Icons.check_circle_rounded,
                             isLoading: isActionLoading,
                             onPressed: () {
@@ -354,7 +350,7 @@ class RequestDetailsScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: AppButton(
-                            text: isArabic ? 'رفض الطلب' : 'Reject Request',
+                            label: isArabic ? 'رفض الطلب' : 'Reject Request',
                             variant: AppButtonVariant.danger,
                             icon: Icons.cancel_rounded,
                             onPressed: () {
@@ -366,7 +362,7 @@ class RequestDetailsScreen extends ConsumerWidget {
                     ),
                   ] else if (request.status == DepartmentRequestStatus.accepted) ...[
                     AppButton(
-                      text: isArabic ? 'بدء التنفيذ' : 'Start Progress',
+                      label: isArabic ? 'بدء التنفيذ' : 'Start Progress',
                       icon: Icons.play_arrow_rounded,
                       isLoading: isActionLoading,
                       onPressed: () {
@@ -377,7 +373,7 @@ class RequestDetailsScreen extends ConsumerWidget {
                     ),
                   ] else if (request.status == DepartmentRequestStatus.inProgress) ...[
                     AppButton(
-                      text: isArabic ? 'إتمام وإغلاق الطلب' : 'Complete Request',
+                      label: isArabic ? 'إتمام وإغلاق الطلب' : 'Complete Request',
                       icon: Icons.done_all_rounded,
                       isLoading: isActionLoading,
                       onPressed: () {

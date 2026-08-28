@@ -235,7 +235,7 @@ class EmployeeContactScreen extends ConsumerWidget {
 
                   // Action Buttons
                   AppButton(
-                    text: isArabic ? 'بدء محادثة' : 'Start Chat',
+                    label: isArabic ? 'بدء محادثة' : 'Start Chat',
                     icon: Icons.chat_rounded,
                     onPressed: contact.canChat
                         ? () async {
@@ -253,7 +253,7 @@ class EmployeeContactScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   AppButton(
-                    text: isArabic ? 'إنشاء طلب تشغيلي' : 'Create Request',
+                    label: isArabic ? 'إنشاء طلب تشغيلي' : 'Create Request',
                     icon: Icons.assignment_add,
                     variant: AppButtonVariant.secondary,
                     onPressed: contact.canCreateRequest
