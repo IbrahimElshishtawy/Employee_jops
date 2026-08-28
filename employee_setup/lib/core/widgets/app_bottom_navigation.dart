@@ -61,6 +61,11 @@ class AppBottomNavigation extends ConsumerWidget {
             label: context.tr('nav.requests'),
           ),
           BottomNavigationBarItem(
+            icon: const Icon(Icons.forum_outlined),
+            activeIcon: const Icon(Icons.forum_rounded),
+            label: context.tr('nav.communication'),
+          ),
+          BottomNavigationBarItem(
             icon: Badge(
               isLabelVisible: unreadCount > 0,
               label: Text(unreadCount > 99 ? '99+' : unreadCount.toString()),

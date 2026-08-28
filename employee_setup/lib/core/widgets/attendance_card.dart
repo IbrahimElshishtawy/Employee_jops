@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/app_providers.dart';
 import '../../features/attendance/domain/models/attendance.dart';
+import '../../features/attendance/domain/models/location_result.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../extensions/context_extensions.dart';
@@ -27,6 +28,7 @@ class AttendanceCard extends ConsumerWidget {
     final summary = ref.watch(attendanceSummaryProvider);
     final demoState = ref.watch(demoControlsProvider);
     final employee = ref.watch(employeeProvider);
+    final flowState = ref.watch(attendanceFlowProvider);
     final isDark = context.isDark;
 
     final isCheckedIn = summary.hasCheckedIn;
@@ -35,7 +37,13 @@ class AttendanceCard extends ConsumerWidget {
     final allowedRadius = employee.allowedRadiusMeters > 0
         ? employee.allowedRadiusMeters
         : 4.0;
-    final isInside = demoState.simulatedDistance <= allowedRadius;
+
+    final locResult = flowState.locationResult;
+    final distanceMeters = locResult?.distanceFromOfficeMeters ??
+        (demoState.useRealDeviceSensors ? 0.0 : demoState.simulatedDistance);
+    final isInside = locResult != null
+        ? locResult.isInsideRange
+        : (distanceMeters <= allowedRadius);
 
     return AppCard(
       child: Column(
@@ -60,8 +68,12 @@ class AttendanceCard extends ConsumerWidget {
           // 3. Geofence Boundary & Distance Indicator
           _AttendanceGeofenceBanner(
             isInside: isInside,
-            distanceMeters: demoState.simulatedDistance,
+            distanceMeters: distanceMeters,
             allowedRadiusMeters: allowedRadius,
+            locationResult: locResult,
+            isUpdating: flowState.isLocationUpdating,
+            onRefreshLocation: () =>
+                ref.read(attendanceFlowProvider.notifier).refreshLocation(),
             isDark: isDark,
           ),
           const SizedBox(height: 16),
@@ -251,50 +263,118 @@ class _AttendanceGeofenceBanner extends StatelessWidget {
   final bool isInside;
   final double distanceMeters;
   final double allowedRadiusMeters;
+  final LocationResult? locationResult;
+  final bool isUpdating;
+  final VoidCallback onRefreshLocation;
   final bool isDark;
 
   const _AttendanceGeofenceBanner({
     required this.isInside,
     required this.distanceMeters,
     required this.allowedRadiusMeters,
+    this.locationResult,
+    this.isUpdating = false,
+    required this.onRefreshLocation,
     required this.isDark,
   });
 
+  String _formatDistance(double meters) {
+    if (meters >= 1000) {
+      return '${(meters / 1000).toStringAsFixed(2)} كم';
+    }
+    return '${meters.toStringAsFixed(1)} م';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-        borderRadius: AppDimensions.borderRadiusMedium,
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isInside ? Icons.location_on_rounded : Icons.location_off_rounded,
-            size: 18,
-            color: isInside ? AppColors.success : AppColors.error,
+    final isPermissionDenied = locationResult?.isPermissionDenied == true;
+    final isGpsDisabled = locationResult?.isGpsDisabled == true;
+    final isMock = locationResult?.isMockLocation == true ||
+        locationResult?.status == LocationStatus.mockLocationDetected;
+
+    String bannerText;
+    Color textColor;
+    Color iconColor;
+    IconData iconData;
+
+    if (isUpdating && locationResult == null) {
+      bannerText = 'جاري تحديد موقعك الجغرافي وحساب المسافة بدقة...';
+      textColor = isDark ? Colors.white70 : AppColors.primaryDark;
+      iconColor = AppColors.primary;
+      iconData = Icons.location_searching_rounded;
+    } else if (isPermissionDenied) {
+      bannerText = '⚠️ إذن الموقع الجغرافي غير مفعل - انقر للتفعيل والتحديث';
+      textColor = isDark ? const Color(0xFFFDE68A) : AppColors.warningDark;
+      iconColor = AppColors.warning;
+      iconData = Icons.location_disabled_rounded;
+    } else if (isGpsDisabled) {
+      bannerText = '⚠️ خدمة GPS معطلة على الجهاز - يرجى تشغيلها';
+      textColor = isDark ? const Color(0xFFFECACA) : AppColors.errorDark;
+      iconColor = AppColors.error;
+      iconData = Icons.gps_off_rounded;
+    } else if (isMock) {
+      bannerText = '🚫 تم رصد موقع وهمي (Mock Location) - تم رفض الموقع';
+      textColor = isDark ? const Color(0xFFFECACA) : AppColors.errorDark;
+      iconColor = AppColors.error;
+      iconData = Icons.security_update_warning_rounded;
+    } else if (isInside) {
+      bannerText =
+          '📍 داخل نطاق موقع العمل (أنت على بعد ${_formatDistance(distanceMeters)})';
+      textColor = isDark ? const Color(0xFFA7F3D0) : AppColors.successDark;
+      iconColor = AppColors.success;
+      iconData = Icons.location_on_rounded;
+    } else {
+      bannerText =
+          '⚠️ خارج نطاق موقع العمل (أنت على بعد ${_formatDistance(distanceMeters)} - المسموح ${allowedRadiusMeters.toInt()} م)';
+      textColor = isDark ? const Color(0xFFFECACA) : AppColors.errorDark;
+      iconColor = AppColors.error;
+      iconData = Icons.location_off_rounded;
+    }
+
+    return InkWell(
+      onTap: isUpdating ? null : onRefreshLocation,
+      borderRadius: AppDimensions.borderRadiusMedium,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppColors.surfaceVariantDark
+              : AppColors.surfaceVariantLight,
+          borderRadius: AppDimensions.borderRadiusMedium,
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              isInside
-                  ? '📍 داخل نطاق موقع العمل (أنت على بعد ${distanceMeters.toStringAsFixed(1)} م)'
-                  : '⚠️ خارج نطاق موقع العمل (أنت على بعد ${distanceMeters.toStringAsFixed(1)} م - المسموح ${allowedRadiusMeters.toInt()}م)',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isInside
-                    ? (isDark ? const Color(0xFFA7F3D0) : AppColors.successDark)
-                    : (isDark ? const Color(0xFFFECACA) : AppColors.errorDark),
+        ),
+        child: Row(
+          children: [
+            if (isUpdating)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Icon(iconData, size: 18, color: iconColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                bannerText,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Icon(
+              Icons.refresh_rounded,
+              size: 16,
+              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+            ),
+          ],
+        ),
       ),
     );
   }

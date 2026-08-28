@@ -14,8 +14,17 @@ class AppRoutes {
   // Shell Tabs
   static const String home = '/home';
   static const String requests = '/requests';
+  static const String communication = '/communication';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
+
+  // Communication Sub-routes
+  static const String departmentEmployees = '/communication/department/:departmentId';
+  static const String employeeContact = '/communication/employee/:employeeId';
+  static const String chat = '/communication/chat/:conversationId';
+  static const String newDepartmentRequest = '/communication/request/new';
+  static const String departmentRequestDetails = '/communication/request/:requestId';
+  static const String myDepartmentRequests = '/communication/my-requests';
 
   // Attendance
   static const String attendance = '/attendance';

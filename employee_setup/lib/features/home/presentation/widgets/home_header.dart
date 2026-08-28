@@ -28,7 +28,7 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
 
   /// Fixed height: top row (~70) + stats strip (~52) + padding (32) + status bar.
   @override
-  Size get preferredSize => const Size.fromHeight(190);
+  Size get preferredSize => const Size.fromHeight(170);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,7 +66,7 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
       child: Stack(
         children: [
           // ── Decorative background circles ──────────────────
-          Positioned(top: -40, right: -40, child: _DecorativeCircle(size: 120)),
+          Positioned(top: -30, right: -40, child: _DecorativeCircle(size: 120)),
           Positioned(
             bottom: -25,
             left: -25,
@@ -80,7 +80,7 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
 
           // ── Main content ───────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 75, 16, 16),
+            padding: const EdgeInsets.fromLTRB(6, 25, 6, 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -149,7 +149,10 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
 
                     // Test mode badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       margin: const EdgeInsets.only(right: 6, left: 6),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.18),

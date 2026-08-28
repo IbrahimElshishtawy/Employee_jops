@@ -40,8 +40,18 @@ class AppLocalizations {
   // Navigation
   String get navHome => translate('nav.home');
   String get navRequests => translate('nav.requests');
+  String get navCommunication => translate('nav.communication');
   String get navNotifications => translate('nav.notifications');
   String get navProfile => translate('nav.profile');
+
+  // Communication
+  String get communicationTitle => translate('communication.title');
+  String get communicationDepartments => translate('communication.departments');
+  String get communicationMyConversations => translate('communication.my_conversations');
+  String get communicationMyRequests => translate('communication.my_requests');
+  String get communicationStartChat => translate('communication.start_chat');
+  String get communicationCreateRequest => translate('communication.create_request');
+  String get communicationActiveRequests => translate('communication.active_requests');
 
   // Attendance
   String get attendanceTitle => translate('attendance.title');
@@ -146,8 +156,36 @@ class AppLocalizations {
       // Navigation
       'nav.home': 'الرئيسية',
       'nav.requests': 'الطلبات',
+      'nav.communication': 'التواصل',
       'nav.notifications': 'التنبيهات',
       'nav.profile': 'حسابي',
+
+      // Communication
+      'communication.title': 'التواصل والعمليات',
+      'communication.departments': 'أقسام الفندق',
+      'communication.my_conversations': 'محادثاتي الأخيرة',
+      'communication.my_requests': 'طلباتي التشغيلية',
+      'communication.start_chat': 'بدء محادثة',
+      'communication.create_request': 'إنشاء طلب',
+      'communication.active_requests': 'الطلبات النشطة',
+      'communication.select_department': 'اختر القسم',
+      'communication.department_employees': 'موظفو القسم',
+      'communication.request_details': 'تفاصيل الطلب',
+      'communication.new_request': 'طلب تشغيلي جديد',
+      'communication.priority': 'مستوى الأولوية',
+      'communication.priority_low': 'منخفض',
+      'communication.priority_normal': 'عادي',
+      'communication.priority_high': 'عالي',
+      'communication.status_pending': 'قيد الانتظار',
+      'communication.status_accepted': 'تم القبول',
+      'communication.status_in_progress': 'جاري التنفيذ',
+      'communication.status_completed': 'مكتمل',
+      'communication.status_rejected': 'مرفوض',
+      'communication.status_cancelled': 'ملغي',
+      'communication.action_accept': 'قبول الطلب',
+      'communication.action_reject': 'رفض الطلب',
+      'communication.action_start': 'بدء التنفيذ',
+      'communication.action_complete': 'إتمام وإغلاق الطلب',
 
       // Auth
       'auth.welcome_title': 'مرحبًا بك في CyberWise IE',
@@ -441,8 +479,36 @@ class AppLocalizations {
       // Navigation
       'nav.home': 'Home',
       'nav.requests': 'Requests',
+      'nav.communication': 'Communication',
       'nav.notifications': 'Notifications',
       'nav.profile': 'Profile',
+
+      // Communication
+      'communication.title': 'Communication & Operations',
+      'communication.departments': 'Hotel Departments',
+      'communication.my_conversations': 'My Conversations',
+      'communication.my_requests': 'My Department Requests',
+      'communication.start_chat': 'Start Chat',
+      'communication.create_request': 'Create Request',
+      'communication.active_requests': 'Active Requests',
+      'communication.select_department': 'Select Department',
+      'communication.department_employees': 'Department Employees',
+      'communication.request_details': 'Request Details',
+      'communication.new_request': 'New Department Request',
+      'communication.priority': 'Priority Level',
+      'communication.priority_low': 'Low',
+      'communication.priority_normal': 'Normal',
+      'communication.priority_high': 'High',
+      'communication.status_pending': 'Pending',
+      'communication.status_accepted': 'Accepted',
+      'communication.status_in_progress': 'In Progress',
+      'communication.status_completed': 'Completed',
+      'communication.status_rejected': 'Rejected',
+      'communication.status_cancelled': 'Cancelled',
+      'communication.action_accept': 'Accept Request',
+      'communication.action_reject': 'Reject Request',
+      'communication.action_start': 'Start Progress',
+      'communication.action_complete': 'Complete Request',
 
       // Auth
       'auth.welcome_title': 'Welcome to CyberWise IE',
