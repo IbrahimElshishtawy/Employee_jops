@@ -245,6 +245,9 @@ final realLocationServiceProvider = Provider<RealLocationService>((ref) {
   return RealLocationService(
     workplaceLatitude: emp.workplaceLatitude ?? AppConstants.officeLatitude,
     workplaceLongitude: emp.workplaceLongitude ?? AppConstants.officeLongitude,
+    allowedRadiusMeters: emp.allowedRadiusMeters > 0
+        ? emp.allowedRadiusMeters
+        : AttendancePolicyService.defaultAllowedRadiusMeters,
   );
 });
 

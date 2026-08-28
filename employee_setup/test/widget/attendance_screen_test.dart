@@ -61,8 +61,11 @@ void main() {
         _buildTestApp(
           overrides: [
             localStorageProvider.overrideWithValue(storage),
-            mockLocationServiceProvider.overrideWithValue(locService),
-            mockBiometricServiceProvider.overrideWithValue(bioService),
+            demoControlsProvider.overrideWith(
+              (ref) => DemoControlsNotifier(ref)..setUseRealDeviceSensors(false),
+            ),
+            locationServiceProvider.overrideWithValue(locService),
+            biometricServiceProvider.overrideWithValue(bioService),
           ],
           child: const AttendanceScreen(),
         ),
@@ -149,8 +152,11 @@ void main() {
           overrides: [
             localStorageProvider.overrideWithValue(storage),
             mockDatabaseProvider.overrideWith((ref) => dbNotifier),
-            mockLocationServiceProvider.overrideWithValue(locService),
-            mockBiometricServiceProvider.overrideWithValue(bioService),
+            demoControlsProvider.overrideWith(
+              (ref) => DemoControlsNotifier(ref)..setUseRealDeviceSensors(false),
+            ),
+            locationServiceProvider.overrideWithValue(locService),
+            biometricServiceProvider.overrideWithValue(bioService),
           ],
           child: const AttendanceScreen(),
         ),

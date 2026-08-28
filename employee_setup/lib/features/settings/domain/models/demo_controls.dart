@@ -9,7 +9,7 @@ class DemoControlsState {
   final bool isOnline;
 
   const DemoControlsState({
-    this.useRealDeviceSensors = false,
+    this.useRealDeviceSensors = true,
     this.locationMode = MockLocationMode.insideRange,
     this.simulatedDistance = 2.3,
     this.biometricMode = MockBiometricMode.alwaysSuccess,
