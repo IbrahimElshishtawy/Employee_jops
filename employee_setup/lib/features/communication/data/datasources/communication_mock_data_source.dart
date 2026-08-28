@@ -647,10 +647,12 @@ class CommunicationMockDataSource implements CommunicationRemoteDataSource {
     // Update conversation last message
     final convIndex = _conversations.indexWhere((c) => c.id == conversationId);
     if (convIndex != -1) {
-      _conversations[convIndex] = _conversations[convIndex].copyWith(
-        lastMessage: content,
-        lastMessageAt: message.createdAt,
-      ) as ConversationModel;
+      _conversations[convIndex] = ConversationModel.fromEntity(
+        _conversations[convIndex].copyWith(
+          lastMessage: content,
+          lastMessageAt: message.createdAt,
+        ),
+      );
     }
 
     return message;
@@ -660,9 +662,11 @@ class CommunicationMockDataSource implements CommunicationRemoteDataSource {
   Future<void> markConversationAsRead(String conversationId) async {
     final convIndex = _conversations.indexWhere((c) => c.id == conversationId);
     if (convIndex != -1) {
-      _conversations[convIndex] = _conversations[convIndex].copyWith(
-        unreadCount: 0,
-      ) as ConversationModel;
+      _conversations[convIndex] = ConversationModel.fromEntity(
+        _conversations[convIndex].copyWith(
+          unreadCount: 0,
+        ),
+      );
     }
   }
 
@@ -723,15 +727,17 @@ class CommunicationMockDataSource implements CommunicationRemoteDataSource {
       ),
     );
 
-    final created = request.copyWith(
-      id: 'REQ-DPT-${DateTime.now().millisecondsSinceEpoch % 100000}',
-      departmentNameAr: dept.nameAr,
-      departmentNameEn: dept.nameEn,
-      requestTypeNameAr: type.nameAr,
-      requestTypeNameEn: type.nameEn,
-      createdAt: DateTime.now(),
-      status: DepartmentRequestStatus.pending,
-    ) as DepartmentRequestModel;
+    final created = DepartmentRequestModel.fromEntity(
+      request.copyWith(
+        id: 'REQ-DPT-${DateTime.now().millisecondsSinceEpoch % 100000}',
+        departmentNameAr: dept.nameAr,
+        departmentNameEn: dept.nameEn,
+        requestTypeNameAr: type.nameAr,
+        requestTypeNameEn: type.nameEn,
+        createdAt: DateTime.now(),
+        status: DepartmentRequestStatus.pending,
+      ),
+    );
 
     _requests.insert(0, created);
     return created;
@@ -789,11 +795,13 @@ class CommunicationMockDataSource implements CommunicationRemoteDataSource {
         throw Exception('Invalid status: $status');
     }
 
-    final updated = current.copyWith(
-      status: newStatus,
-      updatedAt: DateTime.now(),
-      rejectionReason: reason ?? current.rejectionReason,
-    ) as DepartmentRequestModel;
+    final updated = DepartmentRequestModel.fromEntity(
+      current.copyWith(
+        status: newStatus,
+        updatedAt: DateTime.now(),
+        rejectionReason: reason ?? current.rejectionReason,
+      ),
+    );
 
     _requests[index] = updated;
     return updated;

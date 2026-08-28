@@ -56,12 +56,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // Retrieve conversation info for recipient details
     final conversationsAsync = ref.watch(conversationsListProvider);
-    final conv = conversationsAsync.asData?.value.firstWhere(
-      (c) => c.id == widget.conversationId,
-      orElse: () => conversationsAsync.asData?.value.isNotEmpty == true
-          ? conversationsAsync.asData!.value.first
-          : null as dynamic,
-    );
+    final convList = conversationsAsync.asData?.value ?? [];
+    final conv = convList.where((c) => c.id == widget.conversationId).firstOrNull ??
+        (convList.isNotEmpty ? convList.first : null);
 
     final contact = conv?.otherParticipant ??
         const EmployeeContact(

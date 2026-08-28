@@ -108,20 +108,16 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
     final isLoading = actionState.isLoading;
 
     final depts = departmentsAsync.asData?.value ?? [];
-    final selectedDept = depts.firstWhere(
-      (d) => d.id == _selectedDepartmentId,
-      orElse: () => depts.isNotEmpty ? depts.first : null as dynamic,
-    );
+    final selectedDept = depts.where((d) => d.id == _selectedDepartmentId).firstOrNull ??
+        (depts.isNotEmpty ? depts.first : null);
 
     final reqTypes = requestTypesAsync.asData?.value ?? [];
     if (_selectedRequestTypeId == null && reqTypes.isNotEmpty) {
       _selectedRequestTypeId = reqTypes.first.id;
     }
 
-    final selectedType = reqTypes.firstWhere(
-      (t) => t.id == _selectedRequestTypeId,
-      orElse: () => reqTypes.isNotEmpty ? reqTypes.first : null as dynamic,
-    );
+    final selectedType = reqTypes.where((t) => t.id == _selectedRequestTypeId).firstOrNull ??
+        (reqTypes.isNotEmpty ? reqTypes.first : null);
 
     return Scaffold(
       backgroundColor:
