@@ -110,6 +110,11 @@ class RealAuthDataSource {
       email: email,
       profileCompleted: employee.profileCompleted,
       provider: LoginProvider.google,
+      deviceId: 'DEV-REAL-001',
+      deviceType: 'MOBILE',
+      deviceModel: 'Mobile Client',
+      osVersion: '1.0.0',
+      appVersion: '1.0.0+1',
     );
 
     await _persistSession(session, employee);

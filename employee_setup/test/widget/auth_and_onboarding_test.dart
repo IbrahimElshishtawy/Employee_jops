@@ -4,19 +4,15 @@ import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
 import 'package:employee_setup/core/widgets/app_button.dart';
 import 'package:employee_setup/core/widgets/app_logo.dart';
+import 'package:employee_setup/core/widgets/app_text_field.dart';
 import 'package:employee_setup/features/auth/presentation/screens/login_screen.dart';
 import 'package:employee_setup/features/auth/presentation/widgets/google_sign_in_button.dart';
 import 'package:employee_setup/features/onboarding/presentation/screens/personal_info_screen.dart';
+import 'package:employee_setup/features/onboarding/presentation/screens/review_screen.dart';
 import 'package:employee_setup/features/onboarding/presentation/screens/work_info_screen.dart';
-import 'package:employee_setup/features/onboarding/presentation/screens/work_location_screen.dart';
-import 'package:employee_setup/features/onboarding/presentation/widgets/hr_contact_card.dart';
-import 'package:employee_setup/features/onboarding/presentation/widgets/location_permission_card.dart';
 import 'package:employee_setup/features/onboarding/presentation/widgets/onboarding_header.dart';
 import 'package:employee_setup/features/onboarding/presentation/widgets/selection_field.dart';
 import 'package:employee_setup/features/onboarding/presentation/widgets/verified_field.dart';
-import 'package:employee_setup/features/onboarding/presentation/widgets/workplace_card.dart';
-import 'package:employee_setup/features/attendance/data/services/mock_biometric_service.dart';
-import 'package:employee_setup/features/attendance/data/services/mock_location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,7 +95,7 @@ void main() {
       expect(find.textContaining('دخول آمن'), findsOneWidget);
     });
 
-    testWidgets('PersonalInfoScreen (Step 1) renders all components and verified fields',
+    testWidgets('PersonalInfoScreen (Step 1) renders editable name, read-only email, and phone input',
         (tester) async {
       await tester.pumpWidget(
         _buildTestApp(
@@ -115,18 +111,21 @@ void main() {
       // OnboardingHeader
       expect(find.byType(OnboardingHeader), findsOneWidget);
       expect(find.text('STEP 1 OF 3'), findsOneWidget);
-      expect(find.text('Confirm your information'), findsOneWidget);
+      expect(find.text('Basic Information'), findsOneWidget);
 
-      // Verified Fields (Full Name and Email)
-      expect(find.byType(VerifiedField), findsNWidgets(2));
-      expect(find.text('Google'), findsNWidgets(2));
+      // AppTextFields (Full Name and Phone Number)
+      expect(find.byType(AppTextField), findsNWidgets(2));
+
+      // Verified Read-Only Email
+      expect(find.byType(VerifiedField), findsOneWidget);
+      expect(find.text('Google'), findsOneWidget);
 
       // Continue Button
       expect(find.byType(AppButton), findsOneWidget);
       expect(find.text('Continue'), findsOneWidget);
     });
 
-    testWidgets('WorkInfoScreen (Step 2) renders 4 selection fields and progress step 2',
+    testWidgets('WorkInfoScreen (Step 2) renders 2 selection fields (Job Title & Department)',
         (tester) async {
       await tester.pumpWidget(
         _buildTestApp(
@@ -142,57 +141,39 @@ void main() {
       // OnboardingHeader
       expect(find.byType(OnboardingHeader), findsOneWidget);
       expect(find.text('STEP 2 OF 3'), findsOneWidget);
-      expect(find.text('Your work information'), findsOneWidget);
+      expect(find.text('Job & Department'), findsOneWidget);
 
-      // 4 Selection Fields
-      expect(find.byType(SelectionField), findsNWidgets(4));
+      // 2 Selection Fields (Job Title and Department)
+      expect(find.byType(SelectionField), findsNWidgets(2));
 
       // Continue button
       expect(find.byType(AppButton), findsOneWidget);
     });
 
-    testWidgets('WorkLocationScreen (Step 3) renders WorkplaceCard, LocationPermissionCard, HrContactCard',
+    testWidgets('ReviewScreen (Step 3) renders all review sections, edit buttons, and confirm button',
         (tester) async {
-      final locService = MockLocationService(
-        mode: MockLocationMode.insideRange,
-        customDistance: 2.5,
-      );
-      final bioService = MockBiometricService(
-        mode: MockBiometricMode.alwaysSuccess,
-      );
-
       await tester.pumpWidget(
         _buildTestApp(
-          child: const WorkLocationScreen(),
+          child: const ReviewScreen(),
           locale: const Locale('en'),
           overrides: [
             localStorageProvider.overrideWithValue(storage),
-            mockLocationServiceProvider.overrideWithValue(locService),
-            mockBiometricServiceProvider.overrideWithValue(bioService),
           ],
         ),
       );
-      await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
 
       // OnboardingHeader
       expect(find.byType(OnboardingHeader), findsOneWidget);
       expect(find.text('STEP 3 OF 3'), findsOneWidget);
-      expect(find.text('Your workplace'), findsOneWidget);
+      expect(find.text('Review & Confirm'), findsOneWidget);
 
-      // WorkplaceCard
-      expect(find.byType(WorkplaceCard), findsOneWidget);
-      expect(find.text('Workplace assigned'), findsOneWidget);
+      // Edit buttons for sections
+      expect(find.text('Edit'), findsNWidgets(2));
 
-      // LocationPermissionCard
-      expect(find.byType(LocationPermissionCard), findsOneWidget);
-
-      // HrContactCard
-      expect(find.byType(HrContactCard), findsOneWidget);
-
-      // Complete Setup button
+      // Confirm & Continue Button
       expect(find.byType(AppButton), findsOneWidget);
-      expect(find.text('Complete Setup'), findsOneWidget);
+      expect(find.text('Confirm & Continue'), findsOneWidget);
     });
   });
 }

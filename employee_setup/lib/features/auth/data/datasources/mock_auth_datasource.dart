@@ -51,7 +51,14 @@ class MockAuthDataSource {
   }
 
   /// Simulates Google OAuth with email & profile completion validation.
-  Future<Employee> mockGoogleSignIn(String email) async {
+  Future<Employee> mockGoogleSignIn(
+    String email, {
+    String? deviceId,
+    String? deviceType,
+    String? deviceModel,
+    String? osVersion,
+    String? appVersion,
+  }) async {
     await Future.delayed(const Duration(milliseconds: 350));
 
     // Check if employee already completed profile previously in storage
@@ -76,6 +83,11 @@ class MockAuthDataSource {
       email: email,
       profileCompleted: employee.profileCompleted,
       provider: LoginProvider.google,
+      deviceId: deviceId ?? 'DEV-MOCK-ANDROID-001',
+      deviceType: deviceType ?? 'ANDROID',
+      deviceModel: deviceModel ?? 'Pixel 8 Pro',
+      osVersion: osVersion ?? '14.0',
+      appVersion: appVersion ?? '1.0.0+1',
     );
 
     await _persistSession(session, employee);

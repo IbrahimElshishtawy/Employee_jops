@@ -18,6 +18,7 @@ import '../../features/notifications/presentation/screens/notification_details_s
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/onboarding/presentation/screens/personal_info_screen.dart';
 import '../../features/onboarding/presentation/screens/work_info_screen.dart';
+import '../../features/onboarding/presentation/screens/review_screen.dart';
 import '../../features/onboarding/presentation/screens/work_location_screen.dart';
 import '../../features/onboarding/presentation/screens/biometric_setup_screen.dart';
 import '../../features/permissions/presentation/screens/new_permission_screen.dart';
@@ -104,6 +105,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.onboardingWork,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const WorkInfoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingReview,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ReviewScreen(),
       ),
       GoRoute(
         path: AppRoutes.onboardingLocation,

@@ -26,8 +26,17 @@ class AppSession {
   final DateTime? logoutAt;
   final DateTime? lastActivityAt;
   final DateTime expiresAt;
+  final DateTime? revokedAt;
+
+  // Device Metadata
+  final String? deviceId;
+  final String? deviceType;
+  final String? deviceModel;
+  final String? osVersion;
+  final String? appVersion;
   final String deviceInfo;
   final String platform;
+
   final SessionStatus status;
   final String dataSource;
 
@@ -42,14 +51,21 @@ class AppSession {
     this.logoutAt,
     this.lastActivityAt,
     required this.expiresAt,
+    this.revokedAt,
+    this.deviceId,
+    this.deviceType,
+    this.deviceModel,
+    this.osVersion,
+    this.appVersion,
     this.deviceInfo = 'Secure Mobile Device',
     this.platform = 'Mobile',
     required this.status,
     this.dataSource = 'DEVICE_TEST_DATA',
   });
 
+  DateTime get createdAt => loginAt;
   bool get isExpired => DateTime.now().isAfter(expiresAt);
-  bool get isActive => status == SessionStatus.active && !isExpired;
+  bool get isActive => status == SessionStatus.active && !isExpired && revokedAt == null;
 
   AppSession copyWith({
     String? sessionId,
@@ -62,6 +78,12 @@ class AppSession {
     DateTime? logoutAt,
     DateTime? lastActivityAt,
     DateTime? expiresAt,
+    DateTime? revokedAt,
+    String? deviceId,
+    String? deviceType,
+    String? deviceModel,
+    String? osVersion,
+    String? appVersion,
     String? deviceInfo,
     String? platform,
     SessionStatus? status,
@@ -78,6 +100,12 @@ class AppSession {
       logoutAt: logoutAt ?? this.logoutAt,
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
       expiresAt: expiresAt ?? this.expiresAt,
+      revokedAt: revokedAt ?? this.revokedAt,
+      deviceId: deviceId ?? this.deviceId,
+      deviceType: deviceType ?? this.deviceType,
+      deviceModel: deviceModel ?? this.deviceModel,
+      osVersion: osVersion ?? this.osVersion,
+      appVersion: appVersion ?? this.appVersion,
       deviceInfo: deviceInfo ?? this.deviceInfo,
       platform: platform ?? this.platform,
       status: status ?? this.status,
@@ -96,6 +124,12 @@ class AppSession {
         'logoutAt': logoutAt?.toIso8601String(),
         'lastActivityAt': (lastActivityAt ?? loginAt).toIso8601String(),
         'expiresAt': expiresAt.toIso8601String(),
+        'revokedAt': revokedAt?.toIso8601String(),
+        'deviceId': deviceId,
+        'deviceType': deviceType,
+        'deviceModel': deviceModel,
+        'osVersion': osVersion,
+        'appVersion': appVersion,
         'deviceInfo': deviceInfo,
         'platform': platform,
         'status': status.name,
@@ -113,6 +147,12 @@ class AppSession {
         logoutAt: json['logoutAt'] != null ? DateTime.parse(json['logoutAt'] as String) : null,
         lastActivityAt: json['lastActivityAt'] != null ? DateTime.parse(json['lastActivityAt'] as String) : null,
         expiresAt: DateTime.parse(json['expiresAt'] as String),
+        revokedAt: json['revokedAt'] != null ? DateTime.parse(json['revokedAt'] as String) : null,
+        deviceId: json['deviceId'] as String?,
+        deviceType: json['deviceType'] as String?,
+        deviceModel: json['deviceModel'] as String?,
+        osVersion: json['osVersion'] as String?,
+        appVersion: json['appVersion'] as String?,
         deviceInfo: json['deviceInfo'] as String? ?? 'Secure Mobile Device',
         platform: json['platform'] as String? ?? 'Mobile',
         status: SessionStatus.values.byName(json['status'] as String? ?? 'active'),
@@ -125,6 +165,11 @@ class AppSession {
     required String email,
     bool profileCompleted = false,
     LoginProvider provider = LoginProvider.google,
+    String? deviceId,
+    String? deviceType,
+    String? deviceModel,
+    String? osVersion,
+    String? appVersion,
     String deviceInfo = 'Secure Mobile Device',
     String platform = 'Mobile',
   }) {
@@ -139,6 +184,11 @@ class AppSession {
       loginAt: now,
       lastActivityAt: now,
       expiresAt: now.add(const Duration(hours: 12)),
+      deviceId: deviceId,
+      deviceType: deviceType,
+      deviceModel: deviceModel,
+      osVersion: osVersion,
+      appVersion: appVersion,
       deviceInfo: deviceInfo,
       platform: platform,
       status: SessionStatus.active,

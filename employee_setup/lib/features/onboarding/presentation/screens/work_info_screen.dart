@@ -22,10 +22,6 @@ class WorkInfoScreen extends ConsumerStatefulWidget {
 class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
   String? _selectedJobTitle;
   String? _selectedDepartment;
-  String? _selectedRegion;
-  String? _selectedManagerId;
-  String? _selectedManagerName;
-
   bool _submitted = false;
 
   @override
@@ -37,43 +33,28 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
 
     final empJobTitle = employee?.jobTitle;
     final empDept = employee?.department;
-    final empRegion = employee?.region;
-    final empManagerId = employee?.managerId;
 
     _selectedJobTitle = formState.jobTitle.isNotEmpty
         ? formState.jobTitle
         : (empJobTitle != null && catalog.jobTitles.contains(empJobTitle)
             ? empJobTitle
-            : (catalog.jobTitles.isNotEmpty ? catalog.jobTitles.first : null));
+            : null);
 
     _selectedDepartment = formState.department.isNotEmpty
         ? formState.department
         : (empDept != null && catalog.departments.contains(empDept)
             ? empDept
-            : (catalog.departments.isNotEmpty ? catalog.departments.first : null));
-
-    _selectedRegion = formState.region.isNotEmpty
-        ? formState.region
-        : (empRegion != null && catalog.regions.contains(empRegion)
-            ? empRegion
-            : (catalog.regions.isNotEmpty ? catalog.regions.first : null));
-
-    _selectedManagerId = formState.managerId.isNotEmpty
-        ? formState.managerId
-        : (empManagerId != null &&
-                catalog.managers.any((m) => m.id == empManagerId)
-            ? empManagerId
-            : (catalog.managers.isNotEmpty ? catalog.managers.first.id : null));
-
-    _selectedManagerName = formState.managerName.isNotEmpty
-        ? formState.managerName
-        : (catalog.managers.isNotEmpty ? catalog.managers.first.name : null);
+            : null);
   }
 
   void _openJobTitlePicker() async {
     final catalog = ref.read(onboardingCatalogProvider);
     final items = catalog.jobTitles
-        .map((t) => SelectionItem(id: t, title: t, icon: Icons.work_outline_rounded))
+        .map((t) => SelectionItem(
+              id: t,
+              title: t,
+              icon: Icons.badge_outlined,
+            ))
         .toList();
 
     final result = await SelectionBottomSheet.show(
@@ -91,7 +72,11 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
   void _openDepartmentPicker() async {
     final catalog = ref.read(onboardingCatalogProvider);
     final items = catalog.departments
-        .map((d) => SelectionItem(id: d, title: d, icon: Icons.domain_rounded))
+        .map((d) => SelectionItem(
+              id: d,
+              title: d,
+              icon: Icons.corporate_fare_rounded,
+            ))
         .toList();
 
     final result = await SelectionBottomSheet.show(
@@ -106,82 +91,31 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
     }
   }
 
-  void _openRegionPicker() async {
-    final catalog = ref.read(onboardingCatalogProvider);
-    final items = catalog.regions
-        .map((r) => SelectionItem(id: r, title: r, icon: Icons.location_city_rounded))
-        .toList();
-
-    final result = await SelectionBottomSheet.show(
-      context: context,
-      title: context.tr('onboarding.select_region'),
-      items: items,
-      selectedId: _selectedRegion,
-    );
-
-    if (result != null) {
-      setState(() => _selectedRegion = result.id);
-    }
-  }
-
-  void _openManagerPicker() async {
-    final catalog = ref.read(onboardingCatalogProvider);
-    final items = catalog.managers
-        .map((m) => SelectionItem(
-              id: m.id,
-              title: m.name,
-              subtitle: m.department,
-              icon: Icons.person_outline_rounded,
-            ))
-        .toList();
-
-    final result = await SelectionBottomSheet.show(
-      context: context,
-      title: context.tr('onboarding.select_manager'),
-      items: items,
-      selectedId: _selectedManagerId,
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedManagerId = result.id;
-        _selectedManagerName = result.title;
-      });
-    }
-  }
-
   void _handleContinue() {
     setState(() => _submitted = true);
 
-    if (_selectedJobTitle == null ||
-        _selectedDepartment == null ||
-        _selectedRegion == null ||
-        _selectedManagerId == null) {
+    if (_selectedJobTitle == null || _selectedJobTitle!.trim().isEmpty) {
       context.showSnackBar(
-        context.tr('onboarding.required_fields_error'),
+        context.tr('onboarding.job_required'),
         isError: true,
       );
       return;
     }
 
-    final catalog = ref.read(onboardingCatalogProvider);
-    final managerName = _selectedManagerName ??
-        catalog.managers
-            .firstWhere(
-              (m) => m.id == _selectedManagerId,
-              orElse: () => catalog.managers.first,
-            )
-            .name;
+    if (_selectedDepartment == null || _selectedDepartment!.trim().isEmpty) {
+      context.showSnackBar(
+        context.tr('onboarding.department_required'),
+        isError: true,
+      );
+      return;
+    }
 
     ref.read(onboardingProvider.notifier).setStep2Data(
           jobTitle: _selectedJobTitle!,
           department: _selectedDepartment!,
-          region: _selectedRegion!,
-          managerId: _selectedManagerId!,
-          managerName: managerName,
         );
 
-    context.push(AppRoutes.onboardingLocation);
+    context.push(AppRoutes.onboardingReview);
   }
 
   @override
@@ -200,7 +134,7 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Unified Header
+                    // Step 2 Header
                     OnboardingHeader(
                       currentStep: 2,
                       totalSteps: 3,
@@ -217,47 +151,25 @@ class _WorkInfoScreenState extends ConsumerState<WorkInfoScreen> {
                     ),
                     const SizedBox(height: 32),
 
-                    // 1. Job Title Selection
+                    // 1. Job Title Selection UI
                     SelectionField(
                       label: context.tr('onboarding.job_title'),
                       value: _selectedJobTitle,
                       placeholder: context.tr('onboarding.select_job_title'),
                       icon: Icons.work_outline_rounded,
-                      hasError: _submitted && _selectedJobTitle == null,
+                      hasError: _submitted && (_selectedJobTitle == null || _selectedJobTitle!.isEmpty),
                       onTap: _openJobTitlePicker,
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
 
-                    // 2. Department Selection
+                    // 2. Department Selection UI
                     SelectionField(
                       label: context.tr('onboarding.department'),
                       value: _selectedDepartment,
                       placeholder: context.tr('onboarding.select_department'),
                       icon: Icons.domain_rounded,
-                      hasError: _submitted && _selectedDepartment == null,
+                      hasError: _submitted && (_selectedDepartment == null || _selectedDepartment!.isEmpty),
                       onTap: _openDepartmentPicker,
-                    ),
-                    const SizedBox(height: 18),
-
-                    // 3. Region Selection
-                    SelectionField(
-                      label: context.tr('onboarding.region'),
-                      value: _selectedRegion,
-                      placeholder: context.tr('onboarding.select_region'),
-                      icon: Icons.location_city_rounded,
-                      hasError: _submitted && _selectedRegion == null,
-                      onTap: _openRegionPicker,
-                    ),
-                    const SizedBox(height: 18),
-
-                    // 4. Direct Manager Selection
-                    SelectionField(
-                      label: context.tr('onboarding.manager'),
-                      value: _selectedManagerName,
-                      placeholder: context.tr('onboarding.select_manager'),
-                      icon: Icons.person_pin_circle_outlined,
-                      hasError: _submitted && _selectedManagerId == null,
-                      onTap: _openManagerPicker,
                     ),
                     const SizedBox(height: 24),
                   ],

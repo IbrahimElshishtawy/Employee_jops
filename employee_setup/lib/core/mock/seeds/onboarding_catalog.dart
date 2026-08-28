@@ -1,11 +1,41 @@
-/// Static catalog of dropdown options for onboarding screens.
-/// NOT displayed in UI — consumed via Riverpod provider.
+/// Employee System Role
+enum EmployeeRole {
+  employee,
+  supervisor,
+  manager,
+  admin;
+
+  String get roleName => name.toUpperCase();
+}
+
+/// Employee Hierarchy Level
+enum HierarchyLevel {
+  staff,
+  supervisor,
+  executive;
+
+  String get levelName => name.toUpperCase();
+}
+
+/// Static catalog of options for onboarding screens.
 class OnboardingCatalog {
-  // Job titles
+  // Predefined Job Titles (Arabic & English representations)
   static const List<String> jobTitles = [
+    'Receptionist',
+    'Front Office Manager',
+    'Security Guard',
+    'Security Supervisor',
+    'Room Attendant',
+    'Housekeeping Supervisor',
+    'Waiter',
+    'Captain',
+    'Chef',
+    'Accountant',
+    'HR Specialist',
+    'Engineer',
+    'IT Support',
     'Software Engineer',
     'Senior Software Engineer',
-    'HR Specialist',
     'Financial Analyst',
     'Sales Manager',
     'Product Manager',
@@ -15,8 +45,22 @@ class OnboardingCatalog {
     'Data Scientist',
   ];
 
-  // Departments (Arabic)
+  // Predefined Departments
   static const List<String> departments = [
+    'Front Office',
+    'Housekeeping',
+    'Food & Beverage',
+    'Kitchen',
+    'Engineering',
+    'Security',
+    'Human Resources',
+    'Finance / Accounting',
+    'Sales & Marketing',
+    'Reservations',
+    'Purchasing',
+    'IT',
+    'Banquets & Events',
+    'Recreation',
     'الهندسة البرمجية',
     'الموارد البشرية',
     'المالية',
@@ -27,7 +71,7 @@ class OnboardingCatalog {
     'البحث والتطوير',
   ];
 
-  // Regions (Arabic)
+  // Legacy regions for compatibility
   static const List<String> regions = [
     'القاهرة',
     'الجيزة',
@@ -39,24 +83,24 @@ class OnboardingCatalog {
     'المنصورة',
   ];
 
-  // Managers (mock test data)
+  // Legacy Managers (mock test data for backward compatibility)
   static final List<ManagerInfo> managers = [
     ManagerInfo(
       id: 'MGR-001',
       name: 'Test Manager (Ahmed Mohamed)',
-      department: 'الهندسة البرمجية',
+      department: 'Front Office',
     ),
     ManagerInfo(
       id: 'MGR-002',
       name: 'Fatima Mansour',
-      department: 'الموارد البشرية',
+      department: 'Human Resources',
     ),
-    ManagerInfo(id: 'MGR-003', name: 'Karim Hassan', department: 'المالية'),
-    ManagerInfo(id: 'MGR-004', name: 'Noor Ibrahim', department: 'المبيعات'),
-    ManagerInfo(id: 'MGR-005', name: 'Sarah Abdullah', department: 'التسويق'),
+    ManagerInfo(id: 'MGR-003', name: 'Karim Hassan', department: 'Finance / Accounting'),
+    ManagerInfo(id: 'MGR-004', name: 'Noor Ibrahim', department: 'Sales & Marketing'),
+    ManagerInfo(id: 'MGR-005', name: 'Sarah Abdullah', department: 'IT'),
   ];
 
-  // HR Contact info (DEVICE_TEST_DATA)
+  // Legacy HR Contact info
   static const HrContact hrContact = HrContact(
     name: 'Test HR (CyberWise IE Support)',
     email: 'hr.test@example.com',

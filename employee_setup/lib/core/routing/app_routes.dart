@@ -4,9 +4,10 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
 
-  // Onboarding
+  // Onboarding Phase 01
   static const String onboardingPersonal = '/onboarding/personal';
   static const String onboardingWork = '/onboarding/work';
+  static const String onboardingReview = '/onboarding/review';
   static const String onboardingLocation = '/onboarding/location';
   static const String onboardingBiometric = '/onboarding/biometric';
 

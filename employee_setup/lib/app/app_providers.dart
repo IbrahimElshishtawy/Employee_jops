@@ -71,6 +71,7 @@ import '../features/vacations/domain/repositories/vacations_repository.dart';
 
 import '../core/storage/secure_session_storage.dart';
 import '../core/services/notification_service.dart';
+import '../core/services/device_info_service.dart';
 import '../features/attendance/data/services/real_biometric_service.dart';
 import '../features/attendance/data/services/real_location_service.dart';
 import '../features/attendance/data/services/real_network_risk_service.dart';
@@ -89,6 +90,10 @@ export '../core/mock/mock_database.dart' show mockDatabaseProvider;
 
 final localStorageProvider = Provider<LocalStorage>((ref) {
   return SecureSessionStorage();
+});
+
+final deviceInfoServiceProvider = Provider<DeviceInfoService>((ref) {
+  return PlatformDeviceInfoService();
 });
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {

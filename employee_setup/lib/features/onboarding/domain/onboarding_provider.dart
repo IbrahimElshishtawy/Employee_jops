@@ -1,35 +1,88 @@
-import 'package:employee_setup/app/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:employee_setup/core/mock/seeds/onboarding_catalog.dart';
-import 'package:employee_setup/core/constants/app_constants.dart';
+import '../../../app/app_providers.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/mock/seeds/onboarding_catalog.dart';
+import '../../../core/services/device_info_service.dart';
+import '../../../core/utils/secure_logger.dart';
 
-/// Onboarding form state holding in-progress data across 3 steps
+/// Notification permission grant status for audit & onboarding
+enum NotificationPermissionStatus {
+  authorized,
+  denied,
+  provisional,
+  notDetermined;
+
+  String get statusName => name.toUpperCase();
+}
+
+/// Token payload metadata prepared for real backend connection
+class BackendPushTokenRegistration {
+  final String deviceId;
+  final String deviceType;
+  final String? pushToken;
+  final String appVersion;
+  final String status; // 'BACKEND_PENDING'
+
+  const BackendPushTokenRegistration({
+    required this.deviceId,
+    required this.deviceType,
+    this.pushToken,
+    required this.appVersion,
+    this.status = 'BACKEND_PENDING',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'deviceId': deviceId,
+        'deviceType': deviceType,
+        'pushToken': pushToken,
+        'appVersion': appVersion,
+        'status': status,
+      };
+}
+
+/// Onboarding form state holding in-progress data across the 3-step MVP flow
 class OnboardingFormState {
-  // Step 1: Personal Information
+  // Step 1: Basic Information
   final String fullName;
   final String email;
-  final String nationalId;
   final String phone;
 
-  // Step 2: Work Information
+  // Step 2: Job & Department
   final String jobTitle;
   final String department;
+  final EmployeeRole role;
+  final HierarchyLevel hierarchyLevel;
+
+  // Operational & Submission flags
+  final bool isSubmitting;
+  final String? errorMessage;
+  final NotificationPermissionStatus notificationPermissionStatus;
+  final DeviceInfo? capturedDeviceInfo;
+  final BackendPushTokenRegistration? pushTokenRegistration;
+
+  // Legacy fields preserved for backward compatibility
+  final String nationalId;
   final String region;
   final String managerId;
   final String managerName;
-
-  // Step 3: Location & Biometric
   final String workLocationId;
   final bool biometricEnabled;
 
   const OnboardingFormState({
     this.fullName = '',
     this.email = '',
-    this.nationalId = '',
     this.phone = '',
     this.jobTitle = '',
     this.department = '',
+    this.role = EmployeeRole.employee,
+    this.hierarchyLevel = HierarchyLevel.staff,
+    this.isSubmitting = false,
+    this.errorMessage,
+    this.notificationPermissionStatus = NotificationPermissionStatus.notDetermined,
+    this.capturedDeviceInfo,
+    this.pushTokenRegistration,
+    this.nationalId = '',
     this.region = '',
     this.managerId = '',
     this.managerName = '',
@@ -40,10 +93,17 @@ class OnboardingFormState {
   OnboardingFormState copyWith({
     String? fullName,
     String? email,
-    String? nationalId,
     String? phone,
     String? jobTitle,
     String? department,
+    EmployeeRole? role,
+    HierarchyLevel? hierarchyLevel,
+    bool? isSubmitting,
+    String? errorMessage,
+    NotificationPermissionStatus? notificationPermissionStatus,
+    DeviceInfo? capturedDeviceInfo,
+    BackendPushTokenRegistration? pushTokenRegistration,
+    String? nationalId,
     String? region,
     String? managerId,
     String? managerName,
@@ -53,10 +113,19 @@ class OnboardingFormState {
     return OnboardingFormState(
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
-      nationalId: nationalId ?? this.nationalId,
       phone: phone ?? this.phone,
       jobTitle: jobTitle ?? this.jobTitle,
       department: department ?? this.department,
+      role: role ?? this.role,
+      hierarchyLevel: hierarchyLevel ?? this.hierarchyLevel,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      errorMessage: errorMessage,
+      notificationPermissionStatus:
+          notificationPermissionStatus ?? this.notificationPermissionStatus,
+      capturedDeviceInfo: capturedDeviceInfo ?? this.capturedDeviceInfo,
+      pushTokenRegistration:
+          pushTokenRegistration ?? this.pushTokenRegistration,
+      nationalId: nationalId ?? this.nationalId,
       region: region ?? this.region,
       managerId: managerId ?? this.managerId,
       managerName: managerName ?? this.managerName,
@@ -66,45 +135,73 @@ class OnboardingFormState {
   }
 }
 
-/// Onboarding Notifier to manage form state
+/// Onboarding Notifier to manage form state across Step 1, Step 2, and Step 3
 class OnboardingNotifier extends StateNotifier<OnboardingFormState> {
   final Ref ref;
 
   OnboardingNotifier(this.ref) : super(const OnboardingFormState());
 
-  /// Set Step 1 data (personal information)
+  /// Initialize default fields from current authenticated user
+  void initFromEmployee() {
+    final currentEmployee = ref.read(authProvider).employee;
+    if (currentEmployee != null) {
+      state = state.copyWith(
+        fullName: state.fullName.isNotEmpty
+            ? state.fullName
+            : (currentEmployee.googleName ?? currentEmployee.name),
+        email: currentEmployee.googleEmail ?? currentEmployee.email,
+        phone: state.phone.isNotEmpty ? state.phone : currentEmployee.phone,
+        jobTitle: state.jobTitle.isNotEmpty
+            ? state.jobTitle
+            : (currentEmployee.jobTitle.isNotEmpty
+                ? currentEmployee.jobTitle
+                : ''),
+        department: state.department.isNotEmpty
+            ? state.department
+            : (currentEmployee.department.isNotEmpty
+                ? currentEmployee.department
+                : ''),
+      );
+    }
+  }
+
+  /// Set Step 1 data (Basic Information)
   void setStep1Data({
     required String fullName,
     required String email,
-    required String nationalId,
     required String phone,
   }) {
     state = state.copyWith(
-      fullName: fullName,
-      email: email,
-      nationalId: nationalId,
-      phone: phone,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      errorMessage: null,
     );
   }
 
-  /// Set Step 2 data (work information)
+  /// Set Step 2 data (Job & Department)
   void setStep2Data({
     required String jobTitle,
     required String department,
-    required String region,
-    required String managerId,
-    required String managerName,
+    EmployeeRole role = EmployeeRole.employee,
+    HierarchyLevel hierarchyLevel = HierarchyLevel.staff,
+    String? region,
+    String? managerId,
+    String? managerName,
   }) {
     state = state.copyWith(
-      jobTitle: jobTitle,
-      department: department,
+      jobTitle: jobTitle.trim(),
+      department: department.trim(),
+      role: role,
+      hierarchyLevel: hierarchyLevel,
       region: region,
       managerId: managerId,
       managerName: managerName,
+      errorMessage: null,
     );
   }
 
-  /// Set Step 3 data (location & biometric)
+  /// Legacy Step 3 compatibility
   void setStep3Data({
     required String workLocationId,
     required bool biometricEnabled,
@@ -115,60 +212,105 @@ class OnboardingNotifier extends StateNotifier<OnboardingFormState> {
     );
   }
 
-  /// Complete onboarding and update employee in auth notifier
+  /// Complete profile with idempotency, device metadata capture, and notification request
+  Future<bool> completeProfile() async {
+    // 1. Guard against double-taps / concurrent calls
+    if (state.isSubmitting) {
+      SecureLogger.info('OnboardingNotifier', 'Duplicate completeProfile submission ignored.');
+      return false;
+    }
+
+    state = state.copyWith(isSubmitting: true, errorMessage: null);
+
+    try {
+      final authNotifier = ref.read(authProvider.notifier);
+      final currentEmployee = ref.read(authProvider).employee;
+
+      if (currentEmployee == null) {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: 'User not authenticated',
+        );
+        return false;
+      }
+
+      // 2. Request Notification Permission
+      NotificationPermissionStatus notifStatus = NotificationPermissionStatus.notDetermined;
+      try {
+        final notifService = ref.read(notificationServiceProvider);
+        final granted = await notifService.requestPermission();
+        notifStatus = granted
+            ? NotificationPermissionStatus.authorized
+            : NotificationPermissionStatus.denied;
+      } catch (e) {
+        SecureLogger.warn('OnboardingNotifier', 'Notification permission request error: $e');
+        notifStatus = NotificationPermissionStatus.denied;
+      }
+
+      // 3. Obtain Device Info
+      DeviceInfo? devInfo;
+      try {
+        final deviceService = ref.read(deviceInfoServiceProvider);
+        devInfo = await deviceService.getDeviceInfo();
+      } catch (e) {
+        SecureLogger.warn('OnboardingNotifier', 'Device info fetch error: $e');
+      }
+
+      // 4. Prepare Push Token Integration Payload (marked as BACKEND_PENDING)
+      final pushRegistration = BackendPushTokenRegistration(
+        deviceId: devInfo?.deviceId ?? 'DEVICE-FALLBACK-01',
+        deviceType: devInfo?.deviceType.typeName ?? 'OTHER',
+        appVersion: devInfo?.appVersion ?? '1.0.0+1',
+        status: 'BACKEND_PENDING',
+      );
+
+      // 5. Construct completed employee record
+      final updatedEmployee = currentEmployee.copyWith(
+        name: state.fullName.isNotEmpty ? state.fullName : currentEmployee.name,
+        email: currentEmployee.googleEmail ?? currentEmployee.email,
+        phone: state.phone.isNotEmpty ? state.phone : currentEmployee.phone,
+        jobTitle: state.jobTitle.isNotEmpty ? state.jobTitle : currentEmployee.jobTitle,
+        department: state.department.isNotEmpty ? state.department : currentEmployee.department,
+        onboardingCompleted: true,
+        profileCompleted: true,
+      );
+
+      // 6. Update local storage persistence
+      final localStorage = ref.read(localStorageProvider);
+      await localStorage.setString(AppConstants.keyOnboardingCompleted, 'true');
+
+      // 7. Update Auth state (triggers navigation to Home)
+      await authNotifier.updateEmployee(updatedEmployee);
+
+      state = state.copyWith(
+        isSubmitting: false,
+        notificationPermissionStatus: notifStatus,
+        capturedDeviceInfo: devInfo,
+        pushTokenRegistration: pushRegistration,
+      );
+
+      return true;
+    } catch (e) {
+      SecureLogger.error('OnboardingNotifier', 'Profile completion failed: $e', e);
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// Complete onboarding alias for legacy compatibility
   Future<void> completeOnboarding() async {
-    final authNotifier = ref.read(authProvider.notifier);
-    final currentEmployee = ref.read(authProvider).employee;
-
-    if (currentEmployee == null) return;
-
-    // Create updated employee with all onboarding fields set
-    final updatedEmployee = currentEmployee.copyWith(
-      nationalId: state.nationalId.isNotEmpty
-          ? state.nationalId
-          : currentEmployee.nationalId,
-      phone: state.phone.isNotEmpty ? state.phone : currentEmployee.phone,
-      jobTitle: state.jobTitle.isNotEmpty
-          ? state.jobTitle
-          : currentEmployee.jobTitle,
-      department: state.department.isNotEmpty
-          ? state.department
-          : currentEmployee.department,
-      region: state.region.isNotEmpty ? state.region : currentEmployee.region,
-      managerId: state.managerId.isNotEmpty
-          ? state.managerId
-          : currentEmployee.managerId,
-      managerName: state.managerName.isNotEmpty
-          ? state.managerName
-          : currentEmployee.managerName,
-      workLocationId: state.workLocationId.isNotEmpty
-          ? state.workLocationId
-          : currentEmployee.workLocationId,
-      biometricEnabled: state.biometricEnabled,
-      onboardingCompleted: true,
-    );
-
-    // Persist onboarding completion flags
-    final localStorage = ref.read(localStorageProvider);
-    await localStorage.setString(AppConstants.keyOnboardingCompleted, 'true');
-    await localStorage.setString(
-      AppConstants.keyBiometricEnabled,
-      state.biometricEnabled.toString(),
-    );
-
-    // Update auth state — this triggers router redirect to home
-    await authNotifier.updateEmployee(updatedEmployee);
-
-    // Reset form state
-    state = const OnboardingFormState();
+    await completeProfile();
   }
 }
 
 /// Onboarding form state provider
 final onboardingProvider =
     StateNotifierProvider<OnboardingNotifier, OnboardingFormState>((ref) {
-      return OnboardingNotifier(ref);
-    });
+  return OnboardingNotifier(ref);
+});
 
 /// Catalog data provider for dropdowns
 final onboardingCatalogProvider = Provider((ref) {

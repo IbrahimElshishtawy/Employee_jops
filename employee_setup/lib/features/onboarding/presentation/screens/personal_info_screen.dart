@@ -21,7 +21,7 @@ class PersonalInfoScreen extends ConsumerStatefulWidget {
 
 class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nationalIdController;
+  late TextEditingController _nameController;
   late TextEditingController _phoneController;
 
   @override
@@ -32,33 +32,29 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
 
     final initialName = formState.fullName.isNotEmpty
         ? formState.fullName
-        : (employee?.name ?? 'Device Test Employee');
+        : (employee?.googleName ?? employee?.name ?? 'Device Test Employee');
     final initialEmail = formState.email.isNotEmpty
         ? formState.email
-        : (employee?.email ?? 'employee.test@example.com');
-    final initialNationalId = formState.nationalId.isNotEmpty
-        ? formState.nationalId
-        : (employee?.nationalId ?? 'TEST-NATIONAL-ID');
+        : (employee?.googleEmail ?? employee?.email ?? 'employee.test@example.com');
     final initialPhone = formState.phone.isNotEmpty
         ? formState.phone
-        : (employee?.phone ?? '01000000000');
+        : (employee?.phone ?? '');
+
+    _nameController = TextEditingController(text: initialName);
+    _phoneController = TextEditingController(text: initialPhone);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(onboardingProvider.notifier).setStep1Data(
             fullName: initialName,
             email: initialEmail,
-            nationalId: initialNationalId,
             phone: initialPhone,
           );
     });
-
-    _nationalIdController = TextEditingController(text: initialNationalId);
-    _phoneController = TextEditingController(text: initialPhone);
   }
 
   @override
   void dispose() {
-    _nationalIdController.dispose();
+    _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -66,10 +62,14 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   void _handleContinue() {
     if (_formKey.currentState?.validate() ?? false) {
       final formState = ref.read(onboardingProvider);
+      final employee = ref.read(authProvider).employee;
+      final email = formState.email.isNotEmpty
+          ? formState.email
+          : (employee?.googleEmail ?? employee?.email ?? '');
+
       ref.read(onboardingProvider.notifier).setStep1Data(
-            fullName: formState.fullName,
-            email: formState.email,
-            nationalId: _nationalIdController.text.trim(),
+            fullName: _nameController.text.trim(),
+            email: email,
             phone: _phoneController.text.trim(),
           );
 
@@ -88,12 +88,9 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     final formState = ref.watch(onboardingProvider);
     final employee = ref.watch(authProvider).employee;
 
-    final displayName = formState.fullName.isNotEmpty
-        ? formState.fullName
-        : (employee?.name ?? 'Employee User');
     final displayEmail = formState.email.isNotEmpty
         ? formState.email
-        : (employee?.email ?? 'employee@company.com');
+        : (employee?.googleEmail ?? employee?.email ?? 'employee@company.com');
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
@@ -109,7 +106,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Unified Onboarding Header
+                      // Step 1 Header
                       OnboardingHeader(
                         currentStep: 1,
                         totalSteps: 3,
@@ -120,17 +117,26 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           if (context.canPop()) {
                             context.pop();
                           } else {
+
+
+                            
                             context.go(AppRoutes.login);
                           }
                         },
                       ),
                       const SizedBox(height: 28),
 
-                      // Avatar Container with subtle glow & badge
+                      // Avatar Container with dynamic initial
                       Center(
-                        child: Stack(
-                          children: [
-                            Container(
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _nameController,
+                          builder: (context, value, _) {
+                            final currentName = value.text.trim();
+                            final initialLetter = currentName.isNotEmpty
+                                ? currentName.substring(0, 1).toUpperCase()
+                                : 'E';
+
+                            return Container(
                               width: 88,
                               height: 88,
                               decoration: BoxDecoration(
@@ -151,9 +157,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                               ),
                               child: Center(
                                 child: Text(
-                                  displayName.isNotEmpty
-                                      ? displayName.substring(0, 1).toUpperCase()
-                                      : 'E',
+                                  initialLetter,
                                   style: const TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.w800,
@@ -161,68 +165,52 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isDark ? AppColors.surfaceDark : Colors.white,
-                                    width: 2.5,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt_rounded,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 32),
 
-                      // 1. Google Verified Full Name
-                      VerifiedField(
-                        label: context.tr('onboarding.full_name'),
-                        value: displayName,
-                        prefixIcon: Icons.person_outline_rounded,
-                      ),
-                      const SizedBox(height: 18),
-
-                      // 2. Google Verified Email
-                      VerifiedField(
-                        label: context.tr('onboarding.email'),
-                        value: displayEmail,
-                        prefixIcon: Icons.mail_outline_rounded,
-                      ),
-                      const SizedBox(height: 22),
-
-                      // 3. National ID (Editable)
+                      // 1. Editable Full Name (sourced from Google)
                       AppTextField(
-                        label: context.tr('onboarding.national_id'),
-                        controller: _nationalIdController,
-                        keyboardType: TextInputType.number,
-                        prefixIcon: const Icon(Icons.badge_outlined, size: 20),
-                        hintText: '29501011234567',
+                        label: context.tr('onboarding.full_name'),
+                        controller: _nameController,
+                        keyboardType: TextInputType.name,
+                        prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                        hintText: 'Ahmed Mohamed Ali',
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return context.tr('onboarding.required_fields_error');
+                            return context.tr('onboarding.name_required');
                           }
-                          if (value.trim().length < 8) {
-                            return context.tr('onboarding.required_fields_error');
+                          if (value.trim().length < 2) {
+                            return context.tr('onboarding.name_required');
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 18),
 
-                      // 4. Phone Number (Editable)
+                      // 2. Read-Only Email (Sourced from Google OAuth Identity)
+                      VerifiedField(
+                        label: context.tr('onboarding.email'),
+                        value: displayEmail,
+                        prefixIcon: Icons.mail_outline_rounded,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, right: 4, left: 4),
+                        child: Text(
+                          context.tr('onboarding.email_readonly_note'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // 3. Phone Number (Required & Validated)
                       AppTextField(
                         label: context.tr('onboarding.phone'),
                         controller: _phoneController,
@@ -231,7 +219,12 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         hintText: '01012345678',
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return context.tr('onboarding.required_fields_error');
+                            return context.tr('onboarding.phone_required');
+                          }
+                          final trimmed = value.trim();
+                          final phoneRegex = RegExp(r'^\+?[0-9\s-]{9,16}$');
+                          if (!phoneRegex.hasMatch(trimmed) || trimmed.replaceAll(RegExp(r'\D'), '').length < 8) {
+                            return context.tr('onboarding.phone_invalid');
                           }
                           return null;
                         },
