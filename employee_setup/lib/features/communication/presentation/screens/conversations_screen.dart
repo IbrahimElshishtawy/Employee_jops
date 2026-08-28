@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/routing/app_routes.dart';
-import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../providers/conversations_provider.dart';
 import '../widgets/conversation_tile.dart';
@@ -170,10 +168,10 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                     if (_onlyUnread && c.unreadCount == 0) return false;
                     if (_searchQuery.isEmpty) return true;
 
-                    final name = c.otherParticipant.fullName.toLowerCase();
-                    final lastMsg = c.lastMessage.toLowerCase();
-                    final jobAr = c.otherParticipant.jobTitleAr.toLowerCase();
-                    final jobEn = c.otherParticipant.jobTitleEn.toLowerCase();
+                    final name = c.otherParticipant?.fullName.toLowerCase() ?? '';
+                    final lastMsg = c.lastMessage?.toLowerCase() ?? '';
+                    final jobAr = c.otherParticipant?.jobTitleAr.toLowerCase() ?? '';
+                    final jobEn = c.otherParticipant?.jobTitleEn.toLowerCase() ?? '';
 
                     return name.contains(_searchQuery) ||
                         lastMsg.contains(_searchQuery) ||
