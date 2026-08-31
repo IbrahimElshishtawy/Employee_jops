@@ -2,6 +2,7 @@ import 'package:employee_setup/core/constants/app_constants.dart';
 import 'package:employee_setup/core/localization/app_localizations.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
+import 'package:employee_setup/core/widgets/app_button.dart';
 import 'package:employee_setup/features/settings/presentation/screens/help_center_screen.dart';
 import 'package:employee_setup/features/settings/presentation/screens/privacy_policy_screen.dart';
 import 'package:employee_setup/features/settings/presentation/screens/support_screen.dart';
@@ -164,22 +165,20 @@ void main() {
       await tester.pumpAndSettle();
 
       // Select Problem Type Dropdown
-      final dropdownHint = find.text('اختر نوع المشكلة');
-      await tester.ensureVisible(dropdownHint);
+      final dropdown = find.byType(DropdownButton<String>);
+      await tester.ensureVisible(dropdown);
       await tester.pumpAndSettle();
-      await tester.tap(dropdownHint);
+      await tester.tap(dropdown);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('مشكلة في تسجيل الدخول أو المصادقة').last);
       await tester.pumpAndSettle();
 
-      // Enter Subject & Description
+      // Enter Subject & Description by precise TextField indices
+      final textFields = find.byType(TextField);
+      await tester.enterText(textFields.at(0), 'تعذر التحقق من البصمة البيومترية');
       await tester.enterText(
-        find.widgetWithText(TextField, 'اكتب ملخصاً موجزاً للمشكلة...'),
-        'تعذر التحقق من البصمة البيومترية',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'اشرح ما حدث بالتفصيل والخطوات لنتمكن من مساعدتك سريعاً...'),
+        textFields.at(1),
         'تظهر رسالة فشل مطابقة البصمة عند محاولة تسجيل الحضور الصباحي.',
       );
       await tester.pumpAndSettle();
@@ -189,16 +188,17 @@ void main() {
       await tester.ensureVisible(attachmentTile);
       await tester.pumpAndSettle();
       await tester.tap(attachmentTile);
+      await tester.pump(const Duration(seconds: 4)); // Let SnackBar dismiss
       await tester.pumpAndSettle();
 
       // Submit form
-      final submitBtn = find.text('إرسال البلاغ إلى الدعم');
+      final submitBtn = find.byType(AppButton);
       await tester.ensureVisible(submitBtn);
       await tester.pumpAndSettle();
       await tester.tap(submitBtn);
 
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
       await tester.pumpAndSettle();
 
       // Verify Success Dialog

@@ -135,54 +135,68 @@ class _AttendanceHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        InkWell(
-          onTap: onDetailsTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
+        Expanded(
+          child: InkWell(
+            onTap: onDetailsTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.access_time_filled_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.access_time_filled_rounded,
-                  color: AppColors.primary,
-                  size: 20,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    context.tr('home.today_status'),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                context.tr('home.today_status'),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                ),
-              ),
-              if (onDetailsTap != null) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  context.isRtl
-                      ? Icons.arrow_back_ios_new_rounded
-                      : Icons.arrow_forward_ios_rounded,
-                  size: 12,
-                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-                ),
+                if (onDetailsTap != null) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    context.isRtl
+                        ? Icons.arrow_back_ios_new_rounded
+                        : Icons.arrow_forward_ios_rounded,
+                    size: 12,
+                    color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-        if (onHistoryTap != null)
+        if (onHistoryTap != null) ...[
+          const SizedBox(width: 6),
           TextButton.icon(
             onPressed: onHistoryTap,
-            icon: const Icon(Icons.history_rounded, size: 18),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+            icon: const Icon(Icons.history_rounded, size: 16),
             label: Text(
               context.tr('attendance.history'),
               style: const TextStyle(fontSize: 12),
             ),
           ),
+        ],
       ],
     );
   }
@@ -229,16 +243,20 @@ class _AttendanceStatusRow extends StatelessWidget {
       children: [
         Icon(statusIcon, color: statusColor, size: 20),
         const SizedBox(width: 8),
-        Text(
-          mainStatusText,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: statusColor,
+        Expanded(
+          child: Text(
+            mainStatusText,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: statusColor,
+            ),
           ),
         ),
-        const Spacer(),
-        if (!isOnline)
+        if (!isOnline) ...[
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -246,7 +264,7 @@ class _AttendanceStatusRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              'وضع بدون اتصال',
+              context.tr('attendance.offline_badge'),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -254,6 +272,7 @@ class _AttendanceStatusRow extends StatelessWidget {
               ),
             ),
           ),
+        ],
       ],
     );
   }

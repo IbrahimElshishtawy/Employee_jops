@@ -92,22 +92,22 @@ void main() {
       expect(find.text('Open Source Licenses'), findsOneWidget);
     });
 
-    testWidgets('opens Privacy Policy modal dialog when tapped',
+    testWidgets('opens Terms of Use modal dialog when tapped',
         (WidgetTester tester) async {
       await tester.pumpWidget(_buildAboutTestApp(locale: const Locale('ar')));
       await tester.pumpAndSettle();
 
-      final privacyTile = find.text('سياسة الخصوصية');
-      expect(privacyTile, findsOneWidget);
+      final termsTile = find.text('شروط الاستخدام');
+      expect(termsTile, findsOneWidget);
 
-      await tester.ensureVisible(privacyTile);
+      await tester.ensureVisible(termsTile);
       await tester.pumpAndSettle();
 
-      await tester.tap(privacyTile);
+      await tester.tap(termsTile);
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('سياسة الخصوصية وأمان البيانات'), findsOneWidget);
+      expect(find.text('شروط وأحكام الاستخدام'), findsOneWidget);
 
       // Close Dialog
       await tester.tap(find.text('رجوع'));

@@ -60,32 +60,39 @@ class TodayAttendanceStatusCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.calendar_today_rounded,
-                      size: 16,
-                      color: AppColors.primary,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.tr('home.today_status'),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.tr('home.today_status'),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              if (!demo.isOnline)
+              if (!demo.isOnline) ...[
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -101,6 +108,7 @@ class TodayAttendanceStatusCard extends ConsumerWidget {
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 14),

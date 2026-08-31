@@ -91,15 +91,19 @@ class RequestCard extends StatelessWidget {
                 color: isDark ? AppColors.textMutedDark : AppColors.textSecondaryLight,
               ),
               const SizedBox(width: 4),
-              Text(
-                request.localizedDepartment(isArabic),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+              Flexible(
+                child: Text(
+                  request.localizedDepartment(isArabic),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Container(
                 width: 3,
                 height: 3,
@@ -109,11 +113,15 @@ class RequestCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${isArabic ? 'الأولوية:' : 'Priority:'} ${request.priority.localizedName(isArabic)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              Flexible(
+                child: Text(
+                  '${isArabic ? 'الأولوية:' : 'Priority:'} ${request.priority.localizedName(isArabic)}',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
                 ),
               ),
             ],
