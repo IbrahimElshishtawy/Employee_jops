@@ -118,25 +118,31 @@ class AppButton extends StatelessWidget {
       children: [
         if (isLoading) ...[
           SizedBox(
-            width: 20,
-            height: 20,
+            width: 18,
+            height: 18,
             child: CircularProgressIndicator(
-              strokeWidth: 2.2,
+              strokeWidth: 2.0,
               valueColor: AlwaysStoppedAnimation<Color>(fg),
             ),
           ),
-          const SizedBox(width: 10),
-        ] else if (icon != null) ...[
-          Icon(icon, size: 20, color: fg),
           const SizedBox(width: 8),
+        ] else if (icon != null) ...[
+          Icon(icon, size: 18, color: fg),
+          const SizedBox(width: 6),
         ],
-        Text(
-          label,
-          style: TextStyle(
-            color: fg,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.1,
+        Flexible(
+          fit: FlexFit.loose,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: fg,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
+            ),
           ),
         ),
       ],
@@ -155,7 +161,7 @@ class AppButton extends StatelessWidget {
         child: InkWell(
           onTap: isLoading ? null : onPressed,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Center(child: childContent),
           ),
         ),
