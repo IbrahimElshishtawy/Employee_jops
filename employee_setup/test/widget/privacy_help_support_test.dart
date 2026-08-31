@@ -193,9 +193,9 @@ void main() {
 
       // Submit form
       final submitBtn = find.byType(AppButton);
-      await tester.ensureVisible(submitBtn);
+      await tester.scrollUntilVisible(submitBtn, 100);
       await tester.pumpAndSettle();
-      await tester.tap(submitBtn);
+      await tester.tap(submitBtn, warnIfMissed: false);
 
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
