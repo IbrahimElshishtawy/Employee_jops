@@ -34,11 +34,6 @@ class UpdateDialog extends ConsumerWidget {
         child: UpdateDialog(
           checkResult: checkResult,
           onUpdatePressed: () {
-            final isAndroid = Theme.of(context).platform == TargetPlatform.android;
-            final url = isAndroid
-                ? checkResult.config.androidStoreUrl
-                : checkResult.config.iosStoreUrl;
-            // Launch update URL
             Navigator.of(dialogCtx).pop();
           },
           onLaterPressed: isForce
@@ -218,7 +213,7 @@ class UpdateDialog extends ConsumerWidget {
 
             // Action Buttons
             AppButton(
-              text: isArabic ? 'تحديث الآن' : 'Update Now',
+              label: isArabic ? 'تحديث الآن' : 'Update Now',
               icon: Icons.download_rounded,
               onPressed: () {
                 if (onUpdatePressed != null) {

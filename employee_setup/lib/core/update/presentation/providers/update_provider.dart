@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/app_providers.dart';
-import '../../../services/notification_service.dart';
 import '../../data/datasources/remote_update_data_source.dart';
 import '../../data/datasources/shorebird_data_source.dart';
 import '../../data/services/app_update_service_impl.dart';

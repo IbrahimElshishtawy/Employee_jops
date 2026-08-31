@@ -8,9 +8,9 @@ import '../datasources/remote_update_data_source.dart';
 import '../datasources/shorebird_data_source.dart';
 
 class AppUpdateServiceImpl implements UpdateService {
-  final RemoteUpdateDataSource _remoteDataSource;
-  final ShorebirdDataSource _shorebirdDataSource;
-  final NotificationService _notificationService;
+  final RemoteUpdateDataSource remoteDataSource;
+  final ShorebirdDataSource shorebirdDataSource;
+  final NotificationService notificationService;
 
   AppVersion _currentVersion =
       const AppVersion(major: 1, minor: 0, patch: 0, buildNumber: 12);
@@ -18,12 +18,10 @@ class AppUpdateServiceImpl implements UpdateService {
   bool _isInitialized = false;
 
   AppUpdateServiceImpl({
-    required RemoteUpdateDataSource remoteDataSource,
-    required ShorebirdDataSource shorebirdDataSource,
-    required NotificationService notificationService,
-  })  : _remoteDataSource = remoteDataSource,
-        _shorebirdDataSource = shorebirdDataSource,
-        _notificationService = notificationService;
+    required this.remoteDataSource,
+    required this.shorebirdDataSource,
+    required this.notificationService,
+  });
 
   @override
   AppVersion get currentInstalledVersion => _currentVersion;
@@ -46,7 +44,7 @@ class AppUpdateServiceImpl implements UpdateService {
 
     try {
       _shorebirdPatchNumber =
-          await _shorebirdDataSource.getCurrentPatchNumber();
+          await shorebirdDataSource.getCurrentPatchNumber();
     } catch (e) {
       SecureLogger.info('AppUpdateService', 'Shorebird patch check skipped: $e');
     }
@@ -61,7 +59,7 @@ class AppUpdateServiceImpl implements UpdateService {
     }
 
     try {
-      final config = await _remoteDataSource.fetchLatestUpdateConfig();
+      final config = await remoteDataSource.fetchLatestUpdateConfig();
 
       // 1. Check for Forced / Minimum Version Constraint
       if (_currentVersion < config.minimumSupportedVersion) {
@@ -96,7 +94,7 @@ class AppUpdateServiceImpl implements UpdateService {
       if (hasShorebirdPatch) {
         // Automatically download and stage the patch in the background
         await downloadAndApplyShorebirdPatch();
-        final patchNum = await _shorebirdDataSource.getCurrentPatchNumber() ?? 1;
+        final patchNum = await shorebirdDataSource.getCurrentPatchNumber() ?? 1;
 
         return UpdateCheckResult.shorebirdPatchReady(
           currentVersion: _currentVersion,
@@ -125,12 +123,12 @@ class AppUpdateServiceImpl implements UpdateService {
 
   @override
   Future<bool> checkForShorebirdPatch() async {
-    return await _shorebirdDataSource.isPatchAvailable();
+    return await shorebirdDataSource.isPatchAvailable();
   }
 
   @override
   Future<bool> downloadAndApplyShorebirdPatch() async {
-    return await _shorebirdDataSource.downloadAndInstallPatch();
+    return await shorebirdDataSource.downloadAndInstallPatch();
   }
 
   @override
@@ -162,17 +160,16 @@ class AppUpdateServiceImpl implements UpdateService {
       );
 
       // Cache updated remote config
-      await _remoteDataSource.cacheUpdateConfig(config);
+      await remoteDataSource.cacheUpdateConfig(config);
 
       // Display system local notification if a newer version is available
       if (newVersion > _currentVersion) {
-        await _notificationService.showLocalNotification(
+        await notificationService.showNotification(
           id: 99999,
           title: title,
           body: body,
           channelId: NotificationService.announcementsChannelId,
           channelName: NotificationService.announcementsChannelName,
-          channelDescription: NotificationService.announcementsChannelDesc,
           payload: '{"type":"APP_UPDATE","actionRoute":"/settings/about"}',
         );
       }

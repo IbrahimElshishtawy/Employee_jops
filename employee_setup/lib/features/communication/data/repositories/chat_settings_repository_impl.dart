@@ -3,7 +3,6 @@ import '../../../../core/storage/local_storage.dart';
 import '../../../../core/utils/secure_logger.dart';
 import '../../domain/entities/chat_settings.dart';
 import '../../domain/repositories/chat_settings_repository.dart';
-import '../datasources/communication_remote_data_source.dart';
 import '../services/chat_storage_service.dart';
 
 class ChatSettingsRepositoryImpl implements ChatSettingsRepository {

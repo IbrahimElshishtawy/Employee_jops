@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/routing/app_router.dart';
 import '../core/theme/app_theme.dart';
+import '../core/update/presentation/providers/update_provider.dart';
+import '../core/update/presentation/widgets/update_dialog.dart';
 import 'app_providers.dart';
 
 class EmployeeApp extends ConsumerStatefulWidget {
@@ -32,10 +34,16 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
         // Send welcoming notification to confirm background capability
         await notifService.showNotification(
           id: 9901,
-          title: 'تطبيق الموظف الذكي 🟢',
+          title: 'تطبيق الموظف الذكي ',
           body: 'تم تفعيل الإشعارات وتأمين تتبع الدوام في الخلفية بنجاح.',
         );
       }
+    } catch (_) {}
+
+    // Initialize update service & check for updates
+    try {
+      final updateService = ref.read(updateServiceProvider);
+      await updateService.initialize();
     } catch (_) {}
   }
 
@@ -53,8 +61,9 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
     ref.read(locationTrackingProvider.notifier).handleAppLifecycle(state);
 
     if (state == AppLifecycleState.resumed) {
-      // Refresh location and network status upon returning to foreground
+      // Refresh location, network status, and check for updates
       ref.read(attendanceFlowProvider.notifier).refreshLocation();
+      ref.read(updateStateProvider.notifier).checkForUpdate(isManual: false);
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       // Invalidate transient pending states if app is backgrounded
@@ -69,6 +78,17 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsProvider);
+
+    ref.listen<UpdateState>(updateStateProvider, (prev, next) {
+      if (next.hasStoreUpdate && (prev == null || !prev.hasStoreUpdate)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = router.routerDelegate.navigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            UpdateDialog.show(ctx, checkResult: next.checkResult!);
+          }
+        });
+      }
+    });
 
     return MaterialApp.router(
       title: 'CyberWise IE',

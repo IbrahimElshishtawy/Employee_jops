@@ -1,0 +1,85 @@
+name: Shorebird Code Push Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_release:
+        description: 'Target Store Release Version (e.g. 1.0.0+12 or 1.0.0)'
+        required: true
+        default: '1.0.0+12'
+      platform:
+        description: 'Target Platform'
+        required: true
+        default: 'android'
+        type: choice
+        options:
+          - android
+          - ios
+      patch_notes:
+        description: 'Patch Summary / Notes (for logs)'
+        required: false
+        default: 'Critical Dart bugfix and performance optimization'
+
+concurrency:
+  group: shorebird-patch-${{ inputs.target_release }}-${{ inputs.platform }}
+  cancel-in-progress: false
+
+jobs:
+  publish_shorebird_patch:
+    name: Build & Publish OTA Patch
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        if: inputs.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/actions/setup-shorebird@v1
+        with:
+          shorebird-token: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Install Dependencies
+        run: shorebird flutter pub get
+
+      - name: Check Code Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static Code Analysis
+        run: shorebird flutter analyze
+
+      - name: Run Test Suite
+        run: shorebird flutter test
+
+      - name: Publish Shorebird Android Patch
+        if: inputs.platform == 'android'
+        run: |
+          echo "Publishing Shorebird Android Patch for release ${{ inputs.target_release }}"
+          shorebird patch android --release-version="${{ inputs.target_release }}" --force
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Publish Shorebird iOS Patch
+        if: inputs.platform == 'ios'
+        run: |
+          echo "Publishing Shorebird iOS Patch for release ${{ inputs.target_release }}"
+          shorebird patch ios --release-version="${{ inputs.target_release }}" --force
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Patch Summary
+        run: |
+          echo "=================================================="
+          echo " Shorebird OTA Patch Published Successfully!"
+          echo " Target Release: ${{ inputs.target_release }}"
+          echo " Platform: ${{ inputs.platform }}"
+          echo " Notes: ${{ inputs.patch_notes }}"
+          echo " Installed devices will receive this update silently without a full store download."
+          echo "=================================================="

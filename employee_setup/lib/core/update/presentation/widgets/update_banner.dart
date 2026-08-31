@@ -4,7 +4,6 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_dimensions.dart';
 import '../../../extensions/context_extensions.dart';
 import '../../../widgets/app_card.dart';
-import '../../domain/entities/update_info.dart';
 import '../providers/update_provider.dart';
 import 'update_dialog.dart';
 

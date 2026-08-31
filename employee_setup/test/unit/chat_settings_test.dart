@@ -29,24 +29,6 @@ class MockLocalStorage implements LocalStorage {
   }
 
   @override
-  int? getInt(String key) => _store[key] as int?;
-
-  @override
-  Future<bool> setInt(String key, int value) async {
-    _store[key] = value;
-    return true;
-  }
-
-  @override
-  double? getDouble(String key) => _store[key] as double?;
-
-  @override
-  Future<bool> setDouble(String key, double value) async {
-    _store[key] = value;
-    return true;
-  }
-
-  @override
   List<String>? getStringList(String key) => _store[key] as List<String>?;
 
   @override
@@ -54,9 +36,6 @@ class MockLocalStorage implements LocalStorage {
     _store[key] = value;
     return true;
   }
-
-  @override
-  bool containsKey(String key) => _store.containsKey(key);
 
   @override
   Future<bool> remove(String key) async {

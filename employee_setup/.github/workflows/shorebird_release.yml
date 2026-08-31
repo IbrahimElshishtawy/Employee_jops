@@ -1,0 +1,86 @@
+name: Shorebird Base Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target Platform'
+        required: true
+        default: 'android'
+        type: choice
+        options:
+          - android
+          - ios
+      release_version:
+        description: 'Target Version (Optional override e.g. 1.0.0+12)'
+        required: false
+        default: ''
+
+concurrency:
+  group: shorebird-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  create_shorebird_release:
+    name: Build & Publish Shorebird Release
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        if: inputs.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/actions/setup-shorebird@v1
+        with:
+          shorebird-token: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Install Dependencies
+        run: shorebird flutter pub get
+
+      - name: Code Formatting Check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static Code Analysis
+        run: shorebird flutter analyze
+
+      - name: Run Test Suite
+        run: shorebird flutter test
+
+      - name: Build & Publish Shorebird Android Release
+        if: inputs.platform == 'android'
+        run: |
+          if [ -n "${{ inputs.release_version }}" ]; then
+            shorebird release android --release-version="${{ inputs.release_version }}" --force
+          else
+            shorebird release android --force
+          fi
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Build & Publish Shorebird iOS Release
+        if: inputs.platform == 'ios'
+        run: |
+          if [ -n "${{ inputs.release_version }}" ]; then
+            shorebird release ios --release-version="${{ inputs.release_version }}" --force
+          else
+            shorebird release ios --force
+          fi
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-${{ inputs.platform }}-release-artifacts
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: ignore

@@ -11,11 +11,10 @@ abstract class RemoteUpdateDataSource {
 }
 
 class RemoteUpdateDataSourceImpl implements RemoteUpdateDataSource {
-  final LocalStorage _localStorage;
+  final LocalStorage localStorage;
   static const String _cacheKey = 'app_update_remote_config_v1';
 
-  RemoteUpdateDataSourceImpl({required LocalStorage localStorage})
-      : _localStorage = localStorage;
+  RemoteUpdateDataSourceImpl({required this.localStorage});
 
   @override
   Future<UpdateConfig> fetchLatestUpdateConfig() async {
@@ -46,7 +45,7 @@ class RemoteUpdateDataSourceImpl implements RemoteUpdateDataSource {
   Future<void> cacheUpdateConfig(UpdateConfig config) async {
     try {
       final jsonStr = json.encode(config.toMap());
-      await _localStorage.setString(_cacheKey, jsonStr);
+      await localStorage.setString(_cacheKey, jsonStr);
     } catch (e) {
       SecureLogger.error('RemoteUpdateDataSource', 'cacheUpdateConfig error', e);
     }
@@ -55,7 +54,7 @@ class RemoteUpdateDataSourceImpl implements RemoteUpdateDataSource {
   @override
   Future<UpdateConfig?> getCachedUpdateConfig() async {
     try {
-      final jsonStr = _localStorage.getString(_cacheKey);
+      final jsonStr = localStorage.getString(_cacheKey);
       if (jsonStr != null && jsonStr.isNotEmpty) {
         final map = json.decode(jsonStr) as Map<String, dynamic>;
         return UpdateConfig.fromMap(map);
