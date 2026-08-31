@@ -55,4 +55,5 @@ class AppRoutes {
   // Settings
   static const String settings = '/settings';
   static const String developerDemo = '/settings/demo';
+  static const String about = '/settings/about';
 }

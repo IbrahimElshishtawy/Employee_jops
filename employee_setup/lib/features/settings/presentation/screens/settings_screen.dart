@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/routing/app_routes.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../widgets/settings_section.dart';
 
@@ -157,20 +159,20 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 4. About CyberWise IE
+            // 4. About Application
             SettingsSection(
-              title: context.isArabic ? 'عن التطبيق' : 'About App',
+              title: context.tr('about.section_app'),
               children: [
                 ListTile(
                   title: const Text(
-                    'CyberWise IE',
+                    AppConstants.appName,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   subtitle: Text(
-                    '${context.isArabic ? 'الإصدار' : 'Version'} 1.0.0 (Build 1)',
+                    '${context.tr('about.version')} ${AppConstants.appVersion} (${context.tr('about.build')} ${AppConstants.appBuild})',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
@@ -184,6 +186,8 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 20),
                   ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.about),
                 ),
               ],
             ),

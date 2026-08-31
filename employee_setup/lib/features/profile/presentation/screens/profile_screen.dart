@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/routing/app_routes.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../../../auth/domain/models/employee.dart';
@@ -115,14 +117,10 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const Divider(),
                   ProfileMenuItem(
-                    title: context.tr('profile.about'),
-                    subtitle: 'الإصدار 1.0.0 (Build 1)',
+                    title: context.tr('about.title'),
+                    subtitle: '${context.tr('about.version')} ${AppConstants.appVersion} (${context.tr('about.build')} ${AppConstants.appBuild})',
                     icon: Icons.info_outline_rounded,
-                    onTap: () => _showSimpleInfoDialog(
-                      context,
-                      'حول التطبيق',
-                      'Employee App - المنظومة المتكاملة لإدارة الموظفين والخدمات الذاتية الذكية.\nالإصدار: 1.0.0',
-                    ),
+                    onTap: () => context.push(AppRoutes.about),
                   ),
                 ],
               ),

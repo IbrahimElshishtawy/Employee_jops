@@ -496,6 +496,59 @@ class AppLocalizations {
       'session.inactive': 'غير نشطة',
       'session.push_token': 'رمز الإشعارات (FCM)',
       'session.work_session': 'جلسة الدوام الحالية',
+
+      // About Application
+      'about.title': 'عن التطبيق',
+      'about.subtitle': 'منصة إدارة الموظفين والموارد البشرية',
+      'about.version': 'الإصدار',
+      'about.build': 'رقم البناء',
+      'about.section_app': 'عن التطبيق',
+      'about.app_description':
+          'تطبيق الموظف هو منصة داخلية متكاملة تساعد الموظفين على تسجيل الحضور والانصراف، وتقديم ومتابعة الطلبات، وتلقي الإشعارات، والتواصل مع قسم الموارد البشرية بكل سهولة وأمان.',
+      'about.section_features': 'الميزات الرئيسية',
+      'about.feature_attendance': 'تسجيل الحضور والانصراف',
+      'about.feature_attendance_desc':
+          'تسجيل الحضور والانصراف الجغرافي والبيومتري مع متابعة السجل وساعات العمل.',
+      'about.feature_requests': 'طلبات الموظفين',
+      'about.feature_requests_desc':
+          'تقديم ومتابعة طلبات الإجازات، الاستئذان، والسُلف المالية بكل يسر.',
+      'about.feature_communication': 'التواصل مع الموارد البشرية',
+      'about.feature_communication_desc':
+          'التواصل المباشر مع ممثلي HR والإدارات وتقديم الاستفسارات ومتابعتها.',
+      'about.feature_notifications': 'التنبيهات والإشعارات',
+      'about.feature_notifications_desc':
+          'تلقي التنبيهات الفورية بحالة الطلبات والتعاميم وتذكيرات الدوام.',
+      'about.feature_profile': 'الملف الشخصي والبيانات',
+      'about.feature_profile_desc':
+          'عرض وإدارة البيانات الوظيفية والشخصية وإعدادات الأمان للجهاز.',
+      'about.section_support': 'الدعم والمساعدة',
+      'about.help_center': 'مركز المساعدة',
+      'about.help_center_desc': 'الأسئلة الشائعة ودليل استخدام المنظومة',
+      'about.contact_support': 'التواصل مع الدعم الفني',
+      'about.contact_support_desc': 'التواصل مع مسؤولي النظام وقسم الدعم',
+      'about.report_problem': 'الإبلاغ عن مشكلة',
+      'about.report_problem_desc': 'إرسال ملاحظة تقنية أو بلاغ عن خلل فني',
+      'about.section_legal': 'الشؤون القانونية والسياسات',
+      'about.privacy_policy': 'سياسة الخصوصية',
+      'about.privacy_policy_desc': 'معايير حماية البيانات والخصوصية المعتمدة',
+      'about.terms_of_use': 'شروط الاستخدام',
+      'about.terms_of_use_desc': 'سياسات وقواعد استخدام النظام الداخلي',
+      'about.open_source_licenses': 'تراخيص المصادر المفتوحة',
+      'about.open_source_licenses_desc': 'حزم ومكتبات البرمجيات مفتوحة المصدر',
+      'about.section_company': 'الشركة',
+      'about.company_name': 'اسم الشركة',
+      'about.company_website': 'الموقع الإلكتروني',
+      'about.company_email': 'البريد المؤسسي',
+      'about.all_rights_reserved': 'جميع الحقوق محفوظة.',
+      'about.privacy_dialog_title': 'سياسة الخصوصية وأمان البيانات',
+      'about.privacy_dialog_content':
+          'يلتزم هذا التطبيق بحماية خصوصية بيانات الموظف ومعلوماته الشخصية وسجلات الحضور والانصراف، ويتم تخزين ومعالجة كافة البيانات وفق أعلى معايير التشفير والأمان المؤسسي.',
+      'about.terms_dialog_title': 'شروط وأحكام الاستخدام',
+      'about.terms_dialog_content':
+          'يُعد هذا التطبيق أداة عمل رسمية مخصصة لموظفي المؤسسة المعتمدين. يُحظر استخدام التطبيق لأي أغراض خارج نطاق العمل أو محاولة التلاعب بالبيانات أو المواقع الجغرافية.',
+      'about.support_dialog_title': 'الدعم والمساعدة',
+      'about.support_dialog_content':
+          'يمكنك التواصل مع فريق الدعم الفني والموارد البشرية عبر قسم المحادثات الداخلية أو عبر البريد الإلكتروني المعتمد.',
     },
     'en': {
       // App
@@ -857,6 +910,59 @@ class AppLocalizations {
       'session.inactive': 'Inactive',
       'session.push_token': 'Push Token (FCM)',
       'session.work_session': 'Current Work Session',
+
+      // About Application
+      'about.title': 'About App',
+      'about.subtitle': 'Employee Management & HR Platform',
+      'about.version': 'Version',
+      'about.build': 'Build',
+      'about.section_app': 'About the Application',
+      'about.app_description':
+          'The Employee App is an internal platform that helps employees manage attendance, requests, notifications, and communication with the Human Resources department in a simple and secure way.',
+      'about.section_features': 'Main Features',
+      'about.feature_attendance': 'Attendance',
+      'about.feature_attendance_desc':
+          'Track employee check-in and check-out and view attendance history.',
+      'about.feature_requests': 'Employee Requests',
+      'about.feature_requests_desc':
+          'Submit and track permission, late, and absence requests.',
+      'about.feature_communication': 'HR Communication',
+      'about.feature_communication_desc':
+          'Communicate with the Human Resources department.',
+      'about.feature_notifications': 'Notifications',
+      'about.feature_notifications_desc':
+          'Receive important employee and HR notifications.',
+      'about.feature_profile': 'Profile',
+      'about.feature_profile_desc':
+          'View and manage employee profile information.',
+      'about.section_support': 'Support & Help',
+      'about.help_center': 'Help Center',
+      'about.help_center_desc': 'Frequently asked questions and guides',
+      'about.contact_support': 'Contact Support',
+      'about.contact_support_desc': 'Reach out to system administrators and HR',
+      'about.report_problem': 'Report a Problem',
+      'about.report_problem_desc': 'Submit technical issues or bug reports',
+      'about.section_legal': 'Legal',
+      'about.privacy_policy': 'Privacy Policy',
+      'about.privacy_policy_desc': 'Data protection standards and privacy',
+      'about.terms_of_use': 'Terms of Use',
+      'about.terms_of_use_desc': 'Internal policy guidelines and terms',
+      'about.open_source_licenses': 'Open Source Licenses',
+      'about.open_source_licenses_desc': 'Third-party open-source software notices',
+      'about.section_company': 'Company',
+      'about.company_name': 'Company Name',
+      'about.company_website': 'Website',
+      'about.company_email': 'Corporate Email',
+      'about.all_rights_reserved': 'All rights reserved.',
+      'about.privacy_dialog_title': 'Privacy & Security Policy',
+      'about.privacy_dialog_content':
+          'This application is dedicated to safeguarding employee privacy and personal data. All attendance records and employee requests are securely encrypted according to corporate security standards.',
+      'about.terms_dialog_title': 'Terms of Use',
+      'about.terms_dialog_content':
+          'This application is an enterprise tool intended strictly for authorized employees. Unauthorized access, tampering with telemetry, or attempting spoofing is strictly prohibited.',
+      'about.support_dialog_title': 'Support & Help',
+      'about.support_dialog_content':
+          'You can contact the IT and HR support teams via internal communications or through corporate support channels.',
     },
   };
 }

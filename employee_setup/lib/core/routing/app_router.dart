@@ -26,6 +26,7 @@ import '../../features/permissions/presentation/screens/permission_details_scree
 import '../../features/permissions/presentation/screens/permissions_list_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/requests/presentation/screens/requests_hub_screen.dart';
+import '../../features/settings/presentation/screens/about_app_screen.dart';
 import '../../features/settings/presentation/screens/developer_demo_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/vacations/presentation/screens/new_vacation_screen.dart';
@@ -319,7 +320,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Settings & Demo
+      // Settings & Demo & About
       GoRoute(
         path: AppRoutes.settings,
         parentNavigatorKey: _rootNavigatorKey,
@@ -329,6 +330,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'demo',
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const DeveloperDemoScreen(),
+          ),
+          GoRoute(
+            path: 'about',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AboutAppScreen(),
           ),
         ],
       ),
