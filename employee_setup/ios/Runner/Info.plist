@@ -68,6 +68,16 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app requires location access to verify physical presence within the company workplace for attendance check-in and check-out.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app requires background location access to verify employee presence during active work sessions.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app requires background location access to verify employee presence during active work sessions.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app requires Face ID / Biometrics to authenticate employee identity when registering attendance.</string>
 </dict>

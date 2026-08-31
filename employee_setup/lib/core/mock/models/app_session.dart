@@ -40,6 +40,13 @@ class AppSession {
   final SessionStatus status;
   final String dataSource;
 
+  // Notification & Work Session Tracking metadata
+  final String notificationPermissionState;
+  final String? notificationToken;
+  final String workSessionStatus;
+  final String? workSessionId;
+  final bool trackingActive;
+
   const AppSession({
     required this.sessionId,
     required this.employeeId,
@@ -61,6 +68,11 @@ class AppSession {
     this.platform = 'Mobile',
     required this.status,
     this.dataSource = 'DEVICE_TEST_DATA',
+    this.notificationPermissionState = 'notDetermined',
+    this.notificationToken,
+    this.workSessionStatus = 'inactive',
+    this.workSessionId,
+    this.trackingActive = false,
   });
 
   DateTime get createdAt => loginAt;
@@ -88,6 +100,11 @@ class AppSession {
     String? platform,
     SessionStatus? status,
     String? dataSource,
+    String? notificationPermissionState,
+    String? notificationToken,
+    String? workSessionStatus,
+    String? workSessionId,
+    bool? trackingActive,
   }) {
     return AppSession(
       sessionId: sessionId ?? this.sessionId,
@@ -110,6 +127,12 @@ class AppSession {
       platform: platform ?? this.platform,
       status: status ?? this.status,
       dataSource: dataSource ?? this.dataSource,
+      notificationPermissionState:
+          notificationPermissionState ?? this.notificationPermissionState,
+      notificationToken: notificationToken ?? this.notificationToken,
+      workSessionStatus: workSessionStatus ?? this.workSessionStatus,
+      workSessionId: workSessionId ?? this.workSessionId,
+      trackingActive: trackingActive ?? this.trackingActive,
     );
   }
 
@@ -134,6 +157,11 @@ class AppSession {
         'platform': platform,
         'status': status.name,
         'dataSource': dataSource,
+        'notificationPermissionState': notificationPermissionState,
+        'notificationToken': notificationToken,
+        'workSessionStatus': workSessionStatus,
+        'workSessionId': workSessionId,
+        'trackingActive': trackingActive,
       };
 
   factory AppSession.fromJson(Map<String, dynamic> json) => AppSession(
@@ -157,6 +185,12 @@ class AppSession {
         platform: json['platform'] as String? ?? 'Mobile',
         status: SessionStatus.values.byName(json['status'] as String? ?? 'active'),
         dataSource: json['dataSource'] as String? ?? 'DEVICE_TEST_DATA',
+        notificationPermissionState:
+            json['notificationPermissionState'] as String? ?? 'notDetermined',
+        notificationToken: json['notificationToken'] as String?,
+        workSessionStatus: json['workSessionStatus'] as String? ?? 'inactive',
+        workSessionId: json['workSessionId'] as String?,
+        trackingActive: json['trackingActive'] as bool? ?? false,
       );
 
   /// Creates a fresh session valid for 12 hours from now.
@@ -172,6 +206,11 @@ class AppSession {
     String? appVersion,
     String deviceInfo = 'Secure Mobile Device',
     String platform = 'Mobile',
+    String notificationPermissionState = 'notDetermined',
+    String? notificationToken,
+    String workSessionStatus = 'inactive',
+    String? workSessionId,
+    bool trackingActive = false,
   }) {
     final now = DateTime.now();
     return AppSession(
@@ -193,6 +232,11 @@ class AppSession {
       platform: platform,
       status: SessionStatus.active,
       dataSource: 'DEVICE_TEST_DATA',
+      notificationPermissionState: notificationPermissionState,
+      notificationToken: notificationToken,
+      workSessionStatus: workSessionStatus,
+      workSessionId: workSessionId,
+      trackingActive: trackingActive,
     );
   }
 }

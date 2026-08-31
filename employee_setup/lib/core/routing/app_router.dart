@@ -40,6 +40,7 @@ import '../../features/communication/presentation/screens/request_details_screen
 import '../../features/communication/presentation/screens/my_requests_screen.dart';
 import '../../features/communication/presentation/screens/departments_screen.dart';
 import '../../features/communication/presentation/screens/conversations_screen.dart';
+import '../services/notification_router.dart';
 import 'app_routes.dart';
 import 'main_shell_screen.dart';
 
@@ -53,6 +54,7 @@ final _notificationsNavigatorKey = GlobalKey<NavigatorState>(
 final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 final routerProvider = Provider<GoRouter>((ref) {
+  NotificationRouter.rootNavigatorKey = _rootNavigatorKey;
   final authState = ref.watch(authProvider);
 
   return GoRouter(

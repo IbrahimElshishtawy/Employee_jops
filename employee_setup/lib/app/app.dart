@@ -30,6 +30,10 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+
+    // Propagate lifecycle state to background location tracking engine
+    ref.read(locationTrackingProvider.notifier).handleAppLifecycle(state);
+
     if (state == AppLifecycleState.resumed) {
       // Refresh location and network status upon returning to foreground
       ref.read(attendanceFlowProvider.notifier).refreshLocation();

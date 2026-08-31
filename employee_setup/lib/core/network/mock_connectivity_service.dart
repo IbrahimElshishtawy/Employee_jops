@@ -10,6 +10,8 @@ class MockConnectivityService implements ConnectivityService {
   @override
   Future<bool> get isConnected async => _isConnected;
 
+  bool get isConnectedSync => _isConnected;
+
   @override
   Stream<bool> get onConnectivityChanged => _controller.stream;
 

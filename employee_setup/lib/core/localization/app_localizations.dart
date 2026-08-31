@@ -471,6 +471,31 @@ class AppLocalizations {
       'common.meter': 'متر',
       'common.loading': 'جاري التحميل...',
       'common.no_data': 'لا توجد بيانات متاحة',
+
+      // Location Tracking & Work Session
+      'tracking.title': 'تتبع موقع العمل',
+      'tracking.active_foreground': 'نشط (في الواجهة)',
+      'tracking.active_background': 'نشط (في الخلفية)',
+      'tracking.stopped': 'متوقف',
+      'tracking.starting': 'جاري البدء...',
+      'tracking.paused': 'متوقف مؤقتاً',
+      'tracking.error': 'تنبيه في التتبع',
+      'tracking.reason_checkout': 'انتهت جلسة العمل اليومية',
+      'tracking.reason_logout': 'تم تسجيل الخروج',
+      'tracking.permission_required': 'يلزم منح إذن الموقع',
+      'tracking.background_permission_desc': 'يسمح بتتبع الموقع أثناء الدوام عند تصغير التطبيق',
+      'tracking.gps_disabled_desc': 'يرجى تفعيل خدمة الموقع (GPS) من إعدادات الجهاز',
+      'tracking.offline_queued': 'سجلات معلقة للمزامنة',
+      'tracking.sync_success': 'تمت مزامنة السجلات بنجاح',
+      'tracking.syncing': 'جاري المزامنة مع الخادم...',
+      'tracking.last_update': 'آخر تحديث للموقع:',
+
+      // Device Session & Info
+      'session.device_session': 'جلسة الجهاز المعتمدة',
+      'session.active': 'نشطة',
+      'session.inactive': 'غير نشطة',
+      'session.push_token': 'رمز الإشعارات (FCM)',
+      'session.work_session': 'جلسة الدوام الحالية',
     },
     'en': {
       // App
@@ -807,6 +832,31 @@ class AppLocalizations {
       'common.meter': 'meter',
       'common.loading': 'Loading...',
       'common.no_data': 'No data available',
+
+      // Location Tracking & Work Session
+      'tracking.title': 'Work Location Tracking',
+      'tracking.active_foreground': 'Active (Foreground)',
+      'tracking.active_background': 'Active (Background)',
+      'tracking.stopped': 'Stopped',
+      'tracking.starting': 'Starting...',
+      'tracking.paused': 'Paused',
+      'tracking.error': 'Tracking Alert',
+      'tracking.reason_checkout': 'Work session ended',
+      'tracking.reason_logout': 'Logged out',
+      'tracking.permission_required': 'Location permission required',
+      'tracking.background_permission_desc': 'Allows location tracking during work hours when app is minimized',
+      'tracking.gps_disabled_desc': 'Please enable GPS/Location service from device settings',
+      'tracking.offline_queued': 'Pending offline records',
+      'tracking.sync_success': 'Records synced successfully',
+      'tracking.syncing': 'Syncing with server...',
+      'tracking.last_update': 'Last location update:',
+
+      // Device Session & Info
+      'session.device_session': 'Verified Device Session',
+      'session.active': 'Active',
+      'session.inactive': 'Inactive',
+      'session.push_token': 'Push Token (FCM)',
+      'session.work_session': 'Current Work Session',
     },
   };
 }

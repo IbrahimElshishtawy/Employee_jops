@@ -77,12 +77,15 @@ import '../features/attendance/data/services/real_location_service.dart';
 import '../features/attendance/data/services/real_network_risk_service.dart';
 import '../features/auth/data/datasources/real_auth_datasource.dart';
 import '../features/auth/data/repositories/real_auth_repository.dart';
+import '../features/location_tracking/presentation/providers/location_tracking_provider.dart';
 
 // ══════════════════════════════════════════════════════════════════
 // 0. MockDatabase Provider  (Single Source of Truth)
 // ══════════════════════════════════════════════════════════════════
 // Re-exported so screens can import from one place
 export '../core/mock/mock_database.dart' show mockDatabaseProvider;
+export '../features/location_tracking/presentation/providers/location_tracking_provider.dart'
+    show locationTrackingProvider, locationTrackingRepositoryProvider, LocationTrackingState;
 
 // ══════════════════════════════════════════════════════════════════
 // 1. Core Infrastructure Providers
@@ -362,8 +365,9 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repo;
+  final Ref _ref;
 
-  AuthNotifier(this._repo) : super(const AuthState()) {
+  AuthNotifier(this._repo, this._ref) : super(const AuthState()) {
     _initialize();
   }
 
@@ -385,6 +389,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    try {
+      final trackingRepo = _ref.read(locationTrackingRepositoryProvider);
+      await trackingRepo.stopTracking(reason: 'User signed out');
+    } catch (_) {}
+
     await _repo.signOut();
     state = state.copyWith(clearUser: true);
   }
@@ -398,7 +407,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repo = ref.watch(authRepositoryProvider);
-  return AuthNotifier(repo);
+  return AuthNotifier(repo, ref);
 });
 
 /// Convenience alias — nullable employee from auth state.
@@ -730,6 +739,42 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
     );
 
     state = state.copyWith(lastResponse: response);
+
+    if (response.isApproved || response.isPendingHr) {
+      // Work Session Location Tracking Integration
+      try {
+        final trackingNotifier = _ref.read(locationTrackingProvider.notifier);
+        if (isCheckIn) {
+          await trackingNotifier.startWorkSessionTracking(
+            workSessionId: clientRequestId,
+            employeeId: empId,
+          );
+          if (db.session != null) {
+            _ref.read(mockDatabaseProvider.notifier).setSession(
+              db.session!.copyWith(
+                workSessionStatus: 'active',
+                workSessionId: clientRequestId,
+                trackingActive: true,
+              ),
+            );
+          }
+        } else {
+          await trackingNotifier.stopWorkSessionTracking(
+            reason: 'Work session check-out completed',
+          );
+          if (db.session != null) {
+            _ref.read(mockDatabaseProvider.notifier).setSession(
+              db.session!.copyWith(
+                workSessionStatus: 'inactive',
+                trackingActive: false,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        // Location tracking error should not fail attendance submission
+      }
+    }
 
     if (response.isApproved) {
       // In-App Notification

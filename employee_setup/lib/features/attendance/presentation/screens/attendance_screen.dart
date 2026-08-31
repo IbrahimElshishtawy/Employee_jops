@@ -6,6 +6,7 @@ import '../../../../app/app_providers.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_header.dart';
+import '../../../location_tracking/presentation/widgets/tracking_status_card.dart';
 import '../widgets/attendance_action_section.dart';
 import '../widgets/attendance_security_info_card.dart';
 import '../widgets/attendance_today_timeline.dart';
@@ -23,6 +24,7 @@ import '../widgets/work_schedule_card.dart';
 /// 5. Check-In & Check-Out State Management
 /// 6. Offline Mode & Local Cache Synchronization
 /// 7. Today's Attendance Timeline & Live Telemetry
+/// 8. Work Session Background Location Tracking
 class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
 
@@ -71,6 +73,10 @@ class AttendanceScreen extends ConsumerWidget {
 
                 // 4. Location, GPS Accuracy & 4-Meter Geofence Card
                 LocationStatusCard(),
+                SizedBox(height: 14),
+
+                // 4.5 Work Session Background Tracking Status Card
+                TrackingStatusCard(),
                 SizedBox(height: 14),
 
                 // 5. Biometric Identity Verification Status
