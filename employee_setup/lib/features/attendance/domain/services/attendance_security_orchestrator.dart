@@ -3,7 +3,6 @@ import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../../core/mock/models/app_session.dart';
 import '../models/attendance.dart';
 import '../models/attendance_api_contracts.dart';
-import '../models/attendance_state_type.dart';
 import '../models/attendance_verification_result.dart';
 import '../models/location_result.dart';
 import '../models/work_schedule.dart';

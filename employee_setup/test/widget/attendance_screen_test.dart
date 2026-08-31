@@ -2,6 +2,7 @@ import 'package:employee_setup/app/app_providers.dart';
 import 'package:employee_setup/core/localization/app_localizations.dart';
 import 'package:employee_setup/core/mock/mock_database.dart';
 import 'package:employee_setup/core/mock/models/app_session.dart';
+import 'package:employee_setup/core/mock/seeds/employee_seed.dart';
 import 'package:employee_setup/core/storage/shared_prefs_storage.dart';
 import 'package:employee_setup/core/theme/app_theme.dart';
 import 'package:employee_setup/core/widgets/app_button.dart';
@@ -175,7 +176,11 @@ void main() {
 
       await tester.tap(checkInButton);
       await tester.pump();
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Should now show Check Out available
       final checkOutButton = find.widgetWithText(AppButton, 'تسجيل الانصراف');

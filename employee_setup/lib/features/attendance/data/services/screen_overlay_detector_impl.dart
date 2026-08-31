@@ -24,7 +24,9 @@ class ScreenOverlayDetectorImpl implements ScreenOverlayDetector {
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('checkScreenSecurity');
+      final result = await _channel
+          .invokeMethod<Map<dynamic, dynamic>>('checkScreenSecurity')
+          .timeout(const Duration(milliseconds: 100), onTimeout: () => null);
       if (result != null) {
         final isSafe = result['isSafe'] as bool? ?? true;
         final hasOverlayPermission = result['hasOverlayPermission'] as bool? ?? false;
