@@ -123,6 +123,7 @@ class TestConnectivityService implements ConnectivityService {
   @override
   Stream<bool> get onConnectivityChanged => _controller.stream;
 
+  @override
   void dispose() {
     _controller.close();
   }

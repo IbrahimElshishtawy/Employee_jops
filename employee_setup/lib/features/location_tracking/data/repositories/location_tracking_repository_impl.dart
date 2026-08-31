@@ -60,12 +60,12 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
 
   @override
   Future<LocationPermissionState> checkPermissions() async {
-    return await _platformDataSource.checkPermission();
+    return await platformDataSource.checkPermission();
   }
 
   @override
   Future<LocationPermissionState> requestPermissions({bool requestBackground = true}) async {
-    return await _platformDataSource.requestPermission(requestBackground: requestBackground);
+    return await platformDataSource.requestPermission(requestBackground: requestBackground);
   }
 
   @override
@@ -103,7 +103,7 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
         : TrackingStatus.activeForeground;
 
     // 3. Obtain initial location snapshot
-    final initialPos = await _platformDataSource.getCurrentPosition();
+    final initialPos = await platformDataSource.getCurrentPosition();
     if (initialPos != null) {
       final enrichedLocation = initialPos.copyWith(
         workSessionId: _activeWorkSessionId,
@@ -124,7 +124,7 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
 
   void _startPositionStream() {
     _rawPositionSubscription?.cancel();
-    _rawPositionSubscription = _platformDataSource
+    _rawPositionSubscription = platformDataSource
         .getPositionStream(
           intervalSeconds: _intervalSeconds,
           distanceFilterMeters: _distanceFilterMeters,
@@ -153,14 +153,14 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
     }
 
     // Attempt remote synchronization
-    final isOnline = await _connectivityService.isConnected;
+    final isOnline = await connectivityService.isConnected;
     if (isOnline) {
-      final synced = await _remoteDataSource.syncLocation(location);
+      final synced = await remoteDataSource.syncLocation(location);
       if (!synced) {
-        await _localDataSource.enqueueLocation(location);
+        await localDataSource.enqueueLocation(location);
       }
     } else {
-      await _localDataSource.enqueueLocation(location);
+      await localDataSource.enqueueLocation(location);
     }
   }
 
@@ -186,7 +186,7 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
 
   @override
   Future<EmployeeLocation?> getCurrentLocation() async {
-    final pos = await _platformDataSource.getCurrentPosition();
+    final pos = await platformDataSource.getCurrentPosition();
     if (pos != null) {
       final enriched = pos.copyWith(
         workSessionId: _activeWorkSessionId,
@@ -201,15 +201,15 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
   @override
   Future<int> syncOfflineLocations() async {
     try {
-      final isOnline = await _connectivityService.isConnected;
+      final isOnline = await connectivityService.isConnected;
       if (!isOnline) return 0;
 
-      final queued = await _localDataSource.getQueuedLocations();
+      final queued = await localDataSource.getQueuedLocations();
       if (queued.isEmpty) return 0;
 
-      final success = await _remoteDataSource.syncLocationBatch(queued);
+      final success = await remoteDataSource.syncLocationBatch(queued);
       if (success) {
-        await _localDataSource.removeLocations(queued);
+        await localDataSource.removeLocations(queued);
         SecureLogger.info('LocationTrackingRepo', 'Successfully synced ${queued.length} offline locations');
         return queued.length;
       }
@@ -222,7 +222,7 @@ class LocationTrackingRepositoryImpl implements LocationTrackingRepository {
 
   @override
   Future<List<EmployeeLocation>> getQueuedLocations() async {
-    return await _localDataSource.getQueuedLocations();
+    return await localDataSource.getQueuedLocations();
   }
 
   @override
