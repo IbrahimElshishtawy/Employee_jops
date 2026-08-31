@@ -35,46 +35,66 @@ class VerificationPipelineList extends StatelessWidget {
 
     switch (stepNumber) {
       case 1: // Location & Geofence
-        if (flowState.processState == AttendanceProcessState.checkingLocation) {
+        if (flowState.geofenceStatus.isSuccess) {
+          return StepUiStatus.completed;
+        }
+        if (flowState.geofenceStatus.isInProgress ||
+            flowState.processState == AttendanceProcessState.checkingLocation) {
           return StepUiStatus.inProgress;
         }
-        if (flowState.stateType == AttendanceStateType.locationServiceDisabled ||
+        if (flowState.geofenceStatus.isFailed ||
+            flowState.stateType == AttendanceStateType.locationServiceDisabled ||
             flowState.stateType == AttendanceStateType.locationPermissionDenied ||
             flowState.stateType == AttendanceStateType.lowLocationAccuracy ||
-            flowState.stateType == AttendanceStateType.outsideWorkplace) {
+            flowState.stateType == AttendanceStateType.outsideWorkplace ||
+            flowState.stateType == AttendanceStateType.mockLocationDetected) {
           return StepUiStatus.failed;
         }
-        if (flowState.locationResult != null) return StepUiStatus.completed;
+        if (flowState.locationResult != null && flowState.locationResult!.isInsideRange) {
+          return StepUiStatus.completed;
+        }
         return StepUiStatus.pending;
 
       case 2: // Screen Overlay & Security
-        if (flowState.stateType == AttendanceStateType.deviceIntegrityFailed) {
-          return StepUiStatus.failed;
-        }
-        if (flowState.locationResult != null &&
-            flowState.processState != AttendanceProcessState.checkingLocation) {
+        if (flowState.screenSecurityStatus.isSuccess) {
           return StepUiStatus.completed;
+        }
+        if (flowState.screenSecurityStatus.isInProgress) {
+          return StepUiStatus.inProgress;
+        }
+        if (flowState.screenSecurityStatus.isFailed ||
+            flowState.stateType == AttendanceStateType.deviceIntegrityFailed) {
+          return StepUiStatus.failed;
         }
         return StepUiStatus.pending;
 
       case 3: // Biometrics
-        if (flowState.processState == AttendanceProcessState.authenticatingBiometric) {
+        if (flowState.biometricStatus.isSuccess) {
+          return StepUiStatus.completed;
+        }
+        if (flowState.biometricStatus.isInProgress ||
+            flowState.processState == AttendanceProcessState.authenticatingBiometric) {
           return StepUiStatus.inProgress;
         }
-        if (flowState.stateType == AttendanceStateType.biometricFailed ||
+        if (flowState.biometricStatus.isFailed ||
+            flowState.stateType == AttendanceStateType.biometricFailed ||
             flowState.stateType == AttendanceStateType.biometricUnavailable) {
           return StepUiStatus.failed;
         }
-        if (flowState.processState == AttendanceProcessState.submitting || isSuccess) {
-          return StepUiStatus.completed;
-        }
         return StepUiStatus.pending;
 
-      case 4: // Server Sync
-        if (flowState.processState == AttendanceProcessState.submitting) {
+      case 4: // Cloud Server Record & Sync
+        if (flowState.attendanceRegistrationStatus.isSuccess || isSuccess) {
+          return StepUiStatus.completed;
+        }
+        if (flowState.attendanceRegistrationStatus.isInProgress ||
+            flowState.processState == AttendanceProcessState.submitting) {
           return StepUiStatus.inProgress;
         }
-        if (isSuccess) return StepUiStatus.completed;
+        if (flowState.attendanceRegistrationStatus.isFailed ||
+            flowState.stateType == AttendanceStateType.serverRejected) {
+          return StepUiStatus.failed;
+        }
         return StepUiStatus.pending;
 
       default:

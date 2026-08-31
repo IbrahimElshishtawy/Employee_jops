@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart'; 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app/app.dart';
 import 'app/app_providers.dart';
 import 'core/services/notification_service.dart';
@@ -10,8 +9,6 @@ import 'core/storage/secure_session_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prevent runtime network fetch for fonts to ensure fast, offline-safe startup
-  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Set preferred orientations & system overlay
   await SystemChrome.setPreferredOrientations([

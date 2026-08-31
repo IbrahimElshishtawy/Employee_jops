@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../../../auth/domain/models/employee.dart';
 import '../../domain/models/attendance.dart';
 import '../../domain/models/attendance_api_contracts.dart';
+import '../../domain/services/attendance_policy_service.dart';
 import '../../domain/services/geofence_service.dart';
 import 'attendance_api.dart';
 
@@ -110,7 +111,7 @@ class MockAttendanceApi implements AttendanceApi {
     final workplaceLon = employee.workplaceLongitude ?? 31.235700;
     final allowedRadius = employee.allowedRadiusMeters > 0
         ? employee.allowedRadiusMeters
-        : 4.0;
+        : AttendancePolicyService.defaultAllowedRadiusMeters;
 
     final serverDistance = _geofenceService.calculateDistanceInMeters(
       startLatitude: request.latitude,
