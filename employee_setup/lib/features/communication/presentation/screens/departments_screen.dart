@@ -11,6 +11,7 @@ import '../providers/departments_provider.dart';
 import '../widgets/department_card.dart';
 import '../widgets/communication_empty_state.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class DepartmentsScreen extends ConsumerStatefulWidget {
   const DepartmentsScreen({super.key});
@@ -230,8 +231,9 @@ class _DepartmentsScreenState extends ConsumerState<DepartmentsScreen> {
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: DepartmentGridSkeleton(itemCount: 8),
                 ),
                 error: (err, _) => Center(
                   child: CommunicationErrorState(

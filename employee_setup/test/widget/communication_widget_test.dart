@@ -17,6 +17,8 @@ import 'package:employee_setup/features/communication/presentation/widgets/depar
 import 'package:employee_setup/features/communication/presentation/widgets/employee_contact_card.dart';
 import 'package:employee_setup/features/communication/presentation/widgets/message_bubble.dart';
 import 'package:employee_setup/features/communication/presentation/widgets/request_card.dart';
+import 'package:employee_setup/features/communication/presentation/widgets/communication_skeletons.dart';
+import 'package:employee_setup/core/widgets/app_shimmer.dart';
 
 Widget _buildTestApp({
   required Widget child,
@@ -46,6 +48,63 @@ Widget _buildTestApp({
 void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  group('Communication Skeletons & Shimmer Tests', () {
+    testWidgets('Renders AppShimmer with child correctly', (tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          child: const AppShimmer(
+            child: ShimmerBox(width: 100, height: 20),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(AppShimmer), findsOneWidget);
+      expect(find.byType(ShimmerBox), findsOneWidget);
+    });
+
+    testWidgets('Renders CommunicationMainScreenSkeleton in light and dark mode', (tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          child: const CommunicationMainScreenSkeleton(),
+          themeMode: ThemeMode.dark,
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(CommunicationMainScreenSkeleton), findsOneWidget);
+      expect(find.byType(DepartmentGridSkeleton), findsOneWidget);
+      expect(find.byType(ConversationListSkeleton), findsOneWidget);
+      expect(find.byType(RequestListSkeleton), findsOneWidget);
+    });
+
+    testWidgets('Renders RequestDetailsSkeleton and EmployeeProfileSkeleton', (tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          child: const Column(
+            children: [
+              Expanded(child: RequestDetailsSkeleton()),
+            ],
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(RequestDetailsSkeleton), findsOneWidget);
+    });
+
+    testWidgets('Renders ChatMessagesSkeleton', (tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          child: const ChatMessagesSkeleton(),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(ChatMessagesSkeleton), findsOneWidget);
+    });
   });
 
   group('DepartmentCard Widget Tests', () {

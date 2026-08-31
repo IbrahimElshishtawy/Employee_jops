@@ -9,6 +9,7 @@ import '../providers/department_requests_provider.dart';
 import '../widgets/request_card.dart';
 import '../widgets/communication_empty_state.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class MyRequestsScreen extends ConsumerStatefulWidget {
   const MyRequestsScreen({super.key});
@@ -123,8 +124,9 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen>
               ],
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16),
+            child: RequestListSkeleton(itemCount: 4),
           ),
           error: (err, _) => CommunicationErrorState(
             message: err.toString(),

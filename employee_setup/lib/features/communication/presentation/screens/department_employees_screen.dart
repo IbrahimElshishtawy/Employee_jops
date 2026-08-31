@@ -11,6 +11,7 @@ import '../providers/contacts_provider.dart';
 import '../widgets/employee_contact_card.dart';
 import '../widgets/communication_empty_state.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class DepartmentEmployeesScreen extends ConsumerStatefulWidget {
   final String departmentId;
@@ -223,8 +224,9 @@ class _DepartmentEmployeesScreenState
                     },
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: EmployeeListSkeleton(itemCount: 6),
                 ),
                 error: (err, _) => CommunicationErrorState(
                   message: err.toString(),

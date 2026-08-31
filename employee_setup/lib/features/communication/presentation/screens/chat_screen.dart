@@ -11,6 +11,7 @@ import '../widgets/message_list.dart';
 import '../widgets/message_input.dart';
 import '../widgets/chat_empty_state.dart';
 import '../widgets/chat_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -86,7 +87,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             Expanded(
               child: chatState.isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const ChatMessagesSkeleton()
                   : chatState.errorMessage != null
                       ? ChatErrorState(
                           errorMessage: chatState.errorMessage,

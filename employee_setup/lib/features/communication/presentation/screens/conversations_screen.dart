@@ -9,6 +9,7 @@ import '../providers/conversations_provider.dart';
 import '../widgets/conversation_tile.dart';
 import '../widgets/communication_empty_state.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class ConversationsScreen extends ConsumerStatefulWidget {
   const ConversationsScreen({super.key});
@@ -217,8 +218,9 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ConversationListSkeleton(itemCount: 6),
                 ),
                 error: (err, _) => Center(
                   child: CommunicationErrorState(

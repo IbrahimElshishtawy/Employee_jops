@@ -11,6 +11,7 @@ import '../providers/contacts_provider.dart';
 import '../providers/communication_providers.dart';
 import '../widgets/availability_indicator.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class EmployeeContactScreen extends ConsumerWidget {
   final String employeeId;
@@ -268,9 +269,7 @@ class EmployeeContactScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          loading: () => const EmployeeProfileSkeleton(),
           error: (err, _) => CommunicationErrorState(
             message: err.toString(),
             onRetry: () => ref.invalidate(contactByIdProvider(employeeId)),

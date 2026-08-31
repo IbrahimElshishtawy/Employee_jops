@@ -11,6 +11,7 @@ import '../../domain/entities/department_request.dart';
 import '../providers/department_requests_provider.dart';
 import '../widgets/request_status_badge.dart';
 import '../widgets/communication_error_state.dart';
+import '../widgets/communication_skeletons.dart';
 
 class RequestDetailsScreen extends ConsumerWidget {
   final String requestId;
@@ -389,7 +390,7 @@ class RequestDetailsScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const RequestDetailsSkeleton(),
           error: (err, _) => CommunicationErrorState(
             message: err.toString(),
             onRetry: () => ref.invalidate(departmentRequestByIdProvider(requestId)),
