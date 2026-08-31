@@ -156,6 +156,11 @@ void main() {
 
     testWidgets('submits problem report and shows ticket reference dialog',
         (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         _buildTestApp(
           child: const SupportScreen(),
@@ -166,8 +171,6 @@ void main() {
 
       // Select Problem Type Dropdown
       final dropdown = find.byType(DropdownButton<String>);
-      await tester.ensureVisible(dropdown);
-      await tester.pumpAndSettle();
       await tester.tap(dropdown);
       await tester.pumpAndSettle();
 
@@ -185,17 +188,13 @@ void main() {
 
       // Toggle attachment
       final attachmentTile = find.text('إرفاق لقطة شاشة توضيحية');
-      await tester.ensureVisible(attachmentTile);
-      await tester.pumpAndSettle();
       await tester.tap(attachmentTile);
       await tester.pump(const Duration(seconds: 4)); // Let SnackBar dismiss
       await tester.pumpAndSettle();
 
       // Submit form
-      final submitBtn = find.widgetWithText(AppButton, 'إرسال البلاغ');
-      await tester.ensureVisible(submitBtn);
-      await tester.pumpAndSettle();
-      await tester.tap(submitBtn);
+      final submitBtn = find.byType(AppButton);
+      await tester.tap(submitBtn.first);
 
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
