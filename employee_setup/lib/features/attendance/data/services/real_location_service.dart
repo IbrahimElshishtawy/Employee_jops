@@ -105,15 +105,35 @@ class RealLocationService implements LocationService {
         );
       }
 
-      // 3. Acquire GPS Position
-      final LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.best,
-        timeLimit: const Duration(seconds: 12),
-      );
+      // 3. Acquire GPS Position with graceful timeout fallback
+      Position? acquiredPosition;
+      try {
+        final LocationSettings locationSettings = LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 15),
+        );
 
-      final Position position = await Geolocator.getCurrentPosition(
-        locationSettings: locationSettings,
-      );
+        acquiredPosition = await Geolocator.getCurrentPosition(
+          locationSettings: locationSettings,
+        );
+      } on TimeoutException {
+        // Fallback to last known position if real-time GPS lock took too long
+        acquiredPosition = await Geolocator.getLastKnownPosition();
+        if (acquiredPosition == null) {
+          return LocationResult(
+            latitude: 0,
+            longitude: 0,
+            distanceFromOfficeMeters: 9999,
+            accuracyMeters: 999,
+            timestamp: now,
+            status: LocationStatus.locationUnavailable,
+            errorMessage:
+                'استغرق تحديد موقع GPS وقتاً طويلاً. يرجى التأكد من تفعيل GPS والتواجد في مكان مكشوف.',
+          );
+        }
+      }
+
+      final Position position = acquiredPosition;
 
       // 4. Check Mock Location (Android platform signal)
       final bool isMocked = position.isMocked;

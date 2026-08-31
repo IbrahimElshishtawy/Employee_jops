@@ -66,33 +66,29 @@ class MockDatabase {
   /// Today's check-in record, if any.
   Attendance? get todayCheckIn {
     final today = DateTime.now();
-    try {
-      return attendance.firstWhere(
-        (a) =>
-            a.type == AttendanceType.checkIn &&
-            a.timestamp.year == today.year &&
-            a.timestamp.month == today.month &&
-            a.timestamp.day == today.day,
-      );
-    } catch (_) {
-      return null;
-    }
+    return attendance
+        .where(
+          (a) =>
+              a.type == AttendanceType.checkIn &&
+              a.timestamp.year == today.year &&
+              a.timestamp.month == today.month &&
+              a.timestamp.day == today.day,
+        )
+        .firstOrNull;
   }
 
   /// Today's check-out record, if any.
   Attendance? get todayCheckOut {
     final today = DateTime.now();
-    try {
-      return attendance.firstWhere(
-        (a) =>
-            a.type == AttendanceType.checkOut &&
-            a.timestamp.year == today.year &&
-            a.timestamp.month == today.month &&
-            a.timestamp.day == today.day,
-      );
-    } catch (_) {
-      return null;
-    }
+    return attendance
+        .where(
+          (a) =>
+              a.type == AttendanceType.checkOut &&
+              a.timestamp.year == today.year &&
+              a.timestamp.month == today.month &&
+              a.timestamp.day == today.day,
+        )
+        .firstOrNull;
   }
 
   TodayAttendanceSummary get todaySummary =>

@@ -124,35 +124,31 @@ class OnboardingCatalog {
   static JobTitleOption? findJobTitle(String? queryOrId) {
     if (queryOrId == null || queryOrId.isEmpty) return null;
     final q = queryOrId.toLowerCase().trim();
-    try {
-      return jobTitleOptions.firstWhere(
-        (j) =>
-            j.id.toLowerCase() == q ||
-            j.nameEn.toLowerCase() == q ||
-            j.nameAr.toLowerCase() == q ||
-            j.nameEn.toLowerCase().contains(q) ||
-            j.nameAr.toLowerCase().contains(q),
-      );
-    } catch (_) {
-      return null;
-    }
+    return jobTitleOptions
+        .where(
+          (j) =>
+              j.id.toLowerCase() == q ||
+              j.nameEn.toLowerCase() == q ||
+              j.nameAr.toLowerCase() == q ||
+              j.nameEn.toLowerCase().contains(q) ||
+              j.nameAr.toLowerCase().contains(q),
+        )
+        .firstOrNull;
   }
 
   static DepartmentOption? findDepartment(String? queryOrId) {
     if (queryOrId == null || queryOrId.isEmpty) return null;
     final q = queryOrId.toLowerCase().trim();
-    try {
-      return departmentOptions.firstWhere(
-        (d) =>
-            d.id.toLowerCase() == q ||
-            d.nameEn.toLowerCase() == q ||
-            d.nameAr.toLowerCase() == q ||
-            d.nameEn.toLowerCase().contains(q) ||
-            d.nameAr.toLowerCase().contains(q),
-      );
-    } catch (_) {
-      return null;
-    }
+    return departmentOptions
+        .where(
+          (d) =>
+              d.id.toLowerCase() == q ||
+              d.nameEn.toLowerCase() == q ||
+              d.nameAr.toLowerCase() == q ||
+              d.nameEn.toLowerCase().contains(q) ||
+              d.nameAr.toLowerCase().contains(q),
+        )
+        .firstOrNull;
   }
 
   // Legacy regions for compatibility
