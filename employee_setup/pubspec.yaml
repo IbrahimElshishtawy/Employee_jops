@@ -53,6 +53,8 @@ dependencies:
   connectivity_plus: ^6.1.3
   google_sign_in: ^6.2.2
   flutter_local_notifications: ^18.0.1
+  package_info_plus: ^9.0.1
+  shorebird_code_push: ^2.0.7
 
 dev_dependencies:
   flutter_test:

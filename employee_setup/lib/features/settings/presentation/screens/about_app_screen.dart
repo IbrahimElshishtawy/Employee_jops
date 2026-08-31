@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/update/presentation/widgets/update_banner.dart';
 import '../../../../core/mock/seeds/onboarding_catalog.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -38,6 +39,10 @@ class AboutAppScreen extends StatelessWidget {
             children: [
               // 1. App Identity Header Card
               _buildAppIdentityHeader(context, isDark),
+              const SizedBox(height: 16),
+
+              // Update Status Banner (Store updates & Shorebird patches)
+              const UpdateBanner(showIfUpToDate: true),
               const SizedBox(height: 20),
 
               // 2. About Application Overview Section

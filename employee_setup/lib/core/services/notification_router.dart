@@ -15,6 +15,7 @@ enum NotificationType {
   requestCompleted,
   attendanceReminder,
   systemAlert,
+  appUpdate,
   unknown;
 
   static NotificationType fromString(String? typeStr) {
@@ -38,6 +39,8 @@ enum NotificationType {
         return NotificationType.attendanceReminder;
       case 'SYSTEM_ALERT':
         return NotificationType.systemAlert;
+      case 'APP_UPDATE':
+        return NotificationType.appUpdate;
       default:
         return NotificationType.unknown;
     }
@@ -135,6 +138,9 @@ class NotificationPayload {
 
       case NotificationType.attendanceReminder:
         return AppRoutes.attendance;
+
+      case NotificationType.appUpdate:
+        return AppRoutes.about;
 
       case NotificationType.hrAnnouncement:
       case NotificationType.systemAlert:
