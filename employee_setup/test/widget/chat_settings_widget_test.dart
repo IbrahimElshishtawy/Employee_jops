@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:employee_setup/features/communication/presentation/screens/chat_settings_screen.dart';
@@ -10,6 +11,7 @@ import 'package:employee_setup/features/communication/domain/entities/chat_setti
 import 'package:employee_setup/features/communication/presentation/providers/chat_settings_provider.dart';
 import 'package:employee_setup/core/storage/local_storage.dart';
 import 'package:employee_setup/app/app_providers.dart';
+import 'package:employee_setup/core/localization/app_localizations.dart';
 
 class TestLocalStorage implements LocalStorage {
   final Map<String, dynamic> _store = {};
@@ -78,13 +80,30 @@ class TestLocalStorage implements LocalStorage {
   }
 }
 
-Widget createTestWidget(Widget child) {
+Widget createTestWidget(Widget child, {Locale locale = const Locale('en')}) {
   final storage = TestLocalStorage();
   return ProviderScope(
     overrides: [
       localStorageProvider.overrideWithValue(storage),
+      chatStorageUsageProvider.overrideWith(
+        (ref) => const ChatStorageBreakdown(
+          imagesBytes: 1024 * 100,
+          videosBytes: 1024 * 500,
+          filesBytes: 1024 * 200,
+          voiceMessagesBytes: 1024 * 50,
+          cachedDataBytes: 1024 * 800,
+        ),
+      ),
     ],
     child: MaterialApp(
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: child,
     ),
   );
@@ -94,7 +113,8 @@ void main() {
   group('ChatSettingsScreen Widget Tests', () {
     testWidgets('Renders all main sections and titles', (tester) async {
       await tester.pumpWidget(createTestWidget(const ChatSettingsScreen()));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(ChatSettingsSection), findsNWidgets(5));
       expect(find.byType(ChatSettingsSwitchTile), findsWidgets);
@@ -103,24 +123,27 @@ void main() {
 
     testWidgets('Toggling switch tile updates settings', (tester) async {
       await tester.pumpWidget(createTestWidget(const ChatSettingsScreen()));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       final switches = find.byType(Switch);
       expect(switches, findsWidgets);
 
       await tester.tap(switches.first);
-      await tester.pumpAndSettle();
+      await tester.pump();
     });
   });
 
   group('ConversationInfoScreen Widget Tests', () {
-    testWidgets('Renders conversation info and settings options', (tester) async {
+    testWidgets('Renders conversation info and settings options in English', (tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const ConversationInfoScreen(conversationId: 'conv-test-1'),
+          locale: const Locale('en'),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Conversation Info'), findsOneWidget);
       expect(find.text('Conversation Settings'), findsOneWidget);
@@ -130,6 +153,23 @@ void main() {
       expect(find.text('Archive Conversation'), findsOneWidget);
       expect(find.text('Clear Chat'), findsOneWidget);
       expect(find.text('Delete Conversation'), findsOneWidget);
+    });
+
+    testWidgets('Renders in Arabic RTL seamlessly', (tester) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          const ConversationInfoScreen(conversationId: 'conv-test-1'),
+          locale: const Locale('ar'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('معلومات المحادثة'), findsOneWidget);
+      expect(find.text('إعدادات المحادثة'), findsOneWidget);
+      expect(find.text('كتم التنبيهات'), findsOneWidget);
+      expect(find.text('تثبيت المحادثة'), findsOneWidget);
+      expect(find.text('أرشفة المحادثة'), findsOneWidget);
     });
   });
 }

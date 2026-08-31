@@ -169,7 +169,8 @@ class ChatStorageBreakdown {
       count /= 1024;
       i++;
     }
-    return '${count.toStringAsFixed(count >= 10 || i == 0 ? 0 : 1)} ${suffixes[i]}';
+    final formatted = count % 1 == 0 ? count.toInt().toString() : count.toStringAsFixed(1);
+    return '$formatted ${suffixes[i]}';
   }
 }
 

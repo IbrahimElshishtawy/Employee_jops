@@ -14,10 +14,9 @@ class ChatSettingsRepositoryImpl implements ChatSettingsRepository {
   static const String _convSettingsPrefix = 'app_conv_settings_';
 
   ChatSettingsRepositoryImpl({
-    required LocalStorage localStorage,
+    required this._localStorage,
     ChatStorageService? storageService,
-  })  : _localStorage = localStorage,
-        _storageService = storageService ?? ChatStorageService();
+  })  : _storageService = storageService ?? ChatStorageService();
 
   @override
   Future<ChatSettings> getSettings() async {

@@ -3,7 +3,6 @@ import '../../../../app/app_providers.dart';
 import '../../data/repositories/chat_settings_repository_impl.dart';
 import '../../domain/entities/chat_settings.dart';
 import '../../domain/repositories/chat_settings_repository.dart';
-import 'communication_providers.dart';
 
 final chatSettingsRepositoryProvider = Provider<ChatSettingsRepository>((ref) {
   final storage = ref.watch(localStorageProvider);
@@ -14,6 +13,7 @@ final chatSettingsRepositoryProvider = Provider<ChatSettingsRepository>((ref) {
 
 class ChatSettingsNotifier extends StateNotifier<ChatSettings> {
   final ChatSettingsRepository _repository;
+  bool _isInitialized = false;
 
   ChatSettingsNotifier(this._repository) : super(const ChatSettings()) {
     _loadSettings();
@@ -22,11 +22,15 @@ class ChatSettingsNotifier extends StateNotifier<ChatSettings> {
   Future<void> _loadSettings() async {
     try {
       final settings = await _repository.getSettings();
-      state = settings;
+      if (!_isInitialized) {
+        state = settings;
+        _isInitialized = true;
+      }
     } catch (_) {}
   }
 
   Future<void> updateSettings(ChatSettings newSettings) async {
+    _isInitialized = true;
     final previous = state;
     state = newSettings;
     try {
@@ -110,6 +114,7 @@ class ConversationSettingsNotifier
     extends StateNotifier<ConversationCustomSettings> {
   final ChatSettingsRepository _repository;
   final String conversationId;
+  bool _isInitialized = false;
 
   ConversationSettingsNotifier(this._repository, this.conversationId)
       : super(ConversationCustomSettings(conversationId: conversationId)) {
@@ -119,23 +124,29 @@ class ConversationSettingsNotifier
   Future<void> _load() async {
     try {
       final s = await _repository.getConversationSettings(conversationId);
-      state = s;
+      if (!_isInitialized) {
+        state = s;
+        _isInitialized = true;
+      }
     } catch (_) {}
   }
 
   Future<void> toggleMute(bool value) async {
+    _isInitialized = true;
     final updated = state.copyWith(isMuted: value);
     state = updated;
     await _repository.saveConversationSettings(updated);
   }
 
   Future<void> togglePin(bool value) async {
+    _isInitialized = true;
     final updated = state.copyWith(isPinned: value);
     state = updated;
     await _repository.saveConversationSettings(updated);
   }
 
   Future<void> toggleArchive(bool value) async {
+    _isInitialized = true;
     final updated = state.copyWith(isArchived: value);
     state = updated;
     await _repository.saveConversationSettings(updated);
