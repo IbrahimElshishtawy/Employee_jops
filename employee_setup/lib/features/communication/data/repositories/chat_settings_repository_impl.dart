@@ -16,7 +16,6 @@ class ChatSettingsRepositoryImpl implements ChatSettingsRepository {
   ChatSettingsRepositoryImpl({
     required LocalStorage localStorage,
     ChatStorageService? storageService,
-    CommunicationRemoteDataSource? remoteDataSource,
   })  : _localStorage = localStorage,
         _storageService = storageService ?? ChatStorageService();
 

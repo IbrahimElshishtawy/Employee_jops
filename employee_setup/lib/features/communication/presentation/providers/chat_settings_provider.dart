@@ -7,10 +7,8 @@ import 'communication_providers.dart';
 
 final chatSettingsRepositoryProvider = Provider<ChatSettingsRepository>((ref) {
   final storage = ref.watch(localStorageProvider);
-  final ds = ref.watch(communicationMockDataSourceProvider);
   return ChatSettingsRepositoryImpl(
     localStorage: storage,
-    remoteDataSource: ds,
   );
 });
 

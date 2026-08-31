@@ -201,23 +201,36 @@ class _ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               const SizedBox(height: 12),
               ...ChatMediaQuality.values.map((quality) {
                 final isSelected = settings.mediaQuality == quality;
-                return RadioListTile<ChatMediaQuality>(
-                  value: quality,
-                  groupValue: settings.mediaQuality,
-                  activeColor: AppColors.primary,
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
                   title: Text(
                     quality.localizedName(isArabic),
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                     ),
                   ),
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref.read(chatSettingsProvider.notifier).setMediaQuality(val);
-                      Navigator.pop(sheetCtx);
-                    }
+                  trailing: isSelected
+                      ? const Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        )
+                      : Icon(
+                          Icons.circle_outlined,
+                          color: isDark
+                              ? AppColors.textMutedDark
+                              : AppColors.textMutedLight,
+                          size: 20,
+                        ),
+                  onTap: () {
+                    ref.read(chatSettingsProvider.notifier).setMediaQuality(quality);
+                    Navigator.pop(sheetCtx);
                   },
                 );
               }),
