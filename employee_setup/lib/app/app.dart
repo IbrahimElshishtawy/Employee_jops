@@ -19,6 +19,24 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeBackgroundServices();
+    });
+  }
+
+  Future<void> _initializeBackgroundServices() async {
+    try {
+      final notifService = ref.read(notificationServiceProvider);
+      final granted = await notifService.requestPermission();
+      if (granted) {
+        // Send welcoming notification to confirm background capability
+        await notifService.showNotification(
+          id: 9901,
+          title: 'تطبيق الموظف الذكي 🟢',
+          body: 'تم تفعيل الإشعارات وتأمين تتبع الدوام في الخلفية بنجاح.',
+        );
+      }
+    } catch (_) {}
   }
 
   @override

@@ -94,7 +94,9 @@ class NotificationDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            if (notif.actionRoute != null) ...[
+            if (notif.actionRoute != null &&
+                notif.actionRoute!.isNotEmpty &&
+                notif.actionRoute != '/notifications/${notif.id}') ...[
               const SizedBox(height: 24),
               AppButton.primary(
                 label: 'عرض الطلب المرتبط',

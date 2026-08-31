@@ -183,6 +183,101 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
           ),
 
+          // Background & Push Service Status Banner
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceDark
+                  : AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.notifications_active_rounded,
+                    color: AppColors.success,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isArabic
+                            ? 'خدمة الإشعارات والعمل في الخلفية'
+                            : 'Background & Notification Service',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isArabic
+                            ? 'النظام نشط ويتابع مواعيد الحضور والطلبات تلقائياً'
+                            : 'Active: Tracking attendance & request updates',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final notifService = ref.read(notificationServiceProvider);
+                    await notifService.requestPermission();
+                    await notifService.showNotification(
+                      id: DateTime.now().millisecondsSinceEpoch % 100000,
+                      title: isArabic
+                          ? 'تنبيه تجريبي من تطبيق الموظف 🔔'
+                          : 'Test Notification from Employee App',
+                      body: isArabic
+                          ? 'الإشعارات وتتبع الدوام يعملان في الخلفية بشكل ممتاز.'
+                          : 'Notifications and background tracking are functioning perfectly.',
+                    );
+                    if (context.mounted) {
+                      context.showSnackBar(
+                        isArabic
+                            ? 'تم إرسال إشعار تجريبي بنجاح!'
+                            : 'Test notification sent successfully!',
+                      );
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    isArabic ? 'تجربة إشعار' : 'Test',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Notifications List
           Expanded(
             child: filtered.isEmpty

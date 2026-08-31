@@ -70,7 +70,7 @@ class NotificationSeeds {
       createdAt: DateTime.now().subtract(const Duration(days: 2)),
       isRead: true,
       relatedEntityId: 'DED-001',
-      actionRoute: '/notifications/NOTIF-003',
+      actionRoute: null,
     ),
   ];
 }
