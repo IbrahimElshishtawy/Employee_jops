@@ -44,6 +44,8 @@ import '../../features/communication/presentation/screens/request_details_screen
 import '../../features/communication/presentation/screens/my_requests_screen.dart';
 import '../../features/communication/presentation/screens/departments_screen.dart';
 import '../../features/communication/presentation/screens/conversations_screen.dart';
+import '../../features/communication/presentation/screens/chat_settings_screen.dart';
+import '../../features/communication/presentation/screens/conversation_info_screen.dart';
 import '../services/notification_router.dart';
 import 'app_routes.dart';
 import 'main_shell_screen.dart';
@@ -354,6 +356,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const SupportScreen(),
           ),
+          GoRoute(
+            path: 'chat',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const ChatSettingsScreen(),
+          ),
         ],
       ),
 
@@ -390,6 +397,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final convId = state.pathParameters['conversationId'] ?? '';
           return ChatScreen(conversationId: convId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.conversationInfo,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final convId = state.pathParameters['conversationId'] ?? '';
+          return ConversationInfoScreen(conversationId: convId);
         },
       ),
       GoRoute(

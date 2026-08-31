@@ -24,6 +24,7 @@ class AppRoutes {
   static const String departmentEmployees = '/communication/department/:departmentId';
   static const String employeeContact = '/communication/employee/:employeeId';
   static const String chat = '/communication/chat/:conversationId';
+  static const String conversationInfo = '/communication/chat/:conversationId/info';
   static const String newDepartmentRequest = '/communication/request/new';
   static const String departmentRequestDetails = '/communication/request/:requestId';
   static const String myDepartmentRequests = '/communication/my-requests';
@@ -54,6 +55,7 @@ class AppRoutes {
 
   // Settings
   static const String settings = '/settings';
+  static const String chatSettings = '/settings/chat';
   static const String developerDemo = '/settings/demo';
   static const String about = '/settings/about';
   static const String privacyPolicy = '/settings/privacy';

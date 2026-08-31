@@ -81,6 +81,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: ChatAppBar(
         contact: contact,
         onBack: () => context.pop(),
+        onInfoTap: () {
+          context.push('/communication/chat/${widget.conversationId}/info');
+        },
       ),
       body: SafeArea(
         child: Column(

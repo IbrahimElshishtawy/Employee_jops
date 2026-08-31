@@ -124,7 +124,50 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 3. Developer / Demo Controls (Shown in Debug and Demo test mode)
+            // 3. Chat & Messaging Settings
+            SettingsSection(
+              title: context.isArabic ? 'إعدادات المحادثات والتواصل' : 'Chat & Messaging',
+              children: [
+                ListTile(
+                  title: Text(
+                    context.isArabic ? 'إعدادات المحادثات' : 'Chat Settings',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.isArabic
+                        ? 'الإشعارات، الخصوصية، التخزين، والأمان البيومتري'
+                        : 'Notifications, privacy, storage & security',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.chat_outlined,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.chatSettings),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // 4. Developer / Demo Controls (Shown in Debug and Demo test mode)
             SettingsSection(
               title: context.tr('settings.developer_demo'),
               children: [
@@ -159,7 +202,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 4. Help & Support & Policies
+            // 5. Help & Support & Policies
             SettingsSection(
               title: context.isArabic ? 'المساعدة والسياسات' : 'Help & Policies',
               children: [

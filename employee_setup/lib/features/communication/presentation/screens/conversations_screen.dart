@@ -71,6 +71,14 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
               context.push(AppRoutes.departments);
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined,
+                color: AppColors.primary),
+            tooltip: isArabic ? 'إعدادات المحادثات' : 'Chat Settings',
+            onPressed: () {
+              context.push(AppRoutes.chatSettings);
+            },
+          ),
         ],
       ),
       body: SafeArea(
