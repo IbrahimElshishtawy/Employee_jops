@@ -192,10 +192,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Submit form
-      final submitBtn = find.byType(AppButton);
-      await tester.scrollUntilVisible(submitBtn, 100);
+      final submitBtn = find.widgetWithText(AppButton, 'إرسال البلاغ');
+      await tester.ensureVisible(submitBtn);
       await tester.pumpAndSettle();
-      await tester.tap(submitBtn, warnIfMissed: false);
+      await tester.tap(submitBtn);
 
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
