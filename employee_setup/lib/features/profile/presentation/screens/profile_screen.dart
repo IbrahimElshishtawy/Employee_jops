@@ -47,23 +47,6 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showSimpleInfoDialog(BuildContext context, String title, String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('حسنًا'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final employee = ref.watch(currentEmployeeProvider) ?? Employee.defaultMock;

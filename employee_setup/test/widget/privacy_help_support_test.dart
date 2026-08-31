@@ -164,7 +164,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Select Problem Type Dropdown
-      await tester.tap(find.text('اختر نوع المشكلة'));
+      final dropdownHint = find.text('اختر نوع المشكلة');
+      await tester.ensureVisible(dropdownHint);
+      await tester.pumpAndSettle();
+      await tester.tap(dropdownHint);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('مشكلة في تسجيل الدخول أو المصادقة').last);
@@ -182,7 +185,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Toggle attachment
-      await tester.tap(find.text('إرفاق لقطة شاشة توضيحية'));
+      final attachmentTile = find.text('إرفاق لقطة شاشة توضيحية');
+      await tester.ensureVisible(attachmentTile);
+      await tester.pumpAndSettle();
+      await tester.tap(attachmentTile);
       await tester.pumpAndSettle();
 
       // Submit form

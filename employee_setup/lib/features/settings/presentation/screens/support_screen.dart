@@ -71,7 +71,7 @@ class _SupportScreenState extends State<SupportScreen>
       subject: 'طلب تعديل رصيد الإجازات السنوية',
       description: 'تم تقديم طلب إجازة ولم يظهر تحديث الرصيد المتبقي مباشرة في الواجهة.',
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      status: BadgeStatus.inProgress,
+      status: BadgeStatus.pending,
       statusText: 'قيد المعالجة',
     ),
   ];
@@ -478,8 +478,8 @@ class _SupportScreenState extends State<SupportScreen>
                   const SizedBox(height: 8),
                   AppTextField(
                     controller: _subjectController,
-                    hint: context.tr('support.subject_hint'),
-                    prefixIcon: Icons.title_rounded,
+                    hintText: context.tr('support.subject_hint'),
+                    prefixIcon: const Icon(Icons.title_rounded, size: 20),
                     validator: (val) {
                       if (val == null || val.trim().length < 3) {
                         return context.tr('support.subject_required');
@@ -509,7 +509,7 @@ class _SupportScreenState extends State<SupportScreen>
                   const SizedBox(height: 8),
                   AppTextField(
                     controller: _descriptionController,
-                    hint: context.tr('support.description_hint'),
+                    hintText: context.tr('support.description_hint'),
                     maxLines: 4,
                     validator: (val) {
                       if (val == null || val.trim().length < 10) {
