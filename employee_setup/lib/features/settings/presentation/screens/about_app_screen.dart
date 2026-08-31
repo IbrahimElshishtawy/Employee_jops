@@ -144,12 +144,7 @@ class AboutAppScreen extends StatelessWidget {
                     title: context.tr('about.privacy_policy'),
                     subtitle: context.tr('about.privacy_policy_desc'),
                     iconColor: const Color(0xFF10B981),
-                    onTap: () => _showInfoDialog(
-                      context,
-                      context.tr('about.privacy_dialog_title'),
-                      context.tr('about.privacy_dialog_content'),
-                      Icons.privacy_tip_outlined,
-                    ),
+                    onTap: () => context.push(AppRoutes.privacyPolicy),
                   ),
                   const Divider(height: 1),
                   AboutActionTile(
@@ -308,21 +303,15 @@ class AboutAppScreen extends StatelessWidget {
   }
 
   void _handleHelpCenter(BuildContext context) {
-    _showInfoDialog(
-      context,
-      context.tr('about.help_center'),
-      context.tr('about.support_dialog_content'),
-      Icons.help_center_rounded,
-    );
+    context.push(AppRoutes.helpCenter);
   }
 
   void _handleContactSupport(BuildContext context) {
-    // Check if communication route is available
-    context.push(AppRoutes.departments);
+    context.push(AppRoutes.support);
   }
 
   void _handleReportProblem(BuildContext context) {
-    context.push(AppRoutes.newDepartmentRequest);
+    context.push(AppRoutes.support);
   }
 
   void _showInfoDialog(

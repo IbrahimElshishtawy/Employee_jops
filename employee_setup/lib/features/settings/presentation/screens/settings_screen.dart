@@ -159,7 +159,98 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 4. About Application
+            // 4. Help & Support & Policies
+            SettingsSection(
+              title: context.isArabic ? 'المساعدة والسياسات' : 'Help & Policies',
+              children: [
+                ListTile(
+                  title: Text(
+                    context.tr('help.title'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.isArabic ? 'الأسئلة الشائعة ودليل استخدام التطبيق' : 'FAQs and guide',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.help_center_rounded, color: Color(0xFF3B82F6), size: 20),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.helpCenter),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(
+                    context.tr('support.title'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.isArabic ? 'تقديم بلاغ تقني أو استفسار فني' : 'Submit a report or inquiry',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.support_agent_rounded, color: AppColors.primary, size: 20),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.support),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(
+                    context.tr('privacy.title'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.isArabic ? 'حماية البيانات والخصوصية' : 'Data protection & privacy',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.privacy_tip_outlined, color: Color(0xFF10B981), size: 20),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.privacyPolicy),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // 5. About Application
             SettingsSection(
               title: context.tr('about.section_app'),
               children: [

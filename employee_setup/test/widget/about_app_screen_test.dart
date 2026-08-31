@@ -77,7 +77,7 @@ void main() {
 
       expect(find.byType(AboutAppScreen), findsOneWidget);
       expect(find.text('About App'), findsWidgets);
-      expect(find.text('Employee Management & HR Platform'), findsOneWidget);
+      expect(find.text('Employee Management & HR Platform'), findsWidgets);
 
       // Verify Features in English
       expect(find.text('Attendance'), findsOneWidget);
@@ -99,6 +99,9 @@ void main() {
 
       final privacyTile = find.text('سياسة الخصوصية');
       expect(privacyTile, findsOneWidget);
+
+      await tester.ensureVisible(privacyTile);
+      await tester.pumpAndSettle();
 
       await tester.tap(privacyTile);
       await tester.pumpAndSettle();

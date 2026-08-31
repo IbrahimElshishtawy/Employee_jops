@@ -96,24 +96,16 @@ class ProfileScreen extends ConsumerWidget {
                   const Divider(),
                   ProfileMenuItem(
                     title: context.tr('profile.help'),
-                    subtitle: 'مركز الدعم والتواصل مع قسم HR',
+                    subtitle: context.isArabic ? 'الأسئلة الشائعة ومركز الدعم الفني' : 'FAQs & technical support',
                     icon: Icons.help_outline_rounded,
-                    onTap: () => _showSimpleInfoDialog(
-                      context,
-                      'المساعدة والدعم',
-                      'للحصول على الدعم الفني أو الاستفسارات الإدارية، يرجى التواصل مع فريق HR عبر البريد الداخلي hr@company.com أو الرقم الداخلي 104.',
-                    ),
+                    onTap: () => context.push(AppRoutes.helpCenter),
                   ),
                   const Divider(),
                   ProfileMenuItem(
                     title: context.tr('profile.privacy'),
-                    subtitle: 'سياسة الخصوصية وأمان البيانات',
+                    subtitle: context.isArabic ? 'سياسة الخصوصية وأمان البيانات' : 'Data protection & privacy',
                     icon: Icons.privacy_tip_outlined,
-                    onTap: () => _showSimpleInfoDialog(
-                      context,
-                      'سياسة الخصوصية',
-                      'يلتزم التطبيق بحماية كافة البيانات الشخصية وسجلات الحضور وفق أعلى معايير التشفير والأمان المؤسسي.',
-                    ),
+                    onTap: () => context.push(AppRoutes.privacyPolicy),
                   ),
                   const Divider(),
                   ProfileMenuItem(

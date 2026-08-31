@@ -542,13 +542,96 @@ class AppLocalizations {
       'about.all_rights_reserved': 'جميع الحقوق محفوظة.',
       'about.privacy_dialog_title': 'سياسة الخصوصية وأمان البيانات',
       'about.privacy_dialog_content':
-          'يلتزم هذا التطبيق بحماية خصوصية بيانات الموظف ومعلوماته الشخصية وسجلات الحضور والانصراف، ويتم تخزين ومعالجة كافة البيانات وفق أعلى معايير التشفير والأمان المؤسسي.',
-      'about.terms_dialog_title': 'شروط وأحكام الاستخدام',
-      'about.terms_dialog_content':
-          'يُعد هذا التطبيق أداة عمل رسمية مخصصة لموظفي المؤسسة المعتمدين. يُحظر استخدام التطبيق لأي أغراض خارج نطاق العمل أو محاولة التلاعب بالبيانات أو المواقع الجغرافية.',
-      'about.support_dialog_title': 'الدعم والمساعدة',
-      'about.support_dialog_content':
-          'يمكنك التواصل مع فريق الدعم الفني والموارد البشرية عبر قسم المحادثات الداخلية أو عبر البريد الإلكتروني المعتمد.',
+      // Privacy Policy
+      'privacy.title': 'سياسة الخصوصية',
+      'privacy.subtitle': 'تعرف على كيفية جمع واستخدام وحماية وإدارة بياناتك داخل المنظومة.',
+      'privacy.last_updated': 'آخر تحديث: 31 أغسطس 2026',
+      'privacy.sec_intro_title': '1. المقدمة ونطاق التطبيق',
+      'privacy.sec_intro_body':
+          'يُعد تطبيق الموظف منصة عمل داخلية متكاملة مخصصة لموظفي المؤسسة المعتمدين، بهدف تسهيل وإدارة الخدمات الذاتية اليومية مثل تسجيل الحضور والانصراف، تقديم الطلبات الإدارية والمالية، استقبال التنبيهات الرسمية، والتواصل المباشر مع إدارة الموارد البشرية.',
+      'privacy.sec_collected_title': '2. البيانات التي نقوم بمعالجتها',
+      'privacy.sec_collected_account':
+          'بيانات الحساب الوظيفي: تشمل الاسم، الرقم الوظيفي، رقم الهاتف، البريد الإلكتروني المعتمد، المسمى الوظيفي، والقسم التابع له.',
+      'privacy.sec_collected_attendance':
+          'بيانات الحضور والانصراف: تشمل توقيتات تسجيل الحضور والانصراف الدقيقة، سجل الساعات اليومي، وحالة التحقق من التواجد بمقر العمل المعتمد.',
+      'privacy.sec_collected_device':
+          'البيانات الفنية للجهاز: تشمل نوع ونظام تشغيل الجهاز، إصدار التطبيق، ورمز الجلسة الموثقة لضمان أمان الحساب ومنع الاختراق.',
+      'privacy.sec_location_title': '3. معالجة بيانات الموقع الجغرافي (GPS)',
+      'privacy.sec_location_body':
+          'يتم طلب إذن الموقع الجغرافي حصرياً عند قيام الموظف بتسجيل الحضور أو الانصراف للتحقق من تواجده الفعلي ضمن النطاق الجغرافي المعتمد لمقر العمل. لا يقوم التطبيق بتتبع الموظف خارج أوقات العمل أو لأي أغراض أخرى غير معتمدة.',
+      'privacy.sec_usage_title': '4. أغراض استخدام البيانات',
+      'privacy.sec_usage_body':
+          'تُستخدم البيانات للتحقق من هوية الموظف، اعتماد سجلات الدوام الرسمية، معالجة طلبات الإجازات والاستئذان والسُلف، إرسال التنبيهات الإدارية الهامة، وتأمين النظام من أي محاولات وصول غير مصرح بها.',
+      'privacy.sec_security_title': '5. أمن وحماية البيانات',
+      'privacy.sec_security_body':
+          'تخضع جميع البيانات لمعايير أمنية صارمة تشمل التشفير، المصادقة الثنائية والبيومترية، وإدارة الصلاحيات المقيدة، مع حفظ السجلات الحساسة محلياً بشكل مشفر لمنع أي وصول غير مرخص.',
+      'privacy.sec_sharing_title': '6. سرية ومشاركة البيانات',
+      'privacy.sec_sharing_body':
+          'بيانات الموظف سرية للغاية وتُستخدم حصرياً داخل الأنظمة المعتمدة للمؤسسة، ولا يتم بيعها أو مشاركتها أو الإفصاح عنها لأي جهات تجارية أو خارجية.',
+      'privacy.sec_retention_title': '7. مدة الاحتفاظ بالبيانات',
+      'privacy.sec_retention_body':
+          'يتم الاحتفاظ بالبيانات وسجلات الدوام طوال فترة العمل بالمؤسسة ووفقاً لمتطلبات اللوائح الإدارية والسياسات التنظيمية لحفظ السجلات الرسمية.',
+      'privacy.sec_rights_title': '8. حقوق الموظف والتواصل',
+      'privacy.sec_rights_body':
+          'يحق للموظف مراجعة وتحديث بياناته الشخصية وطلب تصحيح أي معلومات غير دقيقة من خلال التواصل المباشر مع إدارة الموارد البشرية عبر القنوات المعتمدة بالتطبيق.',
+
+      // Help Center
+      'help.title': 'مركز المساعدة',
+      'help.header_title': 'كيف يمكننا مساعدتك اليوم؟',
+      'help.header_subtitle': 'ابحث في الأسئلة الشائعة أو اختر القسم المناسب للإجابة الفورية',
+      'help.search_placeholder': 'ابحث عن إجابة أو موضوع في الأسئلة الشائعة...',
+      'help.all_categories': 'الكل',
+      'help.cat_attendance': 'الحضور والانصراف',
+      'help.cat_account': 'الحساب والملف',
+      'help.cat_requests': 'طلبات الموظفين',
+      'help.cat_communication': 'التواصل مع HR',
+      'help.cat_notifications': 'التنبيهات',
+      'help.cat_security': 'الأمان والدخول',
+      'help.no_results_title': 'لم يتم العثور على نتائج تطابق بحثك',
+      'help.no_results_desc': 'جرب البحث بكلمات أخرى أو تواصل مع فريق الدعم الفني مباشرة.',
+      'help.still_need_help': 'لم تجد إجابة لاستفسارك؟',
+      'help.contact_support_cta': 'تواصل مع فريق الدعم الفني',
+
+      // Support
+      'support.title': 'الدعم الفني والمساعدة',
+      'support.header_title': 'نحن هنا لمساعدتك',
+      'support.header_subtitle': 'أرسل بلاغاً أو تواصل مباشرة مع فريق الموارد البشرية والدعم التقني',
+      'support.direct_chat_title': 'محادثة فورية مع الموارد البشرية',
+      'support.direct_chat_desc': 'تواصل مباشرة مع مسؤولي وممثلي الأقسام',
+      'support.official_email_title': 'البريد المعتمد لقسم الدعم',
+      'support.report_tab': 'تقديم بلاغ أو مشكلة',
+      'support.history_tab': 'سجل بلاغاتي السابقة',
+      'support.problem_type': 'نوع المشكلة أو الاستفسار',
+      'support.problem_type_hint': 'اختر نوع المشكلة',
+      'support.type_login': 'مشكلة في تسجيل الدخول أو المصادقة',
+      'support.type_attendance': 'مشكلة في تسجيل الحضور أو إشارة GPS',
+      'support.type_profile': 'مشكلة في البيانات أو الملف الشخصي',
+      'support.type_requests': 'مشكلة في تقديم أو متابعة الطلبات',
+      'support.type_notifications': 'مشكلة في استلام التنبيهات والإشعارات',
+      'support.type_app_error': 'خطأ تقني أو توقف مفاجئ في التطبيق',
+      'support.type_other': 'استفسار أو مشكلة أخرى',
+      'support.subject': 'عنوان البلاغ',
+      'support.subject_hint': 'اكتب ملخصاً موجزاً للمشكلة...',
+      'support.subject_required': 'يرجى إدخال عنوان للبلاغ (3 أحرف على الأقل)',
+      'support.description': 'تفاصيل المشكلة',
+      'support.description_hint': 'اشرح ما حدث بالتفصيل والخطوات لنتمكن من مساعدتك سريعاً...',
+      'support.description_required': 'يرجى كتابة تفاصيل المشكلة (10 أحرف على الأقل)',
+      'support.attachment': 'مرفقات توضيحية (اختياري)',
+      'support.attachment_hint': 'إرفاق لقطة شاشة توضيحية',
+      'support.attachment_added': 'تم إرفاق لقطة الشاشة بنجاح',
+      'support.submit_report': 'إرسال البلاغ إلى الدعم',
+      'support.submitting': 'جاري إرسال البلاغ...',
+      'support.submit_success_title': 'تم استلام بلاغك بنجاح',
+      'support.submit_success_msg': 'تم تسجيل بلاغك في النظام وسيقوم الفريق الفني بمراجعته والتواصل معك.',
+      'support.no_reports_title': 'لا توجد بلاغات سابقة',
+      'support.no_reports_desc': 'عند قيامك بإرسال أي بلاغ فني سيظهر هنا لمتابعة حالته وتحديثاته.',
+      'support.ticket_id': 'رقم البلاغ:',
+      'support.ticket_status': 'الحالة:',
+      'support.status_open': 'جديد',
+      'support.status_in_progress': 'قيد المعالجة',
+      'support.status_resolved': 'تم الحل',
+      'support.status_closed': 'مغلق',
+      'support.view_ticket_details': 'تفاصيل التذكرة',
     },
     'en': {
       // App
@@ -960,9 +1043,96 @@ class AppLocalizations {
       'about.terms_dialog_title': 'Terms of Use',
       'about.terms_dialog_content':
           'This application is an enterprise tool intended strictly for authorized employees. Unauthorized access, tampering with telemetry, or attempting spoofing is strictly prohibited.',
-      'about.support_dialog_title': 'Support & Help',
-      'about.support_dialog_content':
-          'You can contact the IT and HR support teams via internal communications or through corporate support channels.',
+      // Privacy Policy
+      'privacy.title': 'Privacy Policy',
+      'privacy.subtitle': 'Learn how we collect, use, protect, and manage your information.',
+      'privacy.last_updated': 'Last Updated: August 31, 2026',
+      'privacy.sec_intro_title': '1. Introduction & Scope',
+      'privacy.sec_intro_body':
+          'The Employee App is an internal corporate platform designated for authorized employees to manage daily self-service tasks such as attendance, administrative and financial requests, official notifications, and HR communication.',
+      'privacy.sec_collected_title': '2. Information We Process',
+      'privacy.sec_collected_account':
+          'Account Information: Includes full name, employee ID, phone number, corporate email, job title, and assigned department.',
+      'privacy.sec_collected_attendance':
+          'Attendance Information: Includes exact check-in/out timestamps, daily working hour logs, and workplace verification status.',
+      'privacy.sec_collected_device':
+          'Technical Device Information: Includes device model, operating system, application version, and verified session identifiers for account security.',
+      'privacy.sec_location_title': '3. Location Data Processing (GPS)',
+      'privacy.sec_location_body':
+          'Location permission is requested exclusively during attendance check-in/out verification to validate physical presence within the authorized workplace geofence. The application does not track employees outside designated work procedures.',
+      'privacy.sec_usage_title': '4. How We Use Information',
+      'privacy.sec_usage_body':
+          'Information is utilized to verify identity, record official attendance logs, process leave and advance requests, dispatch critical organizational notifications, and safeguard systems against unauthorized access.',
+      'privacy.sec_security_title': '5. Data Security & Protection',
+      'privacy.sec_security_body':
+          'All information is protected by stringent enterprise safeguards including encryption, biometric authentication, role-based access controls, and secure local storage to prevent unauthorized exposure.',
+      'privacy.sec_sharing_title': '6. Data Confidentiality & Sharing',
+      'privacy.sec_sharing_body':
+          'Employee data is strictly confidential and processed solely within authorized corporate systems. It is never sold, shared, or disclosed to unauthorized third parties.',
+      'privacy.sec_retention_title': '7. Data Retention',
+      'privacy.sec_retention_body':
+          'Data and attendance records are retained throughout employment duration in accordance with organizational policies and regulatory record-keeping standards.',
+      'privacy.sec_rights_title': '8. Employee Rights & Inquiries',
+      'privacy.sec_rights_body':
+          'Employees may review and request corrections of personal records by contacting the Human Resources department via internal application channels.',
+
+      // Help Center
+      'help.title': 'Help Center',
+      'help.header_title': 'How can we help you today?',
+      'help.header_subtitle': 'Search frequently asked questions or select a category for instant answers',
+      'help.search_placeholder': 'Search help articles & FAQs...',
+      'help.all_categories': 'All',
+      'help.cat_attendance': 'Attendance',
+      'help.cat_account': 'Account & Profile',
+      'help.cat_requests': 'Requests',
+      'help.cat_communication': 'HR Communication',
+      'help.cat_notifications': 'Notifications',
+      'help.cat_security': 'Security & Login',
+      'help.no_results_title': 'No matching results found',
+      'help.no_results_desc': 'Try searching with different keywords or contact technical support directly.',
+      'help.still_need_help': 'Still need help?',
+      'help.contact_support_cta': 'Contact Support Team',
+
+      // Support
+      'support.title': 'Support & Help',
+      'support.header_title': "We're here to help you",
+      'support.header_subtitle': 'Submit a report or contact the HR and technical support team directly',
+      'support.direct_chat_title': 'Instant HR Chat',
+      'support.direct_chat_desc': 'Chat directly with department representatives',
+      'support.official_email_title': 'Official Support Email',
+      'support.report_tab': 'Report a Problem',
+      'support.history_tab': 'My Reports',
+      'support.problem_type': 'Problem Type',
+      'support.problem_type_hint': 'Select problem type',
+      'support.type_login': 'Login & Authentication Issue',
+      'support.type_attendance': 'Attendance or Location Issue',
+      'support.type_profile': 'Profile or Data Issue',
+      'support.type_requests': 'Requests Issue',
+      'support.type_notifications': 'Notification Issue',
+      'support.type_app_error': 'Application Error / Crash',
+      'support.type_other': 'Other Inquiries',
+      'support.subject': 'Subject',
+      'support.subject_hint': 'Brief summary of the issue...',
+      'support.subject_required': 'Subject is required (at least 3 characters)',
+      'support.description': 'Problem Description',
+      'support.description_hint': 'Describe what happened in detail so we can assist you quickly...',
+      'support.description_required': 'Please enter problem details (at least 10 characters)',
+      'support.attachment': 'Attachment (Optional)',
+      'support.attachment_hint': 'Attach screenshot or supporting document',
+      'support.attachment_added': 'File attached successfully',
+      'support.submit_report': 'Submit Report',
+      'support.submitting': 'Submitting report...',
+      'support.submit_success_title': 'Report Submitted Successfully',
+      'support.submit_success_msg': 'Your report has been logged and the technical team will review and contact you.',
+      'support.no_reports_title': 'No Previous Reports',
+      'support.no_reports_desc': 'When you submit a support ticket, its status and updates will appear here.',
+      'support.ticket_id': 'Ticket ID:',
+      'support.ticket_status': 'Status:',
+      'support.status_open': 'Open',
+      'support.status_in_progress': 'In Progress',
+      'support.status_resolved': 'Resolved',
+      'support.status_closed': 'Closed',
+      'support.view_ticket_details': 'View Ticket Details',
     },
   };
 }

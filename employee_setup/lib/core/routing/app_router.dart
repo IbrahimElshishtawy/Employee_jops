@@ -28,7 +28,10 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/requests/presentation/screens/requests_hub_screen.dart';
 import '../../features/settings/presentation/screens/about_app_screen.dart';
 import '../../features/settings/presentation/screens/developer_demo_screen.dart';
+import '../../features/settings/presentation/screens/help_center_screen.dart';
+import '../../features/settings/presentation/screens/privacy_policy_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/support_screen.dart';
 import '../../features/vacations/presentation/screens/new_vacation_screen.dart';
 import '../../features/vacations/presentation/screens/vacation_details_screen.dart';
 import '../../features/vacations/presentation/screens/vacations_list_screen.dart';
@@ -320,7 +323,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Settings & Demo & About
+      // Settings & Demo & About & Help & Support & Privacy
       GoRoute(
         path: AppRoutes.settings,
         parentNavigatorKey: _rootNavigatorKey,
@@ -335,6 +338,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'about',
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const AboutAppScreen(),
+          ),
+          GoRoute(
+            path: 'privacy',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const PrivacyPolicyScreen(),
+          ),
+          GoRoute(
+            path: 'help',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const HelpCenterScreen(),
+          ),
+          GoRoute(
+            path: 'support',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const SupportScreen(),
           ),
         ],
       ),
