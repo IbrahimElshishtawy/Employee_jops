@@ -141,8 +141,8 @@ void main() {
         MockDatabase.seed().copyWith(
           attendance: const [],
           session: () => AppSession.create(
-            employeeId: 'EMP-1024',
-            email: 'employee@company.com',
+            employeeId: EmployeeSeed.id,
+            email: EmployeeSeed.email,
           ),
         ),
       );

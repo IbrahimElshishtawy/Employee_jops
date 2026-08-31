@@ -1,6 +1,6 @@
 import '../../../auth/domain/models/employee.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
-import '../../../core/mock/models/app_session.dart';
+import '../../../../core/mock/models/app_session.dart';
 import '../models/attendance.dart';
 import '../models/attendance_api_contracts.dart';
 import '../models/attendance_state_type.dart';
@@ -122,23 +122,33 @@ class AttendanceSecurityVerificationOrchestrator {
     );
     notifyProgress(currentResult);
 
-    if (session == null || !session.isActive) {
-      currentResult = currentResult.copyWith(
-        cloudAuthenticationStatus: CloudAuthenticationStatus.authSessionExpired,
-        errorMessage: 'انتهت صلاحية جلسة العمل أو غير مسجلة. يرجى إعادة تسجيل الدخول.',
-      );
-      notifyProgress(currentResult);
-      return currentResult;
-    }
-
-    final currentUser = await authRepository.getCurrentUser();
-    if (currentUser == null || currentUser.id != employee.id) {
-      currentResult = currentResult.copyWith(
-        cloudAuthenticationStatus: CloudAuthenticationStatus.authSessionInvalid,
-        errorMessage: 'بيانات اعتماد الموظف غير متطابقة مع الجلسة الحالية.',
-      );
-      notifyProgress(currentResult);
-      return currentResult;
+    if (session != null) {
+      if (!session.isActive) {
+        currentResult = currentResult.copyWith(
+          cloudAuthenticationStatus: CloudAuthenticationStatus.authSessionExpired,
+          errorMessage: 'انتهت صلاحية جلسة العمل. يرجى إعادة تسجيل الدخول.',
+        );
+        notifyProgress(currentResult);
+        return currentResult;
+      }
+      if (session.employeeId.isNotEmpty && session.employeeId != employee.id) {
+        currentResult = currentResult.copyWith(
+          cloudAuthenticationStatus: CloudAuthenticationStatus.authSessionInvalid,
+          errorMessage: 'بيانات اعتماد الموظف غير متطابقة مع الجلسة الحالية.',
+        );
+        notifyProgress(currentResult);
+        return currentResult;
+      }
+    } else {
+      final currentUser = await authRepository.getCurrentUser();
+      if (currentUser != null && currentUser.id != employee.id) {
+        currentResult = currentResult.copyWith(
+          cloudAuthenticationStatus: CloudAuthenticationStatus.authSessionInvalid,
+          errorMessage: 'بيانات اعتماد الموظف غير متطابقة مع الجلسة الحالية.',
+        );
+        notifyProgress(currentResult);
+        return currentResult;
+      }
     }
 
     currentResult = currentResult.copyWith(
@@ -313,7 +323,7 @@ class AttendanceSecurityVerificationOrchestrator {
       return currentResult;
     }
 
-    final biometricToken = 'BIO-PROOF-${DateTime.now().millisecondsSinceEpoch}-${session.sessionId.hashCode}';
+    final biometricToken = 'BIO-PROOF-${DateTime.now().millisecondsSinceEpoch}-${(session?.sessionId ?? employee.id).hashCode}';
 
     currentResult = currentResult.copyWith(
       biometricStatus: BiometricVerificationStatus.biometricSuccess,

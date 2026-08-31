@@ -17,7 +17,7 @@ import 'package:employee_setup/features/attendance/domain/services/attendance_po
 import 'package:employee_setup/features/attendance/domain/services/attendance_security_orchestrator.dart';
 import 'package:employee_setup/features/attendance/domain/services/geofence_service.dart';
 import 'package:employee_setup/features/attendance/domain/services/work_schedule_service.dart';
-import 'package:employee_setup/features/auth/data/datasources/mock_auth_datasource.dart';
+import 'package:flutter/material.dart';
 import 'package:employee_setup/features/auth/domain/models/employee.dart';
 import 'package:employee_setup/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,7 +30,7 @@ class TestMockAuthRepository implements AuthRepository {
   Future<Employee?> getCurrentUser() async => currentUser;
 
   @override
-  Future<Employee> signInWithGoogle() async => currentUser!;
+  Future<Employee> signInWithGoogle({String? email}) async => currentUser!;
 
   @override
   Future<void> signOut() async {}
@@ -39,6 +39,9 @@ class TestMockAuthRepository implements AuthRepository {
   Future<void> updateEmployee(Employee employee) async {
     currentUser = employee;
   }
+
+  @override
+  Stream<Employee?> get authStateChanges => Stream.value(currentUser);
 }
 
 void main() {
@@ -85,14 +88,7 @@ void main() {
         appVersion: '1.0.0',
       );
 
-      workSchedule = const WorkSchedule(
-        shiftName: 'Standard Morning Shift',
-        shiftNameAr: 'الوردية الصباحية المعتادة',
-        startTime: '09:00',
-        endTime: '17:00',
-        gracePeriodMinutes: 15,
-        allowedRadiusMeters: 10.0,
-      );
+      workSchedule = WorkSchedule.defaultSchedule(employeeId: employee.id);
 
       attendanceApi = MockAttendanceApi(getEmployee: () => employee);
       attendanceRepo = MockAttendanceRepository(storage, attendanceApi);
@@ -147,12 +143,16 @@ void main() {
       expect(stepUpdates.length, greaterThanOrEqualTo(5));
     });
 
-    test('2. Expired/Missing session fails cloud authentication stage', () async {
+    test('2. Expired session fails cloud authentication stage', () async {
+      final expiredSession = session.copyWith(
+        expiresAt: DateTime.now().subtract(const Duration(hours: 1)),
+      );
+
       final result = await orchestrator.executeVerification(
         employee: employee,
         workSchedule: workSchedule,
         todaySummary: const TodayAttendanceSummary(),
-        session: null, // No active session
+        session: expiredSession, // Expired session
         isCheckIn: true,
         isOnline: true,
       );

@@ -36,6 +36,7 @@ import '../features/attendance/domain/models/location_result.dart';
 import '../features/attendance/domain/models/network_risk_info.dart';
 import '../features/attendance/domain/models/work_schedule.dart';
 import '../features/attendance/domain/models/attendance_verification_result.dart';
+import '../features/attendance/domain/repositories/attendance_repository.dart';
 import '../features/attendance/domain/services/attendance_security_orchestrator.dart';
 import '../features/attendance/domain/services/attendance_audit_service.dart';
 import '../features/attendance/domain/services/attendance_policy_service.dart';
@@ -719,8 +720,7 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
         failState = AttendanceStateType.mockLocationDetected;
       } else if (verificationResult.screenSecurityStatus.isFailed) {
         failState = AttendanceStateType.deviceIntegrityFailed;
-      } else if (verificationResult.biometricStatus == BiometricVerificationStatus.biometricUnavailable ||
-          verificationResult.biometricStatus == BiometricVerificationStatus.biometricNotAvailable) {
+      } else if (verificationResult.biometricStatus == BiometricVerificationStatus.biometricNotAvailable) {
         failState = AttendanceStateType.biometricUnavailable;
       } else if (verificationResult.biometricStatus.isFailed) {
         failState = AttendanceStateType.biometricFailed;
