@@ -53,14 +53,25 @@ final _notificationsNavigatorKey = GlobalKey<NavigatorState>(
 );
 final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
+class _AuthRouterListenable extends ChangeNotifier {
+  _AuthRouterListenable(Ref ref) {
+    ref.listen<AuthState>(authProvider, (_, _) {
+      notifyListeners();
+    });
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   NotificationRouter.rootNavigatorKey = _rootNavigatorKey;
-  final authState = ref.watch(authProvider);
+  final refreshListenable = _AuthRouterListenable(ref);
+  ref.onDispose(() => refreshListenable.dispose());
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.splash,
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isSplash = state.matchedLocation == AppRoutes.splash;
       final isLogin = state.matchedLocation == AppRoutes.login;
       final isOnboarding = state.matchedLocation.startsWith('/onboarding');

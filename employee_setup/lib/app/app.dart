@@ -68,12 +68,7 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
-        return Directionality(
-          textDirection: settings.locale.languageCode == 'ar'
-              ? TextDirection.rtl
-              : TextDirection.ltr,
-          child: child ?? const SizedBox.shrink(),
-        );
+        return child ?? const SizedBox.shrink();
       },
     );
   }

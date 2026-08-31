@@ -565,8 +565,8 @@ class AttendanceFlowNotifier extends StateNotifier<AttendanceFlowState> {
   final Ref _ref;
 
   AttendanceFlowNotifier(this._ref) : super(const AttendanceFlowState()) {
-    // Initial silent location query
-    refreshLocation();
+    // Initial silent location query deferred after build
+    Future.microtask(() => refreshLocation());
   }
 
   /// Refreshes current GPS position and distance without triggering attendance submission.
