@@ -10,23 +10,10 @@ import 'home_stats_row.dart';
 
 /// Premium gradient hero header for the Home Dashboard.
 ///
-/// Data sources (all reactive via Riverpod):
-/// - [currentEmployeeProvider]          → name, job title
-/// - [unreadNotificationsCountProvider] → bell badge count
-///
-/// Layout:
-///   ┌─────────────────────────────────────────────────┐
-///   │  gradient (primary → primaryDark)               │
-///   │  [avatar]  Greeting + Name + Title  [🔔 badge]  │
-///   │            Live date                            │
-///   │  ┌────────────────────────────────────────┐    │
-///   │  │  check-in │ pending reqs │ notifications│    │
-///   │  └────────────────────────────────────────┘    │
-///   └─────────────────────────────────────────────────┘
+/// Responsive and notch-safe across all Android and iOS device sizes.
 class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
   const HomeHeader({super.key});
 
-  /// Fixed height: top row (~70) + stats strip (~52) + padding (32) + status bar.
   @override
   Size get preferredSize => const Size.fromHeight(170);
 
@@ -56,138 +43,147 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
           colors: isDark
               ? const [Color(0xFF1A5CB5), Color(0xFF1043A0), Color(0xFF0A2D6E)]
               : const [
-                  AppColors.primary, // #1A73E8
-                  AppColors.primaryDark, // #1557B0
+                  AppColors.primary,
+                  AppColors.primaryDark,
                   Color(0xFF0F3D8A),
                 ],
           stops: const [0.0, 0.55, 1.0],
         ),
       ),
-      child: Stack(
-        children: [
-          // ── Decorative background circles ──────────────────
-          Positioned(top: -30, right: -40, child: _DecorativeCircle(size: 120)),
-          Positioned(
-            bottom: -25,
-            left: -25,
-            child: _DecorativeCircle(size: 100, opacity: 0.05),
-          ),
-          Positioned(
-            top: 20,
-            right: 100,
-            child: _DecorativeCircle(size: 40, opacity: 0.07),
-          ),
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            // Decorative background circles
+            Positioned(
+              top: -30,
+              right: -40,
+              child: const _DecorativeCircle(size: 120),
+            ),
+            Positioned(
+              bottom: -25,
+              left: -25,
+              child: const _DecorativeCircle(size: 100, opacity: 0.05),
+            ),
+            Positioned(
+              top: 20,
+              right: 100,
+              child: const _DecorativeCircle(size: 40, opacity: 0.07),
+            ),
 
-          // ── Main content ───────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 25, 6, 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: avatar + info + bell
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Employee avatar
-                    _EmployeeAvatar(name: employee?.name ?? ''),
-                    const SizedBox(width: 12),
+            // Main content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Top row: Avatar + Greeting & Info + Action Badges
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Employee avatar
+                      _EmployeeAvatar(name: employee?.name ?? ''),
+                      const SizedBox(width: 10),
 
-                    // Greeting, job title, date
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$greeting، $firstName 👋',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (jobTitle.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                      // Greeting, job title, date
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              jobTitle,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.80),
+                              '$greeting، $firstName 👋',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1.2,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                          const SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today_outlined,
-                                size: 12,
-                                color: Colors.white.withValues(alpha: 0.65),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  dateStr,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white.withValues(alpha: 0.65),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                            if (jobTitle.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                jobTitle,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withValues(alpha: 0.85),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 11,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    dateStr,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+
+                      // Test mode badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 0.8,
                           ),
-                        ],
-                      ),
-                    ),
-
-                    // Test mode badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
-                      ),
-                      margin: const EdgeInsets.only(right: 6, left: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 0.8,
+                        ),
+                        child: Text(
+                          context.tr('common.test_mode'),
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                      child: Text(
-                        context.tr('common.test_mode'),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
+                      const SizedBox(width: 6),
+
+                      // Notification bell with badge
+                      _BellButton(
+                        count: unreadCount,
+                        onTap: () => context.go('/notifications'),
                       ),
-                    ),
+                    ],
+                  ),
 
-                    // Notification bell with badge
-                    _BellButton(
-                      count: unreadCount,
-                      onTap: () => context.go('/notifications'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Stats strip
-                const HomeStatsRow(),
-              ],
+                  // Stats strip
+                  HomeStatsRow(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -197,7 +193,6 @@ class HomeHeader extends ConsumerWidget implements PreferredSizeWidget {
 // Private sub-widgets
 // ──────────────────────────────────────────────────────────────
 
-/// Circular decorative element placed behind the header content.
 class _DecorativeCircle extends StatelessWidget {
   final double size;
   final double opacity;
@@ -217,7 +212,6 @@ class _DecorativeCircle extends StatelessWidget {
   }
 }
 
-/// Circular avatar showing the first letter of the employee's name.
 class _EmployeeAvatar extends StatelessWidget {
   final String name;
 
@@ -228,28 +222,28 @@ class _EmployeeAvatar extends StatelessWidget {
     final initial = name.isNotEmpty ? name[0] : 'E';
 
     return Container(
-      width: 54,
-      height: 54,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.9),
-          width: 2.5,
+          color: Colors.white.withValues(alpha: 0.95),
+          width: 2,
         ),
       ),
       child: Center(
         child: Text(
           initial,
           style: const TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: AppColors.primary,
           ),
@@ -259,8 +253,6 @@ class _EmployeeAvatar extends StatelessWidget {
   }
 }
 
-/// Square icon button with notification badge.
-/// RTL-aware: badge is anchored to the logical "end" side.
 class _BellButton extends StatelessWidget {
   final int count;
   final VoidCallback onTap;
@@ -276,11 +268,11 @@ class _BellButton extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.30),
                 width: 1,
@@ -289,19 +281,19 @@ class _BellButton extends StatelessWidget {
             child: const Icon(
               Icons.notifications_outlined,
               color: Colors.white,
-              size: 22,
+              size: 20,
             ),
           ),
           if (count > 0)
             PositionedDirectional(
-              top: -5,
-              end: -5,
+              top: -4,
+              end: -4,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 decoration: BoxDecoration(
                   color: AppColors.error,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.white, width: 1.5),
                 ),
                 child: Center(
@@ -309,7 +301,7 @@ class _BellButton extends StatelessWidget {
                     count > 99 ? '99+' : '$count',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w700,
                       height: 1.0,
                     ),
