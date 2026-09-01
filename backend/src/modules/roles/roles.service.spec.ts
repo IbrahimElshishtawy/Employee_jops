@@ -2,10 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { RolesService } from "./roles.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../common/redis/redis.service";
-import {
-  ConflictException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ConflictException, BadRequestException } from "@nestjs/common";
 
 describe("RolesService", () => {
   let service: RolesService;
