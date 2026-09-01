@@ -75,7 +75,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
         `[Prisma ${exception.code}] ${request.method} ${request.url} - ${exception.message}`,
       );
     } else if (exception instanceof Error) {
-      message = isProduction ? "An unexpected error occurred" : exception.message;
+      message = isProduction
+        ? "An unexpected error occurred"
+        : exception.message;
       this.logger.error(
         `[Unhandled Error] ${request.method} ${request.url} - ${exception.message}`,
         exception.stack,

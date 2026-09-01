@@ -4,8 +4,8 @@ import {
   IsDateString,
   IsEnum,
   IsOptional,
-  IsString,
 } from "class-validator";
+
 import { Transform } from "class-transformer";
 import { NotificationPriority, NotificationType } from "@prisma/client";
 import { PaginationQueryDto } from "../../../common/dto/pagination.dto";

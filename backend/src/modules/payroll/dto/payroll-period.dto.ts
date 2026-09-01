@@ -12,10 +12,10 @@ import {
   MinLength,
 } from "class-validator";
 import {
-  PayrollPeriodStatus,
   PayrollRecordStatus,
   PayrollLineItemType,
 } from "@prisma/client";
+
 import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 export class CreatePayrollPeriodDto {

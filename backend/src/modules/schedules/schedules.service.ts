@@ -1,23 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-
-export interface CreateScheduleInput {
-  name: string;
-  description?: string;
-  workplaceId?: string;
-  startTime: string;
-  endTime: string;
-  graceMinutesCheckIn?: number;
-  graceMinutesCheckOut?: number;
-  workingDays: number[];
-  isDefault?: boolean;
-}
+import { CreateScheduleDto, UpdateScheduleDto } from "./dto";
 
 @Injectable()
 export class SchedulesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: CreateScheduleInput) {
+  async create(data: CreateScheduleDto) {
     return this.prisma.schedule.create({ data });
   }
 
@@ -43,7 +32,7 @@ export class SchedulesService {
     return schedule;
   }
 
-  async update(id: string, data: Partial<CreateScheduleInput>) {
+  async update(id: string, data: UpdateScheduleDto) {
     await this.findOne(id);
     return this.prisma.schedule.update({
       where: { id },
@@ -56,3 +45,4 @@ export class SchedulesService {
     return this.prisma.schedule.delete({ where: { id } });
   }
 }
+

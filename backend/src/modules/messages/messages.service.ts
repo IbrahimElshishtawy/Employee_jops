@@ -513,7 +513,7 @@ export class MessagesService {
       );
     }
 
-    const updated = await this.prisma.chatMessage.update({
+    await this.prisma.chatMessage.update({
       where: { id: messageId },
       data: {
         isDeleted: true,

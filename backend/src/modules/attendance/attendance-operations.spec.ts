@@ -4,11 +4,8 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { ConfigService } from "@nestjs/config";
 import { AttendanceStatus, Role, UserStatus } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
+
 
 describe("Phase 03 — Attendance & Workforce Operations (23+ Scenarios & Safety)", () => {
   let attendanceService: AttendanceService;

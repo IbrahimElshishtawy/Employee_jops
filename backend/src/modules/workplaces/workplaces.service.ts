@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateWorkplaceDto } from "./dto/create-workplace.dto";
+import { UpdateWorkplaceDto } from "./dto/update-workplace.dto";
 
 @Injectable()
 export class WorkplacesService {
@@ -54,7 +55,7 @@ export class WorkplacesService {
     return workplace;
   }
 
-  async update(id: string, dto: Partial<CreateWorkplaceDto>) {
+  async update(id: string, dto: UpdateWorkplaceDto) {
     await this.findOne(id);
     return this.prisma.workplace.update({
       where: { id },

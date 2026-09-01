@@ -1,12 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from "class-validator";
+
 import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 export class CreateConversationDto {

@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { WorkplacesService } from "./workplaces.service";
-import { CreateWorkplaceDto } from "./dto/create-workplace.dto";
+import { CreateWorkplaceDto, UpdateWorkplaceDto } from "./dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -59,7 +59,7 @@ export class WorkplacesController {
   @Patch(":id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Update workplace settings & geofence" })
-  update(@Param("id") id: string, @Body() dto: Partial<CreateWorkplaceDto>) {
+  update(@Param("id") id: string, @Body() dto: UpdateWorkplaceDto) {
     return this.workplacesService.update(id, dto);
   }
 
@@ -70,3 +70,4 @@ export class WorkplacesController {
     return this.workplacesService.remove(id);
   }
 }
+

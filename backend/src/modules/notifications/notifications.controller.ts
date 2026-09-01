@@ -15,8 +15,8 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
-  ApiResponse,
 } from "@nestjs/swagger";
+
 import { NotificationsService } from "./notifications.service";
 import {
   RegisterDeviceTokenDto,

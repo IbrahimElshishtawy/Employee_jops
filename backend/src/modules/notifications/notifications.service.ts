@@ -159,7 +159,7 @@ export class NotificationsService {
     title: string,
     body: string,
     type: NotificationType,
-    data?: any,
+    _data?: any,
   ) {
     const activeTokens = await this.prisma.deviceToken.findMany({
       where: { userId, isActive: true },
