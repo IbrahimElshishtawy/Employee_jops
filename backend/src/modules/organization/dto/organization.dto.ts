@@ -41,7 +41,9 @@ export class CreateOrganizationDto {
   @IsString()
   commercialRegister?: string;
 
-  @ApiPropertyOptional({ example: "Enterprise Hospitality & Workforce Platform" })
+  @ApiPropertyOptional({
+    example: "Enterprise Hospitality & Workforce Platform",
+  })
   @IsOptional()
   @IsString()
   description?: string;
@@ -265,12 +267,16 @@ export class CreateDepartmentDto {
   @IsUUID()
   branchId?: string;
 
-  @ApiPropertyOptional({ description: "Parent Department ID for nested divisions" })
+  @ApiPropertyOptional({
+    description: "Parent Department ID for nested divisions",
+  })
   @IsOptional()
   @IsUUID()
   parentDepartmentId?: string;
 
-  @ApiPropertyOptional({ description: "Head of Department (EmployeeProfile ID)" })
+  @ApiPropertyOptional({
+    description: "Head of Department (EmployeeProfile ID)",
+  })
   @IsOptional()
   @IsUUID()
   headOfDepartmentId?: string;
@@ -285,7 +291,9 @@ export class CreateDepartmentDto {
   @IsNotEmpty()
   code!: string;
 
-  @ApiPropertyOptional({ example: "Handles kitchen, restaurants, and room service" })
+  @ApiPropertyOptional({
+    example: "Handles kitchen, restaurants, and room service",
+  })
   @IsOptional()
   @IsString()
   description?: string;

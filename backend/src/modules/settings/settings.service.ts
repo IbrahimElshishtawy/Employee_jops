@@ -184,9 +184,7 @@ export class SettingsService {
     });
 
     if (existing) {
-      throw new ConflictException(
-        `Feature flag '${dto.key}' already exists`,
-      );
+      throw new ConflictException(`Feature flag '${dto.key}' already exists`);
     }
 
     const flag = await this.prisma.featureFlag.create({

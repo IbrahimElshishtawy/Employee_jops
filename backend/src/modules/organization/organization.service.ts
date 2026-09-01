@@ -311,11 +311,7 @@ export class OrganizationService {
     return branch;
   }
 
-  async updateBranch(
-    id: string,
-    dto: UpdateBranchDto,
-    updaterUserId?: string,
-  ) {
+  async updateBranch(id: string, dto: UpdateBranchDto, updaterUserId?: string) {
     const branch = await this.findBranchById(id);
 
     const updated = await this.prisma.branch.update({
@@ -689,8 +685,12 @@ export class OrganizationService {
         title: dto.title,
         code: dto.code.toUpperCase().trim(),
         level: dto.level,
-        minSalary: dto.minSalary ? new Prisma.Decimal(dto.minSalary) : undefined,
-        maxSalary: dto.maxSalary ? new Prisma.Decimal(dto.maxSalary) : undefined,
+        minSalary: dto.minSalary
+          ? new Prisma.Decimal(dto.minSalary)
+          : undefined,
+        maxSalary: dto.maxSalary
+          ? new Prisma.Decimal(dto.maxSalary)
+          : undefined,
         description: dto.description,
       },
       include: {
@@ -948,9 +948,7 @@ export class OrganizationService {
     });
 
     if (!employee) {
-      throw new NotFoundException(
-        `Employee '${employeeProfileId}' not found`,
-      );
+      throw new NotFoundException(`Employee '${employeeProfileId}' not found`);
     }
 
     // Build chain of command upstream

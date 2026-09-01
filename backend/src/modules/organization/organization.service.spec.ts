@@ -156,9 +156,9 @@ describe("OrganizationService", () => {
 
     it("should throw NotFoundException if hierarchy not found", async () => {
       mockPrismaService.organization.findFirst.mockResolvedValue(null);
-      await expect(service.getOrganizationHierarchy("non-existent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getOrganizationHierarchy("non-existent"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

@@ -38,12 +38,11 @@ export class RolesController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
-  @ApiOperation({ summary: "Create a custom role with optional initial permissions" })
+  @ApiOperation({
+    summary: "Create a custom role with optional initial permissions",
+  })
   @ApiResponse({ status: 201, description: "Role created successfully" })
-  create(
-    @Body() dto: CreateRoleDto,
-    @CurrentUser("id") userId: string,
-  ) {
+  create(@Body() dto: CreateRoleDto, @CurrentUser("id") userId: string) {
     return this.rolesService.create(dto, userId);
   }
 
@@ -91,11 +90,10 @@ export class RolesController {
 
   @Delete(":id")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Delete a custom role (System roles cannot be deleted)" })
-  remove(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  @ApiOperation({
+    summary: "Delete a custom role (System roles cannot be deleted)",
+  })
+  remove(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.rolesService.remove(id, userId);
   }
 

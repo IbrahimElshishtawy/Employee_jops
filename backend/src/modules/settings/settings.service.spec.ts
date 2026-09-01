@@ -58,7 +58,10 @@ describe("SettingsService", () => {
     it("should return cached setting if available in redis", async () => {
       mockRedisService.get.mockResolvedValue(JSON.stringify(15));
 
-      const val = await service.getSetting("attendance_grace_period_minutes", 10);
+      const val = await service.getSetting(
+        "attendance_grace_period_minutes",
+        10,
+      );
       expect(val).toBe(15);
       expect(mockPrismaService.systemSetting.findUnique).not.toHaveBeenCalled();
     });
@@ -71,7 +74,10 @@ describe("SettingsService", () => {
         value: 20,
       });
 
-      const val = await service.getSetting("attendance_grace_period_minutes", 10);
+      const val = await service.getSetting(
+        "attendance_grace_period_minutes",
+        10,
+      );
       expect(val).toBe(20);
       expect(mockRedisService.set).toHaveBeenCalledWith(
         "setting:attendance_grace_period_minutes",

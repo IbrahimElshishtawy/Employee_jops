@@ -41,7 +41,9 @@ export class SettingsController {
 
   @Get("public")
   @Public()
-  @ApiOperation({ summary: "Get public system settings (Unauthenticated bootstrap endpoint)" })
+  @ApiOperation({
+    summary: "Get public system settings (Unauthenticated bootstrap endpoint)",
+  })
   getPublicSettings() {
     return this.settingsService.getPublicSettings();
   }
@@ -63,7 +65,9 @@ export class SettingsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Set or update a system setting (Super Admin only)" })
+  @ApiOperation({
+    summary: "Set or update a system setting (Super Admin only)",
+  })
   @ApiResponse({ status: 201, description: "Setting saved successfully" })
   setSetting(
     @Body() dto: SetSystemSettingDto,
@@ -77,10 +81,7 @@ export class SettingsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: "Delete a system setting (Super Admin only)" })
-  deleteSetting(
-    @Param("key") key: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteSetting(@Param("key") key: string, @CurrentUser("id") userId: string) {
     return this.settingsService.deleteSetting(key, userId);
   }
 

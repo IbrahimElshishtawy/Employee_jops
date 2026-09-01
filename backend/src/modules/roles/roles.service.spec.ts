@@ -82,7 +82,9 @@ describe("RolesService", () => {
         name: "Payroll Officer",
         slug: "payroll-officer",
         isSystem: false,
-        rolePermissions: [{ permission: { id: "perm-1", slug: "payroll:read" } }],
+        rolePermissions: [
+          { permission: { id: "perm-1", slug: "payroll:read" } },
+        ],
       });
       mockPrismaService.auditLog.create.mockResolvedValue({});
 
@@ -143,7 +145,9 @@ describe("RolesService", () => {
 
       const res = await service.remove("role-custom", "admin-id");
       expect(res.message).toContain("deleted successfully");
-      expect(mockRedisService.del).toHaveBeenCalledWith("user:permissions:user-1");
+      expect(mockRedisService.del).toHaveBeenCalledWith(
+        "user:permissions:user-1",
+      );
     });
   });
 
@@ -189,25 +193,27 @@ describe("RolesService", () => {
       mockPrismaService.auditLog.create.mockResolvedValue({});
 
       // Mock return for getUserRolesAndPermissions
-      mockPrismaService.user.findUnique.mockResolvedValueOnce({
-        id: "user-1",
-        email: "test@example.com",
-      }).mockResolvedValueOnce({
-        id: "user-1",
-        email: "test@example.com",
-        role: "EMPLOYEE",
-        userRoles: [
-          {
-            role: {
-              id: "role-1",
-              name: "HR Manager",
-              slug: "hr-manager",
-              isActive: true,
-              rolePermissions: [{ permission: { slug: "employees:read" } }],
+      mockPrismaService.user.findUnique
+        .mockResolvedValueOnce({
+          id: "user-1",
+          email: "test@example.com",
+        })
+        .mockResolvedValueOnce({
+          id: "user-1",
+          email: "test@example.com",
+          role: "EMPLOYEE",
+          userRoles: [
+            {
+              role: {
+                id: "role-1",
+                name: "HR Manager",
+                slug: "hr-manager",
+                isActive: true,
+                rolePermissions: [{ permission: { slug: "employees:read" } }],
+              },
             },
-          },
-        ],
-      });
+          ],
+        });
 
       const res = await service.assignRolesToUser(
         { userId: "user-1", roleSlugs: ["hr-manager"] },

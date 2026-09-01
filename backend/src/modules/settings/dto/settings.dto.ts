@@ -11,7 +11,7 @@ import {
   Min,
 } from "class-validator";
 import { SettingCategory } from "@prisma/client";
-import { PaginationQueryDto } from "../../common/dto/pagination.dto";
+import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 
 // ==========================================
 // SYSTEM SETTING DTOs
@@ -27,7 +27,8 @@ export class SetSystemSettingDto {
   key!: string;
 
   @ApiProperty({
-    description: "Setting value (can be string, number, boolean, or complex object)",
+    description:
+      "Setting value (can be string, number, boolean, or complex object)",
     example: 15,
   })
   @IsNotEmpty()

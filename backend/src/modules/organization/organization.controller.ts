@@ -74,8 +74,16 @@ export class OrganizationController {
   }
 
   @Get("reporting-tree/:employeeProfileId")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
-  @ApiOperation({ summary: "Get employee reporting lines (Chain of command & direct reports)" })
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
+  @ApiOperation({
+    summary: "Get employee reporting lines (Chain of command & direct reports)",
+  })
   getReportingTree(@Param("employeeProfileId") empId: string) {
     return this.orgService.getEmployeeReportingHierarchy(empId);
   }
@@ -154,10 +162,7 @@ export class OrganizationController {
   @Delete("branches/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete branch" })
-  deleteBranch(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteBranch(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.orgService.deleteBranch(id, userId);
   }
 
@@ -209,10 +214,7 @@ export class OrganizationController {
   @Delete("departments/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete department" })
-  deleteDepartment(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteDepartment(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.orgService.deleteDepartment(id, userId);
   }
 
@@ -259,10 +261,7 @@ export class OrganizationController {
   @Delete("sections/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete section" })
-  deleteSection(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteSection(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.orgService.deleteSection(id, userId);
   }
 
@@ -313,10 +312,7 @@ export class OrganizationController {
   @Delete("positions/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete position" })
-  deletePosition(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deletePosition(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.orgService.deletePosition(id, userId);
   }
 }

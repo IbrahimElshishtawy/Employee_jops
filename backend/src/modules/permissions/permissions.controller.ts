@@ -30,18 +30,19 @@ export class PermissionsController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Create a new granular permission (Super Admin only)" })
+  @ApiOperation({
+    summary: "Create a new granular permission (Super Admin only)",
+  })
   @ApiResponse({ status: 201, description: "Permission created successfully" })
-  create(
-    @Body() dto: CreatePermissionDto,
-    @CurrentUser("id") userId: string,
-  ) {
+  create(@Body() dto: CreatePermissionDto, @CurrentUser("id") userId: string) {
     return this.permissionsService.create(dto, userId);
   }
 
   @Get()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "List all permissions with filtering and pagination" })
+  @ApiOperation({
+    summary: "List all permissions with filtering and pagination",
+  })
   findAll(@Query() query: QueryPermissionsDto) {
     return this.permissionsService.findAll(query);
   }
