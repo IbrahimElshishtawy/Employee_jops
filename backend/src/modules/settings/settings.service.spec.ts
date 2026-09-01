@@ -2,13 +2,10 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SettingsService } from "./settings.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../common/redis/redis.service";
-import { ConflictException, NotFoundException } from "@nestjs/common";
 import { SettingCategory } from "@prisma/client";
 
 describe("SettingsService", () => {
   let service: SettingsService;
-  let prisma: PrismaService;
-  let redis: RedisService;
 
   const mockPrismaService = {
     systemSetting: {
@@ -45,8 +42,6 @@ describe("SettingsService", () => {
     }).compile();
 
     service = module.get<SettingsService>(SettingsService);
-    prisma = module.get<PrismaService>(PrismaService);
-    redis = module.get<RedisService>(RedisService);
     jest.clearAllMocks();
   });
 

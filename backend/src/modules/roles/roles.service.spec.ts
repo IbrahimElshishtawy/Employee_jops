@@ -4,14 +4,11 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../common/redis/redis.service";
 import {
   ConflictException,
-  NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 
 describe("RolesService", () => {
   let service: RolesService;
-  let prisma: PrismaService;
-  let redis: RedisService;
 
   const mockPrismaService = {
     roleRecord: {
@@ -62,8 +59,6 @@ describe("RolesService", () => {
     }).compile();
 
     service = module.get<RolesService>(RolesService);
-    prisma = module.get<PrismaService>(PrismaService);
-    redis = module.get<RedisService>(RedisService);
     jest.clearAllMocks();
   });
 

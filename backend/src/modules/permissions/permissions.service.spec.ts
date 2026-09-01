@@ -6,7 +6,6 @@ import { PermissionAction, PermissionSubject } from "@prisma/client";
 
 describe("PermissionsService", () => {
   let service: PermissionsService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     permission: {
@@ -30,7 +29,6 @@ describe("PermissionsService", () => {
     }).compile();
 
     service = module.get<PermissionsService>(PermissionsService);
-    prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 
