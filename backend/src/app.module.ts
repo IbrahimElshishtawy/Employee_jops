@@ -20,6 +20,11 @@ import { MessagesModule } from "./modules/messages/messages.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { AuditLogsModule } from "./modules/audit-logs/audit-logs.module";
 
+import { OrganizationModule } from "./modules/organization/organization.module";
+import { RolesModule } from "./modules/roles/roles.module";
+import { PermissionsModule } from "./modules/permissions/permissions.module";
+import { SettingsModule } from "./modules/settings/settings.module";
+
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
@@ -52,6 +57,10 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     // Domain Modules
     HealthModule,
     AuthModule,
+    OrganizationModule,
+    RolesModule,
+    PermissionsModule,
+    SettingsModule,
     EmployeesModule,
     WorkplacesModule,
     AttendanceModule,
