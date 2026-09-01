@@ -1,10 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  IsBoolean,
-  IsDateString,
-  IsEnum,
-  IsOptional,
-} from "class-validator";
+import { IsBoolean, IsDateString, IsEnum, IsOptional } from "class-validator";
 
 import { Transform } from "class-transformer";
 import { NotificationPriority, NotificationType } from "@prisma/client";

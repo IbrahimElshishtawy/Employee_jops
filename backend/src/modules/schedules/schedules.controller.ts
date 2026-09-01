@@ -70,4 +70,3 @@ export class SchedulesController {
     return this.schedulesService.remove(id);
   }
 }
-

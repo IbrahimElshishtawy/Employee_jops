@@ -6,7 +6,6 @@ import { ConfigService } from "@nestjs/config";
 import { AttendanceStatus, Role, UserStatus } from "@prisma/client";
 import { ForbiddenException } from "@nestjs/common";
 
-
 describe("Phase 03 — Attendance & Workforce Operations (23+ Scenarios & Safety)", () => {
   let attendanceService: AttendanceService;
 

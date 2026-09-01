@@ -70,4 +70,3 @@ export class WorkplacesController {
     return this.workplacesService.remove(id);
   }
 }
-

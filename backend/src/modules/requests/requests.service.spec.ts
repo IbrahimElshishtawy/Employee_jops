@@ -11,11 +11,7 @@ import {
   AuditAction,
   AttendanceStatus,
 } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("Phase 04 — Employee Requests & Leave Management (30 Mandatory Scenarios)", () => {
   let requestsService: RequestsService;

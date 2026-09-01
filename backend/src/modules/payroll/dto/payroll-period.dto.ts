@@ -11,10 +11,7 @@ import {
   Min,
   MinLength,
 } from "class-validator";
-import {
-  PayrollRecordStatus,
-  PayrollLineItemType,
-} from "@prisma/client";
+import { PayrollRecordStatus, PayrollLineItemType } from "@prisma/client";
 
 import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 

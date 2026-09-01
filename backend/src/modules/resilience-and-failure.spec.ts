@@ -8,8 +8,6 @@ import { ConfigService } from "@nestjs/config";
 
 describe("Production Resilience & Failure Injection Suite", () => {
   let healthController: HealthController;
-  let prismaService: PrismaService;
-  let redisService: RedisService;
 
   const mockPrisma: any = {
     $queryRaw: jest.fn(),
@@ -49,8 +47,6 @@ describe("Production Resilience & Failure Injection Suite", () => {
     }).compile();
 
     healthController = module.get<HealthController>(HealthController);
-    prismaService = module.get<PrismaService>(PrismaService);
-    redisService = module.get<RedisService>(RedisService);
     jest.clearAllMocks();
   });
 

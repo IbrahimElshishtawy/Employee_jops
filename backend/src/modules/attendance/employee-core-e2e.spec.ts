@@ -8,17 +8,12 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { AccountState } from "../../common/enums/account-state.enum";
 import { UserStatus, Role, AttendanceStatus } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("Employee Core — 10 Mandatory E2E Scenarios", () => {
   let authService: AuthService;
   let employeesService: EmployeesService;
   let attendanceService: AttendanceService;
-  let prisma: PrismaService;
 
   // Mock In-Memory Store
   const mockWorkplace = {
@@ -244,7 +239,6 @@ describe("Employee Core — 10 Mandatory E2E Scenarios", () => {
     authService = module.get<AuthService>(AuthService);
     employeesService = module.get<EmployeesService>(EmployeesService);
     attendanceService = module.get<AttendanceService>(AttendanceService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   // ============================================================

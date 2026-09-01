@@ -11,11 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
 import { NotificationsService } from "./notifications.service";
 import {

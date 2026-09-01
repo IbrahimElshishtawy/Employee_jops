@@ -7,11 +7,7 @@ import {
   UseGuards,
   Param,
 } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
 import { AttendanceService } from "./attendance.service";
 import { CheckInDto } from "./dto/check-in.dto";

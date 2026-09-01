@@ -21,4 +21,3 @@ export class AuditLogsController {
     return this.auditLogsService.findAll(query, query.action, query.entity);
   }
 }
-

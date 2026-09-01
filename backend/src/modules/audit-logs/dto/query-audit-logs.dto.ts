@@ -10,7 +10,8 @@ export class QueryAuditLogsDto extends PaginationQueryDto {
   action?: AuditAction;
 
   @ApiPropertyOptional({
-    description: "Filter by entity name (e.g. EmployeeProfile, AttendanceRecord)",
+    description:
+      "Filter by entity name (e.g. EmployeeProfile, AttendanceRecord)",
   })
   @IsString()
   @IsOptional()

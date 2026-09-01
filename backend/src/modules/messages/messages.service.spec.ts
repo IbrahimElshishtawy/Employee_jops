@@ -3,18 +3,11 @@ import { MessagesService } from "./messages.service";
 import { RealTimeService } from "./realtime.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { Role } from "@prisma/client";
 
 describe("MessagesService (Phase 06 Messaging Test Suite)", () => {
   let messagesService: MessagesService;
-  let realtimeService: RealTimeService;
-  let prisma: PrismaService;
-  let notificationsService: NotificationsService;
 
   const mockSenderId = "user-emp-1";
   const mockRecipientId = "user-hr-1";
@@ -71,10 +64,6 @@ describe("MessagesService (Phase 06 Messaging Test Suite)", () => {
     }).compile();
 
     messagesService = module.get<MessagesService>(MessagesService);
-    prisma = module.get<PrismaService>(PrismaService);
-    notificationsService =
-      module.get<NotificationsService>(NotificationsService);
-    realtimeService = module.get<RealTimeService>(RealTimeService);
 
     jest.clearAllMocks();
   });

@@ -6,10 +6,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "./notifications.service";
-import {
-  CreateAnnouncementDto,
-  QueryAnnouncementsDto,
-} from "./dto";
+import { CreateAnnouncementDto, QueryAnnouncementsDto } from "./dto";
 
 import {
   AnnouncementStatus,

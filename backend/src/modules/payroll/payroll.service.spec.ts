@@ -3,31 +3,23 @@ import { PayrollService } from "./payroll.service";
 import { PayrollCalculatorService } from "./payroll-calculator.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import {
   Role,
   UserStatus,
   AdvanceStatus,
   InstallmentStatus,
   PayrollPeriodStatus,
-  PayrollRecordStatus,
   PayrollLineItemType,
   DeductionType,
   AttendanceStatus,
   RequestType,
-  RequestStatus,
   Prisma,
 } from "@prisma/client";
 
 describe("PayrollService & PayrollCalculatorService (Phase 05 Full Test Suite)", () => {
   let payrollService: PayrollService;
   let payrollCalculator: PayrollCalculatorService;
-  let prisma: PrismaService;
-  let notificationsService: NotificationsService;
 
   const mockEmployeeId = "emp-test-uuid-1";
   const mockUserId = "user-test-uuid-1";
@@ -124,9 +116,6 @@ describe("PayrollService & PayrollCalculatorService (Phase 05 Full Test Suite)",
     payrollCalculator = module.get<PayrollCalculatorService>(
       PayrollCalculatorService,
     );
-    prisma = module.get<PrismaService>(PrismaService);
-    notificationsService =
-      module.get<NotificationsService>(NotificationsService);
 
     jest.clearAllMocks();
   });

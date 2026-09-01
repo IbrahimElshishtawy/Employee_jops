@@ -2,11 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { NotificationsService } from "./notifications.service";
 import { AnnouncementsService } from "./announcements.service";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ForbiddenException, BadRequestException } from "@nestjs/common";
 import {
   NotificationType,
   NotificationPriority,
@@ -19,7 +15,6 @@ import {
 describe("NotificationsService & AnnouncementsService (Phase 06 Full Test Suite)", () => {
   let notificationsService: NotificationsService;
   let announcementsService: AnnouncementsService;
-  let prisma: PrismaService;
 
   const mockUserId = "user-test-uuid-1";
   const mockOtherUserId = "user-other-uuid-2";
@@ -80,7 +75,6 @@ describe("NotificationsService & AnnouncementsService (Phase 06 Full Test Suite)
       module.get<NotificationsService>(NotificationsService);
     announcementsService =
       module.get<AnnouncementsService>(AnnouncementsService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

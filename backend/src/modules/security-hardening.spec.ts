@@ -7,12 +7,11 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { NotificationsService } from "./notifications/notifications.service";
 import { PayrollCalculatorService } from "./payroll/payroll-calculator.service";
-import { Role, UserStatus, AuditAction } from "@prisma/client";
+import { Role, UserStatus } from "@prisma/client";
 
 describe("Phase 09 — Security Hardening, E2E & Concurrency Suite", () => {
   let authService: AuthService;
   let payrollService: PayrollService;
-  let prisma: PrismaService;
 
   const mockPrisma: any = {
     user: {
@@ -77,7 +76,6 @@ describe("Phase 09 — Security Hardening, E2E & Concurrency Suite", () => {
 
     authService = module.get<AuthService>(AuthService);
     payrollService = module.get<PayrollService>(PayrollService);
-    prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 

@@ -45,4 +45,3 @@ export class SchedulesService {
     return this.prisma.schedule.delete({ where: { id } });
   }
 }
-
