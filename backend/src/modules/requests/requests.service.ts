@@ -6,6 +6,9 @@ import {
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
+import { RequestsRepository } from "./requests.repository";
+import { WorkflowService } from "../workflow/workflow.service";
+import { ApprovalsService } from "../approvals/approvals.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import {
   CreateRequestDto,
@@ -21,10 +24,9 @@ import {
   RequestType,
   AuditAction,
   NotificationType,
-  AttendanceStatus,
   UserStatus,
-  Prisma,
   Role,
+  WorkflowAction,
 } from "@prisma/client";
 
 @Injectable()
@@ -33,6 +35,9 @@ export class RequestsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly requestsRepo: RequestsRepository,
+    private readonly workflowService: WorkflowService,
+    private readonly approvalsService: ApprovalsService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -73,15 +78,11 @@ export class RequestsService {
     leaveType: RequestType,
     year: number,
   ) {
-    const existing = await this.prisma.leaveBalance.findUnique({
-      where: {
-        employeeId_leaveType_year: {
-          employeeId,
-          leaveType,
-          year,
-        },
-      },
-    });
+    const existing = await this.requestsRepo.findLeaveBalance(
+      employeeId,
+      leaveType,
+      year,
+    );
 
     if (existing) {
       return existing;
@@ -92,21 +93,19 @@ export class RequestsService {
     if (leaveType === RequestType.SICK_LEAVE) totalDays = 15;
     if (leaveType === RequestType.EMERGENCY_LEAVE) totalDays = 5;
 
-    return this.prisma.leaveBalance.create({
-      data: {
-        employeeId,
-        leaveType,
-        year,
-        totalDays,
-        usedDays: 0,
-        pendingDays: 0,
-        remainingDays: totalDays,
-      },
+    return this.requestsRepo.createLeaveBalance({
+      employeeId,
+      leaveType,
+      year,
+      totalDays,
+      usedDays: 0,
+      pendingDays: 0,
+      remainingDays: totalDays,
     });
   }
 
   /**
-   * 1. Submit a new employee request (Idempotent, IDOR protected)
+   * 1. Submit a new employee request (Integrated with Workflow Engine, Idempotent, IDOR protected)
    */
   async create(userId: string, dto: CreateRequestDto) {
     const user = await this.prisma.user.findUnique({
@@ -130,10 +129,9 @@ export class RequestsService {
 
     // 1. Idempotency Check
     if (dto.idempotencyKey) {
-      const existingRequest = await this.prisma.request.findUnique({
-        where: { idempotencyKey: dto.idempotencyKey },
-        include: { approvalSteps: true },
-      });
+      const existingRequest = await this.requestsRepo.findByIdempotencyKey(
+        dto.idempotencyKey,
+      );
       if (existingRequest) {
         if (existingRequest.employeeId !== employeeId) {
           throw new ForbiddenException(
@@ -173,14 +171,11 @@ export class RequestsService {
     }
 
     // 4. Overlapping Approved Request Validation
-    const conflictingApproved = await this.prisma.request.findFirst({
-      where: {
-        employeeId,
-        status: RequestStatus.APPROVED,
-        startDate: { lte: endDate },
-        endDate: { gte: startDate },
-      },
-    });
+    const conflictingApproved = await this.requestsRepo.findConflictingApproved(
+      employeeId,
+      startDate,
+      endDate,
+    );
 
     if (conflictingApproved) {
       throw new BadRequestException(
@@ -209,36 +204,34 @@ export class RequestsService {
       }
     }
 
-    // 6. Create Request
-    const request = await this.prisma.request.create({
-      data: {
-        idempotencyKey: dto.idempotencyKey,
-        employeeId,
-        type: dto.type,
-        status: RequestStatus.PENDING,
-        startDate,
-        endDate,
-        startTime: dto.startTime,
-        endTime: dto.endTime,
-        halfDayPeriod: dto.halfDayPeriod,
-        reason: dto.reason,
-        attachmentUrl: dto.attachmentUrl,
-        metadata: dto.metadata as Prisma.InputJsonValue,
-      },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            employeeCode: true,
-            firstName: true,
-            lastName: true,
-            department: true,
-          },
-        },
-      },
+    // 6. Match Workflow
+    const workflowMatch = await this.workflowService.matchWorkflow({
+      requestType: dto.type,
+      departmentId: user.employeeProfile.departmentId,
+      role: user.role,
+      days: daysRequested,
     });
 
-    // 7. Record Audit Log
+    // 7. Create Request
+    const request = await this.requestsRepo.create({
+      idempotencyKey: dto.idempotencyKey,
+      employeeId,
+      type: dto.type,
+      status: RequestStatus.PENDING,
+      startDate,
+      endDate,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+      halfDayPeriod: dto.halfDayPeriod,
+      reason: dto.reason,
+      attachmentUrl: dto.attachmentUrl,
+      workflowId: workflowMatch.workflowId,
+      currentStepOrder: 1,
+      totalSteps: workflowMatch.totalSteps,
+      metadata: dto.metadata,
+    });
+
+    // 8. Record Audit Log
     await this.prisma.auditLog.create({
       data: {
         userId,
@@ -250,6 +243,8 @@ export class RequestsService {
           startDate: dto.startDate,
           endDate: dto.endDate,
           daysRequested,
+          workflowId: workflowMatch.workflowId,
+          totalSteps: workflowMatch.totalSteps,
           idempotencyKey: dto.idempotencyKey,
         },
       },
@@ -265,76 +260,7 @@ export class RequestsService {
     employeeProfileId: string,
     query: Partial<QueryRequestsDto> = {},
   ) {
-    const {
-      page = 1,
-      limit = 10,
-      status,
-      type,
-      startDate,
-      endDate,
-      search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = query;
-
-    const skip = (page - 1) * limit;
-    const where: Prisma.RequestWhereInput = {
-      employeeId: employeeProfileId,
-    };
-
-    if (status) where.status = status;
-    if (type) where.type = type;
-
-    if (startDate || endDate) {
-      where.AND = [];
-      if (startDate) {
-        (where.AND as any[]).push({
-          endDate: { gte: this.parseDateOnly(startDate) },
-        });
-      }
-      if (endDate) {
-        (where.AND as any[]).push({
-          startDate: { lte: this.parseDateOnly(endDate) },
-        });
-      }
-    }
-
-    if (search) {
-      where.reason = { contains: search, mode: "insensitive" };
-    }
-
-    const [total, data] = await Promise.all([
-      this.prisma.request.count({ where }),
-      this.prisma.request.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          approvalSteps: {
-            include: {
-              approver: {
-                select: {
-                  id: true,
-                  email: true,
-                  role: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-    ]);
-
-    return {
-      data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.requestsRepo.findMyRequests(employeeProfileId, query);
   }
 
   /**
@@ -344,37 +270,7 @@ export class RequestsService {
     requestId: string,
     currentUser: { id: string; role: Role; employeeProfileId?: string },
   ) {
-    const request = await this.prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            employeeCode: true,
-            firstName: true,
-            lastName: true,
-            jobTitle: true,
-            department: true,
-            workplace: { select: { id: true, name: true, code: true } },
-            schedule: {
-              select: { id: true, name: true, startTime: true, endTime: true },
-            },
-          },
-        },
-        approvalSteps: {
-          include: {
-            approver: {
-              select: {
-                id: true,
-                email: true,
-                role: true,
-              },
-            },
-          },
-          orderBy: { createdAt: "asc" },
-        },
-      },
-    });
+    const request = await this.requestsRepo.findById(requestId);
 
     if (!request) {
       throw new NotFoundException("Request not found");
@@ -388,7 +284,6 @@ export class RequestsService {
       Role.SUPERVISOR,
     ];
     const isHr = hrRoles.includes(currentUser.role);
-
     const isOwner = currentUser.employeeProfileId === request.employeeId;
 
     if (!isHr && !isOwner) {
@@ -408,10 +303,7 @@ export class RequestsService {
     currentUser: { id: string; employeeProfileId?: string; role: Role },
     dto?: CancelRequestDto,
   ) {
-    const request = await this.prisma.request.findUnique({
-      where: { id: requestId },
-      include: { employee: true },
-    });
+    const request = await this.requestsRepo.findById(requestId);
 
     if (!request) {
       throw new NotFoundException("Request not found");
@@ -463,423 +355,43 @@ export class RequestsService {
    * 5. HR Request Queue: List all requests with comprehensive filters
    */
   async findAll(query: Partial<QueryRequestsDto> = {}) {
-    const {
-      page = 1,
-      limit = 10,
-      status,
-      type,
-      employeeId,
-      department,
-      workplaceId,
-      startDate,
-      endDate,
-      search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = query;
-
-    const skip = (page - 1) * limit;
-    const where: Prisma.RequestWhereInput = {};
-
-    if (status) where.status = status;
-    if (type) where.type = type;
-    if (employeeId) where.employeeId = employeeId;
-
-    if (department || workplaceId) {
-      where.employee = {};
-      if (department) where.employee.department = department;
-      if (workplaceId) where.employee.workplaceId = workplaceId;
-    }
-
-    if (startDate || endDate) {
-      where.AND = [];
-      if (startDate) {
-        (where.AND as any[]).push({
-          endDate: { gte: this.parseDateOnly(startDate) },
-        });
-      }
-      if (endDate) {
-        (where.AND as any[]).push({
-          startDate: { lte: this.parseDateOnly(endDate) },
-        });
-      }
-    }
-
-    if (search) {
-      where.OR = [
-        { reason: { contains: search, mode: "insensitive" } },
-        { employee: { firstName: { contains: search, mode: "insensitive" } } },
-        { employee: { lastName: { contains: search, mode: "insensitive" } } },
-        {
-          employee: { employeeCode: { contains: search, mode: "insensitive" } },
-        },
-      ];
-    }
-
-    const [total, data] = await Promise.all([
-      this.prisma.request.count({ where }),
-      this.prisma.request.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          employee: {
-            select: {
-              id: true,
-              employeeCode: true,
-              firstName: true,
-              lastName: true,
-              jobTitle: true,
-              department: true,
-              workplace: { select: { id: true, name: true } },
-            },
-          },
-          approvalSteps: {
-            include: {
-              approver: { select: { id: true, email: true, role: true } },
-            },
-          },
-        },
-      }),
-    ]);
-
-    return {
-      data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.requestsRepo.findAll(query);
   }
 
   /**
-   * 6. Approve Request (Transactional: Request + LeaveBalance + Attendance Integration + Audit + Notification)
+   * 6. Approve Request (Backward compatible endpoint: routes to Approvals Engine)
    */
   async approve(
     requestId: string,
     approverUserId: string,
     dto?: ApproveRequestDto,
   ) {
-    const request = await this.prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        employee: {
-          include: {
-            user: true,
-          },
-        },
+    return this.approvalsService.processApprovalStep(
+      requestId,
+      approverUserId,
+      {
+        action: WorkflowAction.APPROVE,
+        comment: dto?.comment || "Approved by HR",
       },
-    });
-
-    if (!request) {
-      throw new NotFoundException("Request not found");
-    }
-
-    if (request.status === RequestStatus.APPROVED) {
-      throw new BadRequestException("Request is already approved");
-    }
-
-    if (request.status !== RequestStatus.PENDING) {
-      throw new BadRequestException(
-        `Cannot approve request in ${request.status} status. Only PENDING requests can be approved.`,
-      );
-    }
-
-    const startDate = new Date(request.startDate);
-    const endDate = new Date(request.endDate);
-    const requestYear = startDate.getUTCFullYear();
-    const daysRequested = this.calculateDaysCount(
-      startDate,
-      endDate,
-      request.type,
     );
-
-    // Perform atomic transaction
-    const updated = await this.prisma.$transaction(async (tx) => {
-      // 1. Update Request
-      const updatedReq = await tx.request.update({
-        where: { id: requestId },
-        data: {
-          status: RequestStatus.APPROVED,
-          reviewedByUserId: approverUserId,
-          reviewedAt: new Date(),
-          approvalSteps: {
-            create: {
-              approverId: approverUserId,
-              status: RequestStatus.APPROVED,
-              comment: dto?.comment || "Approved by HR",
-              actionDate: new Date(),
-            },
-          },
-        },
-      });
-
-      // 2. Leave Balance Deduction
-      if (
-        request.type === RequestType.ANNUAL_LEAVE ||
-        request.type === RequestType.LEAVE ||
-        request.type === RequestType.EMERGENCY_LEAVE ||
-        request.type === RequestType.SICK_LEAVE
-      ) {
-        const balance = await tx.leaveBalance.upsert({
-          where: {
-            employeeId_leaveType_year: {
-              employeeId: request.employeeId,
-              leaveType: request.type,
-              year: requestYear,
-            },
-          },
-          update: {
-            usedDays: { increment: daysRequested },
-            remainingDays: { decrement: daysRequested },
-          },
-          create: {
-            employeeId: request.employeeId,
-            leaveType: request.type,
-            year: requestYear,
-            totalDays: 21,
-            usedDays: daysRequested,
-            remainingDays: 21 - daysRequested,
-          },
-        });
-
-        await tx.auditLog.create({
-          data: {
-            userId: approverUserId,
-            action: AuditAction.LEAVE_BALANCE_UPDATED,
-            entity: "LeaveBalance",
-            entityId: balance.id,
-            payload: {
-              employeeId: request.employeeId,
-              leaveType: request.type,
-              deductedDays: daysRequested,
-              remainingDays: balance.remainingDays,
-            },
-          },
-        });
-      }
-
-      // 3. Attendance Integration
-      const curr = new Date(startDate.getTime());
-      while (curr <= endDate) {
-        const dateOnly = new Date(
-          Date.UTC(
-            curr.getUTCFullYear(),
-            curr.getUTCMonth(),
-            curr.getUTCDate(),
-          ),
-        );
-
-        if (
-          request.type === RequestType.ANNUAL_LEAVE ||
-          request.type === RequestType.SICK_LEAVE ||
-          request.type === RequestType.UNPAID_LEAVE ||
-          request.type === RequestType.EMERGENCY_LEAVE ||
-          request.type === RequestType.OFFICIAL_LEAVE ||
-          request.type === RequestType.LEAVE ||
-          request.type === RequestType.ABSENCE
-        ) {
-          await tx.attendanceRecord.upsert({
-            where: {
-              employeeId_date: {
-                employeeId: request.employeeId,
-                date: dateOnly,
-              },
-            },
-            update: {
-              status: AttendanceStatus.ON_LEAVE,
-              notes: `Approved ${request.type.replace("_", " ")}: ${request.reason}`,
-              verifiedByUserId: approverUserId,
-            },
-            create: {
-              employeeId: request.employeeId,
-              date: dateOnly,
-              status: AttendanceStatus.ON_LEAVE,
-              notes: `Approved ${request.type.replace("_", " ")}: ${request.reason}`,
-              verifiedByUserId: approverUserId,
-            },
-          });
-        } else if (request.type === RequestType.LATE_EXCUSE) {
-          const existingRecord = await tx.attendanceRecord.findUnique({
-            where: {
-              employeeId_date: {
-                employeeId: request.employeeId,
-                date: dateOnly,
-              },
-            },
-          });
-          if (existingRecord) {
-            await tx.attendanceRecord.update({
-              where: { id: existingRecord.id },
-              data: {
-                notes: `Late arrival excused by HR: ${dto?.comment || request.reason}`,
-                verifiedByUserId: approverUserId,
-              },
-            });
-          }
-        } else if (
-          request.type === RequestType.EARLY_LEAVE ||
-          request.type === RequestType.HALF_DAY ||
-          request.type === RequestType.PERMISSION ||
-          request.type === RequestType.REMOTE_WORK
-        ) {
-          const existingRecord = await tx.attendanceRecord.findUnique({
-            where: {
-              employeeId_date: {
-                employeeId: request.employeeId,
-                date: dateOnly,
-              },
-            },
-          });
-          if (existingRecord) {
-            await tx.attendanceRecord.update({
-              where: { id: existingRecord.id },
-              data: {
-                notes: `Approved ${request.type}: ${request.reason} (${dto?.comment || "OK"})`,
-                verifiedByUserId: approverUserId,
-              },
-            });
-          }
-        }
-
-        curr.setUTCDate(curr.getUTCDate() + 1);
-      }
-
-      // 4. Audit Log
-      await tx.auditLog.create({
-        data: {
-          userId: approverUserId,
-          action: AuditAction.REQUEST_APPROVED,
-          entity: "Request",
-          entityId: requestId,
-          payload: {
-            comment: dto?.comment,
-            daysRequested,
-            type: request.type,
-          },
-        },
-      });
-
-      return updatedReq;
-    });
-
-    // 5. Non-blocking Push & In-app Notification
-    try {
-      if (request.employee?.user?.id) {
-        await this.notificationsService.sendNotification(
-          request.employee.user.id,
-          "Request Approved",
-          `Your ${request.type.replace("_", " ")} request has been approved.`,
-          NotificationType.REQUEST_STATUS_UPDATE,
-          { requestId: request.id, status: RequestStatus.APPROVED },
-        );
-      }
-    } catch (notifErr: any) {
-      this.logger.warn(
-        `Failed to dispatch notification for request ${requestId}: ${notifErr?.message || notifErr}`,
-      );
-    }
-
-    return updated;
   }
 
   /**
-   * 7. Reject Request (Mandatory reason, Audit, Notification)
+   * 7. Reject Request (Backward compatible endpoint: routes to Approvals Engine)
    */
   async reject(
     requestId: string,
     approverUserId: string,
     dto: RejectRequestDto,
   ) {
-    if (!dto?.reason || dto.reason.trim().length === 0) {
-      throw new BadRequestException("Rejection reason is required");
-    }
-
-    const request = await this.prisma.request.findUnique({
-      where: { id: requestId },
-      include: {
-        employee: {
-          include: {
-            user: true,
-          },
-        },
+    return this.approvalsService.processApprovalStep(
+      requestId,
+      approverUserId,
+      {
+        action: WorkflowAction.REJECT,
+        rejectionReason: dto.reason,
       },
-    });
-
-    if (!request) {
-      throw new NotFoundException("Request not found");
-    }
-
-    if (request.status === RequestStatus.REJECTED) {
-      throw new BadRequestException("Request is already rejected");
-    }
-
-    if (request.status !== RequestStatus.PENDING) {
-      throw new BadRequestException(
-        `Cannot reject request in ${request.status} status. Only PENDING requests can be rejected.`,
-      );
-    }
-
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const updatedReq = await tx.request.update({
-        where: { id: requestId },
-        data: {
-          status: RequestStatus.REJECTED,
-          rejectionReason: dto.reason,
-          reviewedByUserId: approverUserId,
-          reviewedAt: new Date(),
-          approvalSteps: {
-            create: {
-              approverId: approverUserId,
-              status: RequestStatus.REJECTED,
-              comment: dto.reason,
-              actionDate: new Date(),
-            },
-          },
-        },
-      });
-
-      await tx.auditLog.create({
-        data: {
-          userId: approverUserId,
-          action: AuditAction.REQUEST_REJECTED,
-          entity: "Request",
-          entityId: requestId,
-          payload: {
-            reason: dto.reason,
-            type: request.type,
-          },
-        },
-      });
-
-      return updatedReq;
-    });
-
-    // Non-blocking notification
-    try {
-      if (request.employee?.user?.id) {
-        await this.notificationsService.sendNotification(
-          request.employee.user.id,
-          "Request Rejected",
-          `Your ${request.type.replace("_", " ")} request was rejected: ${dto.reason}`,
-          NotificationType.REQUEST_STATUS_UPDATE,
-          {
-            requestId: request.id,
-            status: RequestStatus.REJECTED,
-            reason: dto.reason,
-          },
-        );
-      }
-    } catch (notifErr: any) {
-      this.logger.warn(
-        `Failed to dispatch rejection notification for request ${requestId}: ${notifErr?.message || notifErr}`,
-      );
-    }
-
-    return updated;
+    );
   }
 
   /**
@@ -906,7 +418,6 @@ export class RequestsService {
   async getMyLeaveBalances(employeeProfileId: string, year?: number) {
     const targetYear = year || new Date().getUTCFullYear();
 
-    // Ensure default annual leave balance exists
     await this.ensureLeaveBalance(
       employeeProfileId,
       RequestType.ANNUAL_LEAVE,
@@ -923,13 +434,10 @@ export class RequestsService {
       targetYear,
     );
 
-    return this.prisma.leaveBalance.findMany({
-      where: {
-        employeeId: employeeProfileId,
-        year: targetYear,
-      },
-      orderBy: { leaveType: "asc" },
-    });
+    return this.requestsRepo.findLeaveBalancesByEmployee(
+      employeeProfileId,
+      targetYear,
+    );
   }
 
   /**
@@ -944,28 +452,21 @@ export class RequestsService {
       targetYear,
     );
 
-    return this.prisma.leaveBalance.findMany({
-      where: {
-        employeeId,
-        year: targetYear,
-      },
-      orderBy: { leaveType: "asc" },
-    });
+    return this.requestsRepo.findLeaveBalancesByEmployee(
+      employeeId,
+      targetYear,
+    );
   }
 
   /**
    * 10. Leave Balance: Create / Allocate leave balance (HR only)
    */
   async createLeaveBalance(dto: CreateLeaveBalanceDto, currentUserId: string) {
-    const existing = await this.prisma.leaveBalance.findUnique({
-      where: {
-        employeeId_leaveType_year: {
-          employeeId: dto.employeeId,
-          leaveType: dto.leaveType,
-          year: dto.year,
-        },
-      },
-    });
+    const existing = await this.requestsRepo.findLeaveBalance(
+      dto.employeeId,
+      dto.leaveType,
+      dto.year,
+    );
 
     if (existing) {
       throw new BadRequestException(
@@ -973,16 +474,14 @@ export class RequestsService {
       );
     }
 
-    const balance = await this.prisma.leaveBalance.create({
-      data: {
-        employeeId: dto.employeeId,
-        leaveType: dto.leaveType,
-        year: dto.year,
-        totalDays: dto.totalDays,
-        usedDays: 0,
-        pendingDays: 0,
-        remainingDays: dto.totalDays,
-      },
+    const balance = await this.requestsRepo.createLeaveBalance({
+      employeeId: dto.employeeId,
+      leaveType: dto.leaveType,
+      year: dto.year,
+      totalDays: dto.totalDays,
+      usedDays: 0,
+      pendingDays: 0,
+      remainingDays: dto.totalDays,
     });
 
     await this.prisma.auditLog.create({

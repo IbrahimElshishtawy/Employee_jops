@@ -108,7 +108,7 @@ export class WorkflowService {
           action: AuditAction.WORKFLOW_UPDATED,
           entity: "WorkflowDefinition",
           entityId: id,
-          payload: { changes: dto },
+          payload: { changes: dto as any },
         },
       });
     }

@@ -1,13 +1,15 @@
 import { Module } from "@nestjs/common";
 import { RequestsService } from "./requests.service";
 import { RequestsController } from "./requests.controller";
-
+import { RequestsRepository } from "./requests.repository";
+import { WorkflowModule } from "../workflow/workflow.module";
+import { ApprovalsModule } from "../approvals/approvals.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [WorkflowModule, ApprovalsModule, NotificationsModule],
   controllers: [RequestsController],
-  providers: [RequestsService],
-  exports: [RequestsService],
+  providers: [RequestsService, RequestsRepository],
+  exports: [RequestsService, RequestsRepository],
 })
 export class RequestsModule {}

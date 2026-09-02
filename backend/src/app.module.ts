@@ -14,6 +14,8 @@ import { WorkplacesModule } from "./modules/workplaces/workplaces.module";
 import { AttendanceModule } from "./modules/attendance/attendance.module";
 import { WorkforceModule } from "./modules/workforce/workforce.module";
 import { SchedulesModule } from "./modules/schedules/schedules.module";
+import { WorkflowModule } from "./modules/workflow/workflow.module";
+import { ApprovalsModule } from "./modules/approvals/approvals.module";
 import { RequestsModule } from "./modules/requests/requests.module";
 import { PayrollModule } from "./modules/payroll/payroll.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
@@ -73,6 +75,8 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     AttendanceModule,
     WorkforceModule,
     SchedulesModule,
+    WorkflowModule,
+    ApprovalsModule,
     RequestsModule,
     PayrollModule,
     NotificationsModule,
