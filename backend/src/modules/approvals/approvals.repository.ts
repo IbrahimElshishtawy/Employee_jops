@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, RequestStatus, RequestType } from "@prisma/client";
 import { CreateDelegationDto } from "./dto";
 
 @Injectable()
@@ -63,7 +62,9 @@ export class ApprovalsRepository {
               },
             },
             workplace: { select: { id: true, name: true, code: true } },
-            schedule: { select: { id: true, name: true, startTime: true, endTime: true } },
+            schedule: {
+              select: { id: true, name: true, startTime: true, endTime: true },
+            },
           },
         },
         workflow: {
@@ -121,9 +122,16 @@ export class ApprovalsRepository {
     });
   }
 
-  async findActiveDelegationsForDelegate(delegateUserId: string, targetDate: Date = new Date()) {
+  async findActiveDelegationsForDelegate(
+    delegateUserId: string,
+    targetDate: Date = new Date(),
+  ) {
     const dateOnly = new Date(
-      Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate()),
+      Date.UTC(
+        targetDate.getUTCFullYear(),
+        targetDate.getUTCMonth(),
+        targetDate.getUTCDate(),
+      ),
     );
 
     return this.prisma.approvalDelegation.findMany({
@@ -210,7 +218,7 @@ export class ApprovalsRepository {
     });
   }
 
-  async revokeDelegation(id: string, userId: string) {
+  async revokeDelegation(id: string, _userId?: string) {
     return this.prisma.approvalDelegation.update({
       where: { id },
       data: { isActive: false },

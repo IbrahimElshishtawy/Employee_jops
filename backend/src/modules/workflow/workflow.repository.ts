@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, RequestType, Role, WorkflowDefinition } from "@prisma/client";
+import { Prisma, RequestType, Role } from "@prisma/client";
 import { CreateWorkflowDto, QueryWorkflowDto, UpdateWorkflowDto } from "./dto";
 
 @Injectable()
 export class WorkflowRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateWorkflowDto): Promise<WorkflowDefinition> {
+  async create(dto: CreateWorkflowDto) {
     const { steps, ...rest } = dto;
 
     return this.prisma.$transaction(async (tx) => {
@@ -84,8 +84,10 @@ export class WorkflowRepository {
 
       const updateData: Prisma.WorkflowDefinitionUpdateInput = {};
       if (rest.name !== undefined) updateData.name = rest.name;
-      if (rest.description !== undefined) updateData.description = rest.description;
-      if (rest.requestType !== undefined) updateData.requestType = rest.requestType;
+      if (rest.description !== undefined)
+        updateData.description = rest.description;
+      if (rest.requestType !== undefined)
+        updateData.requestType = rest.requestType;
       if (rest.organizationId !== undefined) {
         updateData.organization = rest.organizationId
           ? { connect: { id: rest.organizationId } }
@@ -100,10 +102,14 @@ export class WorkflowRepository {
       if (rest.minDays !== undefined) updateData.minDays = rest.minDays;
       if (rest.maxDays !== undefined) updateData.maxDays = rest.maxDays;
       if (rest.minAmount !== undefined) {
-        updateData.minAmount = rest.minAmount ? new Prisma.Decimal(rest.minAmount) : null;
+        updateData.minAmount = rest.minAmount
+          ? new Prisma.Decimal(rest.minAmount)
+          : null;
       }
       if (rest.maxAmount !== undefined) {
-        updateData.maxAmount = rest.maxAmount ? new Prisma.Decimal(rest.maxAmount) : null;
+        updateData.maxAmount = rest.maxAmount
+          ? new Prisma.Decimal(rest.maxAmount)
+          : null;
       }
       if (rest.priority !== undefined) updateData.priority = rest.priority;
       if (rest.isActive !== undefined) updateData.isActive = rest.isActive;
@@ -151,7 +157,15 @@ export class WorkflowRepository {
   }
 
   async findAll(query: QueryWorkflowDto) {
-    const { page = 1, limit = 10, requestType, departmentId, role, isActive, search } = query;
+    const {
+      page = 1,
+      limit = 10,
+      requestType,
+      departmentId,
+      role,
+      isActive,
+      search,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.WorkflowDefinitionWhereInput = {};
@@ -201,10 +215,7 @@ export class WorkflowRepository {
     return this.prisma.workflowDefinition.findMany({
       where: {
         isActive: true,
-        OR: [
-          { requestType: params.requestType },
-          { requestType: null },
-        ],
+        OR: [{ requestType: params.requestType }, { requestType: null }],
       },
       include: {
         steps: {

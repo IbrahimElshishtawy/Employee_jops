@@ -22,7 +22,8 @@ export class CreateDelegationDto {
   @ApiPropertyOptional({
     enum: RequestType,
     example: RequestType.ANNUAL_LEAVE,
-    description: "Scope to a specific request type or omit to delegate all request types",
+    description:
+      "Scope to a specific request type or omit to delegate all request types",
   })
   @IsOptional()
   @IsEnum(RequestType)
@@ -38,7 +39,8 @@ export class CreateDelegationDto {
 
   @ApiProperty({
     example: "2026-09-15",
-    description: "End date of the delegation period (YYYY-MM-DD, must be >= startDate)",
+    description:
+      "End date of the delegation period (YYYY-MM-DD, must be >= startDate)",
   })
   @IsDateString()
   @IsNotEmpty()

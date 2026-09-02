@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, RequestStatus, RequestType, Role } from "@prisma/client";
-import { CreateLeaveBalanceDto, CreateRequestDto, QueryRequestsDto } from "./dto";
+import { Prisma, RequestStatus, RequestType } from "@prisma/client";
+import { QueryRequestsDto } from "./dto";
 
 @Injectable()
 export class RequestsRepository {
@@ -22,7 +22,11 @@ export class RequestsRepository {
     });
   }
 
-  async findConflictingApproved(employeeId: string, startDate: Date, endDate: Date) {
+  async findConflictingApproved(
+    employeeId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
     return this.prisma.request.findFirst({
       where: {
         employeeId,
@@ -127,7 +131,10 @@ export class RequestsRepository {
     });
   }
 
-  async findMyRequests(employeeProfileId: string, query: Partial<QueryRequestsDto> = {}) {
+  async findMyRequests(
+    employeeProfileId: string,
+    query: Partial<QueryRequestsDto> = {},
+  ) {
     const {
       page = 1,
       limit = 10,
@@ -249,7 +256,9 @@ export class RequestsRepository {
         { reason: { contains: search, mode: "insensitive" } },
         { employee: { firstName: { contains: search, mode: "insensitive" } } },
         { employee: { lastName: { contains: search, mode: "insensitive" } } },
-        { employee: { employeeCode: { contains: search, mode: "insensitive" } } },
+        {
+          employee: { employeeCode: { contains: search, mode: "insensitive" } },
+        },
       ];
     }
 
@@ -293,7 +302,11 @@ export class RequestsRepository {
     };
   }
 
-  async findLeaveBalance(employeeId: string, leaveType: RequestType, year: number) {
+  async findLeaveBalance(
+    employeeId: string,
+    leaveType: RequestType,
+    year: number,
+  ) {
     return this.prisma.leaveBalance.findUnique({
       where: {
         employeeId_leaveType_year: {

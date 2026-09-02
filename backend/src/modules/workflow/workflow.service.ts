@@ -167,7 +167,8 @@ export class WorkflowService {
       role: params.role,
     });
 
-    let matched: (WorkflowDefinition & { steps: WorkflowStepDefinition[] }) | null = null;
+    let matched:
+      (WorkflowDefinition & { steps: WorkflowStepDefinition[] }) | null = null;
 
     for (const cand of candidates) {
       // 1. Department match: if workflow specifies department, employee must match
@@ -185,8 +186,10 @@ export class WorkflowService {
       }
       // 4. Amount threshold check
       if (params.amount !== undefined) {
-        if (cand.minAmount !== null && params.amount < Number(cand.minAmount)) continue;
-        if (cand.maxAmount !== null && params.amount > Number(cand.maxAmount)) continue;
+        if (cand.minAmount !== null && params.amount < Number(cand.minAmount))
+          continue;
+        if (cand.maxAmount !== null && params.amount > Number(cand.maxAmount))
+          continue;
       }
 
       // Found highest priority match

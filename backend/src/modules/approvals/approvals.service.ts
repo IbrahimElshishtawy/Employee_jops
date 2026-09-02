@@ -38,7 +38,11 @@ export class ApprovalsService {
   /**
    * Helper to calculate inclusive days count between two dates
    */
-  private calculateDaysCount(start: Date, end: Date, type: RequestType): number {
+  private calculateDaysCount(
+    start: Date,
+    end: Date,
+    type: RequestType,
+  ): number {
     if (type === RequestType.HALF_DAY) {
       return 0.5;
     }
@@ -51,7 +55,15 @@ export class ApprovalsService {
    * 1. Get Pending Approvals Queue for a user (as Direct Manager, Dept Head, Role, or Delegate)
    */
   async getPendingApprovals(userId: string, query: QueryPendingApprovalsDto) {
-    const { page = 1, limit = 10, requestType, employeeId, startDate, endDate, search } = query;
+    const {
+      page = 1,
+      limit = 10,
+      requestType,
+      employeeId,
+      startDate,
+      endDate,
+      search,
+    } = query;
     const skip = (page - 1) * limit;
 
     const user = await this.prisma.user.findUnique({
@@ -63,7 +75,8 @@ export class ApprovalsService {
       throw new NotFoundException("User not found");
     }
 
-    const activeDelegations = await this.approvalsRepo.findActiveDelegationsForDelegate(userId);
+    const activeDelegations =
+      await this.approvalsRepo.findActiveDelegationsForDelegate(userId);
     const delegatorUserIds = activeDelegations.map((d) => d.delegatorId);
 
     // Find all pending requests
@@ -77,9 +90,19 @@ export class ApprovalsService {
         ...(search && {
           OR: [
             { reason: { contains: search, mode: "insensitive" } },
-            { employee: { firstName: { contains: search, mode: "insensitive" } } },
-            { employee: { lastName: { contains: search, mode: "insensitive" } } },
-            { employee: { employeeCode: { contains: search, mode: "insensitive" } } },
+            {
+              employee: {
+                firstName: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              employee: { lastName: { contains: search, mode: "insensitive" } },
+            },
+            {
+              employee: {
+                employeeCode: { contains: search, mode: "insensitive" },
+              },
+            },
           ],
         }),
       },
@@ -95,10 +118,18 @@ export class ApprovalsService {
             managerId: true,
             manager: { select: { id: true, userId: true } },
             departmentRel: {
-              select: { id: true, headOfDepartmentId: true, headOfDepartment: { select: { userId: true } } },
+              select: {
+                id: true,
+                headOfDepartmentId: true,
+                headOfDepartment: { select: { userId: true } },
+              },
             },
             section: {
-              select: { id: true, headOfSectionId: true, headOfSection: { select: { userId: true } } },
+              select: {
+                id: true,
+                headOfSectionId: true,
+                headOfSection: { select: { userId: true } },
+              },
             },
             workplace: { select: { id: true, name: true } },
           },
@@ -120,7 +151,12 @@ export class ApprovalsService {
 
     // Filter candidate requests matching current user or active delegator permissions for current step
     const matchedRequests = candidateRequests.filter((req) => {
-      return this.isUserAuthorizedForStep(user, delegatorUserIds, req, req.currentStepOrder);
+      return this.isUserAuthorizedForStep(
+        user,
+        delegatorUserIds,
+        req,
+        req.currentStepOrder,
+      );
     });
 
     const total = matchedRequests.length;
@@ -154,10 +190,14 @@ export class ApprovalsService {
 
     // Direct manager check
     const managerUserId = request.employee?.manager?.userId;
-    const headOfDeptUserId = request.employee?.departmentRel?.headOfDepartment?.userId;
-    const headOfSectionUserId = request.employee?.section?.headOfSection?.userId;
+    const headOfDeptUserId =
+      request.employee?.departmentRel?.headOfDepartment?.userId;
+    const headOfSectionUserId =
+      request.employee?.section?.headOfSection?.userId;
 
-    const currentStepDef = request.workflow?.steps?.find((s: any) => s.stepOrder === stepOrder);
+    const currentStepDef = request.workflow?.steps?.find(
+      (s: any) => s.stepOrder === stepOrder,
+    );
 
     const checkActor = (actorId: string | null | undefined) => {
       if (!actorId) return false;
@@ -168,7 +208,8 @@ export class ApprovalsService {
       // Default single-step fallback
       if (checkActor(managerUserId)) return true;
       if (checkActor(headOfDeptUserId)) return true;
-      if (user.role === Role.HR_MANAGER || user.role === Role.SUPERVISOR) return true;
+      if (user.role === Role.HR_MANAGER || user.role === Role.SUPERVISOR)
+        return true;
       return false;
     }
 
@@ -224,7 +265,8 @@ export class ApprovalsService {
     }
 
     // Active delegations resolution
-    const activeDelegations = await this.approvalsRepo.findActiveDelegationsForDelegate(approverUserId);
+    const activeDelegations =
+      await this.approvalsRepo.findActiveDelegationsForDelegate(approverUserId);
     const delegatorUserIds = activeDelegations.map((d) => d.delegatorId);
 
     // Validate authorization for the current active step
@@ -247,11 +289,15 @@ export class ApprovalsService {
     let delegatedById: string | null = null;
     if (delegatorUserIds.length > 0) {
       const managerUserId = request.employee?.manager?.user?.id;
-      const headOfDeptUserId = request.employee?.departmentRel?.headOfDepartment?.user?.id;
+      const headOfDeptUserId =
+        request.employee?.departmentRel?.headOfDepartment?.user?.id;
       if (managerUserId && delegatorUserIds.includes(managerUserId)) {
         isDelegated = true;
         delegatedById = managerUserId;
-      } else if (headOfDeptUserId && delegatorUserIds.includes(headOfDeptUserId)) {
+      } else if (
+        headOfDeptUserId &&
+        delegatorUserIds.includes(headOfDeptUserId)
+      ) {
         isDelegated = true;
         delegatedById = headOfDeptUserId;
       }
@@ -259,7 +305,8 @@ export class ApprovalsService {
 
     // Check duplicate approval on the exact same step
     const duplicateStep = request.approvalSteps.find(
-      (s) => s.stepOrder === currentStepOrder && s.approverId === approverUserId,
+      (s) =>
+        s.stepOrder === currentStepOrder && s.approverId === approverUserId,
     );
     if (duplicateStep) {
       throw new BadRequestException(
@@ -267,19 +314,26 @@ export class ApprovalsService {
       );
     }
 
-    const totalSteps = request.totalSteps || request.workflow?.steps?.length || 1;
+    const totalSteps =
+      request.totalSteps || request.workflow?.steps?.length || 1;
     const isFinalStep = currentStepOrder >= totalSteps;
 
     const startDate = new Date(request.startDate);
     const endDate = new Date(request.endDate);
     const requestYear = startDate.getUTCFullYear();
-    const daysRequested = this.calculateDaysCount(startDate, endDate, request.type);
+    const daysRequested = this.calculateDaysCount(
+      startDate,
+      endDate,
+      request.type,
+    );
 
     // Atomic transaction for step processing & finalization
     const updatedRequest = await this.prisma.$transaction(async (tx) => {
       if (dto.action === WorkflowAction.REJECT) {
         if (!dto.rejectionReason || dto.rejectionReason.trim().length === 0) {
-          throw new BadRequestException("Rejection reason is required when rejecting a request");
+          throw new BadRequestException(
+            "Rejection reason is required when rejecting a request",
+          );
         }
 
         // 1. Create ApprovalStep record
@@ -309,7 +363,9 @@ export class ApprovalsService {
           },
           include: {
             approvalSteps: {
-              include: { approver: { select: { id: true, email: true, role: true } } },
+              include: {
+                approver: { select: { id: true, email: true, role: true } },
+              },
             },
           },
         });
@@ -360,7 +416,9 @@ export class ApprovalsService {
           },
           include: {
             approvalSteps: {
-              include: { approver: { select: { id: true, email: true, role: true } } },
+              include: {
+                approver: { select: { id: true, email: true, role: true } },
+              },
             },
           },
         });
@@ -393,7 +451,9 @@ export class ApprovalsService {
         },
         include: {
           approvalSteps: {
-            include: { approver: { select: { id: true, email: true, role: true } } },
+            include: {
+              approver: { select: { id: true, email: true, role: true } },
+            },
           },
         },
       });
@@ -447,7 +507,11 @@ export class ApprovalsService {
       const curr = new Date(startDate.getTime());
       while (curr <= endDate) {
         const dateOnly = new Date(
-          Date.UTC(curr.getUTCFullYear(), curr.getUTCMonth(), curr.getUTCDate()),
+          Date.UTC(
+            curr.getUTCFullYear(),
+            curr.getUTCMonth(),
+            curr.getUTCDate(),
+          ),
         );
 
         if (
@@ -574,7 +638,9 @@ export class ApprovalsService {
         );
       }
     } catch (err: any) {
-      this.logger.warn(`Failed to dispatch notification: ${err?.message || err}`);
+      this.logger.warn(
+        `Failed to dispatch notification: ${err?.message || err}`,
+      );
     }
 
     return updatedRequest;
@@ -592,13 +658,17 @@ export class ApprovalsService {
    */
   async createDelegation(delegatorUserId: string, dto: CreateDelegationDto) {
     if (delegatorUserId === dto.delegateId) {
-      throw new BadRequestException("You cannot delegate approval authority to yourself");
+      throw new BadRequestException(
+        "You cannot delegate approval authority to yourself",
+      );
     }
 
     const startDate = new Date(dto.startDate);
     const endDate = new Date(dto.endDate);
     if (startDate > endDate) {
-      throw new BadRequestException("Start date must be before or equal to end date");
+      throw new BadRequestException(
+        "Start date must be before or equal to end date",
+      );
     }
 
     const delegateUser = await this.prisma.user.findUnique({
@@ -609,7 +679,10 @@ export class ApprovalsService {
       throw new BadRequestException("Delegate user is inactive or not found");
     }
 
-    const delegation = await this.approvalsRepo.createDelegation(delegatorUserId, dto);
+    const delegation = await this.approvalsRepo.createDelegation(
+      delegatorUserId,
+      dto,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -644,11 +717,16 @@ export class ApprovalsService {
     if (delegation.delegatorId !== userId) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user?.role !== Role.SUPER_ADMIN && user?.role !== Role.HR_ADMIN) {
-        throw new ForbiddenException("You can only revoke your own delegations");
+        throw new ForbiddenException(
+          "You can only revoke your own delegations",
+        );
       }
     }
 
-    const updated = await this.approvalsRepo.revokeDelegation(delegationId, userId);
+    const updated = await this.approvalsRepo.revokeDelegation(
+      delegationId,
+      userId,
+    );
 
     await this.prisma.auditLog.create({
       data: {

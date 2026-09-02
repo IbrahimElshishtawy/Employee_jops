@@ -1,5 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { RequestsService } from "./requests.service";
+import { RequestsRepository } from "./requests.repository";
+import { WorkflowService } from "../workflow/workflow.service";
+import { WorkflowRepository } from "../workflow/workflow.repository";
+import { ApprovalsService } from "../approvals/approvals.service";
+import { ApprovalsRepository } from "../approvals/approvals.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import {
@@ -324,6 +329,24 @@ describe("Phase 04 — Employee Requests & Leave Management (30 Mandatory Scenar
           return Promise.resolve(newLog);
         }),
       },
+      approvalStep: {
+        create: jest.fn(({ data }) =>
+          Promise.resolve({
+            id: `step-${Date.now()}`,
+            createdAt: new Date(),
+            ...data,
+          }),
+        ),
+        findMany: jest.fn(() => Promise.resolve([])),
+      },
+      approvalDelegation: {
+        findMany: jest.fn(() => Promise.resolve([])),
+      },
+      workflowDefinition: {
+        findMany: jest.fn(() => Promise.resolve([])),
+        findFirst: jest.fn(() => Promise.resolve(null)),
+        findUnique: jest.fn(() => Promise.resolve(null)),
+      },
       $transaction: jest.fn((callback) => callback(prismaService)),
     };
 
@@ -345,6 +368,11 @@ describe("Phase 04 — Employee Requests & Leave Management (30 Mandatory Scenar
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RequestsService,
+        RequestsRepository,
+        WorkflowService,
+        WorkflowRepository,
+        ApprovalsService,
+        ApprovalsRepository,
         { provide: PrismaService, useValue: prismaService },
         { provide: NotificationsService, useValue: notificationsService },
       ],

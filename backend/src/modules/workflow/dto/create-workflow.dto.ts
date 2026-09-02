@@ -62,7 +62,8 @@ export class CreateWorkflowStepDto {
 
   @ApiPropertyOptional({
     example: true,
-    description: "Whether this step is strictly mandatory to approve the request",
+    description:
+      "Whether this step is strictly mandatory to approve the request",
   })
   @IsOptional()
   @IsBoolean()
@@ -165,7 +166,8 @@ export class CreateWorkflowDto {
 
   @ApiPropertyOptional({
     example: 1000,
-    description: "Minimum amount threshold (for advances or financial requests)",
+    description:
+      "Minimum amount threshold (for advances or financial requests)",
   })
   @IsOptional()
   @IsNumber()

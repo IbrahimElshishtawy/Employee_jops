@@ -56,8 +56,14 @@ export class ApprovalsController {
   })
   @ApiParam({ name: "requestId", description: "Request UUID" })
   @ApiResponse({ status: 200, description: "Step processed successfully" })
-  @ApiResponse({ status: 400, description: "Validation error or duplicate approval" })
-  @ApiResponse({ status: 403, description: "Forbidden: Not authorized for this step" })
+  @ApiResponse({
+    status: 400,
+    description: "Validation error or duplicate approval",
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden: Not authorized for this step",
+  })
   processStep(
     @Param("requestId") requestId: string,
     @CurrentUser("id") userId: string,
@@ -68,7 +74,8 @@ export class ApprovalsController {
 
   @Get("history/:requestId")
   @ApiOperation({
-    summary: "Get full approval history and step progression audit trail for a request",
+    summary:
+      "Get full approval history and step progression audit trail for a request",
   })
   @ApiParam({ name: "requestId", description: "Request UUID" })
   getHistory(@Param("requestId") requestId: string) {
@@ -80,9 +87,16 @@ export class ApprovalsController {
   // ============================================================
 
   @Post("delegations")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
   @ApiOperation({
-    summary: "Delegate approval authority to another user for a temporary period",
+    summary:
+      "Delegate approval authority to another user for a temporary period",
   })
   createDelegation(
     @CurrentUser("id") userId: string,
@@ -92,18 +106,19 @@ export class ApprovalsController {
   }
 
   @Get("delegations")
-  @ApiOperation({ summary: "List active and historical delegations for current user" })
+  @ApiOperation({
+    summary: "List active and historical delegations for current user",
+  })
   getMyDelegations(@CurrentUser("id") userId: string) {
     return this.approvalsService.getMyDelegations(userId);
   }
 
   @Patch("delegations/:id/revoke")
-  @ApiOperation({ summary: "Revoke an active delegation before its expiration" })
+  @ApiOperation({
+    summary: "Revoke an active delegation before its expiration",
+  })
   @ApiParam({ name: "id", description: "Delegation UUID" })
-  revokeDelegation(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  revokeDelegation(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.approvalsService.revokeDelegation(id, userId);
   }
 }

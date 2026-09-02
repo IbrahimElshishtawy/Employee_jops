@@ -54,7 +54,9 @@ export class WorkflowController {
   @Post("match-preview")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Preview/Simulate workflow matching for a given request criteria" })
+  @ApiOperation({
+    summary: "Preview/Simulate workflow matching for a given request criteria",
+  })
   matchPreview(
     @Body()
     body: {
@@ -92,10 +94,7 @@ export class WorkflowController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete workflow definition" })
   @ApiParam({ name: "id", description: "Workflow UUID" })
-  remove(
-    @Param("id") id: string,
-    @CurrentUser("id") currentUserId: string,
-  ) {
+  remove(@Param("id") id: string, @CurrentUser("id") currentUserId: string) {
     return this.workflowService.remove(id, currentUserId);
   }
 }

@@ -23,7 +23,6 @@ import {
   RequestStatus,
   RequestType,
   AuditAction,
-  NotificationType,
   UserStatus,
   Role,
   WorkflowAction,
