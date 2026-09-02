@@ -12,7 +12,10 @@ export class UpdateTaskStatusDto {
   @IsNotEmpty()
   status: TaskStatus;
 
-  @ApiPropertyOptional({ description: "Reason or context for status transition", example: "Starting implementation" })
+  @ApiPropertyOptional({
+    description: "Reason or context for status transition",
+    example: "Starting implementation",
+  })
   @IsOptional()
   @IsString()
   reason?: string;

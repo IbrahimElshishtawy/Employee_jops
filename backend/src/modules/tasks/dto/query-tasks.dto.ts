@@ -62,17 +62,23 @@ export class QueryTasksDto {
   @IsBoolean()
   isOverdue?: boolean;
 
-  @ApiPropertyOptional({ description: "Filter tasks with due date on or after" })
+  @ApiPropertyOptional({
+    description: "Filter tasks with due date on or after",
+  })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional({ description: "Filter tasks with due date on or before" })
+  @ApiPropertyOptional({
+    description: "Filter tasks with due date on or before",
+  })
   @IsOptional()
   @IsDateString()
   endDate?: string;
 
-  @ApiPropertyOptional({ description: "Search query across title and description" })
+  @ApiPropertyOptional({
+    description: "Search query across title and description",
+  })
   @IsOptional()
   @IsString()
   search?: string;

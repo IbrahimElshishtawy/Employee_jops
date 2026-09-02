@@ -216,7 +216,8 @@ export class ReportsController {
   @Get("tasks")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({
-    summary: "Comprehensive task KPIs, completion/overdue rates & status breakdown",
+    summary:
+      "Comprehensive task KPIs, completion/overdue rates & status breakdown",
   })
   getTaskAnalytics(
     @Query() query: TaskReportQueryDto,
@@ -228,7 +229,8 @@ export class ReportsController {
   @Get("tasks/employees")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({
-    summary: "Employee task productivity, completion rates & performance ratings",
+    summary:
+      "Employee task productivity, completion rates & performance ratings",
   })
   getEmployeeTaskProductivity(
     @Query() query: TaskReportQueryDto,

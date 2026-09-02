@@ -12,7 +12,10 @@ import { Type } from "class-transformer";
 import { TaskPriority } from "@prisma/client";
 
 export class CreateChecklistItemDto {
-  @ApiProperty({ description: "Checklist item title", example: "Review API specifications" })
+  @ApiProperty({
+    description: "Checklist item title",
+    example: "Review API specifications",
+  })
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -23,7 +26,10 @@ export class CreateChecklistItemDto {
 }
 
 export class CreateTaskDto {
-  @ApiProperty({ description: "Task title", example: "Implement Phase 5 Tasks & Reports" })
+  @ApiProperty({
+    description: "Task title",
+    example: "Implement Phase 5 Tasks & Reports",
+  })
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -53,12 +59,18 @@ export class CreateTaskDto {
   @IsString()
   workplaceId?: string;
 
-  @ApiPropertyOptional({ description: "Start date", example: "2026-09-03T09:00:00Z" })
+  @ApiPropertyOptional({
+    description: "Start date",
+    example: "2026-09-03T09:00:00Z",
+  })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional({ description: "Due date", example: "2026-09-10T18:00:00Z" })
+  @ApiPropertyOptional({
+    description: "Due date",
+    example: "2026-09-10T18:00:00Z",
+  })
   @IsOptional()
   @IsDateString()
   dueDate?: string;

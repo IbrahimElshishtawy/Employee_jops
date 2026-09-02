@@ -37,7 +37,10 @@ export class WorkManagementController {
     summary:
       "Employee submits task execution report upon finishing work (Transitions task to PENDING_REVIEW)",
   })
-  @ApiResponse({ status: 201, description: "Report submitted and sent for manager review" })
+  @ApiResponse({
+    status: 201,
+    description: "Report submitted and sent for manager review",
+  })
   submitTaskReport(
     @Param("id") taskId: string,
     @CurrentUser("id") userId: string,
@@ -52,7 +55,10 @@ export class WorkManagementController {
     summary:
       "Manager reviews task report: APPROVE (completes task) or REJECT (returns to IN_PROGRESS)",
   })
-  @ApiResponse({ status: 200, description: "Review decision processed successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Review decision processed successfully",
+  })
   reviewTaskReport(
     @Param("id") taskId: string,
     @CurrentUser("id") reviewerUserId: string,
@@ -74,7 +80,10 @@ export class WorkManagementController {
 
   @Get("department-workload")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Get team/department workload breakdown, task distribution & capacity" })
+  @ApiOperation({
+    summary:
+      "Get team/department workload breakdown, task distribution & capacity",
+  })
   getDepartmentWorkload(
     @Query() query: QueryWorkloadDto,
     @CurrentUser("id") userId: string,

@@ -21,19 +21,27 @@ export class SubmitTaskReportDto {
 
   @ApiPropertyOptional({
     description: "Blockers or challenges faced during execution",
-    example: "Encountered initial flakiness in async DB mock, resolved via transactional isolation.",
+    example:
+      "Encountered initial flakiness in async DB mock, resolved via transactional isolation.",
   })
   @IsOptional()
   @IsString()
   challenges?: string;
 
-  @ApiPropertyOptional({ description: "Total hours spent on the task", example: 4.5 })
+  @ApiPropertyOptional({
+    description: "Total hours spent on the task",
+    example: 4.5,
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)
   hoursSpent?: number;
 
-  @ApiPropertyOptional({ description: "Final reported progress percentage", default: 100, example: 100 })
+  @ApiPropertyOptional({
+    description: "Final reported progress percentage",
+    default: 100,
+    example: 100,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
@@ -42,7 +50,12 @@ export class SubmitTaskReportDto {
 
   @ApiPropertyOptional({
     description: "Metadata array of attached artifacts or report files",
-    example: [{ fileName: "test-report.pdf", fileUrl: "https://cyberwise.test/test-report.pdf" }],
+    example: [
+      {
+        fileName: "test-report.pdf",
+        fileUrl: "https://cyberwise.test/test-report.pdf",
+      },
+    ],
   })
   @IsOptional()
   @IsArray()

@@ -36,7 +36,11 @@ export class WorkManagementService {
   // 1. SUBMIT EMPLOYEE TASK REPORT
   // ============================================================
 
-  async submitTaskReport(taskId: string, userId: string, dto: SubmitTaskReportDto) {
+  async submitTaskReport(
+    taskId: string,
+    userId: string,
+    dto: SubmitTaskReportDto,
+  ) {
     const task = await this.prisma.task.findUnique({
       where: { id: taskId },
       include: {
@@ -58,7 +62,9 @@ export class WorkManagementService {
     }
 
     if (!task.assignee) {
-      throw new BadRequestException("Cannot submit a report for an unassigned task");
+      throw new BadRequestException(
+        "Cannot submit a report for an unassigned task",
+      );
     }
 
     // Only assigned employee (or SUPER_ADMIN) can submit a report
@@ -108,8 +114,7 @@ export class WorkManagementService {
     });
 
     // Notify Manager or Task Creator
-    const managerUserId =
-      task.assignee.manager?.userId || task.creatorId;
+    const managerUserId = task.assignee.manager?.userId || task.creatorId;
 
     if (managerUserId && managerUserId !== userId) {
       await this.notificationsService.sendNotification(
@@ -186,15 +191,19 @@ export class WorkManagementService {
       reviewerUser.role === Role.SUPER_ADMIN ||
       reviewerUser.role === Role.HR_ADMIN;
 
-    const isDirectManager =
-      task.assignee?.manager?.userId === reviewerUserId;
+    const isDirectManager = task.assignee?.manager?.userId === reviewerUserId;
 
     const isDepartmentHead =
       task.assignee?.departmentRel?.headOfDepartment?.userId === reviewerUserId;
 
     const isTaskCreator = task.creatorId === reviewerUserId;
 
-    if (!isSuperAdminOrHrAdmin && !isDirectManager && !isDepartmentHead && !isTaskCreator) {
+    if (
+      !isSuperAdminOrHrAdmin &&
+      !isDirectManager &&
+      !isDepartmentHead &&
+      !isTaskCreator
+    ) {
       throw new ForbiddenException(
         "You are not authorized to review this employee's task report",
       );
@@ -317,7 +326,9 @@ export class WorkManagementService {
 
   async checkOverdueTasks() {
     const result = await this.workRepo.markOverdueTasks();
-    this.logger.log(`Overdue check completed: marked ${result.count} tasks as OVERDUE.`);
+    this.logger.log(
+      `Overdue check completed: marked ${result.count} tasks as OVERDUE.`,
+    );
     return {
       message: "Overdue scan completed successfully",
       updatedCount: result.count,

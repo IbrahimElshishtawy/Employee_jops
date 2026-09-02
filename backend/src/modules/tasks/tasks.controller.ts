@@ -43,12 +43,11 @@ export class TasksController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Create a new task and optionally assign to an employee" })
+  @ApiOperation({
+    summary: "Create a new task and optionally assign to an employee",
+  })
   @ApiResponse({ status: 201, description: "Task created successfully" })
-  createTask(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateTaskDto,
-  ) {
+  createTask(@CurrentUser("id") userId: string, @Body() dto: CreateTaskDto) {
     return this.tasksService.createTask(userId, dto);
   }
 
@@ -60,23 +59,24 @@ export class TasksController {
 
   @Get("my")
   @ApiOperation({ summary: "Get current employee assigned and created tasks" })
-  getMyTasks(
-    @CurrentUser("id") userId: string,
-    @Query() query: QueryTasksDto,
-  ) {
+  getMyTasks(@CurrentUser("id") userId: string, @Query() query: QueryTasksDto) {
     return this.tasksService.getMyTasks(userId, query);
   }
 
   @Get(":id")
   @UseGuards(TaskAccessGuard)
-  @ApiOperation({ summary: "Get task details including checklist, comments, and attachments" })
+  @ApiOperation({
+    summary: "Get task details including checklist, comments, and attachments",
+  })
   findOne(@Param("id") id: string) {
     return this.tasksService.findOne(id);
   }
 
   @Patch(":id")
   @UseGuards(TaskAccessGuard)
-  @ApiOperation({ summary: "Update task metadata, priority, due date, or progress" })
+  @ApiOperation({
+    summary: "Update task metadata, priority, due date, or progress",
+  })
   updateTask(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -99,17 +99,18 @@ export class TasksController {
 
   @Post(":id/accept")
   @UseGuards(TaskAccessGuard)
-  @ApiOperation({ summary: "Assigned employee accepts task (TODO -> ACCEPTED)" })
-  acceptTask(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  @ApiOperation({
+    summary: "Assigned employee accepts task (TODO -> ACCEPTED)",
+  })
+  acceptTask(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.tasksService.acceptTask(id, userId);
   }
 
   @Post(":id/status")
   @UseGuards(TaskAccessGuard)
-  @ApiOperation({ summary: "Update task lifecycle status (IN_PROGRESS, BLOCKED, etc.)" })
+  @ApiOperation({
+    summary: "Update task lifecycle status (IN_PROGRESS, BLOCKED, etc.)",
+  })
   updateStatus(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -132,7 +133,9 @@ export class TasksController {
 
   @Patch(":id/checklist/:itemId")
   @UseGuards(TaskAccessGuard)
-  @ApiOperation({ summary: "Toggle or update checklist item (auto-updates progress %)" })
+  @ApiOperation({
+    summary: "Toggle or update checklist item (auto-updates progress %)",
+  })
   updateChecklistItem(
     @Param("id") id: string,
     @Param("itemId") itemId: string,
@@ -202,10 +205,7 @@ export class TasksController {
   @Delete(":id")
   @UseGuards(TaskAccessGuard)
   @ApiOperation({ summary: "Delete or cancel task" })
-  deleteTask(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteTask(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.tasksService.deleteTask(id, userId);
   }
 }

@@ -80,6 +80,8 @@ export class TaskAccessGuard implements CanActivate {
       }
     }
 
-    throw new ForbiddenException("You do not have permission to access this task");
+    throw new ForbiddenException(
+      "You do not have permission to access this task",
+    );
   }
 }

@@ -1,10 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  Prisma,
-  TaskReportStatus,
-  TaskStatus,
-} from "@prisma/client";
+import { Prisma, TaskReportStatus, TaskStatus } from "@prisma/client";
 import { SubmitTaskReportDto, TaskReviewAction } from "./dto";
 
 @Injectable()
@@ -87,8 +83,12 @@ export class WorkManagementRepository {
     rating?: number,
   ) {
     const isApproved = action === TaskReviewAction.APPROVE;
-    const newStatus = isApproved ? TaskStatus.COMPLETED : TaskStatus.IN_PROGRESS;
-    const reportStatus = isApproved ? TaskReportStatus.APPROVED : TaskReportStatus.REJECTED;
+    const newStatus = isApproved
+      ? TaskStatus.COMPLETED
+      : TaskStatus.IN_PROGRESS;
+    const reportStatus = isApproved
+      ? TaskReportStatus.APPROVED
+      : TaskReportStatus.REJECTED;
 
     return this.prisma.$transaction(async (tx) => {
       // 1. Update TaskReport
@@ -132,7 +132,9 @@ export class WorkManagementRepository {
           action: isApproved ? "TASK_REPORT_APPROVED" : "TASK_REPORT_REJECTED",
           oldStatus: TaskStatus.PENDING_REVIEW,
           newStatus,
-          comment: reviewNotes || (isApproved ? "Approved by manager" : "Rejected by manager"),
+          comment:
+            reviewNotes ||
+            (isApproved ? "Approved by manager" : "Rejected by manager"),
           metadata: { reportId, rating },
         },
       });
@@ -148,7 +150,13 @@ export class WorkManagementRepository {
     limit?: number;
     page?: number;
   }) {
-    const { managerEmployeeId, departmentId, isSuperAdmin, limit = 10, page = 1 } = params;
+    const {
+      managerEmployeeId,
+      departmentId,
+      isSuperAdmin,
+      limit = 10,
+      page = 1,
+    } = params;
     const skip = (page - 1) * limit;
 
     const where: Prisma.TaskWhereInput = {
@@ -157,7 +165,9 @@ export class WorkManagementRepository {
 
     if (!isSuperAdmin) {
       where.OR = [
-        ...(managerEmployeeId ? [{ assignee: { managerId: managerEmployeeId } }] : []),
+        ...(managerEmployeeId
+          ? [{ assignee: { managerId: managerEmployeeId } }]
+          : []),
         ...(departmentId ? [{ departmentId }] : []),
       ];
     }
@@ -249,7 +259,9 @@ export class WorkManagementRepository {
           t.status === TaskStatus.PENDING_REVIEW,
       ).length;
 
-      const completed = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
+      const completed = tasks.filter(
+        (t) => t.status === TaskStatus.COMPLETED,
+      ).length;
 
       const overdue = tasks.filter(
         (t) =>
@@ -280,7 +292,12 @@ export class WorkManagementRepository {
       where: {
         dueDate: { lt: now },
         status: {
-          in: [TaskStatus.TODO, TaskStatus.ACCEPTED, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED],
+          in: [
+            TaskStatus.TODO,
+            TaskStatus.ACCEPTED,
+            TaskStatus.IN_PROGRESS,
+            TaskStatus.BLOCKED,
+          ],
         },
       },
       data: {

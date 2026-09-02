@@ -1,8 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsUrl } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateTaskCommentDto {
-  @ApiProperty({ description: "Comment body", example: "Checklist items 1 and 2 completed." })
+  @ApiProperty({
+    description: "Comment body",
+    example: "Checklist items 1 and 2 completed.",
+  })
   @IsString()
   @IsNotEmpty()
   content: string;

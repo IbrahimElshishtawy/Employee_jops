@@ -1,8 +1,17 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsInt,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AddChecklistItemDto {
-  @ApiProperty({ description: "Checklist item title", example: "Verify DB indexes" })
+  @ApiProperty({
+    description: "Checklist item title",
+    example: "Verify DB indexes",
+  })
   @IsString()
   @IsNotEmpty()
   title: string;

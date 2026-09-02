@@ -2,12 +2,18 @@ import { IsString, IsNotEmpty, IsOptional, IsInt } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateTaskAttachmentDto {
-  @ApiProperty({ description: "File name", example: "architecture-diagram.pdf" })
+  @ApiProperty({
+    description: "File name",
+    example: "architecture-diagram.pdf",
+  })
   @IsString()
   @IsNotEmpty()
   fileName: string;
 
-  @ApiProperty({ description: "File URL / storage URI", example: "https://storage.cyberwise.internal/tasks/att-123.pdf" })
+  @ApiProperty({
+    description: "File URL / storage URI",
+    example: "https://storage.cyberwise.internal/tasks/att-123.pdf",
+  })
   @IsString()
   @IsNotEmpty()
   fileUrl: string;

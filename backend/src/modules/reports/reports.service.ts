@@ -1462,36 +1462,41 @@ export class ReportsService {
       where.status = { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] };
     }
 
-    const [totalTasks, statusGroup, priorityGroup, completedTasks, overdueCount] =
-      await Promise.all([
-        this.prisma.task.count({ where }),
-        this.prisma.task.groupBy({
-          by: ["status"],
-          where,
-          _count: { id: true },
-        }),
-        this.prisma.task.groupBy({
-          by: ["priority"],
-          where,
-          _count: { id: true },
-        }),
-        this.prisma.task.findMany({
-          where: {
-            ...where,
-            status: TaskStatus.COMPLETED,
-            completedAt: { not: null },
-          },
-          select: { createdAt: true, completedAt: true },
-          take: 1000,
-        }),
-        this.prisma.task.count({
-          where: {
-            ...where,
-            dueDate: { lt: new Date() },
-            status: { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] },
-          },
-        }),
-      ]);
+    const [
+      totalTasks,
+      statusGroup,
+      priorityGroup,
+      completedTasks,
+      overdueCount,
+    ] = await Promise.all([
+      this.prisma.task.count({ where }),
+      this.prisma.task.groupBy({
+        by: ["status"],
+        where,
+        _count: { id: true },
+      }),
+      this.prisma.task.groupBy({
+        by: ["priority"],
+        where,
+        _count: { id: true },
+      }),
+      this.prisma.task.findMany({
+        where: {
+          ...where,
+          status: TaskStatus.COMPLETED,
+          completedAt: { not: null },
+        },
+        select: { createdAt: true, completedAt: true },
+        take: 1000,
+      }),
+      this.prisma.task.count({
+        where: {
+          ...where,
+          dueDate: { lt: new Date() },
+          status: { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] },
+        },
+      }),
+    ]);
 
     const statusCounts: Record<string, number> = {};
     for (const sg of statusGroup) {
@@ -1505,9 +1510,13 @@ export class ReportsService {
 
     const completedCount = statusCounts[TaskStatus.COMPLETED] || 0;
     const completionRate =
-      totalTasks > 0 ? Number(((completedCount / totalTasks) * 100).toFixed(1)) : 0;
+      totalTasks > 0
+        ? Number(((completedCount / totalTasks) * 100).toFixed(1))
+        : 0;
     const overdueRate =
-      totalTasks > 0 ? Number(((overdueCount / totalTasks) * 100).toFixed(1)) : 0;
+      totalTasks > 0
+        ? Number(((overdueCount / totalTasks) * 100).toFixed(1))
+        : 0;
 
     let totalCompletionHours = 0;
     for (const ct of completedTasks) {
@@ -1526,7 +1535,10 @@ export class ReportsService {
       summary: {
         totalTasks,
         completedTasks: completedCount,
-        activeTasks: totalTasks - completedCount - (statusCounts[TaskStatus.CANCELLED] || 0),
+        activeTasks:
+          totalTasks -
+          completedCount -
+          (statusCounts[TaskStatus.CANCELLED] || 0),
         overdueTasks: overdueCount,
         completionRate,
         overdueRate,
@@ -1537,8 +1549,15 @@ export class ReportsService {
     };
   }
 
-  async getEmployeeTaskProductivity(query: TaskReportQueryDto, currentUser?: any) {
-    await this.logReportAccess(currentUser?.id, "EMPLOYEE_TASK_PRODUCTIVITY", query);
+  async getEmployeeTaskProductivity(
+    query: TaskReportQueryDto,
+    currentUser?: any,
+  ) {
+    await this.logReportAccess(
+      currentUser?.id,
+      "EMPLOYEE_TASK_PRODUCTIVITY",
+      query,
+    );
 
     const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
       query.startDate,
@@ -1582,7 +1601,9 @@ export class ReportsService {
     const productivity = employees.map((emp) => {
       const tasks = emp.assignedTasks;
       const total = tasks.length;
-      const completed = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
+      const completed = tasks.filter(
+        (t) => t.status === TaskStatus.COMPLETED,
+      ).length;
       const overdue = tasks.filter(
         (t) =>
           t.dueDate &&
@@ -1601,7 +1622,8 @@ export class ReportsService {
           }
         }
       }
-      const avgRating = ratingCount > 0 ? Number((totalRating / ratingCount).toFixed(1)) : null;
+      const avgRating =
+        ratingCount > 0 ? Number((totalRating / ratingCount).toFixed(1)) : null;
 
       return {
         employeeId: emp.id,
@@ -1612,7 +1634,8 @@ export class ReportsService {
         totalTasks: total,
         completedTasks: completed,
         overdueTasks: overdue,
-        completionRate: total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
+        completionRate:
+          total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
         averageRating: avgRating,
       };
     });
@@ -1647,7 +1670,9 @@ export class ReportsService {
     const stats = departments.map((dept) => {
       const tasks = dept.tasks;
       const total = tasks.length;
-      const completed = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
+      const completed = tasks.filter(
+        (t) => t.status === TaskStatus.COMPLETED,
+      ).length;
       const active = tasks.filter(
         (t) =>
           t.status !== TaskStatus.COMPLETED &&
@@ -1669,14 +1694,18 @@ export class ReportsService {
         activeTasks: active,
         completedTasks: completed,
         overdueTasks: overdue,
-        completionRate: total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
+        completionRate:
+          total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
       };
     });
 
     return { data: stats };
   }
 
-  async exportTasksCsv(query: TaskReportQueryDto, currentUser?: any): Promise<string> {
+  async exportTasksCsv(
+    query: TaskReportQueryDto,
+    currentUser?: any,
+  ): Promise<string> {
     await this.logReportAccess(currentUser?.id, "TASKS_EXPORT", query);
 
     const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
@@ -1743,7 +1772,9 @@ export class ReportsService {
       priority: t.priority,
       progress: t.progress,
       assigneeCode: t.assignee?.employeeCode || "N/A",
-      assigneeName: t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : "Unassigned",
+      assigneeName: t.assignee
+        ? `${t.assignee.firstName} ${t.assignee.lastName}`
+        : "Unassigned",
       department: t.department?.name || t.assignee?.department || "N/A",
       startDate: t.startDate ? t.startDate.toISOString().split("T")[0] : "",
       dueDate: t.dueDate ? t.dueDate.toISOString().split("T")[0] : "",

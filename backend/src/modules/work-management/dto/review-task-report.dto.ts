@@ -17,7 +17,8 @@ export enum TaskReviewAction {
 export class ReviewTaskReportDto {
   @ApiProperty({
     enum: TaskReviewAction,
-    description: "Manager decision: APPROVE (completes task) or REJECT (returns to IN_PROGRESS)",
+    description:
+      "Manager decision: APPROVE (completes task) or REJECT (returns to IN_PROGRESS)",
     example: TaskReviewAction.APPROVE,
   })
   @IsEnum(TaskReviewAction)

@@ -22,18 +22,21 @@ export class TasksRepository {
       data: {
         ...taskData,
         creatorId,
-        startDate: taskData.startDate ? new Date(taskData.startDate) : undefined,
+        startDate: taskData.startDate
+          ? new Date(taskData.startDate)
+          : undefined,
         dueDate: taskData.dueDate ? new Date(taskData.dueDate) : undefined,
         status: TaskStatus.TODO,
         progress: 0,
-        checklist: checklist && checklist.length > 0
-          ? {
-              create: checklist.map((item, idx) => ({
-                title: item.title,
-                orderIndex: item.orderIndex ?? idx,
-              })),
-            }
-          : undefined,
+        checklist:
+          checklist && checklist.length > 0
+            ? {
+                create: checklist.map((item, idx) => ({
+                  title: item.title,
+                  orderIndex: item.orderIndex ?? idx,
+                })),
+              }
+            : undefined,
         history: {
           create: {
             userId: creatorId,
@@ -344,7 +347,11 @@ export class TasksRepository {
     });
   }
 
-  async updateChecklistItem(id: string, dto: UpdateChecklistItemDto, userId?: string) {
+  async updateChecklistItem(
+    id: string,
+    dto: UpdateChecklistItemDto,
+    userId?: string,
+  ) {
     const data: Prisma.TaskChecklistItemUpdateInput = {};
     if (dto.title !== undefined) data.title = dto.title;
     if (dto.orderIndex !== undefined) data.orderIndex = dto.orderIndex;
@@ -369,13 +376,19 @@ export class TasksRepository {
   async getChecklistStats(taskId: string) {
     const [total, completed] = await Promise.all([
       this.prisma.taskChecklistItem.count({ where: { taskId } }),
-      this.prisma.taskChecklistItem.count({ where: { taskId, isCompleted: true } }),
+      this.prisma.taskChecklistItem.count({
+        where: { taskId, isCompleted: true },
+      }),
     ]);
     return { total, completed };
   }
 
   // Comments
-  async addComment(taskId: string, authorId: string, dto: CreateTaskCommentDto) {
+  async addComment(
+    taskId: string,
+    authorId: string,
+    dto: CreateTaskCommentDto,
+  ) {
     return this.prisma.taskComment.create({
       data: {
         taskId,
@@ -418,7 +431,11 @@ export class TasksRepository {
   }
 
   // Attachments
-  async addAttachment(taskId: string, uploadedById: string, dto: CreateTaskAttachmentDto) {
+  async addAttachment(
+    taskId: string,
+    uploadedById: string,
+    dto: CreateTaskAttachmentDto,
+  ) {
     return this.prisma.taskAttachment.create({
       data: {
         taskId,

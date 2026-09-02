@@ -48,8 +48,13 @@ export class TasksService {
         where: { id: dto.assigneeId },
         include: { user: true },
       });
-      if (!assignee || (assignee.user && assignee.user.status !== UserStatus.ACTIVE)) {
-        throw new BadRequestException("Assignee employee not found or inactive");
+      if (
+        !assignee ||
+        (assignee.user && assignee.user.status !== UserStatus.ACTIVE)
+      ) {
+        throw new BadRequestException(
+          "Assignee employee not found or inactive",
+        );
       }
     }
 
@@ -105,7 +110,10 @@ export class TasksService {
       throw new NotFoundException(`Task ${taskId} not found`);
     }
 
-    if (task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
+    if (
+      task.status === TaskStatus.COMPLETED ||
+      task.status === TaskStatus.CANCELLED
+    ) {
       throw new BadRequestException(
         `Cannot reassign a task in ${task.status} status`,
       );
@@ -115,7 +123,10 @@ export class TasksService {
       where: { id: dto.assigneeId },
       include: { user: true },
     });
-    if (!assignee || (assignee.user && assignee.user.status !== UserStatus.ACTIVE)) {
+    if (
+      !assignee ||
+      (assignee.user && assignee.user.status !== UserStatus.ACTIVE)
+    ) {
       throw new BadRequestException("Assignee employee not found or inactive");
     }
 
@@ -239,13 +250,16 @@ export class TasksService {
       include: { employeeProfile: true },
     });
 
-    const isAssignee = Boolean(task.assignee && task.assignee.userId === userId);
+    const isAssignee = Boolean(
+      task.assignee && task.assignee.userId === userId,
+    );
     const isCreator = task.creatorId === userId;
     const isManagerOrAdmin = Boolean(
       user?.role === Role.SUPER_ADMIN ||
       user?.role === Role.HR_ADMIN ||
       user?.role === Role.HR_MANAGER ||
-      (user?.employeeProfile && task.assignee?.managerId === user.employeeProfile.id),
+      (user?.employeeProfile &&
+        task.assignee?.managerId === user.employeeProfile.id),
     );
 
     if (!isAssignee && !isCreator && !isManagerOrAdmin) {
@@ -254,7 +268,12 @@ export class TasksService {
       );
     }
 
-    this.validateStatusTransition(task.status, dto.status, isAssignee, isManagerOrAdmin);
+    this.validateStatusTransition(
+      task.status,
+      dto.status,
+      isAssignee,
+      isManagerOrAdmin,
+    );
 
     const updateData: any = {
       status: dto.status,
@@ -284,7 +303,11 @@ export class TasksService {
         action: AuditAction.TASK_STATUS_CHANGED,
         entity: "Task",
         entityId: taskId,
-        payload: { oldStatus: task.status, newStatus: dto.status, reason: dto.reason },
+        payload: {
+          oldStatus: task.status,
+          newStatus: dto.status,
+          reason: dto.reason,
+        },
       },
     });
 
@@ -314,7 +337,10 @@ export class TasksService {
     }
 
     // Terminal states cannot be changed except by Manager/Admin
-    if ((current === TaskStatus.COMPLETED || current === TaskStatus.CANCELLED) && !isManagerOrAdmin) {
+    if (
+      (current === TaskStatus.COMPLETED || current === TaskStatus.CANCELLED) &&
+      !isManagerOrAdmin
+    ) {
       throw new BadRequestException(
         `Only managers or administrators can reopen a ${current} task`,
       );
@@ -322,8 +348,16 @@ export class TasksService {
 
     // Valid state transitions
     const transitions: Record<TaskStatus, TaskStatus[]> = {
-      [TaskStatus.TODO]: [TaskStatus.ACCEPTED, TaskStatus.IN_PROGRESS, TaskStatus.CANCELLED],
-      [TaskStatus.ACCEPTED]: [TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED, TaskStatus.CANCELLED],
+      [TaskStatus.TODO]: [
+        TaskStatus.ACCEPTED,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.CANCELLED,
+      ],
+      [TaskStatus.ACCEPTED]: [
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.BLOCKED,
+        TaskStatus.CANCELLED,
+      ],
       [TaskStatus.IN_PROGRESS]: [
         TaskStatus.BLOCKED,
         TaskStatus.PENDING_REVIEW,
@@ -331,8 +365,16 @@ export class TasksService {
         TaskStatus.CANCELLED,
       ],
       [TaskStatus.BLOCKED]: [TaskStatus.IN_PROGRESS, TaskStatus.CANCELLED],
-      [TaskStatus.PENDING_REVIEW]: [TaskStatus.COMPLETED, TaskStatus.IN_PROGRESS, TaskStatus.CANCELLED],
-      [TaskStatus.OVERDUE]: [TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED, TaskStatus.CANCELLED],
+      [TaskStatus.PENDING_REVIEW]: [
+        TaskStatus.COMPLETED,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.CANCELLED,
+      ],
+      [TaskStatus.OVERDUE]: [
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.COMPLETED,
+        TaskStatus.CANCELLED,
+      ],
       [TaskStatus.COMPLETED]: [TaskStatus.IN_PROGRESS],
       [TaskStatus.CANCELLED]: [TaskStatus.TODO, TaskStatus.IN_PROGRESS],
     };
@@ -345,7 +387,11 @@ export class TasksService {
     }
 
     // Employee cannot directly approve from PENDING_REVIEW to COMPLETED
-    if (current === TaskStatus.PENDING_REVIEW && target === TaskStatus.COMPLETED && !isManagerOrAdmin) {
+    if (
+      current === TaskStatus.PENDING_REVIEW &&
+      target === TaskStatus.COMPLETED &&
+      !isManagerOrAdmin
+    ) {
       throw new ForbiddenException(
         "Only managers or supervisors can approve tasks in PENDING_REVIEW",
       );
@@ -384,7 +430,11 @@ export class TasksService {
   // 4. CHECKLIST MANAGEMENT & AUTO-PROGRESS
   // ============================================================
 
-  async addChecklistItem(taskId: string, userId: string, dto: AddChecklistItemDto) {
+  async addChecklistItem(
+    taskId: string,
+    userId: string,
+    dto: AddChecklistItemDto,
+  ) {
     const task = await this.tasksRepo.findTaskById(taskId);
     if (!task) {
       throw new NotFoundException(`Task ${taskId} not found`);
@@ -407,7 +457,11 @@ export class TasksService {
       throw new NotFoundException(`Checklist item ${itemId} not found on task`);
     }
 
-    const updated = await this.tasksRepo.updateChecklistItem(itemId, dto, userId);
+    const updated = await this.tasksRepo.updateChecklistItem(
+      itemId,
+      dto,
+      userId,
+    );
     await this.recalculateChecklistProgress(taskId);
 
     return updated;
@@ -429,7 +483,9 @@ export class TasksService {
     const stats = await this.tasksRepo.getChecklistStats(taskId);
     if (stats.total === 0) return;
 
-    const calculatedProgress = Math.round((stats.completed / stats.total) * 100);
+    const calculatedProgress = Math.round(
+      (stats.completed / stats.total) * 100,
+    );
     await this.tasksRepo.updateTask(taskId, {
       progress: calculatedProgress,
     });
@@ -448,7 +504,8 @@ export class TasksService {
     const comment = await this.tasksRepo.addComment(taskId, userId, dto);
 
     // Notify relevant counterpart
-    const targetUserId = task.creatorId === userId ? task.assignee?.userId : task.creatorId;
+    const targetUserId =
+      task.creatorId === userId ? task.assignee?.userId : task.creatorId;
     if (targetUserId && targetUserId !== userId) {
       await this.notificationsService.sendNotification(
         targetUserId,
@@ -466,7 +523,11 @@ export class TasksService {
     return this.tasksRepo.findComments(taskId);
   }
 
-  async addAttachment(taskId: string, userId: string, dto: CreateTaskAttachmentDto) {
+  async addAttachment(
+    taskId: string,
+    userId: string,
+    dto: CreateTaskAttachmentDto,
+  ) {
     const task = await this.tasksRepo.findTaskById(taskId);
     if (!task) {
       throw new NotFoundException(`Task ${taskId} not found`);

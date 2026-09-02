@@ -328,7 +328,9 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
             list = list.filter((t) => t.departmentId === where.departmentId);
           }
           if (where?.dueDate?.lt) {
-            list = list.filter((t) => t.dueDate && t.dueDate < where.dueDate.lt);
+            list = list.filter(
+              (t) => t.dueDate && t.dueDate < where.dueDate.lt,
+            );
           }
           return Promise.resolve(list.slice(skip, skip + take));
         }),
@@ -342,12 +344,14 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
             }
           }
           if (where?.dueDate?.lt) {
-            list = list.filter((t) => t.dueDate && t.dueDate < where.dueDate.lt);
+            list = list.filter(
+              (t) => t.dueDate && t.dueDate < where.dueDate.lt,
+            );
           }
           return Promise.resolve(list.length);
         }),
         groupBy: jest.fn(({ by, where }) => {
-          let list = [...mockTasks];
+          const list = [...mockTasks];
           const key = by[0];
           const map: Record<string, number> = {};
           for (const item of list) {
@@ -391,7 +395,10 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
           let count = 0;
           for (const t of mockTasks) {
             let match = true;
-            if (where?.dueDate?.lt && (!t.dueDate || t.dueDate >= where.dueDate.lt)) {
+            if (
+              where?.dueDate?.lt &&
+              (!t.dueDate || t.dueDate >= where.dueDate.lt)
+            ) {
               match = false;
             }
             if (where?.status?.in && !where.status.in.includes(t.status)) {
@@ -440,7 +447,9 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
           return Promise.resolve(removed);
         }),
         count: jest.fn(({ where }) => {
-          let list = mockChecklistItems.filter((c) => c.taskId === where.taskId);
+          let list = mockChecklistItems.filter(
+            (c) => c.taskId === where.taskId,
+          );
           if (where?.isCompleted !== undefined) {
             list = list.filter((c) => c.isCompleted === where.isCompleted);
           }
@@ -644,10 +653,14 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
         assigneeId: "emp-101",
       });
 
-      const reassigned = await tasksService.assignTask(task.id, "user-manager", {
-        assigneeId: "emp-102",
-        notes: "Handed over due to capacity",
-      });
+      const reassigned = await tasksService.assignTask(
+        task.id,
+        "user-manager",
+        {
+          assigneeId: "emp-102",
+          notes: "Handed over due to capacity",
+        },
+      );
 
       expect(reassigned.assigneeId).toBe("emp-102");
       expect(mockHistory).toContainEqual(
@@ -762,16 +775,26 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
       const items = mockChecklistItems.filter((c) => c.taskId === task.id);
 
       // Toggle item 1 -> 50%
-      await tasksService.updateChecklistItem(task.id, items[0].id, "user-emp-1", {
-        isCompleted: true,
-      });
+      await tasksService.updateChecklistItem(
+        task.id,
+        items[0].id,
+        "user-emp-1",
+        {
+          isCompleted: true,
+        },
+      );
       let fetched = await tasksService.findOne(task.id);
       expect(fetched.progress).toBe(50);
 
       // Toggle item 2 -> 100%
-      await tasksService.updateChecklistItem(task.id, items[1].id, "user-emp-1", {
-        isCompleted: true,
-      });
+      await tasksService.updateChecklistItem(
+        task.id,
+        items[1].id,
+        "user-emp-1",
+        {
+          isCompleted: true,
+        },
+      );
       fetched = await tasksService.findOne(task.id);
       expect(fetched.progress).toBe(100);
     });
@@ -787,12 +810,16 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
       });
       expect(comment.content).toBe("Drafting the initial data contract");
 
-      const attachment = await tasksService.addAttachment(task.id, "user-emp-1", {
-        fileName: "specs.pdf",
-        fileUrl: "https://cyberwise.test/specs.pdf",
-        fileSize: 1024,
-        mimeType: "application/pdf",
-      });
+      const attachment = await tasksService.addAttachment(
+        task.id,
+        "user-emp-1",
+        {
+          fileName: "specs.pdf",
+          fileUrl: "https://cyberwise.test/specs.pdf",
+          fileSize: 1024,
+          mimeType: "application/pdf",
+        },
+      );
       expect(attachment.fileName).toBe("specs.pdf");
 
       const comments = await tasksService.getComments(task.id);
@@ -856,12 +883,16 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
     });
 
     it("5.1 Employee submits report -> Task transitions to PENDING_REVIEW", async () => {
-      const { report, task } = await workService.submitTaskReport(taskId, "user-emp-1", {
-        summary: "OAuth 2.0 and SAML implemented with 100% test coverage",
-        challenges: "None",
-        hoursSpent: 8.5,
-        progress: 100,
-      });
+      const { report, task } = await workService.submitTaskReport(
+        taskId,
+        "user-emp-1",
+        {
+          summary: "OAuth 2.0 and SAML implemented with 100% test coverage",
+          challenges: "None",
+          hoursSpent: 8.5,
+          progress: 100,
+        },
+      );
 
       expect(report).toBeDefined();
       expect(report.status).toBe(TaskReportStatus.SUBMITTED);
