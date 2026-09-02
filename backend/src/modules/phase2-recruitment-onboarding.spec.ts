@@ -57,7 +57,7 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     auditLogs: [] as any[],
   };
 
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     organization: {
       findUnique: jest.fn(({ where }) =>
         Promise.resolve(db.organizations.find((o) => o.id === where.id || o.code === where.code) || null),

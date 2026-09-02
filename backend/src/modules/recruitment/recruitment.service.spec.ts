@@ -17,7 +17,7 @@ import {
 describe("RecruitmentService", () => {
   let service: RecruitmentService;
 
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     jobOpening: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
