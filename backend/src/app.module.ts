@@ -24,6 +24,9 @@ import { OrganizationModule } from "./modules/organization/organization.module";
 import { RolesModule } from "./modules/roles/roles.module";
 import { PermissionsModule } from "./modules/permissions/permissions.module";
 import { SettingsModule } from "./modules/settings/settings.module";
+import { HrModule } from "./modules/hr/hr.module";
+import { RecruitmentModule } from "./modules/recruitment/recruitment.module";
+import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
@@ -61,6 +64,9 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     RolesModule,
     PermissionsModule,
     SettingsModule,
+    HrModule,
+    RecruitmentModule,
+    OnboardingModule,
     EmployeesModule,
     WorkplacesModule,
     AttendanceModule,

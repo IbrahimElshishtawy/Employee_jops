@@ -265,6 +265,33 @@ async function main() {
     { slug: "roles:manage", action: PermissionAction.MANAGE, subject: PermissionSubject.ROLES, module: "roles", description: "Create and assign custom roles" },
     // Audit Logs
     { slug: "audit-logs:read", action: PermissionAction.READ, subject: PermissionSubject.AUDIT_LOGS, module: "audit-logs", description: "View compliance audit trails" },
+    // Recruitment & Job Openings
+    { slug: "job_openings:read", action: PermissionAction.READ, subject: PermissionSubject.JOB_OPENINGS, module: "recruitment", description: "View job openings" },
+    { slug: "job_openings:create", action: PermissionAction.CREATE, subject: PermissionSubject.JOB_OPENINGS, module: "recruitment", description: "Create job opening requisitions" },
+    { slug: "job_openings:update", action: PermissionAction.UPDATE, subject: PermissionSubject.JOB_OPENINGS, module: "recruitment", description: "Update job openings" },
+    { slug: "job_openings:delete", action: PermissionAction.DELETE, subject: PermissionSubject.JOB_OPENINGS, module: "recruitment", description: "Delete job openings" },
+    // Candidates & Applications
+    { slug: "candidates:read", action: PermissionAction.READ, subject: PermissionSubject.CANDIDATES, module: "recruitment", description: "View candidate database" },
+    { slug: "candidates:create", action: PermissionAction.CREATE, subject: PermissionSubject.CANDIDATES, module: "recruitment", description: "Create candidate profiles" },
+    { slug: "candidates:update", action: PermissionAction.UPDATE, subject: PermissionSubject.CANDIDATES, module: "recruitment", description: "Update candidate profiles" },
+    { slug: "candidates:manage", action: PermissionAction.MANAGE, subject: PermissionSubject.CANDIDATES, module: "recruitment", description: "Execute candidate hiring and conversion" },
+    { slug: "candidates:delete", action: PermissionAction.DELETE, subject: PermissionSubject.CANDIDATES, module: "recruitment", description: "Delete candidate profiles" },
+    { slug: "applications:read", action: PermissionAction.READ, subject: PermissionSubject.APPLICATIONS, module: "recruitment", description: "View job applications" },
+    { slug: "applications:create", action: PermissionAction.CREATE, subject: PermissionSubject.APPLICATIONS, module: "recruitment", description: "Create job applications" },
+    { slug: "applications:update", action: PermissionAction.UPDATE, subject: PermissionSubject.APPLICATIONS, module: "recruitment", description: "Update application stage and rating" },
+    // Interviews & Offers
+    { slug: "interviews:read", action: PermissionAction.READ, subject: PermissionSubject.INTERVIEWS, module: "recruitment", description: "View scheduled interviews" },
+    { slug: "interviews:create", action: PermissionAction.CREATE, subject: PermissionSubject.INTERVIEWS, module: "recruitment", description: "Schedule candidate interviews" },
+    { slug: "interviews:update", action: PermissionAction.UPDATE, subject: PermissionSubject.INTERVIEWS, module: "recruitment", description: "Update interview scorecard and feedback" },
+    { slug: "job_offers:read", action: PermissionAction.READ, subject: PermissionSubject.JOB_OFFERS, module: "recruitment", description: "View generated job offers" },
+    { slug: "job_offers:create", action: PermissionAction.CREATE, subject: PermissionSubject.JOB_OFFERS, module: "recruitment", description: "Create job offers" },
+    { slug: "job_offers:update", action: PermissionAction.UPDATE, subject: PermissionSubject.JOB_OFFERS, module: "recruitment", description: "Update job offers" },
+    // Onboarding
+    { slug: "onboarding:read", action: PermissionAction.READ, subject: PermissionSubject.ONBOARDING, module: "onboarding", description: "View employee onboarding progress" },
+    { slug: "onboarding:create", action: PermissionAction.CREATE, subject: PermissionSubject.ONBOARDING, module: "onboarding", description: "Initialize onboarding workflows" },
+    { slug: "onboarding:update", action: PermissionAction.UPDATE, subject: PermissionSubject.ONBOARDING, module: "onboarding", description: "Update onboarding tasks and checklists" },
+    { slug: "onboarding:manage", action: PermissionAction.MANAGE, subject: PermissionSubject.ONBOARDING, module: "onboarding", description: "Finalize employee onboarding" },
+    { slug: "onboarding:delete", action: PermissionAction.DELETE, subject: PermissionSubject.ONBOARDING, module: "onboarding", description: "Delete onboarding tasks" },
   ];
 
   for (const perm of canonicalPermissions) {
