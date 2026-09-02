@@ -30,6 +30,8 @@ import { SettingsModule } from "./modules/settings/settings.module";
 import { HrModule } from "./modules/hr/hr.module";
 import { RecruitmentModule } from "./modules/recruitment/recruitment.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
+import { TasksModule } from "./modules/tasks/tasks.module";
+import { WorkManagementModule } from "./modules/work-management/work-management.module";
 
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
@@ -83,6 +85,8 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     MessagesModule,
     ReportsModule,
     AuditLogsModule,
+    TasksModule,
+    WorkManagementModule,
   ],
   providers: [
     // Global Throttler Guard

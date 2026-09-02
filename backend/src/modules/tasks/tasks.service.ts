@@ -48,7 +48,7 @@ export class TasksService {
         where: { id: dto.assigneeId },
         include: { user: true },
       });
-      if (!assignee || assignee.user.status !== UserStatus.ACTIVE) {
+      if (!assignee || (assignee.user && assignee.user.status !== UserStatus.ACTIVE)) {
         throw new BadRequestException("Assignee employee not found or inactive");
       }
     }
@@ -115,7 +115,7 @@ export class TasksService {
       where: { id: dto.assigneeId },
       include: { user: true },
     });
-    if (!assignee || assignee.user.status !== UserStatus.ACTIVE) {
+    if (!assignee || (assignee.user && assignee.user.status !== UserStatus.ACTIVE)) {
       throw new BadRequestException("Assignee employee not found or inactive");
     }
 
@@ -239,13 +239,14 @@ export class TasksService {
       include: { employeeProfile: true },
     });
 
-    const isAssignee = task.assignee && task.assignee.userId === userId;
+    const isAssignee = Boolean(task.assignee && task.assignee.userId === userId);
     const isCreator = task.creatorId === userId;
-    const isManagerOrAdmin =
+    const isManagerOrAdmin = Boolean(
       user?.role === Role.SUPER_ADMIN ||
       user?.role === Role.HR_ADMIN ||
       user?.role === Role.HR_MANAGER ||
-      (user?.employeeProfile && task.assignee?.managerId === user.employeeProfile.id);
+      (user?.employeeProfile && task.assignee?.managerId === user.employeeProfile.id),
+    );
 
     if (!isAssignee && !isCreator && !isManagerOrAdmin) {
       throw new ForbiddenException(

@@ -9,6 +9,7 @@ import {
   PayrollReportQueryDto,
   RequestReportQueryDto,
   SortOrder,
+  TaskReportQueryDto,
 } from "./dto";
 import { DateRangeUtil } from "./utils/date-range.util";
 import { CsvExporterUtil } from "./utils/csv-exporter.util";
@@ -19,6 +20,9 @@ import {
   RequestStatus,
   RequestType,
   UserStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskReportStatus,
 } from "@prisma/client";
 
 @Injectable()
@@ -1431,7 +1435,327 @@ export class ReportsService {
   }
 
   // ============================================================
-  // 15. AUDIT LOGGING HELPER
+  // 15. TASK ANALYTICS & KPIS
+  // ============================================================
+
+  async getTaskAnalytics(query: TaskReportQueryDto, currentUser?: any) {
+    await this.logReportAccess(currentUser?.id, "TASK_ANALYTICS", query);
+
+    const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
+      query.startDate,
+      query.endDate,
+      query.year,
+      query.month,
+    );
+
+    const where: Prisma.TaskWhereInput = {
+      createdAt: { gte: startDate, lte: endDate },
+    };
+
+    if (query.departmentId) where.departmentId = query.departmentId;
+    if (query.employeeId) where.assigneeId = query.employeeId;
+    if (query.workplaceId) where.workplaceId = query.workplaceId;
+    if (query.status) where.status = query.status;
+    if (query.priority) where.priority = query.priority;
+    if (query.isOverdue) {
+      where.dueDate = { lt: new Date() };
+      where.status = { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] };
+    }
+
+    const [totalTasks, statusGroup, priorityGroup, completedTasks, overdueCount] =
+      await Promise.all([
+        this.prisma.task.count({ where }),
+        this.prisma.task.groupBy({
+          by: ["status"],
+          where,
+          _count: { id: true },
+        }),
+        this.prisma.task.groupBy({
+          by: ["priority"],
+          where,
+          _count: { id: true },
+        }),
+        this.prisma.task.findMany({
+          where: {
+            ...where,
+            status: TaskStatus.COMPLETED,
+            completedAt: { not: null },
+          },
+          select: { createdAt: true, completedAt: true },
+          take: 1000,
+        }),
+        this.prisma.task.count({
+          where: {
+            ...where,
+            dueDate: { lt: new Date() },
+            status: { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] },
+          },
+        }),
+      ]);
+
+    const statusCounts: Record<string, number> = {};
+    for (const sg of statusGroup) {
+      statusCounts[sg.status] = sg._count.id;
+    }
+
+    const priorityCounts: Record<string, number> = {};
+    for (const pg of priorityGroup) {
+      priorityCounts[pg.priority] = pg._count.id;
+    }
+
+    const completedCount = statusCounts[TaskStatus.COMPLETED] || 0;
+    const completionRate =
+      totalTasks > 0 ? Number(((completedCount / totalTasks) * 100).toFixed(1)) : 0;
+    const overdueRate =
+      totalTasks > 0 ? Number(((overdueCount / totalTasks) * 100).toFixed(1)) : 0;
+
+    let totalCompletionHours = 0;
+    for (const ct of completedTasks) {
+      if (ct.completedAt) {
+        const diffMs = ct.completedAt.getTime() - ct.createdAt.getTime();
+        totalCompletionHours += Math.max(0, diffMs / (1000 * 60 * 60));
+      }
+    }
+    const avgCompletionHours =
+      completedTasks.length > 0
+        ? Number((totalCompletionHours / completedTasks.length).toFixed(1))
+        : 0;
+
+    return {
+      dateRange: { startDate, endDate },
+      summary: {
+        totalTasks,
+        completedTasks: completedCount,
+        activeTasks: totalTasks - completedCount - (statusCounts[TaskStatus.CANCELLED] || 0),
+        overdueTasks: overdueCount,
+        completionRate,
+        overdueRate,
+        avgCompletionHours,
+      },
+      byStatus: statusCounts,
+      byPriority: priorityCounts,
+    };
+  }
+
+  async getEmployeeTaskProductivity(query: TaskReportQueryDto, currentUser?: any) {
+    await this.logReportAccess(currentUser?.id, "EMPLOYEE_TASK_PRODUCTIVITY", query);
+
+    const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
+      query.startDate,
+      query.endDate,
+      query.year,
+      query.month,
+    );
+
+    const where: Prisma.EmployeeProfileWhereInput = {};
+    if (query.departmentId) where.departmentId = query.departmentId;
+    if (query.employeeId) where.id = query.employeeId;
+
+    const employees = await this.prisma.employeeProfile.findMany({
+      where,
+      select: {
+        id: true,
+        employeeCode: true,
+        firstName: true,
+        lastName: true,
+        department: true,
+        jobTitle: true,
+        assignedTasks: {
+          where: { createdAt: { gte: startDate, lte: endDate } },
+          select: {
+            id: true,
+            status: true,
+            priority: true,
+            dueDate: true,
+            completedAt: true,
+            reports: {
+              select: { rating: true, status: true },
+            },
+          },
+        },
+      },
+      take: 100,
+    });
+
+    const now = new Date();
+
+    const productivity = employees.map((emp) => {
+      const tasks = emp.assignedTasks;
+      const total = tasks.length;
+      const completed = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
+      const overdue = tasks.filter(
+        (t) =>
+          t.dueDate &&
+          new Date(t.dueDate) < now &&
+          t.status !== TaskStatus.COMPLETED &&
+          t.status !== TaskStatus.CANCELLED,
+      ).length;
+
+      let totalRating = 0;
+      let ratingCount = 0;
+      for (const t of tasks) {
+        for (const r of t.reports || []) {
+          if (r.rating) {
+            totalRating += r.rating;
+            ratingCount++;
+          }
+        }
+      }
+      const avgRating = ratingCount > 0 ? Number((totalRating / ratingCount).toFixed(1)) : null;
+
+      return {
+        employeeId: emp.id,
+        employeeCode: emp.employeeCode,
+        fullName: `${emp.firstName} ${emp.lastName}`,
+        department: emp.department,
+        jobTitle: emp.jobTitle,
+        totalTasks: total,
+        completedTasks: completed,
+        overdueTasks: overdue,
+        completionRate: total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
+        averageRating: avgRating,
+      };
+    });
+
+    return {
+      dateRange: { startDate, endDate },
+      data: productivity,
+    };
+  }
+
+  async getDepartmentTaskStats(query: TaskReportQueryDto, currentUser?: any) {
+    await this.logReportAccess(currentUser?.id, "DEPARTMENT_TASK_STATS", query);
+
+    const departments = await this.prisma.department.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            dueDate: true,
+          },
+        },
+      },
+    });
+
+    const now = new Date();
+
+    const stats = departments.map((dept) => {
+      const tasks = dept.tasks;
+      const total = tasks.length;
+      const completed = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
+      const active = tasks.filter(
+        (t) =>
+          t.status !== TaskStatus.COMPLETED &&
+          t.status !== TaskStatus.CANCELLED,
+      ).length;
+      const overdue = tasks.filter(
+        (t) =>
+          t.dueDate &&
+          new Date(t.dueDate) < now &&
+          t.status !== TaskStatus.COMPLETED &&
+          t.status !== TaskStatus.CANCELLED,
+      ).length;
+
+      return {
+        departmentId: dept.id,
+        departmentName: dept.name,
+        departmentCode: dept.code,
+        totalTasks: total,
+        activeTasks: active,
+        completedTasks: completed,
+        overdueTasks: overdue,
+        completionRate: total > 0 ? Number(((completed / total) * 100).toFixed(1)) : 0,
+      };
+    });
+
+    return { data: stats };
+  }
+
+  async exportTasksCsv(query: TaskReportQueryDto, currentUser?: any): Promise<string> {
+    await this.logReportAccess(currentUser?.id, "TASKS_EXPORT", query);
+
+    const { startDate, endDate } = DateRangeUtil.parseAndValidateDateRange(
+      query.startDate,
+      query.endDate,
+      query.year,
+      query.month,
+    );
+
+    const where: Prisma.TaskWhereInput = {
+      createdAt: { gte: startDate, lte: endDate },
+    };
+
+    if (query.departmentId) where.departmentId = query.departmentId;
+    if (query.employeeId) where.assigneeId = query.employeeId;
+    if (query.status) where.status = query.status;
+    if (query.priority) where.priority = query.priority;
+
+    const tasks = await this.prisma.task.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 5000,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        progress: true,
+        startDate: true,
+        dueDate: true,
+        completedAt: true,
+        createdAt: true,
+        assignee: {
+          select: {
+            employeeCode: true,
+            firstName: true,
+            lastName: true,
+            department: true,
+          },
+        },
+        department: { select: { name: true } },
+      },
+    });
+
+    const headers = [
+      { key: "id", label: "Task ID" },
+      { key: "title", label: "Title" },
+      { key: "status", label: "Status" },
+      { key: "priority", label: "Priority" },
+      { key: "progress", label: "Progress (%)" },
+      { key: "assigneeCode", label: "Assignee Code" },
+      { key: "assigneeName", label: "Assignee Name" },
+      { key: "department", label: "Department" },
+      { key: "startDate", label: "Start Date" },
+      { key: "dueDate", label: "Due Date" },
+      { key: "completedAt", label: "Completed At" },
+      { key: "createdAt", label: "Created At" },
+    ];
+
+    const rows = tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      progress: t.progress,
+      assigneeCode: t.assignee?.employeeCode || "N/A",
+      assigneeName: t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : "Unassigned",
+      department: t.department?.name || t.assignee?.department || "N/A",
+      startDate: t.startDate ? t.startDate.toISOString().split("T")[0] : "",
+      dueDate: t.dueDate ? t.dueDate.toISOString().split("T")[0] : "",
+      completedAt: t.completedAt ? t.completedAt.toISOString() : "",
+      createdAt: t.createdAt.toISOString().split("T")[0],
+    }));
+
+    return CsvExporterUtil.generateCsv(headers, rows);
+  }
+
+  // ============================================================
+  // 16. AUDIT LOGGING HELPER
   // ============================================================
 
   private async logReportAccess(

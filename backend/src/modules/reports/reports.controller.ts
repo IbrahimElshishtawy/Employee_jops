@@ -20,6 +20,7 @@ import {
   ExportReportQueryDto,
   PayrollReportQueryDto,
   RequestReportQueryDto,
+  TaskReportQueryDto,
 } from "./dto";
 
 @ApiTags("Reports & Analytics Engine")
@@ -206,5 +207,64 @@ export class ReportsController {
   })
   getWorkplaceAnalytics(@Query() query: BaseReportQueryDto) {
     return this.reportsService.getWorkplaceAnalytics(query);
+  }
+
+  // ============================================================
+  // 6. TASKS & WORK MANAGEMENT ANALYTICS
+  // ============================================================
+
+  @Get("tasks")
+  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
+  @ApiOperation({
+    summary: "Comprehensive task KPIs, completion/overdue rates & status breakdown",
+  })
+  getTaskAnalytics(
+    @Query() query: TaskReportQueryDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.reportsService.getTaskAnalytics(query, user);
+  }
+
+  @Get("tasks/employees")
+  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
+  @ApiOperation({
+    summary: "Employee task productivity, completion rates & performance ratings",
+  })
+  getEmployeeTaskProductivity(
+    @Query() query: TaskReportQueryDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.reportsService.getEmployeeTaskProductivity(query, user);
+  }
+
+  @Get("tasks/departments")
+  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
+  @ApiOperation({
+    summary: "Departmental task load, active bottlenecks & completion rates",
+  })
+  getDepartmentTaskStats(
+    @Query() query: TaskReportQueryDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.reportsService.getDepartmentTaskStats(query, user);
+  }
+
+  @Get("tasks/export")
+  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
+  @ApiOperation({
+    summary: "Export tasks report with CSV injection protection",
+  })
+  async exportTasks(
+    @Query() query: TaskReportQueryDto,
+    @CurrentUser() user: any,
+    @Res() reply: FastifyReply,
+  ) {
+    const csvContent = await this.reportsService.exportTasksCsv(query, user);
+    const filename = `tasks-report-${new Date().toISOString().split("T")[0]}.csv`;
+
+    reply
+      .header("Content-Type", "text/csv; charset=utf-8")
+      .header("Content-Disposition", `attachment; filename="${filename}"`)
+      .send(csvContent);
   }
 }
