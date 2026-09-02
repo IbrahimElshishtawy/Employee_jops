@@ -3,51 +3,29 @@ import {
   NotFoundException,
   ConflictException,
 } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
 import { CreateWorkplaceDto } from "./dto/create-workplace.dto";
 import { UpdateWorkplaceDto } from "./dto/update-workplace.dto";
+import { WorkplacesRepository } from "./workplaces.repository";
 
 @Injectable()
 export class WorkplacesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly workplacesRepo: WorkplacesRepository) {}
 
   async create(dto: CreateWorkplaceDto) {
-    const existing = await this.prisma.workplace.findUnique({
-      where: { code: dto.code },
-    });
+    const existing = await this.workplacesRepo.findByCode(dto.code);
     if (existing) {
       throw new ConflictException("Workplace code already exists");
     }
 
-    return this.prisma.workplace.create({ data: dto });
+    return this.workplacesRepo.create(dto);
   }
 
   async findAll() {
-    return this.prisma.workplace.findMany({
-      include: {
-        _count: { select: { employees: true } },
-      },
-      orderBy: { name: "asc" },
-    });
+    return this.workplacesRepo.findAll();
   }
 
   async findOne(id: string) {
-    const workplace = await this.prisma.workplace.findUnique({
-      where: { id },
-      include: {
-        employees: {
-          select: {
-            id: true,
-            employeeCode: true,
-            firstName: true,
-            lastName: true,
-            jobTitle: true,
-          },
-        },
-        schedules: true,
-      },
-    });
-
+    const workplace = await this.workplacesRepo.findById(id);
     if (!workplace) {
       throw new NotFoundException("Workplace not found");
     }
@@ -57,14 +35,16 @@ export class WorkplacesService {
 
   async update(id: string, dto: UpdateWorkplaceDto) {
     await this.findOne(id);
-    return this.prisma.workplace.update({
-      where: { id },
-      data: dto,
-    });
+    return this.workplacesRepo.update(id, dto);
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.prisma.workplace.delete({ where: { id } });
+    return this.workplacesRepo.delete(id);
+  }
+
+  async assignToEmployee(workplaceId: string, employeeId: string) {
+    await this.findOne(workplaceId);
+    return this.workplacesRepo.assignToEmployee(workplaceId, employeeId);
   }
 }

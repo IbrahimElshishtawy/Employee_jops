@@ -685,6 +685,7 @@ model AttendanceRecord {
   workDurationMinutes Int?     @default(0)
   lateMinutes         Int?     @default(0)
   earlyLeaveMinutes   Int?     @default(0)
+  overtimeMinutes     Int?     @default(0)
   isSuspicious        Boolean  @default(false)
   deviceSignals       Json?    // Client device telemetry
 

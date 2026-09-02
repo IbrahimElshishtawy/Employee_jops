@@ -431,6 +431,7 @@ export class AttendanceService {
       );
 
       let earlyLeaveMinutes = 0;
+      let overtimeMinutes = 0;
       if (employee.schedule) {
         const [endHours, endMins] = employee.schedule.endTime
           .split(":")
@@ -441,6 +442,10 @@ export class AttendanceService {
         if (now < scheduledCheckOut) {
           earlyLeaveMinutes = Math.round(
             (scheduledCheckOut.getTime() - now.getTime()) / 60000,
+          );
+        } else if (now > scheduledCheckOut) {
+          overtimeMinutes = Math.round(
+            (now.getTime() - scheduledCheckOut.getTime()) / 60000,
           );
         }
       }
@@ -456,6 +461,7 @@ export class AttendanceService {
           isCheckOutWithinGeofence: isWithinGeofence,
           workDurationMinutes,
           earlyLeaveMinutes,
+          overtimeMinutes,
         },
       });
 
@@ -473,6 +479,7 @@ export class AttendanceService {
           metadata: this.sanitizeTelemetry({
             workDurationMinutes,
             earlyLeaveMinutes,
+            overtimeMinutes,
           }),
         },
       });
@@ -487,6 +494,7 @@ export class AttendanceService {
           payload: this.sanitizeTelemetry({
             workDurationMinutes,
             earlyLeaveMinutes,
+            overtimeMinutes,
             distanceMeters,
             isWithinGeofence,
             requestId: dto.requestId,
@@ -528,7 +536,7 @@ export class AttendanceService {
   async manualAttendanceEntry(hrUserId: string, dto: ManualAttendanceDto) {
     const employee = await this.prisma.employeeProfile.findUnique({
       where: { id: dto.employeeId },
-      include: { workplace: true, user: true },
+      include: { workplace: true, user: true, schedule: true },
     });
 
     if (!employee) {
@@ -542,10 +550,59 @@ export class AttendanceService {
     const checkOutDate = dto.checkOutTime ? new Date(dto.checkOutTime) : null;
 
     let workDurationMinutes = 0;
+    let lateMinutes = 0;
+    let earlyLeaveMinutes = 0;
+    let overtimeMinutes = 0;
+
     if (checkInDate && checkOutDate) {
       workDurationMinutes = Math.round(
         (checkOutDate.getTime() - checkInDate.getTime()) / 60000,
       );
+    }
+
+    if (employee.schedule) {
+      if (checkInDate) {
+        const [schedHours, schedMins] = employee.schedule.startTime
+          .split(":")
+          .map(Number);
+        const scheduledCheckIn = new Date(checkInDate);
+        if (dto.checkInTime?.endsWith("Z")) {
+          scheduledCheckIn.setUTCHours(schedHours, schedMins, 0, 0);
+        } else {
+          scheduledCheckIn.setHours(schedHours, schedMins, 0, 0);
+        }
+        const graceLimit = new Date(
+          scheduledCheckIn.getTime() +
+            employee.schedule.graceMinutesCheckIn * 60000,
+        );
+        if (checkInDate > graceLimit) {
+          lateMinutes = Math.round(
+            (checkInDate.getTime() - scheduledCheckIn.getTime()) / 60000,
+          );
+        }
+      }
+
+      if (checkOutDate) {
+        const [endHours, endMins] = employee.schedule.endTime
+          .split(":")
+          .map(Number);
+        const scheduledCheckOut = new Date(checkOutDate);
+        if (dto.checkOutTime?.endsWith("Z")) {
+          scheduledCheckOut.setUTCHours(endHours, endMins, 0, 0);
+        } else {
+          scheduledCheckOut.setHours(endHours, endMins, 0, 0);
+        }
+
+        if (checkOutDate < scheduledCheckOut) {
+          earlyLeaveMinutes = Math.round(
+            (scheduledCheckOut.getTime() - checkOutDate.getTime()) / 60000,
+          );
+        } else if (checkOutDate > scheduledCheckOut) {
+          overtimeMinutes = Math.round(
+            (checkOutDate.getTime() - scheduledCheckOut.getTime()) / 60000,
+          );
+        }
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -564,6 +621,9 @@ export class AttendanceService {
             status: existing.status,
             checkInTime: existing.checkInTime,
             checkOutTime: existing.checkOutTime,
+            lateMinutes: existing.lateMinutes,
+            earlyLeaveMinutes: existing.earlyLeaveMinutes,
+            overtimeMinutes: existing.overtimeMinutes,
           }
         : null;
 
@@ -580,6 +640,9 @@ export class AttendanceService {
           checkOutTime: checkOutDate ?? undefined,
           workDurationMinutes:
             workDurationMinutes || existing?.workDurationMinutes,
+          lateMinutes: lateMinutes || existing?.lateMinutes,
+          earlyLeaveMinutes: earlyLeaveMinutes || existing?.earlyLeaveMinutes,
+          overtimeMinutes: overtimeMinutes || existing?.overtimeMinutes,
           isManualEntry: true,
           manualCorrectionReason: dto.reason,
           manualCorrectedByUserId: hrUserId,
@@ -592,6 +655,9 @@ export class AttendanceService {
           checkInTime: checkInDate,
           checkOutTime: checkOutDate,
           workDurationMinutes,
+          lateMinutes,
+          earlyLeaveMinutes,
+          overtimeMinutes,
           isManualEntry: true,
           manualCorrectionReason: dto.reason,
           manualCorrectedByUserId: hrUserId,
