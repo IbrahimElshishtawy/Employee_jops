@@ -61,15 +61,29 @@ export class RecruitmentController {
   }
 
   @Get("job-openings")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
   @ApiOperation({ summary: "List paginated job openings with filter support" })
   getJobOpenings(@Query() query: QueryJobOpeningsDto) {
     return this.recruitmentService.getJobOpenings(query);
   }
 
   @Get("job-openings/:id")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
-  @ApiOperation({ summary: "Get job opening details with applications timeline" })
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
+  @ApiOperation({
+    summary: "Get job opening details with applications timeline",
+  })
   getJobOpeningById(@Param("id") id: string) {
     return this.recruitmentService.getJobOpeningById(id);
   }
@@ -90,10 +104,7 @@ export class RecruitmentController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @RequirePermissions("job_openings:delete")
   @ApiOperation({ summary: "Delete job opening" })
-  deleteJobOpening(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteJobOpening(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.recruitmentService.deleteJobOpening(id, userId);
   }
 
@@ -123,7 +134,9 @@ export class RecruitmentController {
   @Get("candidates/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @RequirePermissions("candidates:read")
-  @ApiOperation({ summary: "Get candidate profile with full application & interview history" })
+  @ApiOperation({
+    summary: "Get candidate profile with full application & interview history",
+  })
   getCandidateById(@Param("id") id: string) {
     return this.recruitmentService.getCandidateById(id);
   }
@@ -144,10 +157,7 @@ export class RecruitmentController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @RequirePermissions("candidates:delete")
   @ApiOperation({ summary: "Delete candidate record" })
-  deleteCandidate(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteCandidate(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.recruitmentService.deleteCandidate(id, userId);
   }
 
@@ -158,7 +168,9 @@ export class RecruitmentController {
   @Post("applications")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("applications:create")
-  @ApiOperation({ summary: "Submit/link candidate application for a job opening" })
+  @ApiOperation({
+    summary: "Submit/link candidate application for a job opening",
+  })
   createApplication(
     @Body() dto: CreateApplicationDto,
     @CurrentUser("id") userId: string,
@@ -169,7 +181,9 @@ export class RecruitmentController {
   @Get("applications")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @RequirePermissions("applications:read")
-  @ApiOperation({ summary: "List and filter job applications by opening or status" })
+  @ApiOperation({
+    summary: "List and filter job applications by opening or status",
+  })
   getApplications(@Query() query: QueryApplicationsDto) {
     return this.recruitmentService.getApplications(query);
   }
@@ -177,7 +191,9 @@ export class RecruitmentController {
   @Get("applications/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @RequirePermissions("applications:read")
-  @ApiOperation({ summary: "Get application details with interview notes and evaluations" })
+  @ApiOperation({
+    summary: "Get application details with interview notes and evaluations",
+  })
   getApplicationById(@Param("id") id: string) {
     return this.recruitmentService.getApplicationById(id);
   }
@@ -185,7 +201,9 @@ export class RecruitmentController {
   @Patch("applications/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("applications:update")
-  @ApiOperation({ summary: "Update application stage, rating, or rejection reason" })
+  @ApiOperation({
+    summary: "Update application stage, rating, or rejection reason",
+  })
   updateApplication(
     @Param("id") id: string,
     @Body() dto: UpdateApplicationDto,
@@ -240,13 +258,19 @@ export class RecruitmentController {
   @Post("interviews/:id/evaluations")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @RequirePermissions("interviews:update")
-  @ApiOperation({ summary: "Submit structured interviewer scorecard and rating" })
+  @ApiOperation({
+    summary: "Submit structured interviewer scorecard and rating",
+  })
   submitEvaluation(
     @Param("id") interviewId: string,
     @Body() dto: CreateEvaluationDto,
     @CurrentUser("id") evaluatorId: string,
   ) {
-    return this.recruitmentService.submitEvaluation(interviewId, dto, evaluatorId);
+    return this.recruitmentService.submitEvaluation(
+      interviewId,
+      dto,
+      evaluatorId,
+    );
   }
 
   // ============================================================
@@ -283,7 +307,9 @@ export class RecruitmentController {
   @Patch("offers/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("job_offers:update")
-  @ApiOperation({ summary: "Update job offer details, status (SENT, ACCEPTED, REJECTED)" })
+  @ApiOperation({
+    summary: "Update job offer details, status (SENT, ACCEPTED, REJECTED)",
+  })
   updateJobOffer(
     @Param("id") id: string,
     @Body() dto: UpdateJobOfferDto,

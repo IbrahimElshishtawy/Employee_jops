@@ -302,7 +302,10 @@ export class RecruitmentService {
         action: AuditAction.CANDIDATE_CREATED,
         entity: "Candidate",
         entityId: candidate.id,
-        payload: { email: candidate.email, name: `${dto.firstName} ${dto.lastName}` },
+        payload: {
+          email: candidate.email,
+          name: `${dto.firstName} ${dto.lastName}`,
+        },
       },
     });
 
@@ -382,11 +385,7 @@ export class RecruitmentService {
     return candidate;
   }
 
-  async updateCandidate(
-    id: string,
-    dto: UpdateCandidateDto,
-    userId?: string,
-  ) {
+  async updateCandidate(id: string, dto: UpdateCandidateDto, userId?: string) {
     const existing = await this.prisma.candidate.findUnique({
       where: { id },
     });
@@ -470,9 +469,7 @@ export class RecruitmentService {
     ]);
 
     if (!opening) {
-      throw new NotFoundException(
-        `Job opening #${dto.jobOpeningId} not found`,
-      );
+      throw new NotFoundException(`Job opening #${dto.jobOpeningId} not found`);
     }
     if (!candidate) {
       throw new NotFoundException(`Candidate #${dto.candidateId} not found`);
@@ -768,11 +765,7 @@ export class RecruitmentService {
     return interview;
   }
 
-  async updateInterview(
-    id: string,
-    dto: UpdateInterviewDto,
-    userId?: string,
-  ) {
+  async updateInterview(id: string, dto: UpdateInterviewDto, userId?: string) {
     const existing = await this.prisma.interview.findUnique({
       where: { id },
     });
@@ -842,7 +835,9 @@ export class RecruitmentService {
         evaluatorId,
         rating: dto.rating,
         recommendation: dto.recommendation,
-        criteriaScores: dto.criteriaScores ? (dto.criteriaScores as any) : undefined,
+        criteriaScores: dto.criteriaScores
+          ? (dto.criteriaScores as any)
+          : undefined,
         strengths: dto.strengths,
         weaknesses: dto.weaknesses,
         comments: dto.comments,
@@ -850,7 +845,9 @@ export class RecruitmentService {
       update: {
         rating: dto.rating,
         recommendation: dto.recommendation,
-        criteriaScores: dto.criteriaScores ? (dto.criteriaScores as any) : undefined,
+        criteriaScores: dto.criteriaScores
+          ? (dto.criteriaScores as any)
+          : undefined,
         strengths: dto.strengths,
         weaknesses: dto.weaknesses,
         comments: dto.comments,
@@ -1005,11 +1002,7 @@ export class RecruitmentService {
     return offer;
   }
 
-  async updateJobOffer(
-    id: string,
-    dto: UpdateJobOfferDto,
-    userId?: string,
-  ) {
+  async updateJobOffer(id: string, dto: UpdateJobOfferDto, userId?: string) {
     const existing = await this.prisma.jobOffer.findUnique({
       where: { id },
     });
@@ -1112,8 +1105,7 @@ export class RecruitmentService {
 
       // 3. Resolve employee code
       const employeeCode =
-        dto.employeeCode ||
-        `CW-${Math.floor(1000 + Math.random() * 9000)}`;
+        dto.employeeCode || `CW-${Math.floor(1000 + Math.random() * 9000)}`;
 
       const existingCode = await tx.employeeProfile.findUnique({
         where: { employeeCode },
@@ -1232,9 +1224,7 @@ export class RecruitmentService {
           data: {
             employeeId: employeeProfile.id,
             startDate: hireDate,
-            targetDate: new Date(
-              hireDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-            ), // 30 days
+            targetDate: new Date(hireDate.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days
             createdById: creatorId,
             tasks: {
               create: [

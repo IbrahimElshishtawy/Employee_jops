@@ -6,7 +6,6 @@ import { EmployeeDocumentType } from "@prisma/client";
 
 describe("HrService", () => {
   let service: HrService;
-  let prisma: any;
 
   const mockPrismaService = {
     employeeProfile: {

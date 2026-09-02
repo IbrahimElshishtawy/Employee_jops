@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional, IsUUID } from "class-validator";
 import { Transform } from "class-transformer";
 import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 

@@ -1,12 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { ApplicationStatus } from "@prisma/client";
 
 export class UpdateApplicationDto {

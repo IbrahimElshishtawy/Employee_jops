@@ -33,7 +33,8 @@ export class HireCandidateDto {
 
   @ApiPropertyOptional({
     example: "ahmed.hassan@company.com",
-    description: "Company corporate email (defaults to candidate email if omitted)",
+    description:
+      "Company corporate email (defaults to candidate email if omitted)",
   })
   @IsEmail()
   @IsOptional()

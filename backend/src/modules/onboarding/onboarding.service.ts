@@ -25,10 +25,7 @@ export class OnboardingService {
   /**
    * Create an onboarding workflow for an employee
    */
-  async createWorkflow(
-    dto: CreateOnboardingWorkflowDto,
-    userId?: string,
-  ) {
+  async createWorkflow(dto: CreateOnboardingWorkflowDto, userId?: string) {
     const employee = await this.prisma.employeeProfile.findUnique({
       where: { id: dto.employeeId },
       include: { onboardingWorkflow: true },
@@ -539,7 +536,9 @@ export class OnboardingService {
 
     const progressPercentage = Math.round((completed / total) * 100 * 10) / 10;
     const allMandatoryDone =
-      mandatoryTotal > 0 ? mandatoryCompleted === mandatoryTotal : completed === total;
+      mandatoryTotal > 0
+        ? mandatoryCompleted === mandatoryTotal
+        : completed === total;
 
     let status: OnboardingStatus = OnboardingStatus.IN_PROGRESS;
     let completedAt: Date | null = null;

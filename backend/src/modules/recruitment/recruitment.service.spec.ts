@@ -58,6 +58,12 @@ describe("RecruitmentService", () => {
       create: jest.fn(),
       update: jest.fn(),
     },
+    position: {
+      findUnique: jest.fn(),
+    },
+    department: {
+      findUnique: jest.fn(),
+    },
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
@@ -112,10 +118,7 @@ describe("RecruitmentService", () => {
       });
 
       await expect(
-        service.createJobOpening(
-          { title: "Any", code: "ENG-01" },
-          "user-1",
-        ),
+        service.createJobOpening({ title: "Any", code: "ENG-01" }, "user-1"),
       ).rejects.toThrow(ConflictException);
     });
   });

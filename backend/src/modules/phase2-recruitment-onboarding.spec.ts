@@ -29,17 +29,30 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
       { id: "org-1", name: "CyberWise Hospitality", code: "CW-CORP" },
     ],
     branches: [
-      { id: "branch-1", organizationId: "org-1", name: "Cairo HQ", code: "GNH-HQ" },
+      {
+        id: "branch-1",
+        organizationId: "org-1",
+        name: "Cairo HQ",
+        code: "GNH-HQ",
+      },
     ],
     departments: [
-      { id: "dept-1", organizationId: "org-1", name: "Engineering", code: "ENG" },
+      {
+        id: "dept-1",
+        organizationId: "org-1",
+        name: "Engineering",
+        code: "ENG",
+      },
     ],
     positions: [
-      { id: "pos-1", organizationId: "org-1", title: "Principal Architect", code: "POS-ARCH" },
+      {
+        id: "pos-1",
+        organizationId: "org-1",
+        title: "Principal Architect",
+        code: "POS-ARCH",
+      },
     ],
-    workplaces: [
-      { id: "wp-1", name: "HQ Geofence", code: "HQ-MAIN" },
-    ],
+    workplaces: [{ id: "wp-1", name: "HQ Geofence", code: "HQ-MAIN" }],
     schedules: [
       { id: "sch-1", name: "Standard Shift", workingDays: [0, 1, 2, 3, 4] },
     ],
@@ -60,27 +73,46 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
   const mockPrismaService: any = {
     organization: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.organizations.find((o) => o.id === where.id || o.code === where.code) || null),
+        Promise.resolve(
+          db.organizations.find(
+            (o) => o.id === where.id || o.code === where.code,
+          ) || null,
+        ),
       ),
     },
     branch: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.branches.find((b) => b.id === where.id || b.code === where.code) || null),
+        Promise.resolve(
+          db.branches.find((b) => b.id === where.id || b.code === where.code) ||
+            null,
+        ),
       ),
     },
     department: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.departments.find((d) => d.id === where.id || d.code === where.code) || null),
+        Promise.resolve(
+          db.departments.find(
+            (d) => d.id === where.id || d.code === where.code,
+          ) || null,
+        ),
       ),
     },
     position: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.positions.find((p) => p.id === where.id || p.code === where.code) || null),
+        Promise.resolve(
+          db.positions.find(
+            (p) => p.id === where.id || p.code === where.code,
+          ) || null,
+        ),
       ),
     },
     workplace: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.workplaces.find((w) => w.id === where.id || w.code === where.code) || null),
+        Promise.resolve(
+          db.workplaces.find(
+            (w) => w.id === where.id || w.code === where.code,
+          ) || null,
+        ),
       ),
     },
     schedule: {
@@ -90,10 +122,18 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     jobOpening: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.jobOpenings.find((j) => j.id === where.id || j.code === where.code) || null),
+        Promise.resolve(
+          db.jobOpenings.find(
+            (j) => j.id === where.id || j.code === where.code,
+          ) || null,
+        ),
       ),
       create: jest.fn(({ data }) => {
-        const item = { id: `opening-${db.jobOpenings.length + 1}`, ...data, createdAt: new Date() };
+        const item = {
+          id: `opening-${db.jobOpenings.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         db.jobOpenings.push(item);
         return Promise.resolve(item);
       }),
@@ -102,10 +142,18 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     candidate: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.candidates.find((c) => c.id === where.id || c.email === where.email) || null),
+        Promise.resolve(
+          db.candidates.find(
+            (c) => c.id === where.id || c.email === where.email,
+          ) || null,
+        ),
       ),
       create: jest.fn(({ data }) => {
-        const item = { id: `cand-${db.candidates.length + 1}`, ...data, createdAt: new Date() };
+        const item = {
+          id: `cand-${db.candidates.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         db.candidates.push(item);
         return Promise.resolve(item);
       }),
@@ -117,7 +165,11 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         if (where.jobOpeningId_candidateId) {
           const { jobOpeningId, candidateId } = where.jobOpeningId_candidateId;
           return Promise.resolve(
-            db.applications.find((a) => a.jobOpeningId === jobOpeningId && a.candidateId === candidateId) || null,
+            db.applications.find(
+              (a) =>
+                a.jobOpeningId === jobOpeningId &&
+                a.candidateId === candidateId,
+            ) || null,
           );
         }
         const app = db.applications.find((a) => a.id === where.id);
@@ -127,7 +179,12 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         return Promise.resolve({ ...app, jobOpening: opening, offers });
       }),
       create: jest.fn(({ data }) => {
-        const item = { id: `app-${db.applications.length + 1}`, ...data, appliedAt: new Date(), createdAt: new Date() };
+        const item = {
+          id: `app-${db.applications.length + 1}`,
+          ...data,
+          appliedAt: new Date(),
+          createdAt: new Date(),
+        };
         db.applications.push(item);
         return Promise.resolve(item);
       }),
@@ -144,7 +201,11 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         Promise.resolve(db.interviews.find((i) => i.id === where.id) || null),
       ),
       create: jest.fn(({ data }) => {
-        const item = { id: `int-${db.interviews.length + 1}`, ...data, createdAt: new Date() };
+        const item = {
+          id: `int-${db.interviews.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         db.interviews.push(item);
         return Promise.resolve(item);
       }),
@@ -163,7 +224,11 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         Promise.resolve(db.offers.find((o) => o.id === where.id) || null),
       ),
       create: jest.fn(({ data }) => {
-        const item = { id: `offer-${db.offers.length + 1}`, ...data, createdAt: new Date() };
+        const item = {
+          id: `offer-${db.offers.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         db.offers.push(item);
         return Promise.resolve(item);
       }),
@@ -175,14 +240,27 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     user: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.users.find((u) => u.id === where.id || u.email === where.email) || null),
+        Promise.resolve(
+          db.users.find((u) => u.id === where.id || u.email === where.email) ||
+            null,
+        ),
       ),
       create: jest.fn(({ data }) => {
         const userId = `user-${db.users.length + 1}`;
         const profileId = `profile-${db.employeeProfiles.length + 1}`;
         const profileData = data.employeeProfile.create;
-        const profile = { id: profileId, userId, ...profileData, createdAt: new Date() };
-        const user = { id: userId, email: data.email, role: data.role, employeeProfile: profile };
+        const profile = {
+          id: profileId,
+          userId,
+          ...profileData,
+          createdAt: new Date(),
+        };
+        const user = {
+          id: userId,
+          email: data.email,
+          role: data.role,
+          employeeProfile: profile,
+        };
         db.users.push(user);
         db.employeeProfiles.push(profile);
         return Promise.resolve(user);
@@ -190,7 +268,14 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     employeeProfile: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.employeeProfiles.find((p) => p.id === where.id || p.userId === where.userId || p.employeeCode === where.employeeCode) || null),
+        Promise.resolve(
+          db.employeeProfiles.find(
+            (p) =>
+              p.id === where.id ||
+              p.userId === where.userId ||
+              p.employeeCode === where.employeeCode,
+          ) || null,
+        ),
       ),
       update: jest.fn(({ where, data }) => {
         const profile = db.employeeProfiles.find((p) => p.id === where.id);
@@ -202,7 +287,9 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     onboardingWorkflow: {
       findUnique: jest.fn(({ where }) => {
-        const wf = db.onboardingWorkflows.find((w) => w.id === where.id || w.employeeId === where.employeeId);
+        const wf = db.onboardingWorkflows.find(
+          (w) => w.id === where.id || w.employeeId === where.employeeId,
+        );
         if (!wf) return Promise.resolve(null);
         const tasks = db.onboardingTasks.filter((t) => t.workflowId === wf.id);
         return Promise.resolve({ ...wf, tasks });
@@ -238,10 +325,14 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     onboardingTask: {
       findUnique: jest.fn(({ where }) =>
-        Promise.resolve(db.onboardingTasks.find((t) => t.id === where.id) || null),
+        Promise.resolve(
+          db.onboardingTasks.find((t) => t.id === where.id) || null,
+        ),
       ),
       findMany: jest.fn(({ where }) =>
-        Promise.resolve(db.onboardingTasks.filter((t) => t.workflowId === where.workflowId)),
+        Promise.resolve(
+          db.onboardingTasks.filter((t) => t.workflowId === where.workflowId),
+        ),
       ),
       create: jest.fn(({ data }) => {
         const task = { id: `task-${db.onboardingTasks.length + 1}`, ...data };
@@ -254,14 +345,21 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         return Promise.resolve(task);
       }),
       updateMany: jest.fn(({ where, data }) => {
-        const tasks = db.onboardingTasks.filter((t) => t.workflowId === where.workflowId);
+        const tasks = db.onboardingTasks.filter(
+          (t) => t.workflowId === where.workflowId,
+        );
         tasks.forEach((t) => Object.assign(t, data));
         return Promise.resolve({ count: tasks.length });
       }),
     },
     employeeDocument: {
       create: jest.fn(({ data }) => {
-        const doc = { id: `doc-${db.documents.length + 1}`, ...data, isVerified: false, createdAt: new Date() };
+        const doc = {
+          id: `doc-${db.documents.length + 1}`,
+          ...data,
+          isVerified: false,
+          createdAt: new Date(),
+        };
         db.documents.push(doc);
         return Promise.resolve(doc);
       }),
@@ -269,7 +367,9 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
         Promise.resolve(db.documents.find((d) => d.id === where.id) || null),
       ),
       findMany: jest.fn(({ where }) =>
-        Promise.resolve(db.documents.filter((d) => d.employeeId === where.employeeId)),
+        Promise.resolve(
+          db.documents.filter((d) => d.employeeId === where.employeeId),
+        ),
       ),
       update: jest.fn(({ where, data }) => {
         const doc = db.documents.find((d) => d.id === where.id);
@@ -279,7 +379,11 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     },
     auditLog: {
       create: jest.fn(({ data }) => {
-        const log = { id: `audit-${db.auditLogs.length + 1}`, ...data, createdAt: new Date() };
+        const log = {
+          id: `audit-${db.auditLogs.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         db.auditLogs.push(log);
         return Promise.resolve(log);
       }),
@@ -379,8 +483,10 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
       {
         rating: 5,
         recommendation: InterviewRecommendation.STRONG_HIRE,
-        strengths: "Flawless distributed systems knowledge and high performance caching strategies",
-        comments: "Unanimous hire recommendation for the Architecture lead role",
+        strengths:
+          "Flawless distributed systems knowledge and high performance caching strategies",
+        comments:
+          "Unanimous hire recommendation for the Architecture lead role",
       },
       "interviewer-lead",
     );
@@ -458,7 +564,10 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
 
     const verifiedDoc = await hrService.verifyEmployeeDocument(
       document.id,
-      { isVerified: true, notes: "Verified in person against original ID card" },
+      {
+        isVerified: true,
+        notes: "Verified in person against original ID card",
+      },
       "hr-manager-user",
     );
 
@@ -491,7 +600,10 @@ describe("Phase 2 — Full HR, Recruitment & Onboarding Integration Journey", ()
     }
 
     // Finalize workflow
-    const finalized = await onboardingService.finalizeWorkflow(workflowId, "hr-user");
+    const finalized = await onboardingService.finalizeWorkflow(
+      workflowId,
+      "hr-user",
+    );
     expect(finalized.status).toBe(OnboardingStatus.COMPLETED);
     expect(finalized.progressPercentage).toBe(100);
 

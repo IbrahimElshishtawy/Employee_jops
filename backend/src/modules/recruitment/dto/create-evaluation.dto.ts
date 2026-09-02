@@ -45,7 +45,8 @@ export class CreateEvaluationDto {
   criteriaScores?: Record<string, number>;
 
   @ApiPropertyOptional({
-    example: "Exceptional mastery of NestJS, async programming, and SQL query optimization",
+    example:
+      "Exceptional mastery of NestJS, async programming, and SQL query optimization",
     description: "Key candidate strengths",
   })
   @IsString()

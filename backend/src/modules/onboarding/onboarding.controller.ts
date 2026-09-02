@@ -35,7 +35,9 @@ export class OnboardingController {
   @Post("workflows")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("onboarding:create")
-  @ApiOperation({ summary: "Initialize an onboarding workflow and standard checklist" })
+  @ApiOperation({
+    summary: "Initialize an onboarding workflow and standard checklist",
+  })
   createWorkflow(
     @Body() dto: CreateOnboardingWorkflowDto,
     @CurrentUser("id") userId: string,
@@ -52,8 +54,17 @@ export class OnboardingController {
   }
 
   @Get("workflows/my")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
-  @ApiOperation({ summary: "Get current employee onboarding checklist and roadmap (Self-Service)" })
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
+  @ApiOperation({
+    summary:
+      "Get current employee onboarding checklist and roadmap (Self-Service)",
+  })
   getMyWorkflow(@CurrentUser("id") userId: string) {
     return this.onboardingService.getMyWorkflow(userId);
   }
@@ -61,7 +72,9 @@ export class OnboardingController {
   @Get("workflows/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @RequirePermissions("onboarding:read")
-  @ApiOperation({ summary: "Get onboarding workflow details with complete task list" })
+  @ApiOperation({
+    summary: "Get onboarding workflow details with complete task list",
+  })
   getWorkflowById(@Param("id") id: string) {
     return this.onboardingService.getWorkflowById(id);
   }
@@ -81,18 +94,19 @@ export class OnboardingController {
   @Patch("workflows/:id/finalize")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("onboarding:manage")
-  @ApiOperation({ summary: "Finalize employee onboarding and unlock full profile" })
-  finalizeWorkflow(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  @ApiOperation({
+    summary: "Finalize employee onboarding and unlock full profile",
+  })
+  finalizeWorkflow(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.onboardingService.finalizeWorkflow(id, userId);
   }
 
   @Post("tasks")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @RequirePermissions("onboarding:update")
-  @ApiOperation({ summary: "Add a custom checklist task to an onboarding workflow" })
+  @ApiOperation({
+    summary: "Add a custom checklist task to an onboarding workflow",
+  })
   createTask(
     @Body() dto: CreateOnboardingTaskDto,
     @CurrentUser("id") userId: string,
@@ -113,7 +127,13 @@ export class OnboardingController {
   }
 
   @Patch("tasks/:id/complete")
-  @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR, Role.EMPLOYEE)
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.HR_ADMIN,
+    Role.HR_MANAGER,
+    Role.SUPERVISOR,
+    Role.EMPLOYEE,
+  )
   @ApiOperation({ summary: "Complete or toggle onboarding task status" })
   completeTask(
     @Param("id") id: string,
@@ -127,10 +147,7 @@ export class OnboardingController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @RequirePermissions("onboarding:delete")
   @ApiOperation({ summary: "Delete an onboarding checklist task" })
-  deleteTask(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteTask(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.onboardingService.deleteTask(id, userId);
   }
 }
