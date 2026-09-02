@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { OnboardingService } from "./onboarding.service";
 import { PrismaService } from "../../prisma/prisma.service";
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { ConflictException } from "@nestjs/common";
 import { OnboardingStatus } from "@prisma/client";
 
 describe("OnboardingService", () => {

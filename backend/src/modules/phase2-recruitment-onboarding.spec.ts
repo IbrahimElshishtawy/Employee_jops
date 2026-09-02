@@ -9,12 +9,10 @@ import {
   EmployeeDocumentType,
   EmploymentType,
   InterviewRecommendation,
-  InterviewStatus,
   InterviewType,
   JobOfferStatus,
   JobOpeningStatus,
   OnboardingStatus,
-  OnboardingTaskCategory,
   Role,
 } from "@prisma/client";
 

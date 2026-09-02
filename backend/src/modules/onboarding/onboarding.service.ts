@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateOnboardingWorkflowDto } from "./dto/create-onboarding-workflow.dto";
@@ -285,7 +284,7 @@ export class OnboardingService {
   async updateWorkflow(
     id: string,
     dto: UpdateOnboardingWorkflowDto,
-    userId?: string,
+    _userId?: string,
   ) {
     const existing = await this.prisma.onboardingWorkflow.findUnique({
       where: { id },
@@ -313,7 +312,7 @@ export class OnboardingService {
   /**
    * Add custom task to an onboarding workflow
    */
-  async createTask(dto: CreateOnboardingTaskDto, userId?: string) {
+  async createTask(dto: CreateOnboardingTaskDto, _userId?: string) {
     const workflow = await this.prisma.onboardingWorkflow.findUnique({
       where: { id: dto.workflowId },
     });
@@ -349,7 +348,7 @@ export class OnboardingService {
   async updateTask(
     taskId: string,
     dto: UpdateOnboardingTaskDto,
-    userId?: string,
+    _userId?: string,
   ) {
     const task = await this.prisma.onboardingTask.findUnique({
       where: { id: taskId },
@@ -494,7 +493,7 @@ export class OnboardingService {
   /**
    * Delete an onboarding task
    */
-  async deleteTask(taskId: string, userId?: string) {
+  async deleteTask(taskId: string, _userId?: string) {
     const task = await this.prisma.onboardingTask.findUnique({
       where: { id: taskId },
     });

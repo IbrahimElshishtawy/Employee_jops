@@ -41,7 +41,6 @@ describe("HrService", () => {
     }).compile();
 
     service = module.get<HrService>(HrService);
-    prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { RecruitmentService } from "./recruitment.service";
 import { PrismaService } from "../../prisma/prisma.service";
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { ConflictException } from "@nestjs/common";
 import {
   ApplicationStatus,
   CandidateSource,
@@ -10,7 +10,6 @@ import {
   InterviewStatus,
   InterviewType,
   JobOfferStatus,
-  JobOpeningStatus,
   Role,
 } from "@prisma/client";
 

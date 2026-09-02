@@ -57,7 +57,7 @@
       "name": "Health",
       "item": [
         {
-          "name": "System health check (Database, Memory, Status)",
+          "name": "System overall health status",
           "request": {
             "method": "GET",
             "header": [
@@ -74,6 +74,114 @@
               ],
               "path": [
                 "health"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness probe (Is process alive?)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "live"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness probe (Can instance accept traffic?)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "PostgreSQL Database Connectivity probe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "db"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Redis Cache & Rate Limiting probe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/redis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "redis"
               ],
               "variable": [],
               "query": []
@@ -311,6 +419,3580 @@
               "query": []
             },
             "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Organization & Hierarchy",
+      "item": [
+        {
+          "name": "Create organization root (Super Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"CyberWise Hospitality Group\",\n  \"code\": \"CW-CORP\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"taxNumber\": \"123-456-789\",\n  \"commercialRegister\": \"CR-987654\",\n  \"description\": \"Enterprise Hospitality & Workforce Platform\",\n  \"address\": \"100 Innovation Boulevard\",\n  \"phone\": \"+201000000000\",\n  \"email\": \"contact@cyberwise.com\",\n  \"currency\": \"EGP\",\n  \"timezone\": \"Africa/Cairo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all organizations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get complete nested organization structure tree",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/tree/hierarchy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "tree",
+                "hierarchy"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get employee reporting lines (Chain of command & direct reports)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/reporting-tree/:employeeProfileId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "reporting-tree",
+                ":employeeProfileId"
+              ],
+              "variable": [
+                {
+                  "key": "employeeProfileId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get organization details by ID or code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update organization details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"CyberWise Hospitality Group LLC\",\n  \"logoUrl\": \"sample_logoUrl\",\n  \"taxNumber\": \"sample_taxNumber\",\n  \"commercialRegister\": \"sample_commercialRegister\",\n  \"description\": \"sample_description\",\n  \"address\": \"sample_address\",\n  \"phone\": \"sample_phone\",\n  \"email\": \"admin@example.test\",\n  \"currency\": \"sample_currency\",\n  \"timezone\": \"sample_timezone\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete organization",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create a branch, hotel, or site location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/branches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "branches"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"sample_organizationId\",\n  \"name\": \"Grand Nile Hotel & Resort\",\n  \"code\": \"GNH-01\",\n  \"type\": \"BRANCH\",\n  \"address\": \"Corniche El Nile, Cairo\",\n  \"city\": \"Cairo\",\n  \"country\": \"Egypt\",\n  \"phone\": \"+20220000001\",\n  \"email\": \"cairo-branch@cyberwise.com\",\n  \"latitude\": 30.0444,\n  \"longitude\": 31.2357,\n  \"radiusMeters\": 150\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List branches/hotels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/branches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "branches"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get branch details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/branches/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "branches",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update branch details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/branches/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "branches",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"sample_name\",\n  \"type\": \"HEADQUARTERS\",\n  \"address\": \"sample_address\",\n  \"city\": \"sample_city\",\n  \"country\": \"sample_country\",\n  \"phone\": \"sample_phone\",\n  \"email\": \"admin@example.test\",\n  \"latitude\": 1,\n  \"longitude\": 1,\n  \"radiusMeters\": 1,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete branch",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/branches/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "branches",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create a department or division",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/departments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "departments"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"sample_organizationId\",\n  \"branchId\": \"sample_branchId\",\n  \"parentDepartmentId\": \"sample_parentDepartmentId\",\n  \"headOfDepartmentId\": \"sample_headOfDepartmentId\",\n  \"name\": \"Food & Beverage\",\n  \"code\": \"FB-DEPT\",\n  \"description\": \"Handles kitchen, restaurants, and room service\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List departments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/departments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "departments"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "branchId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get department details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "departments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update department details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "departments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"sample_name\",\n  \"description\": \"sample_description\",\n  \"branchId\": \"sample_branchId\",\n  \"parentDepartmentId\": \"sample_parentDepartmentId\",\n  \"headOfDepartmentId\": \"sample_headOfDepartmentId\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete department",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "departments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create a section inside a department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/sections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "sections"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"departmentId\": \"sample_departmentId\",\n  \"headOfSectionId\": \"sample_headOfSectionId\",\n  \"name\": \"Pastry & Bakery\",\n  \"code\": \"PASTRY-SEC\",\n  \"description\": \"sample_description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List sections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/sections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "sections"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get section details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/sections/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "sections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update section",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/sections/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "sections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"sample_name\",\n  \"description\": \"sample_description\",\n  \"headOfSectionId\": \"sample_headOfSectionId\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete section",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/sections/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "sections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create a job position",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/positions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "positions"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"sample_organizationId\",\n  \"departmentId\": \"sample_departmentId\",\n  \"sectionId\": \"sample_sectionId\",\n  \"title\": \"Executive Sous Chef\",\n  \"code\": \"SOUS-CHEF\",\n  \"level\": \"MID\",\n  \"minSalary\": 8000,\n  \"maxSalary\": 15000,\n  \"description\": \"sample_description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List positions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/positions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "positions"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get position details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/positions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/positions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"sample_title\",\n  \"level\": \"ENTRY\",\n  \"minSalary\": 1,\n  \"maxSalary\": 1,\n  \"description\": \"sample_description\",\n  \"departmentId\": \"sample_departmentId\",\n  \"sectionId\": \"sample_sectionId\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete position",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organization/positions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "organization",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "Create a custom role with optional initial permissions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Payroll Officer\",\n  \"slug\": \"payroll-officer\",\n  \"description\": \"Handles payroll calculations, adjustments, and review\",\n  \"permissionSlugs\": [\n    \"payroll:read\",\n    \"payroll:calculate\"\n  ],\n  \"organizationId\": \"sample_organizationId\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all roles with pagination and search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get effective roles and permissions of a user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/users/:userId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                "users",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Assign database roles to a specific user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/users/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                "users",
+                "assign"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"a8e9d3c2-1b2c-3d4e-5f6a-7b8c9d0e1f2a\",\n  \"roleSlugs\": [\n    \"hr-manager\",\n    \"custom-auditor\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get role details by ID or slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update role details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Senior Payroll Officer\",\n  \"description\": \"sample_description\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a custom role (System roles cannot be deleted)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Synchronize permission matrix for a role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                ":id",
+                "permissions"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionSlugs\": [\n    \"employees:read\",\n    \"payroll:read\",\n    \"payroll:calculate\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Permissions",
+      "item": [
+        {
+          "name": "Create a new granular permission (Super Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permissions"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"employees:read\",\n  \"action\": \"READ\",\n  \"subject\": \"EMPLOYEES\",\n  \"description\": \"Allows viewing employee profiles and listing\",\n  \"module\": \"employees\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all permissions with filtering and pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permissions"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "module",
+                  "value": "",
+                  "description": "Filter by module group",
+                  "disabled": true
+                },
+                {
+                  "key": "action",
+                  "value": "",
+                  "description": "Filter by action type",
+                  "disabled": true
+                },
+                {
+                  "key": "subject",
+                  "value": "",
+                  "description": "Filter by subject/resource",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get all permissions grouped by domain module",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions/catalog/grouped",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permissions",
+                "catalog",
+                "grouped"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get permission by ID or slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "permissions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings & Feature Flags",
+      "item": [
+        {
+          "name": "Get public system settings (Unauthenticated bootstrap endpoint)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/public",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "public"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get all system settings with category filtering",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Set or update a system setting (Super Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"attendance_grace_period_minutes\",\n  \"value\": 15,\n  \"category\": \"GENERAL\",\n  \"isPublic\": false,\n  \"description\": \"Grace period for check-in before marking lateness\",\n  \"organizationId\": \"sample_organizationId\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a system setting (Super Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/:key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "List all system feature flags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/flags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "flags"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create a feature flag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/flags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "flags"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"enable_biometric_face_id\",\n  \"isEnabled\": false,\n  \"description\": \"Enables AI biometric facial verification at check-in\",\n  \"rolloutPercentage\": 100,\n  \"rules\": null,\n  \"organizationId\": \"sample_organizationId\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update feature flag status and rules",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/flags/:key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "flags",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isEnabled\": true,\n  \"description\": \"sample_description\",\n  \"rolloutPercentage\": 1,\n  \"rules\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HR Management",
+      "item": [
+        {
+          "name": "Get enriched paginated employee list with organizational & hierarchy filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "employees"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "Filter by Organization ID",
+                  "disabled": true
+                },
+                {
+                  "key": "branchId",
+                  "value": "",
+                  "description": "Filter by Branch ID",
+                  "disabled": true
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Filter by Department ID",
+                  "disabled": true
+                },
+                {
+                  "key": "positionId",
+                  "value": "",
+                  "description": "Filter by Position ID",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "isOnboarded",
+                  "value": "",
+                  "description": "Filter by Onboarding completion status",
+                  "disabled": true
+                },
+                {
+                  "key": "isProfileComplete",
+                  "value": "",
+                  "description": "Filter by Profile completion status",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get detailed HR employee profile with full hierarchy, documents, and onboarding status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/employees/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Reassign employee department, position, section, manager, workplace, or schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/employees/:id/assignment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                ":id",
+                "assignment"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"branchId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"sectionId\": \"d3d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"managerId\": \"f5d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"workplaceId\": \"16d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"scheduleId\": \"27d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"department\": \"Engineering\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add document metadata for employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/employees/:id/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                ":id",
+                "documents"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"NATIONAL_ID\",\n  \"title\": \"National Identity Card\",\n  \"documentNumber\": \"29801011234567\",\n  \"issueDate\": \"2024-01-15\",\n  \"expiryDate\": \"2031-01-14\",\n  \"fileUrl\": \"https://storage.cyberwise.io/docs/national_id_01.pdf\",\n  \"fileSize\": 1048576,\n  \"mimeType\": \"application/pdf\",\n  \"notes\": \"Verified against original civil registry card\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all document records and verification statuses for employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/employees/:id/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "employees",
+                ":id",
+                "documents"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Verify or revoke verification of employee document metadata",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/documents/:docId/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "documents",
+                ":docId",
+                "verify"
+              ],
+              "variable": [
+                {
+                  "key": "docId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVerified\": true,\n  \"notes\": \"Verified against original document\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update document metadata",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/documents/:docId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "documents",
+                ":docId"
+              ],
+              "variable": [
+                {
+                  "key": "docId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"NATIONAL_ID\",\n  \"title\": \"National Identity Card\",\n  \"documentNumber\": \"29801011234567\",\n  \"issueDate\": \"2024-01-15\",\n  \"expiryDate\": \"2031-01-14\",\n  \"fileUrl\": \"https://storage.cyberwise.io/docs/national_id_01.pdf\",\n  \"fileSize\": 1048576,\n  \"mimeType\": \"application/pdf\",\n  \"notes\": \"Verified against original civil registry card\",\n  \"isVerified\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete employee document metadata",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hr/documents/:docId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hr",
+                "documents",
+                ":docId"
+              ],
+              "variable": [
+                {
+                  "key": "docId",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recruitment & ATS",
+      "item": [
+        {
+          "name": "Create a new job opening requisition",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/job-openings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "job-openings"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Backend Engineer\",\n  \"code\": \"ENG-BE-01\",\n  \"organizationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"branchId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"description\": \"We are looking for a Node.js/NestJS expert...\",\n  \"requirements\": \"5+ years NestJS, PostgreSQL, Prisma, Redis experience\",\n  \"employmentType\": \"FULL_TIME\",\n  \"status\": \"DRAFT\",\n  \"vacancies\": 2,\n  \"targetDate\": \"2026-12-31\",\n  \"minSalary\": 30000,\n  \"maxSalary\": 45000,\n  \"currency\": \"EGP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List paginated job openings with filter support",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/job-openings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "job-openings"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "positionId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "organizationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get job opening details with applications timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/job-openings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "job-openings",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update job opening parameters or status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/job-openings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "job-openings",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Backend Engineer\",\n  \"code\": \"ENG-BE-01\",\n  \"organizationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"branchId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"description\": \"We are looking for a Node.js/NestJS expert...\",\n  \"requirements\": \"5+ years NestJS, PostgreSQL, Prisma, Redis experience\",\n  \"employmentType\": \"FULL_TIME\",\n  \"status\": \"DRAFT\",\n  \"vacancies\": 2,\n  \"targetDate\": \"2026-12-31\",\n  \"minSalary\": 30000,\n  \"maxSalary\": 45000,\n  \"currency\": \"EGP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete job opening",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/job-openings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "job-openings",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create candidate talent profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/candidates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "candidates"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ahmed\",\n  \"lastName\": \"Hassan\",\n  \"email\": \"ahmed.hassan@example.com\",\n  \"phone\": \"+201012345678\",\n  \"currentTitle\": \"Senior Software Engineer\",\n  \"experienceYears\": 6,\n  \"source\": \"DIRECT\",\n  \"resumeUrl\": \"https://storage.cyberwise.io/resumes/ahmed_hassan_cv.pdf\",\n  \"skills\": [\n    \"Node.js\",\n    \"TypeScript\",\n    \"NestJS\",\n    \"PostgreSQL\",\n    \"Docker\"\n  ],\n  \"notes\": \"Strong architectural experience in fintech projects\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search and list candidate talent database",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/candidates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "candidates"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "source",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get candidate profile with full application & interview history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/candidates/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update candidate contact details and skills",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/candidates/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ahmed\",\n  \"lastName\": \"Hassan\",\n  \"email\": \"ahmed.hassan@example.com\",\n  \"phone\": \"+201012345678\",\n  \"currentTitle\": \"Senior Software Engineer\",\n  \"experienceYears\": 6,\n  \"source\": \"DIRECT\",\n  \"resumeUrl\": \"https://storage.cyberwise.io/resumes/ahmed_hassan_cv.pdf\",\n  \"skills\": [\n    \"Node.js\",\n    \"TypeScript\",\n    \"NestJS\",\n    \"PostgreSQL\",\n    \"Docker\"\n  ],\n  \"notes\": \"Strong architectural experience in fintech projects\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete candidate record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/candidates/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Submit/link candidate application for a job opening",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "applications"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobOpeningId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"candidateId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"status\": \"APPLIED\",\n  \"rating\": 4,\n  \"stageNotes\": \"Candidate applied via LinkedIn recruiter outreach\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List and filter job applications by opening or status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "applications"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "jobOpeningId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "candidateId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get application details with interview notes and evaluations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/applications/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "applications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update application stage, rating, or rejection reason",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/applications/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "applications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPLIED\",\n  \"rating\": 5,\n  \"stageNotes\": \"Moved to technical round after initial screening\",\n  \"rejectionReason\": \"Failed system design interview\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule candidate interview round",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/interviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "interviews"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"title\": \"Technical Round 1: NestJS Architecture & DB Optimization\",\n  \"interviewType\": \"TECHNICAL\",\n  \"scheduledAt\": \"2026-09-10T11:00:00.000Z\",\n  \"durationMinutes\": 45,\n  \"interviewerId\": \"u1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"locationOrLink\": \"https://meet.google.com/abc-defg-hij\",\n  \"status\": \"SCHEDULED\",\n  \"feedbackNotes\": \"Focus on concurrency, caching, and clean architecture\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List scheduled interviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/interviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "interviews"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "applicationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "interviewerId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get interview details and scorecard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/interviews/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "interviews",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update interview time, meeting link, or status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/interviews/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "interviews",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"title\": \"Technical Round 1: NestJS Architecture & DB Optimization\",\n  \"interviewType\": \"TECHNICAL\",\n  \"scheduledAt\": \"2026-09-10T11:00:00.000Z\",\n  \"durationMinutes\": 45,\n  \"interviewerId\": \"u1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"locationOrLink\": \"https://meet.google.com/abc-defg-hij\",\n  \"status\": \"SCHEDULED\",\n  \"feedbackNotes\": \"Focus on concurrency, caching, and clean architecture\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit structured interviewer scorecard and rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/interviews/:id/evaluations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "interviews",
+                ":id",
+                "evaluations"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"recommendation\": \"STRONG_HIRE\",\n  \"criteriaScores\": {\n    \"technicalCompetence\": 5,\n    \"systemDesign\": 4,\n    \"communication\": 5,\n    \"cultureFit\": 5\n  },\n  \"strengths\": \"Exceptional mastery of NestJS, async programming, and SQL query optimization\",\n  \"weaknesses\": \"Limited experience with Kubernetes helm charts\",\n  \"comments\": \"Strongly recommended for the Tech Lead position\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate job offer for candidate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "offers"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"candidateId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"offeredSalary\": 40000,\n  \"currency\": \"EGP\",\n  \"benefits\": \"Medical & Life insurance, flexible hours, annual bonus\",\n  \"proposedStartDate\": \"2026-10-01\",\n  \"status\": \"DRAFT\",\n  \"terms\": \"Probation period of 3 months applies\",\n  \"notes\": \"Offer approved by HR Director and VP of Engineering\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all generated job offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "offers"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "applicationId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "candidateId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get job offer terms and acceptance status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/offers/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "offers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update job offer details, status (SENT, ACCEPTED, REJECTED)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/offers/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "offers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"candidateId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"offeredSalary\": 40000,\n  \"currency\": \"EGP\",\n  \"benefits\": \"Medical & Life insurance, flexible hours, annual bonus\",\n  \"proposedStartDate\": \"2026-10-01\",\n  \"status\": \"DRAFT\",\n  \"terms\": \"Probation period of 3 months applies\",\n  \"notes\": \"Offer approved by HR Director and VP of Engineering\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Execute atomic hiring: Creates corporate user account, employee profile, links hierarchy & starts onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/hire",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recruitment",
+                "hire"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"candidateId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"email\": \"ahmed.hassan@company.com\",\n  \"password\": \"TemporarySecureP@ss123\",\n  \"role\": \"EMPLOYEE\",\n  \"employeeCode\": \"CW-2045\",\n  \"organizationId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"branchId\": \"b1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"departmentId\": \"c2d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"sectionId\": \"d3d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"positionId\": \"e4d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"managerId\": \"f5d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"workplaceId\": \"16d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"scheduleId\": \"27d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"hireDate\": \"2026-10-01\",\n  \"baseSalary\": 40000,\n  \"initiateOnboarding\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Employee Onboarding",
+      "item": [
+        {
+          "name": "Initialize an onboarding workflow and standard checklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"startDate\": \"2026-09-01\",\n  \"targetDate\": \"2026-10-01\",\n  \"status\": \"PENDING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List and track all employee onboarding workflows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get current employee onboarding checklist and roadmap (Self-Service)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows",
+                "my"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get onboarding workflow details with complete task list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update onboarding workflow dates or status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"startDate\": \"2026-09-01\",\n  \"targetDate\": \"2026-10-01\",\n  \"status\": \"PENDING\",\n  \"completedAt\": \"2026-09-20T14:30:00.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finalize employee onboarding and unlock full profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/workflows/:id/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "workflows",
+                ":id",
+                "finalize"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add a custom checklist task to an onboarding workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "tasks"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflowId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"title\": \"Submit National ID Copy\",\n  \"description\": \"Provide front and back scan of valid national identity card\",\n  \"category\": \"DOCUMENTATION\",\n  \"isMandatory\": true,\n  \"assignedToUserId\": \"u1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"dueDate\": \"2026-09-15\",\n  \"orderIndex\": 1,\n  \"notes\": \"Must be reviewed by HR compliance officer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update task metadata, category, or assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/tasks/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "tasks",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflowId\": \"a8d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"title\": \"Submit National ID Copy\",\n  \"description\": \"Provide front and back scan of valid national identity card\",\n  \"category\": \"DOCUMENTATION\",\n  \"isMandatory\": true,\n  \"assignedToUserId\": \"u1d29b2b-5867-4e94-813c-d38a065bb24c\",\n  \"dueDate\": \"2026-09-15\",\n  \"orderIndex\": 1,\n  \"notes\": \"Must be reviewed by HR compliance officer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete an onboarding checklist task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/tasks/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "tasks",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Complete or toggle onboarding task status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/tasks/:id/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "tasks",
+                ":id",
+                "complete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isCompleted\": true,\n  \"notes\": \"Verified National ID copy physically on 2026-09-05\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         }
@@ -755,7 +4437,16 @@
               ],
               "query": []
             },
-            "description": ""
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Riyadh HQ\",\n  \"code\": \"RYD-01\",\n  \"address\": \"King Fahd Road, Riyadh\",\n  \"latitude\": 24.7136,\n  \"longitude\": 46.6753,\n  \"radiusMeters\": 150,\n  \"wifiBssid\": \"aa:bb:cc:dd:ee:ff\",\n  \"wifiIp\": \"192.168.1.1\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         },
@@ -1406,7 +5097,16 @@
               "variable": [],
               "query": []
             },
-            "description": ""
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Standard Morning Shift\",\n  \"description\": \"Regular 9 to 5 working shift\",\n  \"workplaceId\": \"c7b5f92a-3e81-49a6-8c54-1b1e9d123456\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"graceMinutesCheckIn\": 15,\n  \"graceMinutesCheckOut\": 15,\n  \"workingDays\": [\n    0,\n    1,\n    2,\n    3,\n    4\n  ],\n  \"isDefault\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         },
@@ -1498,7 +5198,16 @@
               ],
               "query": []
             },
-            "description": ""
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Standard Morning Shift\",\n  \"description\": \"Regular 9 to 5 working shift\",\n  \"workplaceId\": \"c7b5f92a-3e81-49a6-8c54-1b1e9d123456\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"graceMinutesCheckIn\": 15,\n  \"graceMinutesCheckOut\": 15,\n  \"workingDays\": [\n    0,\n    1,\n    2,\n    3,\n    4\n  ],\n  \"isDefault\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         },
@@ -2324,10 +6033,10 @@
       ]
     },
     {
-      "name": "Notifications",
+      "name": "Notifications & In-App Alerts",
       "item": [
         {
-          "name": "Register FCM device token for mobile push notifications",
+          "name": "Register/Refresh FCM device token for push notifications",
           "request": {
             "method": "POST",
             "header": [
@@ -2363,7 +6072,116 @@
           "response": []
         },
         {
-          "name": "Get current user in-app notifications",
+          "name": "Unregister/Deactivate device token on logout",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/device-token/:fcmToken",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "device-token",
+                ":fcmToken"
+              ],
+              "variable": [
+                {
+                  "key": "fcmToken",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user notifications with pagination & filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter notifications by category/type",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "description": "Filter notifications by priority",
+                  "disabled": true
+                },
+                {
+                  "key": "isRead",
+                  "value": "",
+                  "description": "Filter read (true) or unread (false) notifications",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter notifications created on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter notifications created on or before this date",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user notifications (alias)",
           "request": {
             "method": "GET",
             "header": [
@@ -2383,6 +6201,82 @@
                 "my"
               ],
               "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter notifications by category/type",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "description": "Filter notifications by priority",
+                  "disabled": true
+                },
+                {
+                  "key": "isRead",
+                  "value": "",
+                  "description": "Filter read (true) or unread (false) notifications",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter notifications created on or after this date",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter notifications created on or before this date",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get count of unread in-app notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ],
+              "variable": [],
               "query": []
             },
             "description": ""
@@ -2391,6 +6285,40 @@
         },
         {
           "name": "Mark single notification as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Mark single notification as read (PATCH alias)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -2424,7 +6352,34 @@
           "response": []
         },
         {
-          "name": "Mark all notifications as read",
+          "name": "Mark all notifications as read in bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Mark all notifications as read in bulk (PATCH alias)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -2444,6 +6399,307 @@
                 "read-all"
               ],
               "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get user notification channel preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "preferences"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update user notification channel preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "preferences"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendanceNotifications\": true,\n  \"requestNotifications\": true,\n  \"payrollNotifications\": true,\n  \"advanceNotifications\": true,\n  \"announcementNotifications\": true,\n  \"messageNotifications\": true,\n  \"emailNotifications\": true,\n  \"pushNotifications\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HR Announcements & Broadcasts",
+      "item": [
+        {
+          "name": "HR: Create a company or department announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annual Company Gathering & Strategy Kickoff 2026\",\n  \"body\": \"We are excited to invite all team members to our annual celebration this Thursday...\",\n  \"priority\": \"NORMAL\",\n  \"targetType\": \"ALL\",\n  \"targetDepartment\": \"Engineering\",\n  \"targetWorkplaceId\": \"workplace-uuid-1\",\n  \"targetEmployeeIds\": [\n    \"emp-1\",\n    \"emp-2\"\n  ],\n  \"expiresAt\": \"2026-12-31T23:59:59Z\",\n  \"publishNow\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get announcements visible to current user (or all if HR)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter announcements by status (DRAFT, PUBLISHED, EXPIRED, CANCELLED)",
+                  "disabled": true
+                },
+                {
+                  "key": "targetType",
+                  "value": "",
+                  "description": "Filter by audience target type",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by department",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "View announcement details (auto-marks as read)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Publish announcement and broadcast notifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/:id/publish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                ":id",
+                "publish"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "HR: Cancel an announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/:id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Mark announcement as read by employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
               "query": []
             },
             "description": ""
@@ -3630,10 +7886,46 @@
       ]
     },
     {
-      "name": "Messages",
+      "name": "Internal Messaging & Conversations",
       "item": [
         {
-          "name": "Get current user conversations list",
+          "name": "Start a new conversation (Employee ↔ HR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/conversations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "conversations"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantUserId\": \"emp-uuid-123\",\n  \"title\": \"Salary inquiry & contract amendment question\",\n  \"content\": \"Hello HR Team, I have a question regarding my recent overtime calculation...\",\n  \"attachmentUrl\": \"https://storage.cyberwise.internal/attachments/pay_stub_query.pdf\",\n  \"idempotencyKey\": \"msg_idemp_key_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user conversations list with unread badges",
           "request": {
             "method": "GET",
             "header": [
@@ -3660,7 +7952,34 @@
           "response": []
         },
         {
-          "name": "Get messages for a conversation",
+          "name": "Get total unread messages count for current user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "unread-count"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get paginated message history for a conversation",
           "request": {
             "method": "GET",
             "header": [
@@ -3687,7 +8006,32 @@
                   "description": ""
                 }
               ],
-              "query": []
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "before",
+                  "value": "",
+                  "description": "Cursor timestamp or message ID for fetching older messages",
+                  "disabled": true
+                }
+              ]
             },
             "description": ""
           },
@@ -3705,13 +8049,126 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/messages/conversations/:id",
+              "raw": "{{baseUrl}}/messages/conversations/:id/messages",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "messages",
                 "conversations",
+                ":id",
+                "messages"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"conv-uuid-123\",\n  \"content\": \"Thank you for following up. Here is the requested document.\",\n  \"attachmentUrl\": \"https://storage.cyberwise.internal/attachments/doc.pdf\",\n  \"idempotencyKey\": \"msg_idemp_send_uuid_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send a message (with conversationId in body)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"conv-uuid-123\",\n  \"content\": \"Thank you for following up. Here is the requested document.\",\n  \"attachmentUrl\": \"https://storage.cyberwise.internal/attachments/doc.pdf\",\n  \"idempotencyKey\": \"msg_idemp_send_uuid_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark all messages in a conversation as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/conversations/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "conversations",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "sample-id",
+                  "description": ""
+                }
+              ],
+              "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Soft delete a message (sender or HR admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
                 ":id"
               ],
               "variable": [
@@ -3730,10 +8187,10 @@
       ]
     },
     {
-      "name": "Reports & Analytics",
+      "name": "Reports & Analytics Engine",
       "item": [
         {
-          "name": "HR Dashboard summary KPIs and live stats",
+          "name": "HR Dashboard summary KPIs, today attendance, pending items",
           "request": {
             "method": "GET",
             "header": [
@@ -3760,7 +8217,1051 @@
           "response": []
         },
         {
-          "name": "Employee distribution across departments",
+          "name": "Employee self-report (own attendance rate, late minutes, absences, requests, advances, payroll)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Comprehensive attendance analytics with rates & date ranges",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/attendance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "attendance"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Attendance Status",
+                  "disabled": true
+                },
+                {
+                  "key": "scheduleId",
+                  "value": "",
+                  "description": "Filter by Schedule/Shift ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Late arrival analytics, top offenders, and distribution",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/attendance/late",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "attendance",
+                "late"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Attendance Status",
+                  "disabled": true
+                },
+                {
+                  "key": "scheduleId",
+                  "value": "",
+                  "description": "Filter by Schedule/Shift ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Absence analytics (approved vs unapproved, rates, distribution)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/attendance/absence",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "attendance",
+                "absence"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Attendance Status",
+                  "disabled": true
+                },
+                {
+                  "key": "scheduleId",
+                  "value": "",
+                  "description": "Filter by Schedule/Shift ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Attendance security telemetry (geofence breaches, GPS accuracy, suspicious device signals)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/attendance/security",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "attendance",
+                "security"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Export filtered attendance reports with formula injection protection (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/attendance/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "attendance",
+                "export"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Attendance Status",
+                  "disabled": true
+                },
+                {
+                  "key": "scheduleId",
+                  "value": "",
+                  "description": "Filter by Schedule/Shift ID",
+                  "disabled": true
+                },
+                {
+                  "key": "format",
+                  "value": "csv",
+                  "description": "Export file format",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Request analytics, approval/rejection rates & processing duration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "requests"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by specific Employee ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by Request Type",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Request Status",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Payroll analytics, gross/net trends, departmental payroll",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/payroll",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "payroll"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "payrollPeriodId",
+                  "value": "",
+                  "description": "Filter by Payroll Period ID",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "workplaceId",
+                  "value": "",
+                  "description": "Filter by Workplace ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by Payroll Period Status",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Deduction analytics grouped by type and department",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/deductions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "deductions"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by Deduction Type",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by Employee ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Salary advance analytics, active balances, repayment stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/advances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "advances"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "description": "Filter by Department",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "",
+                  "description": "Filter by Employee ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Employee distribution by department, workplace, and job title",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "employees"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Department performance metrics and headcount stats",
           "request": {
             "method": "GET",
             "header": [
@@ -3781,6 +9282,82 @@
               ],
               "variable": [],
               "query": []
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Workplace operational metrics, geofence breaches, manual edits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/workplaces",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "workplaces"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Start date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "End date in ISO format (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "",
+                  "description": "Specific year for annual/monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "",
+                  "description": "Specific month (1-12) for monthly aggregation",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Field name to sort by (whitelisted)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
             },
             "description": ""
           },
@@ -3833,13 +9410,13 @@
                 {
                   "key": "action",
                   "value": "",
-                  "description": "",
+                  "description": "Filter by action",
                   "disabled": true
                 },
                 {
                   "key": "entity",
                   "value": "",
-                  "description": "",
+                  "description": "Filter by entity name (e.g. EmployeeProfile, AttendanceRecord)",
                   "disabled": true
                 }
               ]
