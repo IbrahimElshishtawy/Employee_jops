@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, Task, TaskStatus } from "@prisma/client";
+import { Prisma, TaskStatus } from "@prisma/client";
 import {
   CreateTaskDto,
   QueryTasksDto,
-  UpdateTaskDto,
   AddChecklistItemDto,
   UpdateChecklistItemDto,
   CreateTaskCommentDto,

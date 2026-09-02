@@ -16,18 +16,12 @@ import {
   TaskStatus,
   UserStatus,
 } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { TaskReviewAction } from "./work-management/dto";
 
 describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", () => {
   let tasksService: TasksService;
-  let tasksRepo: TasksRepository;
   let workService: WorkManagementService;
-  let workRepo: WorkManagementRepository;
   let reportsService: ReportsService;
   let prismaService: any;
   let notificationsService: any;
@@ -350,7 +344,7 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
           }
           return Promise.resolve(list.length);
         }),
-        groupBy: jest.fn(({ by, where }) => {
+        groupBy: jest.fn(({ by }) => {
           const list = [...mockTasks];
           const key = by[0];
           const map: Record<string, number> = {};
@@ -376,7 +370,8 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
             t.assigneeId = data.assignee.connect.id;
           }
 
-          const { assignee: _ign, ...restData } = data;
+          const restData = { ...data };
+          delete (restData as any).assignee;
           Object.assign(t, {
             ...restData,
             updatedAt: new Date(),
@@ -576,9 +571,7 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
     }).compile();
 
     tasksService = module.get<TasksService>(TasksService);
-    tasksRepo = module.get<TasksRepository>(TasksRepository);
     workService = module.get<WorkManagementService>(WorkManagementService);
-    workRepo = module.get<WorkManagementRepository>(WorkManagementRepository);
     reportsService = module.get<ReportsService>(ReportsService);
     taskAccessGuard = module.get<TaskAccessGuard>(TaskAccessGuard);
   });

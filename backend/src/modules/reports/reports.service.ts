@@ -21,8 +21,6 @@ import {
   RequestType,
   UserStatus,
   TaskStatus,
-  TaskPriority,
-  TaskReportStatus,
 } from "@prisma/client";
 
 @Injectable()

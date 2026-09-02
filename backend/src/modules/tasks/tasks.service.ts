@@ -23,7 +23,6 @@ import {
   AuditAction,
   NotificationType,
   Role,
-  TaskPriority,
   TaskStatus,
   UserStatus,
 } from "@prisma/client";
