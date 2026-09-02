@@ -131,13 +131,17 @@ describe("WorkforceService", () => {
   beforeEach(async () => {
     mockWorkforceRepo = {
       countActiveEmployees: jest.fn().mockResolvedValue(mockEmployees.length),
-      getActiveEmployeesWithSchedule: jest.fn().mockResolvedValue(mockEmployees),
+      getActiveEmployeesWithSchedule: jest
+        .fn()
+        .mockResolvedValue(mockEmployees),
       getAttendanceForDate: jest.fn().mockResolvedValue(mockAttendanceRecords),
       getAttendanceForRange: jest.fn().mockResolvedValue(mockAttendanceRecords),
       getApprovedLeavesForDate: jest.fn().mockResolvedValue(mockApprovedLeaves),
       getDepartmentStats: jest.fn().mockResolvedValue(mockAttendanceRecords),
       getWorkplaceStats: jest.fn().mockResolvedValue(mockAttendanceRecords),
-      getTopOvertimeRecords: jest.fn().mockResolvedValue([mockAttendanceRecords[0]]),
+      getTopOvertimeRecords: jest
+        .fn()
+        .mockResolvedValue([mockAttendanceRecords[0]]),
       markAbsences: jest.fn().mockResolvedValue([
         {
           id: "rec-absent-1",
@@ -205,7 +209,9 @@ describe("WorkforceService", () => {
 
       expect(result.departments).toBeDefined();
       expect(result.departments.length).toBe(2);
-      const engineering = result.departments.find((d) => d.department === "Engineering");
+      const engineering = result.departments.find(
+        (d) => d.department === "Engineering",
+      );
       expect(engineering).toBeDefined();
       expect(engineering.presentCount).toBe(1);
       expect(engineering.totalOvertimeHours).toBe(0.5);
@@ -236,7 +242,11 @@ describe("WorkforceService", () => {
           firstName: "Absent",
           lastName: "Worker",
           department: "Operations",
-          schedule: { workingDays: [mockToday.getDay()], startTime: "09:00", endTime: "17:00" },
+          schedule: {
+            workingDays: [mockToday.getDay()],
+            startTime: "09:00",
+            endTime: "17:00",
+          },
         },
       ]);
 

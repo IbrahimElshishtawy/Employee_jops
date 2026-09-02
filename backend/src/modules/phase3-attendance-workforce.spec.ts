@@ -6,8 +6,13 @@ import { WorkforceRepository } from "./workforce/workforce.repository";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "./notifications/notifications.service";
 import { ConfigService } from "@nestjs/config";
-import { AttendanceStatus, CheckInMethod, Role, UserStatus } from "@prisma/client";
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import {
+  AttendanceStatus,
+  CheckInMethod,
+  Role,
+  UserStatus,
+} from "@prisma/client";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("Phase 3 — Attendance & Workforce Operations Complete Specification", () => {
   let attendanceService: AttendanceService;
@@ -105,11 +110,15 @@ describe("Phase 3 — Attendance & Workforce Operations Complete Specification",
 
   const mockPrismaService: any = {
     user: {
-      findUnique: jest.fn(({ where }) => Promise.resolve(mockUsers[where.id] || null)),
+      findUnique: jest.fn(({ where }) =>
+        Promise.resolve(mockUsers[where.id] || null),
+      ),
     },
     employeeProfile: {
       findUnique: jest.fn(({ where }) => {
-        const u = Object.values(mockUsers).find((user) => user.employeeProfile?.id === where.id);
+        const u = Object.values(mockUsers).find(
+          (user) => user.employeeProfile?.id === where.id,
+        );
         if (u) {
           return Promise.resolve({
             ...u.employeeProfile,
@@ -119,9 +128,7 @@ describe("Phase 3 — Attendance & Workforce Operations Complete Specification",
         return Promise.resolve(null);
       }),
       findMany: jest.fn(() =>
-        Promise.resolve(
-          Object.values(mockUsers).map((u) => u.employeeProfile),
-        ),
+        Promise.resolve(Object.values(mockUsers).map((u) => u.employeeProfile)),
       ),
       count: jest.fn(() => Promise.resolve(Object.keys(mockUsers).length)),
     },
@@ -137,7 +144,9 @@ describe("Phase 3 — Attendance & Workforce Operations Complete Specification",
         return Promise.resolve(null);
       }),
       upsert: jest.fn(({ where, update, create }) => {
-        const dateKey = (create?.date || where.employeeId_date.date).toISOString().split("T")[0];
+        const dateKey = (create?.date || where.employeeId_date.date)
+          .toISOString()
+          .split("T")[0];
         const key = `${where.employeeId_date.employeeId}_${dateKey}`;
         const existing = recordsDb[key];
         const record = {
@@ -236,8 +245,8 @@ describe("Phase 3 — Attendance & Workforce Operations Complete Specification",
   it("Scenario 2: Outside Geofence is rejected with OUTSIDE_WORKPLACE", async () => {
     await expect(
       attendanceService.checkIn("user-valid", {
-        latitude: 25.1000, // ~50km away
-        longitude: 46.9000,
+        latitude: 25.1, // ~50km away
+        longitude: 46.9,
         accuracy: 15.0,
         requestId: "req-outside-01",
       }),
@@ -309,32 +318,40 @@ describe("Phase 3 — Attendance & Workforce Operations Complete Specification",
 
   // 8. Manual Attendance Correction by HR
   it("Scenario 8: HR Manual Correction updates status, duration, logs event and audit trail", async () => {
-    const corrected = await attendanceService.manualAttendanceEntry("hr-admin-user", {
-      employeeId: "emp-valid",
-      date: "2026-09-02",
-      status: AttendanceStatus.PRESENT,
-      checkInTime: "2026-09-02T09:00:00.000Z",
-      checkOutTime: "2026-09-02T18:00:00.000Z",
-      reason: "Field mission approved by department head",
-    });
+    const corrected = await attendanceService.manualAttendanceEntry(
+      "hr-admin-user",
+      {
+        employeeId: "emp-valid",
+        date: "2026-09-02",
+        status: AttendanceStatus.PRESENT,
+        checkInTime: "2026-09-02T09:00:00.000Z",
+        checkOutTime: "2026-09-02T18:00:00.000Z",
+        reason: "Field mission approved by department head",
+      },
+    );
 
     expect(corrected).toBeDefined();
     expect(corrected.isManualEntry).toBe(true);
-    expect(corrected.manualCorrectionReason).toBe("Field mission approved by department head");
+    expect(corrected.manualCorrectionReason).toBe(
+      "Field mission approved by department head",
+    );
     expect(corrected.manualCorrectedByUserId).toBe("hr-admin-user");
     expect(corrected.overtimeMinutes).toBe(60); // 18:00 is 1 hour after 17:00
   });
 
   // 9. Overtime Calculation in Manual Entry & Checkout
   it("Scenario 9: Overtime is calculated correctly when checkout exceeds shift end time", async () => {
-    const overtimeRecord = await attendanceService.manualAttendanceEntry("hr-admin-user", {
-      employeeId: "emp-valid",
-      date: "2026-09-01",
-      status: AttendanceStatus.PRESENT,
-      checkInTime: "2026-09-01T09:00:00.000Z",
-      checkOutTime: "2026-09-01T19:30:00.000Z", // 2.5 hours overtime
-      reason: "Emergency release overtime",
-    });
+    const overtimeRecord = await attendanceService.manualAttendanceEntry(
+      "hr-admin-user",
+      {
+        employeeId: "emp-valid",
+        date: "2026-09-01",
+        status: AttendanceStatus.PRESENT,
+        checkInTime: "2026-09-01T09:00:00.000Z",
+        checkOutTime: "2026-09-01T19:30:00.000Z", // 2.5 hours overtime
+        reason: "Emergency release overtime",
+      },
+    );
 
     expect(overtimeRecord.overtimeMinutes).toBe(150);
   });

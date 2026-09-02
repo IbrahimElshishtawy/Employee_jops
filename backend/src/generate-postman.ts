@@ -39,9 +39,18 @@ async function bootstrap() {
     )
     .addTag("Audit Logs", "Compliance and audit trail")
     .addTag("Health", "Database and system health indicators")
-    .addTag("HR Management", "HR employee profile, organizational assignments, and document verification")
-    .addTag("Recruitment & ATS", "Job openings, candidate talent pool, applications, interviews, and hiring workflow")
-    .addTag("Employee Onboarding", "Onboarding roadmap, checklist tasks, and progress tracking")
+    .addTag(
+      "HR Management",
+      "HR employee profile, organizational assignments, and document verification",
+    )
+    .addTag(
+      "Recruitment & ATS",
+      "Job openings, candidate talent pool, applications, interviews, and hiring workflow",
+    )
+    .addTag(
+      "Employee Onboarding",
+      "Onboarding roadmap, checklist tasks, and progress tracking",
+    )
     .build();
 
   const spec: any = SwaggerModule.createDocument(app, swaggerConfig);

@@ -1,10 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  AttendanceRecord,
-  AttendanceStatus,
-  Prisma,
-} from "@prisma/client";
+import { AttendanceRecord, AttendanceStatus, Prisma } from "@prisma/client";
 
 @Injectable()
 export class AttendanceRepository {
@@ -31,7 +27,10 @@ export class AttendanceRepository {
     });
   }
 
-  async findRecordByRequestId(requestId: string, tx?: Prisma.TransactionClient) {
+  async findRecordByRequestId(
+    requestId: string,
+    tx?: Prisma.TransactionClient,
+  ) {
     const client = tx || this.prisma;
     return client.attendanceRecord.findUnique({
       where: { requestId },
@@ -75,7 +74,9 @@ export class AttendanceRepository {
   }
 
   async createEvent(
-    data: Prisma.AttendanceEventCreateInput | Prisma.AttendanceEventUncheckedCreateInput,
+    data:
+      | Prisma.AttendanceEventCreateInput
+      | Prisma.AttendanceEventUncheckedCreateInput,
     tx?: Prisma.TransactionClient,
   ) {
     const client = tx || this.prisma;

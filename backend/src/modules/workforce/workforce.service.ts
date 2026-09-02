@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { WorkforceRepository } from "./workforce.repository";
 import { WorkforceQueryDto } from "./dto/workforce-query.dto";
 import { MarkAbsenceDto } from "./dto/mark-absence.dto";
@@ -37,7 +33,9 @@ export class WorkforceService {
 
     const totalActiveEmployees = activeEmployees.length;
     const leaveEmployeeIds = new Set(approvedLeaves.map((l) => l.employeeId));
-    const attendanceMap = new Map(attendanceRecords.map((r) => [r.employeeId, r]));
+    const attendanceMap = new Map(
+      attendanceRecords.map((r) => [r.employeeId, r]),
+    );
 
     let presentCount = 0;
     let currentlyCheckedInCount = 0;
@@ -58,7 +56,8 @@ export class WorkforceService {
 
     for (const emp of activeEmployees) {
       const record = attendanceMap.get(emp.id);
-      const isScheduledToday = emp.schedule?.workingDays?.includes(dayOfWeek) ?? false;
+      const isScheduledToday =
+        emp.schedule?.workingDays?.includes(dayOfWeek) ?? false;
       const isOnLeave = leaveEmployeeIds.has(emp.id);
 
       if (record) {
@@ -113,12 +112,14 @@ export class WorkforceService {
 
     const onLeaveCount = onLeaveEmployees.length;
     const notCheckedInYetCount = notCheckedInEmployees.length;
-    const scheduledTotal = activeEmployees.filter(
-      (e) => e.schedule?.workingDays?.includes(dayOfWeek),
+    const scheduledTotal = activeEmployees.filter((e) =>
+      e.schedule?.workingDays?.includes(dayOfWeek),
     ).length;
 
     const presentPercentage =
-      scheduledTotal > 0 ? Math.round((presentCount / scheduledTotal) * 100) : 0;
+      scheduledTotal > 0
+        ? Math.round((presentCount / scheduledTotal) * 100)
+        : 0;
 
     return {
       date: targetDate.toISOString().split("T")[0],
@@ -176,7 +177,10 @@ export class WorkforceService {
       ) {
         presentCount++;
       }
-      if (r.status === AttendanceStatus.LATE || (r.lateMinutes && r.lateMinutes > 0)) {
+      if (
+        r.status === AttendanceStatus.LATE ||
+        (r.lateMinutes && r.lateMinutes > 0)
+      ) {
         lateCount++;
       }
       if (
@@ -272,7 +276,10 @@ export class WorkforceService {
       ) {
         entry.present++;
       }
-      if (r.status === AttendanceStatus.LATE || (r.lateMinutes && r.lateMinutes > 0)) {
+      if (
+        r.status === AttendanceStatus.LATE ||
+        (r.lateMinutes && r.lateMinutes > 0)
+      ) {
         entry.late++;
       }
       if (
@@ -349,13 +356,17 @@ export class WorkforceService {
       ) {
         d.presentCount++;
       }
-      if (r.status === AttendanceStatus.LATE || (r.lateMinutes && r.lateMinutes > 0)) {
+      if (
+        r.status === AttendanceStatus.LATE ||
+        (r.lateMinutes && r.lateMinutes > 0)
+      ) {
         d.lateCount++;
       }
       if (r.status === AttendanceStatus.ABSENT) {
         d.absentCount++;
       }
-      d.totalWorkHours += Math.round(((r.workDurationMinutes || 0) / 60) * 10) / 10;
+      d.totalWorkHours +=
+        Math.round(((r.workDurationMinutes || 0) / 60) * 10) / 10;
       d.totalOvertimeHours +=
         Math.round(((r.overtimeMinutes || 0) / 60) * 10) / 10;
     }
@@ -409,7 +420,10 @@ export class WorkforceService {
       ) {
         wp.presentCount++;
       }
-      if (r.status === AttendanceStatus.LATE || (r.lateMinutes && r.lateMinutes > 0)) {
+      if (
+        r.status === AttendanceStatus.LATE ||
+        (r.lateMinutes && r.lateMinutes > 0)
+      ) {
         wp.lateCount++;
       }
       if (r.status === AttendanceStatus.ABSENT) {
@@ -454,7 +468,9 @@ export class WorkforceService {
       this.workforceRepo.getApprovedLeavesForDate(targetDate),
     ]);
 
-    const attendanceMap = new Map(attendanceRecords.map((r) => [r.employeeId, r]));
+    const attendanceMap = new Map(
+      attendanceRecords.map((r) => [r.employeeId, r]),
+    );
     const leaveEmployeeIds = new Set(leaves.map((l) => l.employeeId));
 
     const absentEmployees = [];
@@ -495,7 +511,10 @@ export class WorkforceService {
     const targetDate = new Date(dto.date);
     targetDate.setHours(0, 0, 0, 0);
 
-    let candidatesToMark: Array<{ employeeId: string; workplaceId?: string | null }> = [];
+    let candidatesToMark: Array<{
+      employeeId: string;
+      workplaceId?: string | null;
+    }> = [];
 
     if (dto.employeeIds && dto.employeeIds.length > 0) {
       candidatesToMark = dto.employeeIds.map((id) => ({ employeeId: id }));
@@ -577,8 +596,7 @@ export class WorkforceService {
         startDate: startDate.toISOString().split("T")[0],
         endDate: endDate.toISOString().split("T")[0],
       },
-      totalOvertimeHours:
-        Math.round((totalOvertimeMinutes / 60) * 10) / 10,
+      totalOvertimeHours: Math.round((totalOvertimeMinutes / 60) * 10) / 10,
       topEmployees: Array.from(employeeOvertimeMap.values()).sort(
         (a, b) => b.totalOvertimeMinutes - a.totalOvertimeMinutes,
       ),

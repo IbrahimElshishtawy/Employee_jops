@@ -13,7 +13,8 @@ import { AttendanceStatus } from "@prisma/client";
 
 export class WorkforceQueryDto {
   @ApiPropertyOptional({
-    description: "Specific target date (YYYY-MM-DD). Defaults to today if not range.",
+    description:
+      "Specific target date (YYYY-MM-DD). Defaults to today if not range.",
     example: "2026-09-02",
   })
   @IsOptional()

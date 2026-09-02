@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Role } from "@prisma/client";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -44,7 +37,8 @@ export class WorkforceController {
 
   @Get("summary")
   @ApiOperation({
-    summary: "Get daily / periodic aggregated attendance trends with pagination",
+    summary:
+      "Get daily / periodic aggregated attendance trends with pagination",
   })
   getSummary(@Query() query: WorkforceQueryDto) {
     return this.workforceService.getSummary(query);
