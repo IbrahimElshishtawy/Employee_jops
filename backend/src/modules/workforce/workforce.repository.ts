@@ -8,6 +8,90 @@ import {
   UserStatus,
 } from "@prisma/client";
 
+export interface WorkforceEmployeeProfile {
+  id: string;
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  jobTitle: string;
+  department: string;
+  workplaceId: string | null;
+  workplace?: { id: string; name: string; code: string } | null;
+  scheduleId: string | null;
+  schedule?: {
+    id: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+    workingDays: number[];
+    graceMinutesCheckIn: number;
+    graceMinutesCheckOut: number;
+  } | null;
+}
+
+export interface WorkforceAttendanceRecord {
+  id: string;
+  employeeId: string;
+  date: Date;
+  status: AttendanceStatus;
+  checkInTime: Date | null;
+  checkOutTime: Date | null;
+  workDurationMinutes: number | null;
+  lateMinutes: number | null;
+  earlyLeaveMinutes: number | null;
+  overtimeMinutes: number | null;
+  isSuspicious: boolean;
+  isManualEntry: boolean;
+  workplaceId: string | null;
+  employee?: {
+    id: string;
+    employeeCode: string;
+    firstName: string;
+    lastName: string;
+    department: string;
+    jobTitle: string;
+  } | null;
+  workplace?: {
+    id: string;
+    name: string;
+    code: string;
+  } | null;
+}
+
+export interface DepartmentAttendanceStat {
+  status: AttendanceStatus;
+  workDurationMinutes: number | null;
+  lateMinutes: number | null;
+  overtimeMinutes: number | null;
+  employee?: { department: string } | null;
+}
+
+export interface WorkplaceAttendanceStat {
+  status: AttendanceStatus;
+  workDurationMinutes: number | null;
+  lateMinutes: number | null;
+  overtimeMinutes: number | null;
+  workplace?: { id: string; name: string; code: string } | null;
+}
+
+export interface TopOvertimeRecord {
+  id: string;
+  date: Date;
+  overtimeMinutes: number | null;
+  workDurationMinutes: number | null;
+  checkInTime: Date | null;
+  checkOutTime: Date | null;
+  employee: {
+    id: string;
+    employeeCode: string;
+    firstName: string;
+    lastName: string;
+    department: string;
+    jobTitle: string;
+  };
+  workplace?: { id: string; name: string } | null;
+}
+
 @Injectable()
 export class WorkforceRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -18,7 +102,7 @@ export class WorkforceRepository {
   async countActiveEmployees(filters?: {
     workplaceId?: string;
     department?: string;
-  }) {
+  }): Promise<number> {
     const where: Prisma.EmployeeProfileWhereInput = {
       user: { status: UserStatus.ACTIVE },
     };
@@ -34,7 +118,7 @@ export class WorkforceRepository {
   async getActiveEmployeesWithSchedule(filters?: {
     workplaceId?: string;
     department?: string;
-  }) {
+  }): Promise<WorkforceEmployeeProfile[]> {
     const where: Prisma.EmployeeProfileWhereInput = {
       user: { status: UserStatus.ACTIVE },
     };
@@ -65,7 +149,7 @@ export class WorkforceRepository {
           },
         },
       },
-    });
+    }) as any;
   }
 
   /**
@@ -74,7 +158,7 @@ export class WorkforceRepository {
   async getAttendanceForDate(
     date: Date,
     filters?: { workplaceId?: string; department?: string },
-  ) {
+  ): Promise<WorkforceAttendanceRecord[]> {
     const where: Prisma.AttendanceRecordWhereInput = {
       date,
     };
@@ -111,7 +195,7 @@ export class WorkforceRepository {
         },
         workplace: { select: { id: true, name: true, code: true } },
       },
-    });
+    }) as any;
   }
 
   /**
@@ -125,7 +209,7 @@ export class WorkforceRepository {
       department?: string;
       status?: AttendanceStatus;
     },
-  ) {
+  ): Promise<WorkforceAttendanceRecord[]> {
     const where: Prisma.AttendanceRecordWhereInput = {
       date: { gte: startDate, lte: endDate },
     };
@@ -164,7 +248,7 @@ export class WorkforceRepository {
         workplace: { select: { id: true, name: true, code: true } },
       },
       orderBy: { date: "desc" },
-    });
+    }) as any;
   }
 
   /**
@@ -209,7 +293,10 @@ export class WorkforceRepository {
   /**
    * Group attendance records by department
    */
-  async getDepartmentStats(startDate: Date, endDate: Date) {
+  async getDepartmentStats(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<DepartmentAttendanceStat[]> {
     return this.prisma.attendanceRecord.findMany({
       where: {
         date: { gte: startDate, lte: endDate },
@@ -223,13 +310,16 @@ export class WorkforceRepository {
           select: { department: true },
         },
       },
-    });
+    }) as any;
   }
 
   /**
    * Group attendance records by workplace
    */
-  async getWorkplaceStats(startDate: Date, endDate: Date) {
+  async getWorkplaceStats(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WorkplaceAttendanceStat[]> {
     return this.prisma.attendanceRecord.findMany({
       where: {
         date: { gte: startDate, lte: endDate },
@@ -243,13 +333,17 @@ export class WorkforceRepository {
           select: { id: true, name: true, code: true },
         },
       },
-    });
+    }) as any;
   }
 
   /**
    * Top Overtime Records within a date range
    */
-  async getTopOvertimeRecords(startDate: Date, endDate: Date, limit = 10) {
+  async getTopOvertimeRecords(
+    startDate: Date,
+    endDate: Date,
+    limit = 10,
+  ): Promise<TopOvertimeRecord[]> {
     return this.prisma.attendanceRecord.findMany({
       where: {
         date: { gte: startDate, lte: endDate },
@@ -276,7 +370,7 @@ export class WorkforceRepository {
       },
       orderBy: { overtimeMinutes: "desc" },
       take: limit,
-    });
+    }) as any;
   }
 
   /**

@@ -72,6 +72,25 @@ enum RequestType {
   HALF_DAY
   REMOTE_WORK
   OVERTIME
+  ADVANCE
+  DOCUMENT_REQUEST
+  RESIGNATION
+  GENERAL_REQUEST
+}
+
+enum ApproverType {
+  DIRECT_MANAGER
+  HEAD_OF_DEPARTMENT
+  HEAD_OF_SECTION
+  SPECIFIC_ROLE
+  SPECIFIC_USER
+}
+
+enum WorkflowAction {
+  APPROVE
+  REJECT
+  DELEGATE
+  RETURN_FOR_CORRECTION
 }
 
 enum HalfDayPeriod {
@@ -298,6 +317,13 @@ enum AuditAction {
   EMPLOYEE_DOCUMENT_VERIFIED
   EMPLOYEE_DOCUMENT_DELETED
   EMPLOYEE_ASSIGNMENT_UPDATED
+  WORKFLOW_CREATED
+  WORKFLOW_UPDATED
+  WORKFLOW_DELETED
+  DELEGATION_CREATED
+  DELEGATION_REVOKED
+  APPROVAL_STEP_EXECUTED
+  REQUEST_DELEGATED
 }
 
 enum BranchType {
@@ -350,6 +376,8 @@ enum PermissionSubject {
   ATTENDANCE
   SCHEDULES
   REQUESTS
+  WORKFLOWS
+  APPROVALS
   PAYROLL
   REPORTS
   SETTINGS
@@ -490,6 +518,8 @@ model User {
   sentMessages              ChatMessage[]
   announcementReads         AnnouncementRead[]
   userRoles                 UserRole[]
+  delegationsCreated        ApprovalDelegation[]      @relation("Delegator")
+  delegationsReceived       ApprovalDelegation[]      @relation("Delegate")
 
   @@index([email])
   @@index([googleId])
@@ -738,18 +768,18 @@ model AttendanceEvent {
 // ============================================================
 
 model Request {
-  id               String          @id @default(uuid())
-  idempotencyKey   String?         @unique
+  id               String              @id @default(uuid())
+  idempotencyKey   String?             @unique
   employeeId       String
-  employee         EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee         EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   type             RequestType
-  status           RequestStatus   @default(PENDING)
+  status           RequestStatus       @default(PENDING)
 
-  startDate        DateTime        @db.Date
-  endDate          DateTime        @db.Date
-  startTime        String?         // For excuse / permission / hourly leave (e.g. "09:00")
-  endTime          String?         // (e.g. "11:00")
-  halfDayPeriod    HalfDayPeriod?  // FIRST_HALF, SECOND_HALF
+  startDate        DateTime            @db.Date
+  endDate          DateTime            @db.Date
+  startTime        String?             // For excuse / permission / hourly leave (e.g. "09:00")
+  endTime          String?             // (e.g. "11:00")
+  halfDayPeriod    HalfDayPeriod?      // FIRST_HALF, SECOND_HALF
 
   reason           String
   rejectionReason  String?
@@ -758,7 +788,13 @@ model Request {
   reviewedByUserId String?
   reviewedAt       DateTime?
 
-  metadata         Json?           // Extensible metadata (target attendance date, custom tags)
+  // Workflow integration
+  workflowId       String?
+  workflow         WorkflowDefinition? @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  currentStepOrder Int                 @default(1)
+  totalSteps       Int                 @default(1)
+
+  metadata         Json?               // Extensible metadata (target attendance date, custom tags)
 
   approvalSteps    ApprovalStep[]
 
@@ -768,6 +804,7 @@ model Request {
   @@index([employeeId])
   @@index([type])
   @@index([status])
+  @@index([workflowId])
   @@index([startDate, endDate])
   @@index([idempotencyKey])
   @@map("requests")
@@ -794,22 +831,103 @@ model LeaveBalance {
 }
 
 model ApprovalStep {
-  id         String        @id @default(uuid())
-  requestId  String
-  request    Request       @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  approverId String
-  approver   User          @relation(fields: [approverId], references: [id], onDelete: Cascade)
-  stepOrder  Int           @default(1)
-  status     RequestStatus @default(PENDING)
-  comment    String?
-  actionDate DateTime?
+  id                 String         @id @default(uuid())
+  requestId          String
+  request            Request        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approverId         String
+  approver           User           @relation(fields: [approverId], references: [id], onDelete: Cascade)
+  stepOrder          Int            @default(1)
+  status             RequestStatus  @default(PENDING)
+  action             WorkflowAction @default(APPROVE)
+  comment            String?
+  originalApproverId String?
+  isDelegated        Boolean        @default(false)
+  delegatedById      String?
+  actionDate         DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([requestId])
   @@index([approverId])
+  @@index([stepOrder])
   @@map("approval_steps")
+}
+
+model WorkflowDefinition {
+  id             String                   @id @default(uuid())
+  name           String
+  description    String?
+  requestType    RequestType?
+  organizationId String?
+  organization   Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  departmentId   String?
+  department     Department?              @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  role           Role?
+  minDays        Float?
+  maxDays        Float?
+  minAmount      Decimal?                 @db.Decimal(12, 2)
+  maxAmount      Decimal?                 @db.Decimal(12, 2)
+  priority       Int                      @default(0)
+  isActive       Boolean                  @default(true)
+  isDefault      Boolean                  @default(false)
+
+  steps          WorkflowStepDefinition[]
+  requests       Request[]
+
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([requestType])
+  @@index([departmentId])
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([isDefault])
+  @@map("workflow_definitions")
+}
+
+model WorkflowStepDefinition {
+  id                   String             @id @default(uuid())
+  workflowId           String
+  workflow             WorkflowDefinition @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepOrder            Int                @default(1)
+  name                 String
+  approverType         ApproverType       @default(DIRECT_MANAGER)
+  role                 Role?
+  specificUserId       String?
+  isMandatory          Boolean            @default(true)
+  canDelegate          Boolean            @default(true)
+  timeoutHours         Int?
+  autoApproveOnTimeout Boolean            @default(false)
+
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@unique([workflowId, stepOrder])
+  @@index([workflowId])
+  @@map("workflow_step_definitions")
+}
+
+model ApprovalDelegation {
+  id          String       @id @default(uuid())
+  delegatorId String
+  delegator   User         @relation("Delegator", fields: [delegatorId], references: [id], onDelete: Cascade)
+  delegateId  String
+  delegate    User         @relation("Delegate", fields: [delegateId], references: [id], onDelete: Cascade)
+  requestType RequestType?
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  isActive    Boolean      @default(true)
+  reason      String?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([delegatorId])
+  @@index([delegateId])
+  @@index([isActive])
+  @@index([startDate, endDate])
+  @@map("approval_delegations")
 }
 
 // ============================================================
@@ -1230,6 +1348,7 @@ model Organization {
   settings           SystemSetting[]
   featureFlags       FeatureFlag[]
   jobOpenings        JobOpening[]
+  workflowDefinitions WorkflowDefinition[]
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -1295,6 +1414,7 @@ model Department {
   employees          EmployeeProfile[] @relation("EmployeeDepartment")
   jobOpenings        JobOpening[]
   jobOffers          JobOffer[]
+  workflowDefinitions WorkflowDefinition[]
 
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
