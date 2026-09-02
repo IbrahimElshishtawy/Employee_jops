@@ -269,6 +269,35 @@ enum AuditAction {
   FEATURE_FLAG_CREATED
   FEATURE_FLAG_UPDATED
   FEATURE_FLAG_DELETED
+  JOB_OPENING_CREATED
+  JOB_OPENING_UPDATED
+  JOB_OPENING_STATUS_CHANGED
+  JOB_OPENING_DELETED
+  CANDIDATE_CREATED
+  CANDIDATE_UPDATED
+  CANDIDATE_DELETED
+  APPLICATION_CREATED
+  APPLICATION_STAGE_CHANGED
+  APPLICATION_REJECTED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_UPDATED
+  INTERVIEW_COMPLETED
+  INTERVIEW_CANCELLED
+  INTERVIEW_EVALUATION_SUBMITTED
+  JOB_OFFER_CREATED
+  JOB_OFFER_UPDATED
+  JOB_OFFER_SENT
+  JOB_OFFER_ACCEPTED
+  JOB_OFFER_REJECTED
+  CANDIDATE_HIRED
+  ONBOARDING_WORKFLOW_STARTED
+  ONBOARDING_TASK_UPDATED
+  ONBOARDING_TASK_COMPLETED
+  ONBOARDING_WORKFLOW_COMPLETED
+  EMPLOYEE_DOCUMENT_UPLOADED
+  EMPLOYEE_DOCUMENT_VERIFIED
+  EMPLOYEE_DOCUMENT_DELETED
+  EMPLOYEE_ASSIGNMENT_UPDATED
 }
 
 enum BranchType {
@@ -328,6 +357,110 @@ enum PermissionSubject {
   PERMISSIONS
   AUDIT_LOGS
   FEATURE_FLAGS
+  JOB_OPENINGS
+  CANDIDATES
+  APPLICATIONS
+  INTERVIEWS
+  JOB_OFFERS
+  ONBOARDING
+  EMPLOYEE_DOCUMENTS
+}
+
+enum JobOpeningStatus {
+  DRAFT
+  OPEN
+  ON_HOLD
+  CLOSED
+  CANCELLED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+  HYBRID
+}
+
+enum CandidateSource {
+  WEBSITE
+  LINKEDIN
+  REFERRAL
+  JOB_BOARD
+  DIRECT
+  OTHER
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SCREENING
+  INTERVIEWING
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewType {
+  SCREENING
+  HR
+  TECHNICAL
+  MANAGER
+  FINAL
+  OTHER
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum InterviewRecommendation {
+  STRONG_HIRE
+  HIRE
+  MAYBE
+  NO_HIRE
+  STRONG_NO_HIRE
+}
+
+enum JobOfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum OnboardingStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OnboardingTaskCategory {
+  DOCUMENTATION
+  IT_SETUP
+  ORIENTATION
+  TRAINING
+  COMPLIANCE
+  OTHER
+}
+
+enum EmployeeDocumentType {
+  NATIONAL_ID
+  PASSPORT
+  CONTRACT
+  CERTIFICATE
+  DEGREE
+  RESUME
+  CRIMINAL_RECORD
+  HEALTH_CERTIFICATE
+  OTHER
 }
 
 // ============================================================
@@ -441,6 +574,8 @@ model EmployeeProfile {
   advances       FinancialAdvance[]
   deductions     FinancialDeduction[]
   payrollRecords PayrollRecord[]
+  documents      EmployeeDocument[]
+  onboardingWorkflow OnboardingWorkflow?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1093,6 +1228,7 @@ model Organization {
   roles              RoleRecord[]
   settings           SystemSetting[]
   featureFlags       FeatureFlag[]
+  jobOpenings        JobOpening[]
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -1122,6 +1258,7 @@ model Branch {
   departments    Department[]
   employees      EmployeeProfile[]
   workplaces     Workplace[]
+  jobOpenings    JobOpening[]
 
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -1155,6 +1292,8 @@ model Department {
   sections           Section[]
   positions          Position[]
   employees          EmployeeProfile[] @relation("EmployeeDepartment")
+  jobOpenings        JobOpening[]
+  jobOffers          JobOffer[]
 
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
@@ -1212,6 +1351,8 @@ model Position {
   isActive       Boolean           @default(true)
 
   employees      EmployeeProfile[]
+  jobOpenings    JobOpening[]
+  jobOffers      JobOffer[]
 
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -1344,3 +1485,252 @@ model FeatureFlag {
   @@index([organizationId])
   @@map("feature_flags")
 }
+
+// ============================================================
+// HR & EMPLOYEE DOCUMENTS METADATA
+// ============================================================
+
+model EmployeeDocument {
+  id             String               @id @default(uuid())
+  employeeId     String
+  employee       EmployeeProfile      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documentType   EmployeeDocumentType @default(OTHER)
+  title          String
+  documentNumber String?
+  issueDate      DateTime?            @db.Date
+  expiryDate     DateTime?            @db.Date
+  fileUrl        String?
+  fileSize       Int?
+  mimeType       String?
+  isVerified     Boolean              @default(false)
+  verifiedById   String?
+  verifiedAt     DateTime?
+  notes          String?
+
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([employeeId])
+  @@index([documentType])
+  @@index([isVerified])
+  @@map("employee_documents")
+}
+
+// ============================================================
+// RECRUITMENT: JOB OPENINGS, CANDIDATES, APPLICATIONS, INTERVIEWS, OFFERS
+// ============================================================
+
+model JobOpening {
+  id             String           @id @default(uuid())
+  title          String
+  code           String           @unique
+  organizationId String?
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  branchId       String?
+  branch         Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  departmentId   String?
+  department     Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  positionId     String?
+  position       Position?        @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  
+  description    String?
+  requirements   String?
+  employmentType EmploymentType   @default(FULL_TIME)
+  status         JobOpeningStatus @default(DRAFT)
+  vacancies      Int              @default(1)
+  targetDate     DateTime?        @db.Date
+  minSalary      Decimal?         @db.Decimal(12, 2)
+  maxSalary      Decimal?         @db.Decimal(12, 2)
+  currency       String           @default("EGP")
+  createdById    String?
+
+  applications   JobApplication[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([organizationId])
+  @@index([departmentId])
+  @@index([positionId])
+  @@index([status])
+  @@index([code])
+  @@map("job_openings")
+}
+
+model Candidate {
+  id              String            @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String            @unique
+  phone           String?
+  currentTitle    String?
+  experienceYears Int?              @default(0)
+  source          CandidateSource   @default(DIRECT)
+  resumeUrl       String?
+  skills          Json?             // Array of skill strings or tag metadata
+  notes           String?
+
+  applications    JobApplication[]
+  offers          JobOffer[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([email])
+  @@index([phone])
+  @@index([firstName, lastName])
+  @@map("candidates")
+}
+
+model JobApplication {
+  id              String            @id @default(uuid())
+  jobOpeningId    String
+  jobOpening      JobOpening        @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  status          ApplicationStatus @default(APPLIED)
+  appliedAt       DateTime          @default(now())
+  rating          Int?              @default(0)
+  stageNotes      String?
+  rejectionReason String?
+
+  interviews      Interview[]
+  offers          JobOffer[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([jobOpeningId, candidateId])
+  @@index([jobOpeningId])
+  @@index([candidateId])
+  @@index([status])
+  @@map("job_applications")
+}
+
+model Interview {
+  id              String          @id @default(uuid())
+  applicationId   String
+  application     JobApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  title           String
+  interviewType   InterviewType   @default(HR)
+  scheduledAt     DateTime
+  durationMinutes Int             @default(30)
+  interviewerId   String?         // User ID or EmployeeProfile ID
+  locationOrLink  String?
+  status          InterviewStatus @default(SCHEDULED)
+  feedbackNotes   String?
+
+  evaluations     InterviewEvaluation[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([applicationId])
+  @@index([interviewerId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("interviews")
+}
+
+model InterviewEvaluation {
+  id             String                  @id @default(uuid())
+  interviewId    String
+  interview      Interview               @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  evaluatorId    String                  // User ID
+  rating         Int                     // 1 to 5
+  criteriaScores Json?                   // Detailed criteria scores
+  recommendation InterviewRecommendation @default(HIRE)
+  strengths      String?
+  weaknesses     String?
+  comments       String?
+
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@unique([interviewId, evaluatorId])
+  @@index([interviewId])
+  @@index([evaluatorId])
+  @@map("interview_evaluations")
+}
+
+model JobOffer {
+  id                String         @id @default(uuid())
+  applicationId     String
+  application       JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidateId       String
+  candidate         Candidate      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  positionId        String?
+  position          Position?      @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  departmentId      String?
+  department        Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  
+  offeredSalary     Decimal        @db.Decimal(12, 2)
+  currency          String         @default("EGP")
+  benefits          String?
+  proposedStartDate DateTime       @db.Date
+  status            JobOfferStatus @default(DRAFT)
+  terms             String?
+  notes             String?
+  sentAt            DateTime?
+  respondedAt       DateTime?
+  createdById       String?
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([applicationId])
+  @@index([candidateId])
+  @@index([status])
+  @@map("job_offers")
+}
+
+// ============================================================
+// ONBOARDING WORKFLOWS & CHECKLIST TASKS
+// ============================================================
+
+model OnboardingWorkflow {
+  id                 String           @id @default(uuid())
+  employeeId         String           @unique
+  employee           EmployeeProfile  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  status             OnboardingStatus @default(PENDING)
+  startDate          DateTime         @default(now()) @db.Date
+  targetDate         DateTime?        @db.Date
+  completedAt        DateTime?
+  progressPercentage Float            @default(0)
+  createdById        String?
+
+  tasks              OnboardingTask[]
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@map("onboarding_workflows")
+}
+
+model OnboardingTask {
+  id               String                 @id @default(uuid())
+  workflowId       String
+  workflow         OnboardingWorkflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  category         OnboardingTaskCategory @default(DOCUMENTATION)
+  isMandatory      Boolean                @default(true)
+  isCompleted      Boolean                @default(false)
+  completedAt      DateTime?
+  completedById    String?
+  assignedToUserId String?
+  dueDate          DateTime?              @db.Date
+  orderIndex       Int                    @default(0)
+  notes            String?
+
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([workflowId])
+  @@index([category])
+  @@index([isCompleted])
+  @@map("onboarding_tasks")
+}
+
