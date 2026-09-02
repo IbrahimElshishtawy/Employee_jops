@@ -192,18 +192,20 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
         count: jest.fn(() => Promise.resolve(Object.keys(mockUsers).length)),
       },
       employeeProfile: {
-        findUnique: jest.fn(({ where }) => {
+        findUnique: jest.fn(({ where, include }) => {
+          let user: any = null;
           if (where.id) {
-            const user = Object.values(mockUsers).find(
+            user = Object.values(mockUsers).find(
               (u) => u.employeeProfile?.id === where.id,
             );
-            return Promise.resolve(user?.employeeProfile || null);
+          } else if (where.userId) {
+            user = mockUsers[where.userId];
           }
-          if (where.userId) {
-            const user = mockUsers[where.userId];
-            return Promise.resolve(user?.employeeProfile || null);
-          }
-          return Promise.resolve(null);
+          if (!user?.employeeProfile) return Promise.resolve(null);
+          return Promise.resolve({
+            ...user.employeeProfile,
+            user: include?.user ? user : undefined,
+          });
         }),
         findMany: jest.fn(({ where }) => {
           let list = Object.values(mockUsers)
@@ -287,8 +289,14 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
         findUnique: jest.fn(({ where }) => {
           const t = mockTasks.find((item) => item.id === where.id);
           if (!t) return Promise.resolve(null);
+          const assignee = t.assigneeId
+            ? Object.values(mockUsers).find(
+                (u) => u.employeeProfile?.id === t.assigneeId,
+              )?.employeeProfile || null
+            : null;
           return Promise.resolve({
             ...t,
+            assignee,
             checklist: mockChecklistItems
               .filter((c) => c.taskId === t.id)
               .sort((a, b) => a.orderIndex - b.orderIndex),
@@ -362,18 +370,22 @@ describe("Phase 5 — Tasks, Work Management & Reports Complete Specification", 
 
           if (data.assignee?.connect?.id) {
             t.assigneeId = data.assignee.connect.id;
-            t.assignee = Object.values(mockUsers).find(
-              (u) => u.employeeProfile?.id === t.assigneeId,
-            )?.employeeProfile;
           }
 
+          const { assignee: _ign, ...restData } = data;
           Object.assign(t, {
-            ...data,
-            assignee: undefined,
+            ...restData,
             updatedAt: new Date(),
           });
+
+          const currentAssignee = t.assigneeId
+            ? Object.values(mockUsers).find(
+                (u) => u.employeeProfile?.id === t.assigneeId,
+              )?.employeeProfile || null
+            : null;
+
           mockTasks[idx] = t;
-          return Promise.resolve(t);
+          return Promise.resolve({ ...t, assignee: currentAssignee });
         }),
         updateMany: jest.fn(({ where, data }) => {
           let count = 0;
