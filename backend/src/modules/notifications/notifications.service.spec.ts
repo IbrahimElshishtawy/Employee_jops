@@ -101,6 +101,11 @@ describe("NotificationsService & AnnouncementsService (Phase 06 Full Test Suite)
       mockPrismaService.notificationPreference.findUnique.mockResolvedValue(
         null,
       );
+      mockPrismaService.notificationPreference.upsert.mockResolvedValue({
+        userId: mockUserId,
+        attendanceNotifications: true,
+        pushNotifications: true,
+      });
       mockPrismaService.notificationPreference.create.mockResolvedValue({
         userId: mockUserId,
         attendanceNotifications: true,
@@ -215,7 +220,7 @@ describe("NotificationsService & AnnouncementsService (Phase 06 Full Test Suite)
         "fcm-token-android-1",
       );
       expect(mockPrismaService.deviceToken.updateMany).toHaveBeenCalledWith({
-        where: { userId: mockUserId, fcmToken: "fcm-token-android-1" },
+        where: { fcmToken: "fcm-token-android-1" },
         data: { isActive: false },
       });
     });
