@@ -33,7 +33,9 @@ export class OfflineSyncService {
 
     const queuedItems = await this.repo.enqueueBatch(userId, dto);
 
-    const hasConflict = queuedItems.some((i) => i.status === SyncStatus.CONFLICT);
+    const hasConflict = queuedItems.some(
+      (i) => i.status === SyncStatus.CONFLICT,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -76,7 +78,11 @@ export class OfflineSyncService {
     }
 
     if (item.status === SyncStatus.PROCESSED) {
-      return { id: item.id, status: item.status, message: "Item was already successfully processed" };
+      return {
+        id: item.id,
+        status: item.status,
+        message: "Item was already successfully processed",
+      };
     }
 
     const updated = await this.repo.updateItemStatus(
@@ -91,7 +97,11 @@ export class OfflineSyncService {
         action: AuditAction.UPDATE,
         entity: "OfflineSyncQueue",
         entityId: itemId,
-        payload: { action: "RETRY", previousStatus: item.status, newStatus: SyncStatus.PROCESSED },
+        payload: {
+          action: "RETRY",
+          previousStatus: item.status,
+          newStatus: SyncStatus.PROCESSED,
+        },
       },
     });
 
@@ -108,7 +118,11 @@ export class OfflineSyncService {
   /**
    * Resolves a synchronization conflict using chosen strategy (FR-SYNC-007)
    */
-  async resolveConflict(userId: string, itemId: string, dto: ResolveConflictDto) {
+  async resolveConflict(
+    userId: string,
+    itemId: string,
+    dto: ResolveConflictDto,
+  ) {
     const item = await this.repo.findItemById(itemId);
     if (!item) {
       throw new NotFoundException(`Sync item '${itemId}' not found`);
@@ -123,13 +137,17 @@ export class OfflineSyncService {
     let finalPayload = item.payload;
     if (dto.strategy === ConflictResolutionStrategy.MERGE) {
       finalPayload = {
-        ...(typeof item.payload === "object" && item.payload !== null ? item.payload : {}),
+        ...(typeof item.payload === "object" && item.payload !== null
+          ? item.payload
+          : {}),
         ...(dto.resolvedPayload || {}),
         _resolvedVia: "MERGE",
       };
     } else if (dto.strategy === ConflictResolutionStrategy.CLIENT_WINS) {
       finalPayload = {
-        ...(typeof item.payload === "object" && item.payload !== null ? item.payload : {}),
+        ...(typeof item.payload === "object" && item.payload !== null
+          ? item.payload
+          : {}),
         _resolvedVia: "CLIENT_WINS",
       };
     } else {
@@ -173,7 +191,12 @@ export class OfflineSyncService {
   /**
    * Retrieves operational sync logs with filters (FR-SYNC-008)
    */
-  async getSyncLogs(query: { entityType?: string; status?: SyncStatus; page?: number; limit?: number }) {
+  async getSyncLogs(query: {
+    entityType?: string;
+    status?: SyncStatus;
+    page?: number;
+    limit?: number;
+  }) {
     return this.repo.findLogs(query);
   }
 }

@@ -7,7 +7,12 @@ import {
   Param,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from "@nestjs/swagger";
 import { BackupService } from "./backup.service";
 import { CreateBackupDto, RestoreBackupDto } from "./dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
@@ -25,7 +30,9 @@ export class BackupController {
 
   @Post("create")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Create immediate database & system state backup (OPS-006)" })
+  @ApiOperation({
+    summary: "Create immediate database & system state backup (OPS-006)",
+  })
   createBackup(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateBackupDto,
@@ -42,7 +49,9 @@ export class BackupController {
 
   @Get("health")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Backup readiness, storage, and retention health check" })
+  @ApiOperation({
+    summary: "Backup readiness, storage, and retention health check",
+  })
   getHealth() {
     return this.backupService.getBackupHealth();
   }
@@ -56,7 +65,9 @@ export class BackupController {
 
   @Post(":id/restore")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Test restore simulation or execute restore (OPS-007)" })
+  @ApiOperation({
+    summary: "Test restore simulation or execute restore (OPS-007)",
+  })
   restoreBackup(
     @CurrentUser("id") userId: string,
     @Param("id") id: string,
@@ -67,11 +78,10 @@ export class BackupController {
 
   @Delete(":id")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Delete backup according to retention policy (OPS-008)" })
-  deleteBackup(
-    @CurrentUser("id") userId: string,
-    @Param("id") id: string,
-  ) {
+  @ApiOperation({
+    summary: "Delete backup according to retention policy (OPS-008)",
+  })
+  deleteBackup(@CurrentUser("id") userId: string, @Param("id") id: string) {
     return this.backupService.deleteBackup(userId, id);
   }
 }

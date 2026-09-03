@@ -20,7 +20,9 @@ export class OfflineSyncRepository {
             payload: item.payload,
             clientTimestamp: new Date(item.clientTimestamp),
             status: isConflict ? SyncStatus.CONFLICT : SyncStatus.PROCESSED,
-            failureReason: isConflict ? "Concurrent modification conflict detected" : null,
+            failureReason: isConflict
+              ? "Concurrent modification conflict detected"
+              : null,
             processedAt: isConflict ? null : new Date(),
           },
         });
@@ -74,7 +76,12 @@ export class OfflineSyncRepository {
     });
   }
 
-  async findLogs(query: { entityType?: string; status?: SyncStatus; page?: number; limit?: number }) {
+  async findLogs(query: {
+    entityType?: string;
+    status?: SyncStatus;
+    page?: number;
+    limit?: number;
+  }) {
     const { page = 1, limit = 50, entityType, status } = query;
     const skip = (page - 1) * limit;
 

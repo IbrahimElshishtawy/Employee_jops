@@ -12,7 +12,7 @@ describe("BackupService", () => {
       user: { count: jest.fn().mockResolvedValue(10) },
       department: { count: jest.fn().mockResolvedValue(5) },
       attendanceRecord: { count: jest.fn().mockResolvedValue(100) },
-      employeeRequest: { count: jest.fn().mockResolvedValue(20) },
+      request: { count: jest.fn().mockResolvedValue(20) },
       task: { count: jest.fn().mockResolvedValue(15) },
       asset: { count: jest.fn().mockResolvedValue(50) },
       stockItem: { count: jest.fn().mockResolvedValue(30) },
@@ -21,10 +21,7 @@ describe("BackupService", () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        BackupService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [BackupService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<BackupService>(BackupService);
@@ -46,14 +43,21 @@ describe("BackupService", () => {
     expect(list.length).toBeGreaterThanOrEqual(1);
 
     // Verify simulate restore passes (OPS-007)
-    const restore = await service.restoreBackup("user-super-admin", backup.backupNumber, {
-      simulateOnly: true,
-    });
+    const restore = await service.restoreBackup(
+      "user-super-admin",
+      backup.backupNumber,
+      {
+        simulateOnly: true,
+      },
+    );
     expect(restore.status).toBe("VERIFIED");
     expect(restore.checksumVerified).toBe(true);
 
     // Delete backup (OPS-008)
-    const del = await service.deleteBackup("user-super-admin", backup.backupNumber);
+    const del = await service.deleteBackup(
+      "user-super-admin",
+      backup.backupNumber,
+    );
     expect(del.success).toBe(true);
   });
 });

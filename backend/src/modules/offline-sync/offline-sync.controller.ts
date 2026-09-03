@@ -48,17 +48,17 @@ export class OfflineSyncController {
   }
 
   @Post("retry/:id")
-  @ApiOperation({ summary: "Retry a failed or pending sync item (FR-SYNC-006)" })
-  retryItem(
-    @CurrentUser("id") userId: string,
-    @Param("id") itemId: string,
-  ) {
+  @ApiOperation({
+    summary: "Retry a failed or pending sync item (FR-SYNC-006)",
+  })
+  retryItem(@CurrentUser("id") userId: string, @Param("id") itemId: string) {
     return this.offlineSyncService.retryItem(userId, itemId);
   }
 
   @Post("resolve-conflict/:id")
   @ApiOperation({
-    summary: "Resolve a synchronization conflict item using specified strategy (FR-SYNC-007)",
+    summary:
+      "Resolve a synchronization conflict item using specified strategy (FR-SYNC-007)",
   })
   resolveConflict(
     @CurrentUser("id") userId: string,
@@ -69,13 +69,20 @@ export class OfflineSyncController {
   }
 
   @Get("logs")
-  @ApiOperation({ summary: "Query operational synchronization audit logs (FR-SYNC-008)" })
+  @ApiOperation({
+    summary: "Query operational synchronization audit logs (FR-SYNC-008)",
+  })
   getSyncLogs(
     @Query("entityType") entityType?: string,
     @Query("status") status?: SyncStatus,
     @Query("page") page?: number,
     @Query("limit") limit?: number,
   ) {
-    return this.offlineSyncService.getSyncLogs({ entityType, status, page, limit });
+    return this.offlineSyncService.getSyncLogs({
+      entityType,
+      status,
+      page,
+      limit,
+    });
   }
 }

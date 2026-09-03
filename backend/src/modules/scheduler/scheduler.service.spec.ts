@@ -13,17 +13,21 @@ describe("SchedulerService", () => {
     prisma = {
       task: {
         findMany: jest.fn().mockResolvedValue([
-          { id: "task-1", title: "Urgent Maintenance", assignedToId: "user-1" },
+          {
+            id: "task-1",
+            title: "Urgent Maintenance",
+            assignee: { userId: "user-1" },
+          },
         ]),
-        update: jest.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.OVERDUE }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: "task-1", status: TaskStatus.OVERDUE }),
       },
       userDeviceSession: {
         deleteMany: jest.fn().mockResolvedValue({ count: 5 }),
       },
       offlineSyncQueue: {
-        findMany: jest.fn().mockResolvedValue([
-          { id: "sync-1" },
-        ]),
+        findMany: jest.fn().mockResolvedValue([{ id: "sync-1" }]),
         update: jest.fn().mockResolvedValue({ id: "sync-1" }),
       },
       attendanceRecord: {

@@ -15,7 +15,8 @@ export class CreateBackupDto {
 
 export class RestoreBackupDto {
   @ApiPropertyOptional({
-    description: "If true, validates checksum and simulates restore without destructive writes",
+    description:
+      "If true, validates checksum and simulates restore without destructive writes",
     default: true,
   })
   @IsOptional()

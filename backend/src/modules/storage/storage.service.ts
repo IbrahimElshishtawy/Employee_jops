@@ -61,7 +61,10 @@ export class StorageService {
   /**
    * Uploads and stores a file with validation, hashing, and audit logging
    */
-  async uploadFile(userId: string, dto: UploadFileDto): Promise<UploadResultDto> {
+  async uploadFile(
+    userId: string,
+    dto: UploadFileDto,
+  ): Promise<UploadResultDto> {
     // 1. Validate MIME type
     if (!ALLOWED_MIME_TYPES.has(dto.mimeType.toLowerCase())) {
       throw new BadRequestException(
@@ -161,7 +164,9 @@ export class StorageService {
     const filePath = path.join(this.uploadRootDir, safeFolder, safeFilename);
 
     if (!fs.existsSync(filePath)) {
-      throw new NotFoundException(`File '${safeFolder}/${safeFilename}' not found`);
+      throw new NotFoundException(
+        `File '${safeFolder}/${safeFilename}' not found`,
+      );
     }
 
     const stat = fs.statSync(filePath);
@@ -194,6 +199,9 @@ export class StorageService {
       },
     });
 
-    return { success: true, message: `File '${meta.filename}' removed successfully` };
+    return {
+      success: true,
+      message: `File '${meta.filename}' removed successfully`,
+    };
   }
 }

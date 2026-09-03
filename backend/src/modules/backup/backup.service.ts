@@ -37,7 +37,10 @@ export class BackupService {
   /**
    * Creates an authorized snapshot backup of core system metadata and counts
    */
-  async createBackup(userId: string, dto: CreateBackupDto): Promise<BackupRecord> {
+  async createBackup(
+    userId: string,
+    dto: CreateBackupDto,
+  ): Promise<BackupRecord> {
     const backupId = crypto.randomUUID();
     const backupNumber = `BKP-${Date.now()}`;
 
@@ -55,7 +58,7 @@ export class BackupService {
       this.prisma.user.count().catch(() => 0),
       this.prisma.department.count().catch(() => 0),
       this.prisma.attendanceRecord.count().catch(() => 0),
-      this.prisma.employeeRequest.count().catch(() => 0),
+      this.prisma.request.count().catch(() => 0),
       this.prisma.task.count().catch(() => 0),
       this.prisma.asset.count().catch(() => 0),
       this.prisma.stockItem.count().catch(() => 0),
@@ -125,7 +128,9 @@ export class BackupService {
   async listBackups(): Promise<BackupRecord[]> {
     if (!fs.existsSync(this.backupDir)) return [];
 
-    const files = fs.readdirSync(this.backupDir).filter((f) => f.endsWith(".json"));
+    const files = fs
+      .readdirSync(this.backupDir)
+      .filter((f) => f.endsWith(".json"));
     const backups: BackupRecord[] = [];
 
     for (const file of files) {
@@ -134,7 +139,10 @@ export class BackupService {
         const content = fs.readFileSync(fullPath, "utf-8");
         const parsed = JSON.parse(content);
         const stat = fs.statSync(fullPath);
-        const checksum = crypto.createHash("sha256").update(content).digest("hex");
+        const checksum = crypto
+          .createHash("sha256")
+          .update(content)
+          .digest("hex");
 
         backups.push({
           id: parsed.backupId || file,
@@ -152,7 +160,8 @@ export class BackupService {
     }
 
     return backups.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }
 
@@ -161,7 +170,9 @@ export class BackupService {
    */
   async getBackup(idOrNumber: string): Promise<BackupRecord> {
     const all = await this.listBackups();
-    const found = all.find((b) => b.id === idOrNumber || b.backupNumber === idOrNumber);
+    const found = all.find(
+      (b) => b.id === idOrNumber || b.backupNumber === idOrNumber,
+    );
     if (!found) {
       throw new NotFoundException(`Backup '${idOrNumber}' not found`);
     }
@@ -186,7 +197,9 @@ export class BackupService {
       .digest("hex");
 
     if (computedChecksum !== backup.checksumSha256) {
-      throw new BadRequestException("CHECKSUM_MISMATCH: Backup file integrity corrupted");
+      throw new BadRequestException(
+        "CHECKSUM_MISMATCH: Backup file integrity corrupted",
+      );
     }
 
     await this.prisma.auditLog.create({
@@ -237,7 +250,10 @@ export class BackupService {
       },
     });
 
-    return { success: true, message: `Backup '${backup.backupNumber}' deleted` };
+    return {
+      success: true,
+      message: `Backup '${backup.backupNumber}' deleted`,
+    };
   }
 
   /**

@@ -1,9 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, Min, Max } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UploadFileDto {
   @ApiProperty({
-    description: "Original filename with extension (e.g., report.pdf, photo.jpg)",
+    description:
+      "Original filename with extension (e.g., report.pdf, photo.jpg)",
     example: "inspection-photo.jpg",
   })
   @IsString()
@@ -27,7 +32,8 @@ export class UploadFileDto {
   base64Content: string;
 
   @ApiPropertyOptional({
-    description: "Target folder category (e.g., documents, maintenance, incidents, avatars)",
+    description:
+      "Target folder category (e.g., documents, maintenance, incidents, avatars)",
     default: "general",
     example: "maintenance",
   })

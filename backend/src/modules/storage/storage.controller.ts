@@ -28,10 +28,7 @@ export class StorageController {
   @Post("upload")
   @ApiOperation({ summary: "Upload file (Image, PDF, Document, Attachment)" })
   @ApiResponse({ status: 201, type: UploadResultDto })
-  uploadFile(
-    @CurrentUser("id") userId: string,
-    @Body() dto: UploadFileDto,
-  ) {
+  uploadFile(@CurrentUser("id") userId: string, @Body() dto: UploadFileDto) {
     return this.storageService.uploadFile(userId, dto);
   }
 

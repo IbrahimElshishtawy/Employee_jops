@@ -32,21 +32,24 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   ) {
     this.registerJob({
       name: "task-overdue-checker",
-      description: "Identifies tasks past due date and transitions status to OVERDUE",
+      description:
+        "Identifies tasks past due date and transitions status to OVERDUE",
       intervalSeconds: 300, // Every 5 minutes
       fn: () => this.checkOverdueTasks(),
     });
 
     this.registerJob({
       name: "session-cleanup",
-      description: "Purges expired and deactivated hardware sessions older than 30 days",
+      description:
+        "Purges expired and deactivated hardware sessions older than 30 days",
       intervalSeconds: 3600, // Hourly
       fn: () => this.cleanupExpiredSessions(),
     });
 
     this.registerJob({
       name: "offline-sync-retry",
-      description: "Retries pending and queued offline actions from mobile sync",
+      description:
+        "Retries pending and queued offline actions from mobile sync",
       intervalSeconds: 120, // Every 2 minutes
       fn: () => this.processPendingSyncQueue(),
     });
@@ -69,7 +72,9 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         timer.unref(); // Ensure process can exit gracefully
         this.timers.push(timer);
       }
-      this.logger.log(`Background scheduler initialized with ${this.jobs.size} jobs`);
+      this.logger.log(
+        `Background scheduler initialized with ${this.jobs.size} jobs`,
+      );
     }
   }
 
@@ -124,14 +129,24 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       this.logger.debug(
         `Job '${name}' finished in ${Date.now() - start}ms: ${JSON.stringify(result)}`,
       );
-      return { job: name, status: "SUCCESS", durationMs: Date.now() - start, result };
+      return {
+        job: name,
+        status: "SUCCESS",
+        durationMs: Date.now() - start,
+        result,
+      };
     } catch (err: any) {
       job.lastRunAt = new Date().toISOString();
       job.lastStatus = "FAILED";
       job.lastError = err?.message || String(err);
       job.totalExecutions++;
       this.logger.error(`Job '${name}' failed: ${job.lastError}`);
-      return { job: name, status: "FAILED", durationMs: Date.now() - start, error: job.lastError };
+      return {
+        job: name,
+        status: "FAILED",
+        durationMs: Date.now() - start,
+        error: job.lastError,
+      };
     }
   }
 
@@ -140,38 +155,40 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   // ============================================================
   async checkOverdueTasks() {
     const now = new Date();
-    const overdueTasks = await this.prisma.task.findMany({
-      where: {
-        dueDate: { lt: now },
-        status: {
-          in: [
-            TaskStatus.TODO,
-            TaskStatus.ACCEPTED,
-            TaskStatus.IN_PROGRESS,
-          ],
+    const overdueTasks = await this.prisma.task
+      .findMany({
+        where: {
+          dueDate: { lt: now },
+          status: {
+            in: [TaskStatus.TODO, TaskStatus.ACCEPTED, TaskStatus.IN_PROGRESS],
+          },
         },
-      },
-      select: {
-        id: true,
-        title: true,
-        assignedToId: true,
-      } as any,
-    }).catch(() => []);
+        include: {
+          assignee: {
+            select: { userId: true },
+          },
+        },
+      })
+      .catch(() => []);
 
     let updatedCount = 0;
     for (const task of overdueTasks) {
-      await this.prisma.task.update({
-        where: { id: task.id },
-        data: { status: TaskStatus.OVERDUE },
-      }).catch(() => null);
+      await this.prisma.task
+        .update({
+          where: { id: task.id },
+          data: { status: TaskStatus.OVERDUE },
+        })
+        .catch(() => null);
 
-      if (task.assignedToId) {
-        await this.notificationsService.sendNotification(
-          task.assignedToId,
-          "Task Overdue",
-          `Task '${task.title}' is overdue. Please complete or update status.`,
-          NotificationType.TASK_ASSIGNED,
-        ).catch(() => null);
+      if (task.assignee?.userId) {
+        await this.notificationsService
+          .sendNotification(
+            task.assignee.userId,
+            "Task Overdue",
+            `Task '${task.title}' is overdue. Please complete or update status.`,
+            NotificationType.TASK_ASSIGNED,
+          )
+          .catch(() => null);
       }
       updatedCount++;
     }
@@ -184,14 +201,16 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   // ============================================================
   async cleanupExpiredSessions() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const result = await this.prisma.userDeviceSession.deleteMany({
-      where: {
-        OR: [
-          { expiresAt: { lt: thirtyDaysAgo } },
-          { isActive: false, updatedAt: { lt: thirtyDaysAgo } },
-        ],
-      },
-    }).catch(() => ({ count: 0 }));
+    const result = await this.prisma.userDeviceSession
+      .deleteMany({
+        where: {
+          OR: [
+            { expiresAt: { lt: thirtyDaysAgo } },
+            { isActive: false, updatedAt: { lt: thirtyDaysAgo } },
+          ],
+        },
+      })
+      .catch(() => ({ count: 0 }));
 
     return { purgedSessions: result.count };
   }
@@ -200,23 +219,27 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   // JOB 3: Offline Sync Retry
   // ============================================================
   async processPendingSyncQueue() {
-    const pendingItems = await this.prisma.offlineSyncQueue.findMany({
-      where: {
-        status: SyncStatus.PENDING,
-      },
-      take: 50,
-      orderBy: { createdAt: "asc" },
-    }).catch(() => []);
+    const pendingItems = await this.prisma.offlineSyncQueue
+      .findMany({
+        where: {
+          status: SyncStatus.PENDING,
+        },
+        take: 50,
+        orderBy: { createdAt: "asc" },
+      })
+      .catch(() => []);
 
     let processedCount = 0;
     for (const item of pendingItems) {
-      await this.prisma.offlineSyncQueue.update({
-        where: { id: item.id },
-        data: {
-          status: SyncStatus.PROCESSED,
-          processedAt: new Date(),
-        },
-      }).catch(() => null);
+      await this.prisma.offlineSyncQueue
+        .update({
+          where: { id: item.id },
+          data: {
+            status: SyncStatus.PROCESSED,
+            processedAt: new Date(),
+          },
+        })
+        .catch(() => null);
       processedCount++;
     }
 
@@ -231,13 +254,15 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(23, 59, 59, 999);
 
-    const openSessions = await this.prisma.attendanceRecord.findMany({
-      where: {
-        date: { lt: yesterday },
-        checkOutTime: null,
-      },
-      take: 100,
-    }).catch(() => []);
+    const openSessions = await this.prisma.attendanceRecord
+      .findMany({
+        where: {
+          date: { lt: yesterday },
+          checkOutTime: null,
+        },
+        take: 100,
+      })
+      .catch(() => []);
 
     return { openSessionsCount: openSessions.length };
   }

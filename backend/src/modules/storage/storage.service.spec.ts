@@ -2,8 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { StorageService } from "./storage.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
-import * as fs from "fs";
+import { BadRequestException } from "@nestjs/common";
 
 describe("StorageService", () => {
   let service: StorageService;

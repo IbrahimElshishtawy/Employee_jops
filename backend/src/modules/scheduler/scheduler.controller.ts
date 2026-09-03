@@ -1,5 +1,10 @@
 import { Controller, Get, Post, Param, UseGuards } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from "@nestjs/swagger";
 import { SchedulerService } from "./scheduler.service";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -16,7 +21,9 @@ export class SchedulerController {
 
   @Get("jobs")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
-  @ApiOperation({ summary: "List all background scheduled jobs and their execution states" })
+  @ApiOperation({
+    summary: "List all background scheduled jobs and their execution states",
+  })
   @ApiResponse({ status: 200, type: [JobStatusDto] })
   listJobs() {
     return this.schedulerService.listJobs();
@@ -24,7 +31,9 @@ export class SchedulerController {
 
   @Post("jobs/:name/run")
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "Trigger immediate on-demand execution of a background job" })
+  @ApiOperation({
+    summary: "Trigger immediate on-demand execution of a background job",
+  })
   runJob(@Param("name") name: string) {
     return this.schedulerService.executeJob(name);
   }

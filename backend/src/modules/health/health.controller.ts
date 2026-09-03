@@ -116,13 +116,21 @@ export class HealthController {
 
   @Public()
   @Get("queues")
-  @ApiOperation({ summary: "Offline Sync Queue and Background Workers monitoring (OPS-003)" })
+  @ApiOperation({
+    summary: "Offline Sync Queue and Background Workers monitoring (OPS-003)",
+  })
   async getQueuesHealth(@Res() res: FastifyReply) {
     try {
       const [pendingCount, conflictCount, processedCount] = await Promise.all([
-        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.PENDING } }),
-        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.CONFLICT } }),
-        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.PROCESSED } }),
+        this.prisma.offlineSyncQueue.count({
+          where: { status: SyncStatus.PENDING },
+        }),
+        this.prisma.offlineSyncQueue.count({
+          where: { status: SyncStatus.CONFLICT },
+        }),
+        this.prisma.offlineSyncQueue.count({
+          where: { status: SyncStatus.PROCESSED },
+        }),
       ]);
 
       res.status(HttpStatus.OK).send({
@@ -146,7 +154,9 @@ export class HealthController {
 
   @Public()
   @Get("integrations")
-  @ApiOperation({ summary: "External integrations and webhook channel monitoring (OPS-004)" })
+  @ApiOperation({
+    summary: "External integrations and webhook channel monitoring (OPS-004)",
+  })
   async getIntegrationsHealth(@Res() res: FastifyReply) {
     try {
       const recentLogs = await this.prisma.integrationLog.findMany({
@@ -155,8 +165,11 @@ export class HealthController {
       });
 
       const totalRecent = recentLogs.length;
-      const failedRecent = recentLogs.filter((l) => l.status === IntegrationStatus.FAILED).length;
-      const errorRatePercent = totalRecent > 0 ? (failedRecent / totalRecent) * 100 : 0;
+      const failedRecent = recentLogs.filter(
+        (l) => l.status === IntegrationStatus.FAILED,
+      ).length;
+      const errorRatePercent =
+        totalRecent > 0 ? (failedRecent / totalRecent) * 100 : 0;
 
       res.status(HttpStatus.OK).send({
         status: errorRatePercent < 20 ? "healthy" : "elevated_error_rate",
@@ -176,7 +189,9 @@ export class HealthController {
 
   @Public()
   @Get("system")
-  @ApiOperation({ summary: "Holistic system telemetry, CPU, memory, DB, and cache metrics" })
+  @ApiOperation({
+    summary: "Holistic system telemetry, CPU, memory, DB, and cache metrics",
+  })
   async getSystemTelemetry(@Res() res: FastifyReply) {
     const memoryUsage = process.memoryUsage();
     res.status(HttpStatus.OK).send({
