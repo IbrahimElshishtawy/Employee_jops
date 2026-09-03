@@ -53,6 +53,16 @@ describe("StorageService", () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it("should reject SVG and HTML uploads to prevent XSS attacks", async () => {
+    await expect(
+      service.uploadFile("user-1", {
+        originalName: "vector.svg",
+        mimeType: "image/svg+xml",
+        base64Content: Buffer.from("<svg onload=alert(1)></svg>").toString("base64"),
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it("should upload and store an image successfully", async () => {
     const rawData = "sample image data";
     const base64 = Buffer.from(rawData).toString("base64");

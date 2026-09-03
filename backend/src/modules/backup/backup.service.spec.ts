@@ -10,14 +10,28 @@ describe("BackupService", () => {
   beforeEach(async () => {
     prisma = {
       user: { count: jest.fn().mockResolvedValue(10) },
-      department: { count: jest.fn().mockResolvedValue(5) },
+      department: {
+        count: jest.fn().mockResolvedValue(5),
+        findMany: jest.fn().mockResolvedValue([{ id: "dept-1", name: "Front Office" }]),
+      },
       attendanceRecord: { count: jest.fn().mockResolvedValue(100) },
       request: { count: jest.fn().mockResolvedValue(20) },
       task: { count: jest.fn().mockResolvedValue(15) },
       asset: { count: jest.fn().mockResolvedValue(50) },
       stockItem: { count: jest.fn().mockResolvedValue(30) },
       supplierInvoice: { count: jest.fn().mockResolvedValue(8) },
+      systemSetting: {
+        findMany: jest.fn().mockResolvedValue([{ key: "SITE_NAME", value: "CyberWise" }]),
+        upsert: jest.fn().mockResolvedValue({ key: "SITE_NAME" }),
+      },
+      assetCategory: {
+        findMany: jest.fn().mockResolvedValue([{ id: "cat-1", name: "HVAC", code: "HVC" }]),
+        upsert: jest.fn().mockResolvedValue({ id: "cat-1" }),
+      },
+      warehouse: { findMany: jest.fn().mockResolvedValue([]) },
+      stockCategory: { findMany: jest.fn().mockResolvedValue([]) },
       auditLog: { create: jest.fn().mockResolvedValue({ id: "audit-1" }) },
+      $transaction: jest.fn().mockImplementation((fn) => fn(prisma)),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -43,15 +57,30 @@ describe("BackupService", () => {
     expect(list.length).toBeGreaterThanOrEqual(1);
 
     // Verify simulate restore passes (OPS-007)
-    const restore = await service.restoreBackup(
+    const simulateRestore = await service.restoreBackup(
       "user-super-admin",
       backup.backupNumber,
       {
         simulateOnly: true,
       },
     );
-    expect(restore.status).toBe("VERIFIED");
-    expect(restore.checksumVerified).toBe(true);
+    expect(simulateRestore.status).toBe("VERIFIED");
+    expect(simulateRestore.checksumVerified).toBe(true);
+
+    // Verify real restore passes (OPS-007)
+    const realRestore = await service.restoreBackup(
+      "user-super-admin",
+      backup.backupNumber,
+      {
+        simulateOnly: false,
+      },
+    );
+    expect(realRestore.status).toBe("RESTORED");
+    expect(realRestore.simulateOnly).toBe(false);
+
+    // Retention policy enforcement (OPS-008)
+    const retention = await service.enforceRetentionPolicy(30);
+    expect(retention).toBeDefined();
 
     // Delete backup (OPS-008)
     const del = await service.deleteBackup(

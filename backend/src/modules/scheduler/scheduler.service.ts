@@ -324,4 +324,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       })
       .catch(() => []);
 
-    ret
+    return { lowStockItemsCount: lowStockItems.length };
+  }
+}
