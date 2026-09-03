@@ -1,9 +1,15 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AssignServiceRequestDto {
   @ApiProperty({
-    description: "EmployeeProfile ID of the technician / handler being assigned",
+    description:
+      "EmployeeProfile ID of the technician / handler being assigned",
     example: "emp-tech-101",
   })
   @IsString()

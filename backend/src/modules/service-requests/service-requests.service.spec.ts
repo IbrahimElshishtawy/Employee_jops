@@ -14,7 +14,11 @@ import {
   ServiceRequestStatus,
   UserStatus,
 } from "@prisma/client";
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 
 describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
   let service: ServiceRequestsService;
@@ -71,12 +75,22 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
   const mockPrismaService: any = {
     user: {
       findUnique: jest.fn(({ where }) => {
-        if (where.id === "user-req-1") return Promise.resolve(mockRequesterUser);
-        if (where.id === "user-tech-1") return Promise.resolve(mockAssigneeProfile.user);
+        if (where.id === "user-req-1")
+          return Promise.resolve(mockRequesterUser);
+        if (where.id === "user-tech-1")
+          return Promise.resolve(mockAssigneeProfile.user);
         if (where.id === "user-admin")
-          return Promise.resolve({ id: "user-admin", role: Role.SUPER_ADMIN, status: UserStatus.ACTIVE });
+          return Promise.resolve({
+            id: "user-admin",
+            role: Role.SUPER_ADMIN,
+            status: UserStatus.ACTIVE,
+          });
         if (where.id === "user-stranger")
-          return Promise.resolve({ id: "user-stranger", role: Role.EMPLOYEE, status: UserStatus.ACTIVE });
+          return Promise.resolve({
+            id: "user-stranger",
+            role: Role.EMPLOYEE,
+            status: UserStatus.ACTIVE,
+          });
         return Promise.resolve(null);
       }),
     },
@@ -144,7 +158,11 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
     },
     serviceRequestHistory: {
       create: jest.fn(({ data }) => {
-        const h = { id: `hist-${mockHistory.length + 1}`, ...data, createdAt: new Date() };
+        const h = {
+          id: `hist-${mockHistory.length + 1}`,
+          ...data,
+          createdAt: new Date(),
+        };
         mockHistory.push(h);
         return Promise.resolve(h);
       }),
@@ -155,7 +173,11 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
           id: `comment-${mockComments.length + 1}`,
           ...data,
           createdAt: new Date(),
-          author: { id: data.authorId, email: "author@cyberwise.test", role: Role.EMPLOYEE },
+          author: {
+            id: data.authorId,
+            email: "author@cyberwise.test",
+            role: Role.EMPLOYEE,
+          },
         };
         mockComments.push(c);
         return Promise.resolve(c);
@@ -226,13 +248,17 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
 
       // Verify Audit Log
       const audit = mockAuditLogs.find(
-        (a) => a.action === AuditAction.SERVICE_REQUEST_CREATED && a.entityId === created.id,
+        (a) =>
+          a.action === AuditAction.SERVICE_REQUEST_CREATED &&
+          a.entityId === created.id,
       );
       expect(audit).toBeDefined();
 
       // Verify Notification sent to department head
       const notif = mockNotifications.find(
-        (n) => n.userId === "user-head-it" && n.type === NotificationType.SERVICE_REQUEST_CREATED,
+        (n) =>
+          n.userId === "user-head-it" &&
+          n.type === NotificationType.SERVICE_REQUEST_CREATED,
       );
       expect(notif).toBeDefined();
     });
@@ -263,36 +289,48 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
     });
 
     it("should assign service request to technician and transition to ASSIGNED", async () => {
-      const assigned = await service.assignServiceRequest(srId, "user-head-it", {
-        assignedToId: "emp-tech-1",
-        notes: "Please inspect RAM and SSD",
-      });
+      const assigned = await service.assignServiceRequest(
+        srId,
+        "user-head-it",
+        {
+          assignedToId: "emp-tech-1",
+          notes: "Please inspect RAM and SSD",
+        },
+      );
 
       expect(assigned.assignedToId).toBe("emp-tech-1");
       expect(assigned.status).toBe(ServiceRequestStatus.ASSIGNED);
 
       // Notification sent to technician
       const notif = mockNotifications.find(
-        (n) => n.userId === "user-tech-1" && n.type === NotificationType.SERVICE_REQUEST_ASSIGNED,
+        (n) =>
+          n.userId === "user-tech-1" &&
+          n.type === NotificationType.SERVICE_REQUEST_ASSIGNED,
       );
       expect(notif).toBeDefined();
     });
 
     it("should start work and transition status to IN_PROGRESS", async () => {
-      await service.assignServiceRequest(srId, "user-head-it", { assignedToId: "emp-tech-1" });
+      await service.assignServiceRequest(srId, "user-head-it", {
+        assignedToId: "emp-tech-1",
+      });
 
       const inProgress = await service.startWork(srId, "user-tech-1");
       expect(inProgress.status).toBe(ServiceRequestStatus.IN_PROGRESS);
 
       // Requester notified of progress
       const notif = mockNotifications.find(
-        (n) => n.userId === "user-req-1" && n.type === NotificationType.SERVICE_REQUEST_STATUS_UPDATE,
+        (n) =>
+          n.userId === "user-req-1" &&
+          n.type === NotificationType.SERVICE_REQUEST_STATUS_UPDATE,
       );
       expect(notif).toBeDefined();
     });
 
     it("should complete service request with mandatory resolution notes", async () => {
-      await service.assignServiceRequest(srId, "user-head-it", { assignedToId: "emp-tech-1" });
+      await service.assignServiceRequest(srId, "user-head-it", {
+        assignedToId: "emp-tech-1",
+      });
       await service.startWork(srId, "user-tech-1");
 
       // Attempt complete without resolution notes throws
@@ -303,10 +341,15 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
         }),
       ).rejects.toThrow(BadRequestException);
 
-      const completed = await service.completeServiceRequest(srId, "user-tech-1", {
-        status: ServiceRequestStatus.COMPLETED,
-        resolutionNotes: "Replaced faulty RAM stick. Boot sequence tested successfully.",
-      });
+      const completed = await service.completeServiceRequest(
+        srId,
+        "user-tech-1",
+        {
+          status: ServiceRequestStatus.COMPLETED,
+          resolutionNotes:
+            "Replaced faulty RAM stick. Boot sequence tested successfully.",
+        },
+      );
 
       expect(completed.status).toBe(ServiceRequestStatus.COMPLETED);
       expect(completed.completedAt).toBeDefined();
@@ -324,7 +367,9 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
         departmentId: "dept-it",
       });
       srId = sr.id;
-      await service.assignServiceRequest(srId, "user-head-it", { assignedToId: "emp-tech-1" });
+      await service.assignServiceRequest(srId, "user-head-it", {
+        assignedToId: "emp-tech-1",
+      });
       await service.startWork(srId, "user-tech-1");
       await service.completeServiceRequest(srId, "user-tech-1", {
         status: ServiceRequestStatus.COMPLETED,
@@ -356,7 +401,9 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
 
       // Audit Log for closed request
       const audit = mockAuditLogs.find(
-        (a) => a.action === AuditAction.SERVICE_REQUEST_CLOSED && a.entityId === srId,
+        (a) =>
+          a.action === AuditAction.SERVICE_REQUEST_CLOSED &&
+          a.entityId === srId,
       );
       expect(audit).toBeDefined();
     });
@@ -397,10 +444,16 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
         description: "Testing",
         departmentId: "dept-it",
       });
-      await service.cancelServiceRequest(sr.id, "user-req-1", "No longer needed");
+      await service.cancelServiceRequest(
+        sr.id,
+        "user-req-1",
+        "No longer needed",
+      );
 
       await expect(
-        service.assignServiceRequest(sr.id, "user-head-it", { assignedToId: "emp-tech-1" }),
+        service.assignServiceRequest(sr.id, "user-head-it", {
+          assignedToId: "emp-tech-1",
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -415,7 +468,9 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
         departmentId: "dept-it",
       });
       srId = sr.id;
-      await service.assignServiceRequest(srId, "user-head-it", { assignedToId: "emp-tech-1" });
+      await service.assignServiceRequest(srId, "user-head-it", {
+        assignedToId: "emp-tech-1",
+      });
     });
 
     it("should block non-internal staff from posting internal notes", async () => {

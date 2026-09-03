@@ -24,12 +24,16 @@ export class QueryHandoversDto extends PaginationQueryDto {
   @IsString()
   handedOverById?: string;
 
-  @ApiPropertyOptional({ description: "Filter by receiving EmployeeProfile ID" })
+  @ApiPropertyOptional({
+    description: "Filter by receiving EmployeeProfile ID",
+  })
   @IsOptional()
   @IsString()
   receivedById?: string;
 
-  @ApiPropertyOptional({ description: "Filter by specific shift date (YYYY-MM-DD)" })
+  @ApiPropertyOptional({
+    description: "Filter by specific shift date (YYYY-MM-DD)",
+  })
   @IsOptional()
   @IsDateString()
   shiftDate?: string;
@@ -44,7 +48,9 @@ export class QueryHandoversDto extends PaginationQueryDto {
   @IsDateString()
   endDate?: string;
 
-  @ApiPropertyOptional({ description: "Search by summary, notes, or handover number" })
+  @ApiPropertyOptional({
+    description: "Search by summary, notes, or handover number",
+  })
   @IsOptional()
   @IsString()
   search?: string;

@@ -34,11 +34,16 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 @UseGuards(JwtAuthGuard)
 @Controller("service-requests")
 export class ServiceRequestsController {
-  constructor(private readonly serviceRequestsService: ServiceRequestsService) {}
+  constructor(
+    private readonly serviceRequestsService: ServiceRequestsService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new service request" })
-  @ApiResponse({ status: 201, description: "Service request created successfully" })
+  @ApiResponse({
+    status: 201,
+    description: "Service request created successfully",
+  })
   create(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateServiceRequestDto,
@@ -47,7 +52,9 @@ export class ServiceRequestsController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List service requests with filters and pagination" })
+  @ApiOperation({
+    summary: "List service requests with filters and pagination",
+  })
   findAll(
     @CurrentUser("id") userId: string,
     @Query() query: QueryServiceRequestsDto,
@@ -64,7 +71,9 @@ export class ServiceRequestsController {
 
   @Patch(":id/assign")
   @UseGuards(ServiceRequestAccessGuard)
-  @ApiOperation({ summary: "Assign service request to an employee / technician" })
+  @ApiOperation({
+    summary: "Assign service request to an employee / technician",
+  })
   assign(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -75,14 +84,18 @@ export class ServiceRequestsController {
 
   @Patch(":id/start")
   @UseGuards(ServiceRequestAccessGuard)
-  @ApiOperation({ summary: "Start working on a service request (status -> IN_PROGRESS)" })
+  @ApiOperation({
+    summary: "Start working on a service request (status -> IN_PROGRESS)",
+  })
   startWork(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.serviceRequestsService.startWork(id, userId);
   }
 
   @Patch(":id/complete")
   @UseGuards(ServiceRequestAccessGuard)
-  @ApiOperation({ summary: "Mark service request as COMPLETED with resolution notes" })
+  @ApiOperation({
+    summary: "Mark service request as COMPLETED with resolution notes",
+  })
   complete(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -94,7 +107,9 @@ export class ServiceRequestsController {
   @Post(":id/review")
   @UseGuards(ServiceRequestAccessGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Customer/Requester review and sign-off (ACCEPT or REVISION)" })
+  @ApiOperation({
+    summary: "Customer/Requester review and sign-off (ACCEPT or REVISION)",
+  })
   review(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -127,7 +142,9 @@ export class ServiceRequestsController {
 
   @Patch(":id/reject")
   @UseGuards(ServiceRequestAccessGuard)
-  @ApiOperation({ summary: "Reject a service request (by department supervisor or admin)" })
+  @ApiOperation({
+    summary: "Reject a service request (by department supervisor or admin)",
+  })
   reject(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -138,7 +155,9 @@ export class ServiceRequestsController {
 
   @Post(":id/comments")
   @UseGuards(ServiceRequestAccessGuard)
-  @ApiOperation({ summary: "Add a comment or internal note to the service request" })
+  @ApiOperation({
+    summary: "Add a comment or internal note to the service request",
+  })
   addComment(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,

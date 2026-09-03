@@ -34,8 +34,14 @@ export class DepartmentOperationsController {
   ) {}
 
   @Get("overview")
-  @ApiOperation({ summary: "Get real-time operational telemetry and dashboard for a department" })
-  @ApiResponse({ status: 200, description: "Department operational summary retrieved" })
+  @ApiOperation({
+    summary:
+      "Get real-time operational telemetry and dashboard for a department",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Department operational summary retrieved",
+  })
   getOverview(
     @CurrentUser("id") userId: string,
     @Query() query: QueryDepartmentOperationsDto,
@@ -44,8 +50,13 @@ export class DepartmentOperationsController {
   }
 
   @Post("triage")
-  @ApiOperation({ summary: "Triage and assign a service request with priority & deadline" })
-  @ApiResponse({ status: 200, description: "Service request triaged successfully" })
+  @ApiOperation({
+    summary: "Triage and assign a service request with priority & deadline",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Service request triaged successfully",
+  })
   triageRequest(
     @CurrentUser("id") userId: string,
     @Body() dto: DepartmentTriageRequestDto,
@@ -54,7 +65,10 @@ export class DepartmentOperationsController {
   }
 
   @Get("reports")
-  @ApiOperation({ summary: "Get operational KPI report (completion rates, resolution SLA, workload)" })
+  @ApiOperation({
+    summary:
+      "Get operational KPI report (completion rates, resolution SLA, workload)",
+  })
   async getReport(
     @CurrentUser("id") userId: string,
     @Query() dto: DepartmentReportQueryDto,

@@ -28,27 +28,39 @@ export class QueryServiceRequestsDto extends PaginationQueryDto {
   @IsString()
   departmentId?: string;
 
-  @ApiPropertyOptional({ description: "Filter by requester EmployeeProfile ID" })
+  @ApiPropertyOptional({
+    description: "Filter by requester EmployeeProfile ID",
+  })
   @IsOptional()
   @IsString()
   requesterId?: string;
 
-  @ApiPropertyOptional({ description: "Filter by assigned technician EmployeeProfile ID" })
+  @ApiPropertyOptional({
+    description: "Filter by assigned technician EmployeeProfile ID",
+  })
   @IsOptional()
   @IsString()
   assignedToId?: string;
 
-  @ApiPropertyOptional({ description: "Search by title, description, or request number" })
+  @ApiPropertyOptional({
+    description: "Search by title, description, or request number",
+  })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: "Start date filter", example: "2026-09-01" })
+  @ApiPropertyOptional({
+    description: "Start date filter",
+    example: "2026-09-01",
+  })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional({ description: "End date filter", example: "2026-09-30" })
+  @ApiPropertyOptional({
+    description: "End date filter",
+    example: "2026-09-30",
+  })
   @IsOptional()
   @IsDateString()
   endDate?: string;

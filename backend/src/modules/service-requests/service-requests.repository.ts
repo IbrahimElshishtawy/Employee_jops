@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  CreateServiceRequestDto,
-  QueryServiceRequestsDto,
-} from "./dto";
+import { CreateServiceRequestDto, QueryServiceRequestsDto } from "./dto";
 import { Prisma, ServiceRequestStatus } from "@prisma/client";
 
 @Injectable()

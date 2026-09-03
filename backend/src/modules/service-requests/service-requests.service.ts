@@ -48,7 +48,9 @@ export class ServiceRequestsService {
     });
 
     if (!requester || requester.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required to create requests");
+      throw new BadRequestException(
+        "Active employee profile required to create requests",
+      );
     }
 
     const department = await this.prisma.department.findUnique({
@@ -61,7 +63,9 @@ export class ServiceRequestsService {
     });
 
     if (!department || !department.isActive) {
-      throw new BadRequestException("Target servicing department not found or inactive");
+      throw new BadRequestException(
+        "Target servicing department not found or inactive",
+      );
     }
 
     // Match workflow if configured

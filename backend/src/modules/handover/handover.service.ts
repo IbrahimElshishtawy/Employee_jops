@@ -42,11 +42,10 @@ export class HandoverService {
       include: { employeeProfile: true },
     });
 
-    if (
-      !actor?.employeeProfile ||
-      actor.status !== UserStatus.ACTIVE
-    ) {
-      throw new BadRequestException("Active employee profile required to create shift handovers");
+    if (!actor?.employeeProfile || actor.status !== UserStatus.ACTIVE) {
+      throw new BadRequestException(
+        "Active employee profile required to create shift handovers",
+      );
     }
 
     const department = await this.prisma.department.findUnique({
@@ -69,7 +68,9 @@ export class HandoverService {
       });
 
       if (!receiver || receiver.user?.status !== UserStatus.ACTIVE) {
-        throw new BadRequestException("Receiving employee not found or inactive");
+        throw new BadRequestException(
+          "Receiving employee not found or inactive",
+        );
       }
 
       if (receiver.id === actor.employeeProfile.id) {
@@ -169,7 +170,17 @@ export class HandoverService {
     });
 
     if (!actor || actor.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException("Active user required to acknowledge handovers");
+      throw new ForbiddenException(
+        "Active user required to acknowledge handovers",
+      );
+    }
+
+    const isAdmin =
+      actor.role === Role.SUPER_ADMIN || actor.role === Role.HR_ADMIN;
+
+    // Outgoing person cannot acknowledge their own handover
+    if (handover.handedOverBy?.userId === actorUserId && !isAdmin) {
+      throw new BadRequestException("You cannot acknowledge your own handover");
     }
 
     // Authorization: Designated receiver, department head, or admin
@@ -177,8 +188,6 @@ export class HandoverService {
       handover.receivedBy && handover.receivedBy.userId === actorUserId;
     const isDeptHead =
       handover.department?.headOfDepartmentId === actor.employeeProfile?.id;
-    const isAdmin =
-      actor.role === Role.SUPER_ADMIN || actor.role === Role.HR_ADMIN;
     const isDeptMember =
       actor.employeeProfile?.departmentId === handover.departmentId &&
       !handover.receivedById; // Unassigned receiver scenario
@@ -189,11 +198,6 @@ export class HandoverService {
       );
     }
 
-    // Outgoing person cannot acknowledge their own handover
-    if (handover.handedOverBy?.userId === actorUserId && !isAdmin) {
-      throw new BadRequestException("You cannot acknowledge your own handover");
-    }
-
     let nextStatus: HandoverStatus;
     let auditAction: AuditAction;
 
@@ -202,13 +206,17 @@ export class HandoverService {
       auditAction = AuditAction.HANDOVER_ACKNOWLEDGED;
     } else if (dto.action === "FLAG") {
       if (!dto.discrepancyNotes || dto.discrepancyNotes.trim().length === 0) {
-        throw new BadRequestException("Discrepancy notes required when flagging a handover");
+        throw new BadRequestException(
+          "Discrepancy notes required when flagging a handover",
+        );
       }
       nextStatus = HandoverStatus.FLAGGED;
       auditAction = AuditAction.HANDOVER_DISPUTED;
     } else {
       if (!dto.discrepancyNotes || dto.discrepancyNotes.trim().length === 0) {
-        throw new BadRequestException("Discrepancy notes required when rejecting a handover");
+        throw new BadRequestException(
+          "Discrepancy notes required when rejecting a handover",
+        );
       }
       nextStatus = HandoverStatus.REJECTED;
       auditAction = AuditAction.HANDOVER_DISPUTED;
@@ -320,6 +328,10 @@ export class HandoverService {
 
     // Regular employee: returns handovers of their department
     const deptId = actor.employeeProfile?.departmentId;
-    return this.repo.findAll(query, deptId || undefined, actor.employeeProfile?.id);
+    return this.repo.findAll(
+      query,
+      deptId || undefined,
+      actor.employeeProfile?.id,
+    );
   }
 }

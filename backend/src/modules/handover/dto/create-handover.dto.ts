@@ -115,7 +115,8 @@ export class CreateHandoverDto {
 
   @ApiProperty({
     description: "Executive handover summary of current shift operations",
-    example: "All regular duties fulfilled; 2 ongoing facility tickets transferred to evening shift.",
+    example:
+      "All regular duties fulfilled; 2 ongoing facility tickets transferred to evening shift.",
   })
   @IsString()
   @IsNotEmpty()
@@ -129,7 +130,8 @@ export class CreateHandoverDto {
   notes?: string;
 
   @ApiPropertyOptional({
-    description: "Automatically collect and attach active/open tasks from department/workplace",
+    description:
+      "Automatically collect and attach active/open tasks from department/workplace",
     default: true,
   })
   @IsOptional()

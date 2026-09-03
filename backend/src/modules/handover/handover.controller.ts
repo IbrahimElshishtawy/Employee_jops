@@ -35,12 +35,14 @@ export class HandoverController {
   constructor(private readonly handoverService: HandoverService) {}
 
   @Post()
-  @ApiOperation({ summary: "Create a new shift handover with notes & open tasks" })
-  @ApiResponse({ status: 201, description: "Shift handover created successfully" })
-  create(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateHandoverDto,
-  ) {
+  @ApiOperation({
+    summary: "Create a new shift handover with notes & open tasks",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Shift handover created successfully",
+  })
+  create(@CurrentUser("id") userId: string, @Body() dto: CreateHandoverDto) {
     return this.handoverService.createHandover(userId, dto);
   }
 
@@ -74,7 +76,9 @@ export class HandoverController {
 
   @Post(":id/items")
   @UseGuards(HandoverAccessGuard)
-  @ApiOperation({ summary: "Add an item, task, or incident to the shift handover" })
+  @ApiOperation({
+    summary: "Add an item, task, or incident to the shift handover",
+  })
   addItem(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,

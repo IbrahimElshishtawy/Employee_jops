@@ -31,7 +31,8 @@ export class ReviewServiceRequestDto {
   feedback?: string;
 
   @ApiProperty({
-    description: "Review decision: ACCEPT (closes request) or REVISION (requests additional work)",
+    description:
+      "Review decision: ACCEPT (closes request) or REVISION (requests additional work)",
     enum: ["ACCEPT", "REVISION"],
     example: "ACCEPT",
   })

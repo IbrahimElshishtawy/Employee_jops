@@ -94,7 +94,9 @@ export class DepartmentOperationsRepository {
       this.prisma.serviceRequest.count({
         where: {
           departmentId,
-          priority: { in: [ServiceRequestPriority.HIGH, ServiceRequestPriority.URGENT] },
+          priority: {
+            in: [ServiceRequestPriority.HIGH, ServiceRequestPriority.URGENT],
+          },
           status: {
             in: [
               ServiceRequestStatus.SUBMITTED,
@@ -233,7 +235,9 @@ export class DepartmentOperationsRepository {
       this.prisma.serviceRequest.count({
         where: {
           departmentId,
-          status: { in: [ServiceRequestStatus.COMPLETED, ServiceRequestStatus.CLOSED] },
+          status: {
+            in: [ServiceRequestStatus.COMPLETED, ServiceRequestStatus.CLOSED],
+          },
           createdAt: { gte: startDate, lte: endDate },
         },
       }),
@@ -321,11 +325,17 @@ export class DepartmentOperationsRepository {
     }
 
     const taskCompletionRate =
-      totalTasks > 0 ? Number(((completedTasks / totalTasks) * 100).toFixed(1)) : 100;
+      totalTasks > 0
+        ? Number(((completedTasks / totalTasks) * 100).toFixed(1))
+        : 100;
 
     const requestResolutionRate =
       totalServiceRequests > 0
-        ? Number(((completedServiceRequests / totalServiceRequests) * 100).toFixed(1))
+        ? Number(
+            ((completedServiceRequests / totalServiceRequests) * 100).toFixed(
+              1,
+            ),
+          )
         : 100;
 
     const handoverComplianceRate =

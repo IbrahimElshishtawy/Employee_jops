@@ -78,7 +78,8 @@ export class HandoverRepository {
     const shiftDate = new Date(dto.shiftDate);
 
     // Combine manual items with auto-captured items
-    const itemsToCreate: Prisma.ShiftHandoverItemCreateWithoutHandoverInput[] = [];
+    const itemsToCreate: Prisma.ShiftHandoverItemCreateWithoutHandoverInput[] =
+      [];
 
     if (dto.items && dto.items.length > 0) {
       for (const item of dto.items) {
@@ -257,10 +258,7 @@ export class HandoverRepository {
     }
 
     if (employeeId) {
-      where.OR = [
-        { handedOverById: employeeId },
-        { receivedById: employeeId },
-      ];
+      where.OR = [{ handedOverById: employeeId }, { receivedById: employeeId }];
     }
 
     if (workplaceId) {

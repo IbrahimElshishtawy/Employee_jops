@@ -44,7 +44,8 @@ export class CreateServiceRequestDto {
   priority?: ServiceRequestPriority;
 
   @ApiProperty({
-    description: "Target department handling the service (e.g. IT, Maintenance)",
+    description:
+      "Target department handling the service (e.g. IT, Maintenance)",
     example: "dept-it-uuid",
   })
   @IsString()

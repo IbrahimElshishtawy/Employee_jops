@@ -1,4 +1,9 @@
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class QueryDepartmentOperationsDto {
@@ -11,7 +16,8 @@ export class QueryDepartmentOperationsDto {
   departmentId: string;
 
   @ApiPropertyOptional({
-    description: "Optional specific date for shift and attendance analysis (YYYY-MM-DD)",
+    description:
+      "Optional specific date for shift and attendance analysis (YYYY-MM-DD)",
     example: "2026-09-03",
   })
   @IsOptional()
