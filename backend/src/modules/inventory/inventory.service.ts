@@ -18,11 +18,7 @@ import {
   QueryStockItemsDto,
   QueryStockMovementsDto,
 } from "./dto";
-import {
-  AuditAction,
-  StockMovementType,
-  NotificationType,
-} from "@prisma/client";
+import { AuditAction, StockMovementType } from "@prisma/client";
 
 @Injectable()
 export class InventoryService {

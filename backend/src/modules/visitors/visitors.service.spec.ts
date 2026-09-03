@@ -3,7 +3,7 @@ import { VisitorsService } from "./visitors.service";
 import { VisitorsRepository } from "./visitors.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { NotFoundException, BadRequestException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { VisitorStatus } from "@prisma/client";
 
 describe("VisitorsService", () => {

@@ -2,11 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { FinanceService } from "./finance.service";
 import { FinanceRepository } from "./finance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ConflictException, BadRequestException } from "@nestjs/common";
 import { AccountType, JournalEntryStatus } from "@prisma/client";
 
 describe("FinanceService", () => {

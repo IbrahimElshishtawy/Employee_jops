@@ -37,7 +37,9 @@ export class OfflineSyncRepository {
         clientTimestamp: new Date(item.clientTimestamp),
         status: item.status,
         failureReason: item.failureReason || null,
-        processedAt: item.processedAt || (item.status === SyncStatus.PROCESSED ? new Date() : null),
+        processedAt:
+          item.processedAt ||
+          (item.status === SyncStatus.PROCESSED ? new Date() : null),
       },
     });
   }

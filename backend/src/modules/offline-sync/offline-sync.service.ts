@@ -45,7 +45,10 @@ export class OfflineSyncService {
     for (const item of dto.items) {
       // 1. Idempotency Check via clientActionId
       if (item.clientActionId) {
-        const existing = await this.repo.findExistingAction(userId, item.clientActionId);
+        const existing = await this.repo.findExistingAction(
+          userId,
+          item.clientActionId,
+        );
         if (existing) {
           this.logger.log(
             `[Sync Idempotency] Action '${item.clientActionId}' previously handled (status: ${existing.status})`,
@@ -69,10 +72,16 @@ export class OfflineSyncService {
       let appliedData: any = null;
 
       try {
-        if (item.entityType === "Task" && (item.action === "UPDATE_STATUS" || item.action === "UPDATE")) {
-          const taskId = item.entityId || item.payload?.taskId || item.payload?.id;
+        if (
+          item.entityType === "Task" &&
+          (item.action === "UPDATE_STATUS" || item.action === "UPDATE")
+        ) {
+          const taskId =
+            item.entityId || item.payload?.taskId || item.payload?.id;
           if (taskId) {
-            const task = await this.prisma.task.findUnique({ where: { id: taskId } });
+            const task = await this.prisma.task.findUnique({
+              where: { id: taskId },
+            });
             if (!task) {
               itemStatus = SyncStatus.FAILED;
               failureReason = `Task '${taskId}' not found on server`;
@@ -89,29 +98,45 @@ export class OfflineSyncService {
               const updated = await this.prisma.task.update({
                 where: { id: taskId },
                 data: {
-                  ...(item.payload?.status ? { status: item.payload.status } : {}),
+                  ...(item.payload?.status
+                    ? { status: item.payload.status }
+                    : {}),
                   ...(item.payload?.notes ? { notes: item.payload.notes } : {}),
                 },
               });
               appliedData = updated;
             }
           }
-        } else if (item.entityType === "ServiceRequest" && item.action === "CREATE") {
+        } else if (
+          item.entityType === "ServiceRequest" &&
+          item.action === "CREATE"
+        ) {
           // Real transaction execution for offline-created ServiceRequest
           const employee = await this.prisma.employeeProfile.findFirst({
             where: { userId },
           });
           if (employee) {
-            const created = await this.prisma.serviceRequest.create({
-              data: {
-                requesterId: employee.id,
-                departmentId: employee.departmentId || item.payload?.departmentId || "default",
-                title: item.payload?.title || item.payload?.issue || "Offline Service Request",
-                description: item.payload?.description || item.payload?.issue || "Submitted offline",
-                priority: item.payload?.priority || "MEDIUM",
-              },
-            });
-            appliedData = created;
+            const reqNum = `SR-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+            const deptId = employee.departmentId || item.payload?.departmentId;
+            if (deptId) {
+              const created = await this.prisma.serviceRequest.create({
+                data: {
+                  requestNumber: reqNum,
+                  requesterId: employee.id,
+                  departmentId: deptId,
+                  title:
+                    item.payload?.title ||
+                    item.payload?.issue ||
+                    "Offline Service Request",
+                  description:
+                    item.payload?.description ||
+                    item.payload?.issue ||
+                    "Submitted offline",
+                  priority: item.payload?.priority || "MEDIUM",
+                },
+              });
+              appliedData = created;
+            }
           }
         } else {
           // Explicit simulated conflict flag fallback
@@ -121,7 +146,9 @@ export class OfflineSyncService {
           }
         }
       } catch (err: any) {
-        this.logger.warn(`Error applying offline action '${item.action}' on '${item.entityType}': ${err.message}`);
+        this.logger.warn(
+          `Error applying offline action '${item.action}' on '${item.entityType}': ${err.message}`,
+        );
         itemStatus = SyncStatus.FAILED;
         failureReason = err.message || "Failed to apply operation";
       }
@@ -149,8 +176,12 @@ export class OfflineSyncService {
       });
     }
 
-    const hasConflict = processedResults.some((i) => i.status === SyncStatus.CONFLICT);
-    const hasFailure = processedResults.some((i) => i.status === SyncStatus.FAILED);
+    const hasConflict = processedResults.some(
+      (i) => i.status === SyncStatus.CONFLICT,
+    );
+    const hasFailure = processedResults.some(
+      (i) => i.status === SyncStatus.FAILED,
+    );
 
     // Fetch server changes since client cursor
     const cursor = dto.syncCursor || dto.lastSyncToken;
@@ -166,14 +197,22 @@ export class OfflineSyncService {
           itemCount: dto.items.length,
           hasConflict,
           hasFailure,
-          status: hasConflict ? "PARTIAL_CONFLICT" : hasFailure ? "PARTIAL_FAILURE" : "SUCCESS",
+          status: hasConflict
+            ? "PARTIAL_CONFLICT"
+            : hasFailure
+              ? "PARTIAL_FAILURE"
+              : "SUCCESS",
         },
       },
     });
 
     return {
       syncedCount: processedResults.length,
-      status: hasConflict ? "PARTIAL_CONFLICT" : hasFailure ? "PARTIAL_FAILURE" : "SUCCESS",
+      status: hasConflict
+        ? "PARTIAL_CONFLICT"
+        : hasFailure
+          ? "PARTIAL_FAILURE"
+          : "SUCCESS",
       items: processedResults,
       serverChanges,
       syncCursor: new Date().toISOString(),
@@ -184,33 +223,41 @@ export class OfflineSyncService {
    * Retrieves server delta changes (tasks, notifications, requests) since client cursor
    */
   async getServerChanges(userId: string, cursor?: string) {
-    const since = cursor ? new Date(cursor) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default 7 days
+    const since = cursor
+      ? new Date(cursor)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default 7 days
 
     const [recentNotifications, assignedTasks, myRequests] = await Promise.all([
-      this.prisma.notification.findMany({
-        where: {
-          userId,
-          createdAt: { gt: since },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      }).catch(() => []),
-      this.prisma.task.findMany({
-        where: {
-          assignee: { userId },
-          updatedAt: { gt: since },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 50,
-      }).catch(() => []),
-      this.prisma.request.findMany({
-        where: {
-          employee: { userId },
-          updatedAt: { gt: since },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 50,
-      }).catch(() => []),
+      this.prisma.notification
+        .findMany({
+          where: {
+            userId,
+            createdAt: { gt: since },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+        .catch(() => []),
+      this.prisma.task
+        .findMany({
+          where: {
+            assignee: { userId },
+            updatedAt: { gt: since },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        })
+        .catch(() => []),
+      this.prisma.request
+        .findMany({
+          where: {
+            employee: { userId },
+            updatedAt: { gt: since },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        })
+        .catch(() => []),
     ]);
 
     return {

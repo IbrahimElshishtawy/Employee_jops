@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { DocumentsService } from "./documents.service";
 import { DocumentsRepository } from "./documents.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { NotFoundException, ForbiddenException } from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
 import { Role } from "@prisma/client";
 
 describe("DocumentsService", () => {

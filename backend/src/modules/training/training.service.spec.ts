@@ -3,11 +3,7 @@ import { TrainingService } from "./training.service";
 import { TrainingRepository } from "./training.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ConflictException, BadRequestException } from "@nestjs/common";
 import { EnrollmentStatus } from "@prisma/client";
 
 describe("TrainingService", () => {

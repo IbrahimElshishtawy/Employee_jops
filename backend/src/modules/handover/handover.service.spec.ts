@@ -15,11 +15,7 @@ import {
   TaskStatus,
   UserStatus,
 } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("HandoverService (Phase 7 Shift Handover)", () => {
   let service: HandoverService;
@@ -214,6 +210,7 @@ describe("HandoverService (Phase 7 Shift Handover)", () => {
 
     service = module.get<HandoverService>(HandoverService);
     guard = module.get<HandoverAccessGuard>(HandoverAccessGuard);
+    expect(guard).toBeDefined();
 
     jest.clearAllMocks();
   });

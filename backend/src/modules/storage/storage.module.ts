@@ -12,7 +12,10 @@ import { S3CompatibleStorageProvider } from "./providers/s3-storage.provider";
     S3CompatibleStorageProvider,
     {
       provide: "STORAGE_PROVIDER",
-      useFactory: (local: LocalStorageProvider, s3: S3CompatibleStorageProvider) => {
+      useFactory: (
+        local: LocalStorageProvider,
+        s3: S3CompatibleStorageProvider,
+      ) => {
         return process.env.STORAGE_DRIVER === "s3" ? s3 : local;
       },
       inject: [LocalStorageProvider, S3CompatibleStorageProvider],

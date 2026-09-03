@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { BackupService } from "./backup.service";
 import { PrismaService } from "../../prisma/prisma.service";
-import { BadRequestException } from "@nestjs/common";
 
 describe("BackupService", () => {
   let service: BackupService;
@@ -12,7 +11,9 @@ describe("BackupService", () => {
       user: { count: jest.fn().mockResolvedValue(10) },
       department: {
         count: jest.fn().mockResolvedValue(5),
-        findMany: jest.fn().mockResolvedValue([{ id: "dept-1", name: "Front Office" }]),
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ id: "dept-1", name: "Front Office" }]),
       },
       attendanceRecord: { count: jest.fn().mockResolvedValue(100) },
       request: { count: jest.fn().mockResolvedValue(20) },
@@ -21,11 +22,15 @@ describe("BackupService", () => {
       stockItem: { count: jest.fn().mockResolvedValue(30) },
       supplierInvoice: { count: jest.fn().mockResolvedValue(8) },
       systemSetting: {
-        findMany: jest.fn().mockResolvedValue([{ key: "SITE_NAME", value: "CyberWise" }]),
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ key: "SITE_NAME", value: "CyberWise" }]),
         upsert: jest.fn().mockResolvedValue({ key: "SITE_NAME" }),
       },
       assetCategory: {
-        findMany: jest.fn().mockResolvedValue([{ id: "cat-1", name: "HVAC", code: "HVC" }]),
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ id: "cat-1", name: "HVAC", code: "HVC" }]),
         upsert: jest.fn().mockResolvedValue({ id: "cat-1" }),
       },
       warehouse: { findMany: jest.fn().mockResolvedValue([]) },

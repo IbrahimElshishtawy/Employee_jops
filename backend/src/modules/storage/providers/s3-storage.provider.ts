@@ -1,13 +1,21 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { StorageProvider, StoredFileMetadata } from "./storage-provider.interface";
+import {
+  StorageProvider,
+  StoredFileMetadata,
+} from "./storage-provider.interface";
 import * as crypto from "crypto";
 
 @Injectable()
 export class S3CompatibleStorageProvider implements StorageProvider {
   private readonly logger = new Logger(S3CompatibleStorageProvider.name);
-  private readonly memoryStore: Map<string, { buffer: Buffer; mimeType: string }> = new Map();
-  private readonly bucketName = process.env.STORAGE_S3_BUCKET || "cyberwise-uploads";
-  private readonly endpoint = process.env.STORAGE_S3_ENDPOINT || "https://s3.amazonaws.com";
+  private readonly memoryStore: Map<
+    string,
+    { buffer: Buffer; mimeType: string }
+  > = new Map();
+  private readonly bucketName =
+    process.env.STORAGE_S3_BUCKET || "cyberwise-uploads";
+  private readonly endpoint =
+    process.env.STORAGE_S3_ENDPOINT || "https://s3.amazonaws.com";
 
   async saveFile(
     folder: string,
@@ -22,7 +30,9 @@ export class S3CompatibleStorageProvider implements StorageProvider {
       .digest("hex");
 
     this.memoryStore.set(fileKey, { buffer, mimeType });
-    this.logger.log(`[S3 Storage] Saved object: ${fileKey} (${buffer.length} bytes) to bucket: ${this.bucketName}`);
+    this.logger.log(
+      `[S3 Storage] Saved object: ${fileKey} (${buffer.length} bytes) to bucket: ${this.bucketName}`,
+    );
 
     return {
       fileKey,
@@ -35,7 +45,10 @@ export class S3CompatibleStorageProvider implements StorageProvider {
     };
   }
 
-  async getFile(folder: string, filename: string): Promise<{ buffer: Buffer; mimeType: string }> {
+  async getFile(
+    folder: string,
+    filename: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
     const fileKey = `${folder}/${filename}`;
     const item = this.memoryStore.get(fileKey);
     if (!item) {

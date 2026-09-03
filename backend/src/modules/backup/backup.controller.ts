@@ -11,7 +11,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
-  ApiResponse,
 } from "@nestjs/swagger";
 import { BackupService } from "./backup.service";
 import { CreateBackupDto, RestoreBackupDto } from "./dto";

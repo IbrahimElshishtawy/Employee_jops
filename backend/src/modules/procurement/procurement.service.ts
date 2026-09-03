@@ -24,7 +24,6 @@ import {
   PurchaseRequestStatus,
   PurchaseOrderStatus,
   UserStatus,
-  NotificationType,
 } from "@prisma/client";
 
 @Injectable()

@@ -102,7 +102,13 @@ export function validate(config: Record<string, unknown>) {
 
   // Security hardening: reject fallback/weak secrets in production
   if (validatedConfig.NODE_ENV === Environment.Production) {
-    const forbiddenPatterns = ["default_secret", "password", "secret", "test_secret", "123456"];
+    const forbiddenPatterns = [
+      "default_secret",
+      "password",
+      "secret",
+      "test_secret",
+      "123456",
+    ];
     const access = validatedConfig.JWT_ACCESS_SECRET?.toLowerCase() || "";
     const refresh = validatedConfig.JWT_REFRESH_SECRET?.toLowerCase() || "";
 
@@ -114,7 +120,10 @@ export function validate(config: Record<string, unknown>) {
       }
     }
 
-    if (validatedConfig.JWT_ACCESS_SECRET.length < 32 || validatedConfig.JWT_REFRESH_SECRET.length < 32) {
+    if (
+      validatedConfig.JWT_ACCESS_SECRET.length < 32 ||
+      validatedConfig.JWT_REFRESH_SECRET.length < 32
+    ) {
       throw new Error(
         "Security Alert: Production deployment rejected. JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be at least 32 characters long.",
       );

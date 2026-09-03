@@ -3,16 +3,8 @@ import { ProcurementService } from "./procurement.service";
 import { ProcurementRepository } from "./procurement.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import {
-  UserStatus,
-  PurchaseRequestStatus,
-  PurchaseOrderStatus,
-} from "@prisma/client";
+import { ConflictException, BadRequestException } from "@nestjs/common";
+import { UserStatus, PurchaseRequestStatus } from "@prisma/client";
 
 describe("ProcurementService", () => {
   let service: ProcurementService;
@@ -66,6 +58,7 @@ describe("ProcurementService", () => {
     repo = module.get(ProcurementRepository);
     prisma = module.get(PrismaService);
     notifications = module.get(NotificationsService);
+    expect(notifications).toBeDefined();
   });
 
   describe("createSupplier", () => {

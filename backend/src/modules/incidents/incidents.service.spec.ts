@@ -3,8 +3,8 @@ import { IncidentsService } from "./incidents.service";
 import { IncidentsRepository } from "./incidents.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { UserStatus, IncidentSeverity, IncidentStatus } from "@prisma/client";
+import { BadRequestException } from "@nestjs/common";
+import { UserStatus, IncidentSeverity } from "@prisma/client";
 
 describe("IncidentsService", () => {
   let service: IncidentsService;
@@ -47,6 +47,7 @@ describe("IncidentsService", () => {
     repo = module.get(IncidentsRepository);
     prisma = module.get(PrismaService);
     notifications = module.get(NotificationsService);
+    expect(notifications).toBeDefined();
   });
 
   describe("createIncident", () => {

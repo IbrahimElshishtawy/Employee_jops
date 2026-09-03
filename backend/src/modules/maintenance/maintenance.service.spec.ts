@@ -3,16 +3,8 @@ import { MaintenanceService } from "./maintenance.service";
 import { MaintenanceRepository } from "./maintenance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  BadRequestException,
-  NotFoundException,
-  ConflictException,
-} from "@nestjs/common";
-import {
-  UserStatus,
-  MaintenanceRequestStatus,
-  WorkOrderStatus,
-} from "@prisma/client";
+import { BadRequestException } from "@nestjs/common";
+import { UserStatus } from "@prisma/client";
 
 describe("MaintenanceService", () => {
   let service: MaintenanceService;
@@ -72,6 +64,7 @@ describe("MaintenanceService", () => {
     repo = module.get(MaintenanceRepository);
     prisma = module.get(PrismaService);
     notifications = module.get(NotificationsService);
+    expect(notifications).toBeDefined();
   });
 
   describe("createRequest", () => {

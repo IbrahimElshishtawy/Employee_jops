@@ -3,8 +3,8 @@ import { PerformanceService } from "./performance.service";
 import { PerformanceRepository } from "./performance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { ConflictException, NotFoundException } from "@nestjs/common";
-import { GoalStatus, ReviewStatus, UserStatus } from "@prisma/client";
+import { ConflictException } from "@nestjs/common";
+import { GoalStatus, UserStatus } from "@prisma/client";
 
 describe("PerformanceService", () => {
   let service: PerformanceService;
@@ -102,6 +102,7 @@ describe("PerformanceService", () => {
       const result = await service.updateGoalProgress("goal-1", "user-1", {
         currentValue: 100,
       });
+      expect(result.status).toBe(GoalStatus.ACHIEVED);
       expect(repo.updateGoalProgress).toHaveBeenCalledWith(
         "goal-1",
         expect.objectContaining({

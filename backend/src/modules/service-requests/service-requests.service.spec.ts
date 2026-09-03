@@ -14,11 +14,7 @@ import {
   ServiceRequestStatus,
   UserStatus,
 } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
   let service: ServiceRequestsService;
@@ -226,6 +222,7 @@ describe("ServiceRequestsService (Phase 7 Service Requests)", () => {
 
     service = module.get<ServiceRequestsService>(ServiceRequestsService);
     guard = module.get<ServiceRequestAccessGuard>(ServiceRequestAccessGuard);
+    expect(guard).toBeDefined();
 
     jest.clearAllMocks();
   });

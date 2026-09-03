@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SessionsService } from "./sessions.service";
 import { SessionsRepository } from "./sessions.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
 
 describe("SessionsService", () => {
   let service: SessionsService;

@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { IntegrationsService } from "./integrations.service";
 import { IntegrationsRepository } from "./integrations.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { NotFoundException } from "@nestjs/common";
 
 describe("IntegrationsService", () => {
   let service: IntegrationsService;

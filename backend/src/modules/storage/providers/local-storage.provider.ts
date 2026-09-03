@@ -1,5 +1,8 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { StorageProvider, StoredFileMetadata } from "./storage-provider.interface";
+import {
+  StorageProvider,
+  StoredFileMetadata,
+} from "./storage-provider.interface";
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
@@ -46,10 +49,15 @@ export class LocalStorageProvider implements StorageProvider {
     };
   }
 
-  async getFile(folder: string, filename: string): Promise<{ buffer: Buffer; mimeType: string }> {
+  async getFile(
+    folder: string,
+    filename: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
     const filePath = path.join(this.rootDir, folder, filename);
     if (!fs.existsSync(filePath)) {
-      throw new NotFoundException(`File '${folder}/${filename}' not found on storage`);
+      throw new NotFoundException(
+        `File '${folder}/${filename}' not found on storage`,
+      );
     }
 
     const buffer = fs.readFileSync(filePath);

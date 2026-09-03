@@ -13,7 +13,7 @@ import {
   RecordBudgetSpendingDto,
   QueryBudgetsDto,
 } from "./dto";
-import { AuditAction, BudgetStatus, NotificationType } from "@prisma/client";
+import { AuditAction, BudgetStatus } from "@prisma/client";
 
 @Injectable()
 export class BudgetService {

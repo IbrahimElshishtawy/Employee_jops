@@ -9,7 +9,7 @@ import {
   Min,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { DocumentCategory, DocumentStatus, Role } from "@prisma/client";
+import { DocumentCategory, Role } from "@prisma/client";
 
 export class CreateDocumentDto {
   @ApiProperty({ example: "Standard Operating Procedure: Front Desk Check-in" })

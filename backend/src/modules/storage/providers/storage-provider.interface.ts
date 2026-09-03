@@ -16,7 +16,10 @@ export interface StorageProvider {
     mimeType: string,
   ): Promise<StoredFileMetadata>;
 
-  getFile(folder: string, filename: string): Promise<{ buffer: Buffer; mimeType: string }>;
+  getFile(
+    folder: string,
+    filename: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }>;
 
   deleteFile(folder: string, filename: string): Promise<boolean>;
 

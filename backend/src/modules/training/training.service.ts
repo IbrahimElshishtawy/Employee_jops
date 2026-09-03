@@ -17,12 +17,7 @@ import {
   QueryTrainingCoursesDto,
   QueryTrainingSessionsDto,
 } from "./dto";
-import {
-  AuditAction,
-  EnrollmentStatus,
-  NotificationType,
-  UserStatus,
-} from "@prisma/client";
+import { AuditAction, NotificationType } from "@prisma/client";
 
 @Injectable()
 export class TrainingService {

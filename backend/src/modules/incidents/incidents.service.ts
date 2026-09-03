@@ -14,13 +14,7 @@ import {
   AddCorrectiveActionDto,
   QueryIncidentsDto,
 } from "./dto";
-import {
-  AuditAction,
-  IncidentStatus,
-  IncidentSeverity,
-  UserStatus,
-  NotificationType,
-} from "@prisma/client";
+import { AuditAction, IncidentSeverity, UserStatus } from "@prisma/client";
 
 @Injectable()
 export class IncidentsService {

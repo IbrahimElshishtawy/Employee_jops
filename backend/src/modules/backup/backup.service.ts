@@ -135,7 +135,9 @@ export class BackupService {
       },
     });
 
-    this.logger.log(`Created real snapshot backup ${backupNumber} (${stat.size} bytes)`);
+    this.logger.log(
+      `Created real snapshot backup ${backupNumber} (${stat.size} bytes)`,
+    );
     return record;
   }
 
@@ -263,7 +265,9 @@ export class BackupService {
           }
         }
       });
-      this.logger.log(`Real database restore executed from backup '${backup.backupNumber}'`);
+      this.logger.log(
+        `Real database restore executed from backup '${backup.backupNumber}'`,
+      );
     }
 
     await this.prisma.auditLog.create({
@@ -276,7 +280,9 @@ export class BackupService {
           backupNumber: backup.backupNumber,
           simulateOnly: dto.simulateOnly ?? true,
           verification: "PASSED",
-          restoredEntities: parsed.snapshotData ? Object.keys(parsed.snapshotData) : [],
+          restoredEntities: parsed.snapshotData
+            ? Object.keys(parsed.snapshotData)
+            : [],
         },
       },
     });
@@ -297,7 +303,9 @@ export class BackupService {
   /**
    * Enforces retention policy by purging backups older than retentionDays (OPS-008)
    */
-  async enforceRetentionPolicy(retentionDays = 30): Promise<{ purgedCount: number; remainingCount: number }> {
+  async enforceRetentionPolicy(
+    retentionDays = 30,
+  ): Promise<{ purgedCount: number; remainingCount: number }> {
     const all = await this.listBackups();
     const cutoffTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
     let purgedCount = 0;
@@ -312,7 +320,9 @@ export class BackupService {
       }
     }
 
-    this.logger.log(`Retention policy enforced: purged ${purgedCount} backups older than ${retentionDays} days`);
+    this.logger.log(
+      `Retention policy enforced: purged ${purgedCount} backups older than ${retentionDays} days`,
+    );
     return { purgedCount, remainingCount: all.length - purgedCount };
   }
 

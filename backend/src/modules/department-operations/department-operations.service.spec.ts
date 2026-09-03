@@ -5,14 +5,11 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { ServiceRequestsService } from "../service-requests/service-requests.service";
 import { DepartmentAccessGuard } from "./guards/department-access.guard";
 import {
-  AttendanceStatus,
   AuditAction,
   HandoverStatus,
-  Role,
   ServiceRequestPriority,
   ServiceRequestStatus,
   TaskStatus,
-  UserStatus,
 } from "@prisma/client";
 import { NotFoundException } from "@nestjs/common";
 
@@ -189,6 +186,7 @@ describe("DepartmentOperationsService (Phase 7 Department Operations)", () => {
       DepartmentOperationsService,
     );
     guard = module.get<DepartmentAccessGuard>(DepartmentAccessGuard);
+    expect(guard).toBeDefined();
 
     jest.clearAllMocks();
   });

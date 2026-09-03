@@ -31,10 +31,7 @@ export class OfflineSyncController {
     summary: "Standard mobile client sync endpoint (POST /api/v1/sync)",
   })
   @ApiResponse({ status: 200, description: "Batch processed" })
-  sync(
-    @CurrentUser("id") userId: string,
-    @Body() dto: PushSyncBatchDto,
-  ) {
+  sync(@CurrentUser("id") userId: string, @Body() dto: PushSyncBatchDto) {
     return this.offlineSyncService.processSyncBatch(userId, dto);
   }
 

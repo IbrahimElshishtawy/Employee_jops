@@ -52,9 +52,11 @@ describe("SchedulerService", () => {
 
   it("should list registered jobs", async () => {
     const jobs = await service.listJobs();
-    expect(jobs.length).toBe(4);
+    expect(jobs.length).toBe(6);
     expect(jobs.some((j) => j.name === "task-overdue-checker")).toBe(true);
     expect(jobs.some((j) => j.name === "session-cleanup")).toBe(true);
+    expect(jobs.some((j) => j.name === "backup-retention-cleanup")).toBe(true);
+    expect(jobs.some((j) => j.name === "inventory-low-stock-alert")).toBe(true);
   });
 
   it("should execute task overdue checker successfully", async () => {

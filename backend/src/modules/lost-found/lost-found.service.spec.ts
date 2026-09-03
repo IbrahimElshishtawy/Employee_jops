@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { LostFoundService } from "./lost-found.service";
 import { LostFoundRepository } from "./lost-found.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { LostFoundStatus, UserStatus } from "@prisma/client";
 
 describe("LostFoundService", () => {

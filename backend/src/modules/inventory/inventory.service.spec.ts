@@ -3,11 +3,7 @@ import { InventoryService } from "./inventory.service";
 import { InventoryRepository } from "./inventory.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ConflictException, BadRequestException } from "@nestjs/common";
 import { StockMovementType } from "@prisma/client";
 
 describe("InventoryService", () => {

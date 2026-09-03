@@ -315,15 +315,16 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   // JOB 6: Inventory Low Stock Alert
   // ============================================================
   async checkLowStockItems() {
-    const lowStockItems = await this.prisma.stockItem
+    const items = await this.prisma.stockItem
       .findMany({
-        where: {
-          currentStock: { lte: this.prisma.stockItem.fields.reorderLevel },
-        },
-        take: 50,
+        where: { isActive: true },
+        take: 100,
       })
       .catch(() => []);
 
-    return { lowStockItemsCount: lowStockItems.length };
+    const lowStock = items.filter(
+      (item: any) => item.quantityOnHand <= item.reorderLevel,
+    );
+    return { lowStockItemsCount: lowStock.length };
   }
 }

@@ -41,7 +41,9 @@ describe("OfflineSyncService", () => {
         create: jest.fn().mockResolvedValue({ id: "sr-1" }),
       },
       employeeProfile: {
-        findFirst: jest.fn().mockResolvedValue({ id: "emp-1", departmentId: "dept-1" }),
+        findFirst: jest
+          .fn()
+          .mockResolvedValue({ id: "emp-1", departmentId: "dept-1" }),
       },
       notification: {
         findMany: jest.fn().mockResolvedValue([]),

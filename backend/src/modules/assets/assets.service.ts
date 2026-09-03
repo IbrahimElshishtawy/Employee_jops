@@ -13,7 +13,7 @@ import {
   CreateAssetCategoryDto,
   QueryAssetsDto,
 } from "./dto";
-import { AuditAction, AssetStatus } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 
 @Injectable()
 export class AssetsService {

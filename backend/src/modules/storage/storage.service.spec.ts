@@ -58,7 +58,9 @@ describe("StorageService", () => {
       service.uploadFile("user-1", {
         originalName: "vector.svg",
         mimeType: "image/svg+xml",
-        base64Content: Buffer.from("<svg onload=alert(1)></svg>").toString("base64"),
+        base64Content: Buffer.from("<svg onload=alert(1)></svg>").toString(
+          "base64",
+        ),
       }),
     ).rejects.toThrow(BadRequestException);
   });

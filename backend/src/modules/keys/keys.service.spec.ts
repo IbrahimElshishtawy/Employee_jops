@@ -2,11 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { KeysService } from "./keys.service";
 import { KeysRepository } from "./keys.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { ConflictException, BadRequestException } from "@nestjs/common";
 import { KeyAssignmentStatus } from "@prisma/client";
 
 describe("KeysService", () => {

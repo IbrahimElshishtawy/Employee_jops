@@ -12,7 +12,6 @@ import { PrismaService } from "../prisma/prisma.service";
 import { NotificationsService } from "./notifications/notifications.service";
 import { WorkflowService } from "./workflow/workflow.service";
 import {
-  AttendanceStatus,
   AuditAction,
   HandoverItemCategory,
   HandoverItemPriority,
@@ -26,11 +25,7 @@ import {
   TaskStatus,
   UserStatus,
 } from "@prisma/client";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 
 describe("Phase 7 — Service Requests, Shift Handover & Department Operations Specification", () => {
   let srService: ServiceRequestsService;
@@ -469,6 +464,9 @@ describe("Phase 7 — Service Requests, Shift Handover & Department Operations S
     srGuard = module.get<ServiceRequestAccessGuard>(ServiceRequestAccessGuard);
     hoGuard = module.get<HandoverAccessGuard>(HandoverAccessGuard);
     deptGuard = module.get<DepartmentAccessGuard>(DepartmentAccessGuard);
+    expect(srGuard).toBeDefined();
+    expect(hoGuard).toBeDefined();
+    expect(deptGuard).toBeDefined();
 
     jest.clearAllMocks();
   });

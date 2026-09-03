@@ -165,13 +165,10 @@ export class StorageService {
       fileId,
       originalName: dto.originalName,
       storedFilename,
-      folder: safeFolder,
       fileUrl: stored.url,
       mimeType: dto.mimeType,
-      sizeBytes: stored.sizeBytes,
       fileSize: stored.sizeBytes,
       checksumSha256: stored.checksumSha256,
-      url: stored.url,
       uploadedAt: new Date().toISOString(),
     };
   }
