@@ -7,12 +7,16 @@ export class UploadDocumentVersionDto {
   @IsNotEmpty()
   versionNumber: string;
 
-  @ApiProperty({ example: "https://storage.hotel.com/docs/sop-fd-checkin-v2.pdf" })
+  @ApiProperty({
+    example: "https://storage.hotel.com/docs/sop-fd-checkin-v2.pdf",
+  })
   @IsString()
   @IsNotEmpty()
   fileUrl: string;
 
-  @ApiPropertyOptional({ example: "Updated with digital key card issuance steps" })
+  @ApiPropertyOptional({
+    example: "Updated with digital key card issuance steps",
+  })
   @IsOptional()
   @IsString()
   changeSummary?: string;

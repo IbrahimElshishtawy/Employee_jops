@@ -58,10 +58,7 @@ export class AssetsController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({ summary: "Register a new asset" })
   @ApiResponse({ status: 201, description: "Asset created" })
-  createAsset(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateAssetDto,
-  ) {
+  createAsset(@CurrentUser("id") userId: string, @Body() dto: CreateAssetDto) {
     return this.assetsService.createAsset(userId, dto);
   }
 
@@ -79,7 +76,9 @@ export class AssetsController {
 
   @Patch(":id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Update asset metadata, status, location, or assignment" })
+  @ApiOperation({
+    summary: "Update asset metadata, status, location, or assignment",
+  })
   updateAsset(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -90,7 +89,9 @@ export class AssetsController {
 
   @Post(":id/calculate-depreciation")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Calculate straight-line depreciation for an asset" })
+  @ApiOperation({
+    summary: "Calculate straight-line depreciation for an asset",
+  })
   calculateDepreciation(@Param("id") id: string) {
     return this.assetsService.calculateDepreciation(id);
   }
@@ -98,10 +99,7 @@ export class AssetsController {
   @Delete(":id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Delete an asset" })
-  deleteAsset(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  deleteAsset(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.assetsService.deleteAsset(id, userId);
   }
 }

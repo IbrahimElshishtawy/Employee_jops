@@ -26,7 +26,9 @@ export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 
   @Post("register")
-  @ApiOperation({ summary: "Register or refresh device session (FCM token, hardware ID)" })
+  @ApiOperation({
+    summary: "Register or refresh device session (FCM token, hardware ID)",
+  })
   @ApiResponse({ status: 200, description: "Device registered" })
   registerDeviceSession(
     @CurrentUser("id") userId: string,
@@ -36,13 +38,17 @@ export class SessionsController {
   }
 
   @Get("my-devices")
-  @ApiOperation({ summary: "List currently active device sessions for current user" })
+  @ApiOperation({
+    summary: "List currently active device sessions for current user",
+  })
   getMyActiveSessions(@CurrentUser("id") userId: string) {
     return this.sessionsService.getMyActiveSessions(userId);
   }
 
   @Delete(":id")
-  @ApiOperation({ summary: "Remotely revoke and terminate a specific device session" })
+  @ApiOperation({
+    summary: "Remotely revoke and terminate a specific device session",
+  })
   terminateSession(
     @Param("id") sessionId: string,
     @CurrentUser("id") userId: string,
@@ -51,11 +57,17 @@ export class SessionsController {
   }
 
   @Delete("other/:currentSessionId")
-  @ApiOperation({ summary: "Revoke and terminate all other devices except the current session" })
+  @ApiOperation({
+    summary:
+      "Revoke and terminate all other devices except the current session",
+  })
   terminateAllOtherSessions(
     @Param("currentSessionId") currentSessionId: string,
     @CurrentUser("id") userId: string,
   ) {
-    return this.sessionsService.terminateAllOtherSessions(userId, currentSessionId);
+    return this.sessionsService.terminateAllOtherSessions(
+      userId,
+      currentSessionId,
+    );
   }
 }

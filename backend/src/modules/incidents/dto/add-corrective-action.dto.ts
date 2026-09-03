@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class AddCorrectiveActionDto {
@@ -7,7 +12,10 @@ export class AddCorrectiveActionDto {
   @IsNotEmpty()
   actionTitle: string;
 
-  @ApiProperty({ example: "Procure and place bright yellow folding caution cones at each service cart" })
+  @ApiProperty({
+    example:
+      "Procure and place bright yellow folding caution cones at each service cart",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;

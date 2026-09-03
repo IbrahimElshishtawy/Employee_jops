@@ -1,6 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateAssetDto, UpdateAssetDto, CreateAssetCategoryDto, QueryAssetsDto } from "./dto";
+import {
+  CreateAssetDto,
+  UpdateAssetDto,
+  CreateAssetCategoryDto,
+  QueryAssetsDto,
+} from "./dto";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
@@ -15,7 +20,10 @@ export class AssetsRepository {
         code: dto.code,
         description: dto.description,
         usefulLifeMonths: dto.usefulLifeMonths,
-        depreciationRate: dto.depreciationRate !== undefined ? new Prisma.Decimal(dto.depreciationRate) : null,
+        depreciationRate:
+          dto.depreciationRate !== undefined
+            ? new Prisma.Decimal(dto.depreciationRate)
+            : null,
       },
     });
   }
@@ -54,13 +62,21 @@ export class AssetsRepository {
         serialNumber: dto.serialNumber,
         barcode: dto.barcode,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
-        purchaseCost: dto.purchaseCost !== undefined ? new Prisma.Decimal(dto.purchaseCost) : null,
-        currentBookValue: dto.purchaseCost !== undefined ? new Prisma.Decimal(dto.purchaseCost) : null,
+        purchaseCost:
+          dto.purchaseCost !== undefined
+            ? new Prisma.Decimal(dto.purchaseCost)
+            : null,
+        currentBookValue:
+          dto.purchaseCost !== undefined
+            ? new Prisma.Decimal(dto.purchaseCost)
+            : null,
         location: dto.location,
         status: dto.status,
         departmentId: dto.departmentId,
         assignedToId: dto.assignedToId,
-        warrantyExpiry: dto.warrantyExpiry ? new Date(dto.warrantyExpiry) : null,
+        warrantyExpiry: dto.warrantyExpiry
+          ? new Date(dto.warrantyExpiry)
+          : null,
         metadata: dto.metadata,
       },
       include: {
@@ -97,7 +113,15 @@ export class AssetsRepository {
   }
 
   async findAssets(query: QueryAssetsDto) {
-    const { page = 1, limit = 20, search, status, categoryId, departmentId, assignedToId } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      categoryId,
+      departmentId,
+      assignedToId,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.AssetWhereInput = {};
@@ -161,18 +185,28 @@ export class AssetsRepository {
     if (dto.location !== undefined) data.location = dto.location;
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.metadata !== undefined) data.metadata = dto.metadata;
-    if (dto.purchaseDate !== undefined) data.purchaseDate = dto.purchaseDate ? new Date(dto.purchaseDate) : null;
-    if (dto.purchaseCost !== undefined) data.purchaseCost = dto.purchaseCost !== null ? new Prisma.Decimal(dto.purchaseCost) : null;
-    if (dto.warrantyExpiry !== undefined) data.warrantyExpiry = dto.warrantyExpiry ? new Date(dto.warrantyExpiry) : null;
+    if (dto.purchaseDate !== undefined)
+      data.purchaseDate = dto.purchaseDate ? new Date(dto.purchaseDate) : null;
+    if (dto.purchaseCost !== undefined)
+      data.purchaseCost =
+        dto.purchaseCost !== null ? new Prisma.Decimal(dto.purchaseCost) : null;
+    if (dto.warrantyExpiry !== undefined)
+      data.warrantyExpiry = dto.warrantyExpiry
+        ? new Date(dto.warrantyExpiry)
+        : null;
 
     if (dto.categoryId !== undefined) {
       data.category = { connect: { id: dto.categoryId } };
     }
     if (dto.departmentId !== undefined) {
-      data.department = dto.departmentId ? { connect: { id: dto.departmentId } } : { disconnect: true };
+      data.department = dto.departmentId
+        ? { connect: { id: dto.departmentId } }
+        : { disconnect: true };
     }
     if (dto.assignedToId !== undefined) {
-      data.assignedTo = dto.assignedToId ? { connect: { id: dto.assignedToId } } : { disconnect: true };
+      data.assignedTo = dto.assignedToId
+        ? { connect: { id: dto.assignedToId } }
+        : { disconnect: true };
     }
 
     return this.prisma.asset.update({

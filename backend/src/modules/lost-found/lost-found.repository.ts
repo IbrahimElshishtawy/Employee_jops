@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateLostFoundItemDto, ClaimLostFoundItemDto, QueryLostFoundDto } from "./dto";
+import {
+  CreateLostFoundItemDto,
+  ClaimLostFoundItemDto,
+  QueryLostFoundDto,
+} from "./dto";
 import { Prisma, LostFoundStatus } from "@prisma/client";
 
 @Injectable()

@@ -88,7 +88,9 @@ describe("IncidentsService", () => {
   describe("addInvestigation", () => {
     it("should add investigation and advance incident status", async () => {
       repo.findIncidentById.mockResolvedValue({ id: "inc-1" } as any);
-      prisma.employeeProfile.findUnique.mockResolvedValue({ id: "investigator-1" });
+      prisma.employeeProfile.findUnique.mockResolvedValue({
+        id: "investigator-1",
+      });
       repo.addInvestigation.mockResolvedValue({
         id: "inv-1",
         findings: "Steam triggered detector",

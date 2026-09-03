@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class IssueCertificateDto {
@@ -22,7 +27,9 @@ export class IssueCertificateDto {
   @IsDateString()
   expiryDate?: string;
 
-  @ApiPropertyOptional({ example: "https://storage.hotel.com/certs/cert-9981.pdf" })
+  @ApiPropertyOptional({
+    example: "https://storage.hotel.com/certs/cert-9981.pdf",
+  })
   @IsOptional()
   @IsString()
   certificateUrl?: string;

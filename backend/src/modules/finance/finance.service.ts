@@ -35,12 +35,17 @@ export class FinanceService {
   async createAccount(userId: string, dto: CreateChartOfAccountDto) {
     const existing = await this.repo.findAccountByCode(dto.code);
     if (existing) {
-      throw new ConflictException(`Chart of account with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Chart of account with code '${dto.code}' already exists`,
+      );
     }
 
     if (dto.parentId) {
       const parent = await this.repo.findAccountById(dto.parentId);
-      if (!parent) throw new NotFoundException(`Parent account '${dto.parentId}' not found`);
+      if (!parent)
+        throw new NotFoundException(
+          `Parent account '${dto.parentId}' not found`,
+        );
     }
 
     const account = await this.repo.createAccount(dto);
@@ -68,7 +73,9 @@ export class FinanceService {
 
   async createJournalEntry(userId: string, dto: CreateJournalEntryDto) {
     if (!dto.lines || dto.lines.length < 2) {
-      throw new BadRequestException("Journal entry must contain at least two lines for double-entry");
+      throw new BadRequestException(
+        "Journal entry must contain at least two lines for double-entry",
+      );
     }
 
     // Verify all accounts exist
@@ -98,7 +105,11 @@ export class FinanceService {
         action: AuditAction.CREATE,
         entity: "JournalEntry",
         entityId: entry.id,
-        payload: { entryNumber, totalAmount: totalDebit, lineCount: dto.lines.length },
+        payload: {
+          entryNumber,
+          totalAmount: totalDebit,
+          lineCount: dto.lines.length,
+        },
       },
     });
 
@@ -209,7 +220,9 @@ export class FinanceService {
   async createBankAccount(userId: string, dto: CreateBankAccountDto) {
     const existing = await this.repo.findBankAccountByNumber(dto.accountNumber);
     if (existing) {
-      throw new ConflictException(`Bank account with number '${dto.accountNumber}' already exists`);
+      throw new ConflictException(
+        `Bank account with number '${dto.accountNumber}' already exists`,
+      );
     }
 
     const bankAccount = await this.repo.createBankAccount(dto);
@@ -220,7 +233,10 @@ export class FinanceService {
         action: AuditAction.CREATE,
         entity: "BankAccount",
         entityId: bankAccount.id,
-        payload: { bankName: bankAccount.bankName, accountNumber: bankAccount.accountNumber },
+        payload: {
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+        },
       },
     });
 

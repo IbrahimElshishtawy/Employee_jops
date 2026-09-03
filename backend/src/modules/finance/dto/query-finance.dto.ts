@@ -23,7 +23,9 @@ export class QueryJournalEntriesDto {
   @IsEnum(JournalEntryStatus)
   status?: JournalEntryStatus;
 
-  @ApiPropertyOptional({ description: "Search by entryNumber, reference, memo" })
+  @ApiPropertyOptional({
+    description: "Search by entryNumber, reference, memo",
+  })
   @IsOptional()
   @IsString()
   search?: string;

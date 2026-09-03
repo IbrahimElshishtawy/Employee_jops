@@ -54,6 +54,9 @@ import { SessionsModule } from "./modules/sessions/sessions.module";
 import { IntegrationsModule } from "./modules/integrations/integrations.module";
 import { OfflineSyncModule } from "./modules/offline-sync/offline-sync.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
+import { StorageModule } from "./modules/storage/storage.module";
+import { SchedulerModule } from "./modules/scheduler/scheduler.module";
+import { BackupModule } from "./modules/backup/backup.module";
 
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
@@ -132,6 +135,9 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     IntegrationsModule,
     OfflineSyncModule,
     DashboardModule,
+    StorageModule,
+    SchedulerModule,
+    BackupModule,
   ],
   providers: [
     // Global Throttler Guard

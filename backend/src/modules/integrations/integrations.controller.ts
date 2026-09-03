@@ -49,10 +49,7 @@ export class IntegrationsController {
 
   @Delete("api-keys/:id")
   @ApiOperation({ summary: "Revoke an API key" })
-  revokeApiKey(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  revokeApiKey(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.integrationsService.revokeApiKey(id, userId);
   }
 

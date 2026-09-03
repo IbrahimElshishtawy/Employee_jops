@@ -27,7 +27,9 @@ export class VisitorsService {
     });
 
     if (!host) {
-      throw new NotFoundException(`Host employee '${dto.hostEmployeeId}' not found`);
+      throw new NotFoundException(
+        `Host employee '${dto.hostEmployeeId}' not found`,
+      );
     }
 
     const visitorNumber = await this.repo.generateVisitorNumber();
@@ -35,13 +37,15 @@ export class VisitorsService {
 
     // Notify host employee
     if (host.user?.id) {
-      await this.notificationsService.sendNotification(
-        host.user.id,
-        "Visitor Arrival",
-        `${dto.fullName} (${dto.company || "Guest"}) has checked in to meet you. Purpose: ${dto.purpose}`,
-        NotificationType.GENERAL_ANNOUNCEMENT,
-        { visitorId: visitor.id, visitorNumber },
-      ).catch(() => {});
+      await this.notificationsService
+        .sendNotification(
+          host.user.id,
+          "Visitor Arrival",
+          `${dto.fullName} (${dto.company || "Guest"}) has checked in to meet you. Purpose: ${dto.purpose}`,
+          NotificationType.GENERAL_ANNOUNCEMENT,
+          { visitorId: visitor.id, visitorNumber },
+        )
+        .catch(() => {});
     }
 
     await this.prisma.auditLog.create({
@@ -50,7 +54,11 @@ export class VisitorsService {
         action: AuditAction.CREATE,
         entity: "VisitorLog",
         entityId: visitor.id,
-        payload: { visitorNumber, fullName: visitor.fullName, hostEmployeeId: dto.hostEmployeeId },
+        payload: {
+          visitorNumber,
+          fullName: visitor.fullName,
+          hostEmployeeId: dto.hostEmployeeId,
+        },
       },
     });
 
@@ -59,10 +67,13 @@ export class VisitorsService {
 
   async checkOutVisitor(id: string, userId: string, dto: CheckOutVisitorDto) {
     const visitor = await this.repo.findVisitorById(id);
-    if (!visitor) throw new NotFoundException(`Visitor record '${id}' not found`);
+    if (!visitor)
+      throw new NotFoundException(`Visitor record '${id}' not found`);
 
     if (visitor.status !== VisitorStatus.CHECKED_IN) {
-      throw new BadRequestException(`Visitor '${id}' is already ${visitor.status}`);
+      throw new BadRequestException(
+        `Visitor '${id}' is already ${visitor.status}`,
+      );
     }
 
     const updated = await this.repo.checkOutVisitor(id, dto);
@@ -73,7 +84,10 @@ export class VisitorsService {
         action: AuditAction.UPDATE,
         entity: "VisitorLog",
         entityId: id,
-        payload: { status: VisitorStatus.CHECKED_OUT, checkOutTime: updated.checkOutTime },
+        payload: {
+          status: VisitorStatus.CHECKED_OUT,
+          checkOutTime: updated.checkOutTime,
+        },
       },
     });
 
@@ -86,7 +100,8 @@ export class VisitorsService {
 
   async findVisitorById(id: string) {
     const visitor = await this.repo.findVisitorById(id);
-    if (!visitor) throw new NotFoundException(`Visitor record '${id}' not found`);
+    if (!visitor)
+      throw new NotFoundException(`Visitor record '${id}' not found`);
     return visitor;
   }
 }

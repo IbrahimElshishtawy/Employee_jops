@@ -39,20 +39,36 @@ export class IncidentsService {
     });
 
     if (!reporter || reporter.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required to report an incident");
+      throw new BadRequestException(
+        "Active employee profile required to report an incident",
+      );
     }
 
     if (dto.departmentId) {
-      const dept = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
-      if (!dept) throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+      const dept = await this.prisma.department.findUnique({
+        where: { id: dto.departmentId },
+      });
+      if (!dept)
+        throw new NotFoundException(
+          `Department '${dto.departmentId}' not found`,
+        );
     }
 
     const incidentNumber = await this.repo.generateIncidentNumber();
-    const incident = await this.repo.createIncident(reporter.id, dto, incidentNumber);
+    const incident = await this.repo.createIncident(
+      reporter.id,
+      dto,
+      incidentNumber,
+    );
 
     // If critical or high severity, log alert
-    if (dto.severity === IncidentSeverity.CRITICAL || dto.severity === IncidentSeverity.HIGH) {
-      this.logger.warn(`High-severity incident reported: ${incidentNumber} - ${dto.title}`);
+    if (
+      dto.severity === IncidentSeverity.CRITICAL ||
+      dto.severity === IncidentSeverity.HIGH
+    ) {
+      this.logger.warn(
+        `High-severity incident reported: ${incidentNumber} - ${dto.title}`,
+      );
     }
 
     await this.prisma.auditLog.create({
@@ -61,7 +77,11 @@ export class IncidentsService {
         action: AuditAction.CREATE,
         entity: "SafetyIncident",
         entityId: incident.id,
-        payload: { incidentNumber, title: incident.title, severity: incident.severity },
+        payload: {
+          incidentNumber,
+          title: incident.title,
+          severity: incident.severity,
+        },
       },
     });
 
@@ -88,24 +108,37 @@ export class IncidentsService {
         action: AuditAction.UPDATE,
         entity: "SafetyIncident",
         entityId: id,
-        payload: { changes: JSON.parse(JSON.stringify(dto)), newStatus: updated.status },
+        payload: {
+          changes: JSON.parse(JSON.stringify(dto)),
+          newStatus: updated.status,
+        },
       },
     });
 
     return updated;
   }
 
-  async addInvestigation(incidentId: string, userId: string, dto: AddInvestigationDto) {
+  async addInvestigation(
+    incidentId: string,
+    userId: string,
+    dto: AddInvestigationDto,
+  ) {
     await this.findIncidentById(incidentId);
 
     const investigator = await this.prisma.employeeProfile.findUnique({
       where: { userId },
     });
     if (!investigator) {
-      throw new BadRequestException("Employee profile required to submit investigation");
+      throw new BadRequestException(
+        "Employee profile required to submit investigation",
+      );
     }
 
-    const investigation = await this.repo.addInvestigation(incidentId, investigator.id, dto);
+    const investigation = await this.repo.addInvestigation(
+      incidentId,
+      investigator.id,
+      dto,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -120,7 +153,11 @@ export class IncidentsService {
     return investigation;
   }
 
-  async addCorrectiveAction(incidentId: string, userId: string, dto: AddCorrectiveActionDto) {
+  async addCorrectiveAction(
+    incidentId: string,
+    userId: string,
+    dto: AddCorrectiveActionDto,
+  ) {
     await this.findIncidentById(incidentId);
 
     if (dto.assignedToId) {
@@ -128,7 +165,9 @@ export class IncidentsService {
         where: { id: dto.assignedToId },
       });
       if (!assignee) {
-        throw new NotFoundException(`Assignee employee '${dto.assignedToId}' not found`);
+        throw new NotFoundException(
+          `Assignee employee '${dto.assignedToId}' not found`,
+        );
       }
     }
 
@@ -140,15 +179,26 @@ export class IncidentsService {
         action: AuditAction.CREATE,
         entity: "IncidentCorrectiveAction",
         entityId: action.id,
-        payload: { incidentId, actionTitle: dto.actionTitle, assignedToId: dto.assignedToId },
+        payload: {
+          incidentId,
+          actionTitle: dto.actionTitle,
+          assignedToId: dto.assignedToId,
+        },
       },
     });
 
     return action;
   }
 
-  async resolveCorrectiveAction(actionId: string, userId: string, resolutionNotes?: string) {
-    const updated = await this.repo.resolveCorrectiveAction(actionId, resolutionNotes);
+  async resolveCorrectiveAction(
+    actionId: string,
+    userId: string,
+    resolutionNotes?: string,
+  ) {
+    const updated = await this.repo.resolveCorrectiveAction(
+      actionId,
+      resolutionNotes,
+    );
 
     await this.prisma.auditLog.create({
       data: {

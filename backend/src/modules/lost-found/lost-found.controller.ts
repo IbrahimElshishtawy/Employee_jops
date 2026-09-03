@@ -20,7 +20,11 @@ import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Role, LostFoundStatus } from "@prisma/client";
-import { CreateLostFoundItemDto, ClaimLostFoundItemDto, QueryLostFoundDto } from "./dto";
+import {
+  CreateLostFoundItemDto,
+  ClaimLostFoundItemDto,
+  QueryLostFoundDto,
+} from "./dto";
 
 @ApiTags("Lost & Found")
 @ApiBearerAuth()
@@ -40,7 +44,9 @@ export class LostFoundController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List lost and found items with filters and search" })
+  @ApiOperation({
+    summary: "List lost and found items with filters and search",
+  })
   findItems(@Query() query: QueryLostFoundDto) {
     return this.lostFoundService.findItems(query);
   }
@@ -64,7 +70,9 @@ export class LostFoundController {
 
   @Patch(":id/status")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
-  @ApiOperation({ summary: "Update item status (DISPOSED, AUCTIONED, EXPIRED)" })
+  @ApiOperation({
+    summary: "Update item status (DISPOSED, AUCTIONED, EXPIRED)",
+  })
   updateItemStatus(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,

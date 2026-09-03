@@ -97,7 +97,9 @@ export class TrainingController {
 
   @Patch("enrollments/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Update enrollment status and score (e.g. COMPLETED, FAILED)" })
+  @ApiOperation({
+    summary: "Update enrollment status and score (e.g. COMPLETED, FAILED)",
+  })
   updateEnrollment(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,

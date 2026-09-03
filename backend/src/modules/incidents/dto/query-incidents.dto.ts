@@ -18,7 +18,9 @@ export class QueryIncidentsDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by title, description, incidentNumber, location" })
+  @ApiPropertyOptional({
+    description: "Search by title, description, incidentNumber, location",
+  })
   @IsOptional()
   @IsString()
   search?: string;

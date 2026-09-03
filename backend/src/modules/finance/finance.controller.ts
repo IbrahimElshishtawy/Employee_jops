@@ -73,7 +73,9 @@ export class FinanceController {
   }
 
   @Get("journal-entries/:id")
-  @ApiOperation({ summary: "Get journal entry details including debit/credit lines" })
+  @ApiOperation({
+    summary: "Get journal entry details including debit/credit lines",
+  })
   findJournalEntryById(@Param("id") id: string) {
     return this.financeService.findJournalEntryById(id);
   }
@@ -81,10 +83,7 @@ export class FinanceController {
   @Post("journal-entries/:id/post")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Post a journal entry to the general ledger" })
-  postJournalEntry(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  postJournalEntry(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.financeService.postJournalEntry(id, userId);
   }
 

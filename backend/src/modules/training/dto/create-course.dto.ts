@@ -22,12 +22,18 @@ export class CreateTrainingCourseDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: "Comprehensive hands-on fire extinguisher drill and building emergency evacuation" })
+  @ApiProperty({
+    example:
+      "Comprehensive hands-on fire extinguisher drill and building emergency evacuation",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiPropertyOptional({ enum: TrainingCategory, default: TrainingCategory.SAFETY })
+  @ApiPropertyOptional({
+    enum: TrainingCategory,
+    default: TrainingCategory.SAFETY,
+  })
   @IsOptional()
   @IsEnum(TrainingCategory)
   category?: TrainingCategory;
@@ -42,7 +48,10 @@ export class CreateTrainingCourseDto {
   @Min(0.5)
   durationHours: number;
 
-  @ApiPropertyOptional({ example: 12, description: "Certificate validity in months" })
+  @ApiPropertyOptional({
+    example: 12,
+    description: "Certificate validity in months",
+  })
   @IsOptional()
   @IsInt()
   @Min(1)

@@ -20,7 +20,11 @@ import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Role, BudgetStatus } from "@prisma/client";
-import { CreateBudgetDto, RecordBudgetSpendingDto, QueryBudgetsDto } from "./dto";
+import {
+  CreateBudgetDto,
+  RecordBudgetSpendingDto,
+  QueryBudgetsDto,
+} from "./dto";
 
 @ApiTags("Budget Management")
 @ApiBearerAuth()
@@ -31,7 +35,9 @@ export class BudgetController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Create a budget plan with category allocation lines" })
+  @ApiOperation({
+    summary: "Create a budget plan with category allocation lines",
+  })
   createBudget(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateBudgetDto,

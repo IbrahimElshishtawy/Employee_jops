@@ -6,7 +6,11 @@ import {
 } from "@nestjs/common";
 import { LostFoundRepository } from "./lost-found.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateLostFoundItemDto, ClaimLostFoundItemDto, QueryLostFoundDto } from "./dto";
+import {
+  CreateLostFoundItemDto,
+  ClaimLostFoundItemDto,
+  QueryLostFoundDto,
+} from "./dto";
 import { AuditAction, LostFoundStatus, UserStatus } from "@prisma/client";
 
 @Injectable()
@@ -25,7 +29,9 @@ export class LostFoundService {
     });
 
     if (!finder || finder.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required to register a found item");
+      throw new BadRequestException(
+        "Active employee profile required to register a found item",
+      );
     }
 
     const itemNumber = await this.repo.generateItemNumber();
@@ -37,7 +43,11 @@ export class LostFoundService {
         action: AuditAction.CREATE,
         entity: "LostFoundItem",
         entityId: item.id,
-        payload: { itemNumber, itemName: item.itemName, locationFound: item.locationFound },
+        payload: {
+          itemNumber,
+          itemName: item.itemName,
+          locationFound: item.locationFound,
+        },
       },
     });
 
@@ -50,7 +60,8 @@ export class LostFoundService {
 
   async findItemById(id: string) {
     const item = await this.repo.findItemById(id);
-    if (!item) throw new NotFoundException(`Lost & found item '${id}' not found`);
+    if (!item)
+      throw new NotFoundException(`Lost & found item '${id}' not found`);
     return item;
   }
 
@@ -58,7 +69,9 @@ export class LostFoundService {
     const item = await this.findItemById(id);
 
     if (item.status !== LostFoundStatus.FOUND) {
-      throw new BadRequestException(`Item '${id}' is already marked as ${item.status}`);
+      throw new BadRequestException(
+        `Item '${id}' is already marked as ${item.status}`,
+      );
     }
 
     const updated = await this.repo.claimItem(id, dto);

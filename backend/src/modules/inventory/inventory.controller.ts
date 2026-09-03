@@ -75,7 +75,10 @@ export class InventoryController {
   // Items
   @Post("items")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Create a new stock item with SKU, thresholds, and initial balance" })
+  @ApiOperation({
+    summary:
+      "Create a new stock item with SKU, thresholds, and initial balance",
+  })
   createStockItem(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateStockItemDto,
@@ -84,7 +87,10 @@ export class InventoryController {
   }
 
   @Get("items")
-  @ApiOperation({ summary: "List stock items with search, warehouse filter, and low-stock indicator" })
+  @ApiOperation({
+    summary:
+      "List stock items with search, warehouse filter, and low-stock indicator",
+  })
   findStockItems(@Query() query: QueryStockItemsDto) {
     return this.inventoryService.findStockItems(query);
   }
@@ -97,7 +103,9 @@ export class InventoryController {
 
   @Patch("items/:id")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Update stock item metadata, thresholds, or pricing" })
+  @ApiOperation({
+    summary: "Update stock item metadata, thresholds, or pricing",
+  })
   updateStockItem(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -109,7 +117,9 @@ export class InventoryController {
   // Movements
   @Post("movements")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Execute a stock movement (RECEIVE, ISSUE, TRANSFER, ADJUST)" })
+  @ApiOperation({
+    summary: "Execute a stock movement (RECEIVE, ISSUE, TRANSFER, ADJUST)",
+  })
   executeStockMovement(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateStockMovementDto,
@@ -126,7 +136,9 @@ export class InventoryController {
   // Physical Counts
   @Post("counts")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Initiate a physical inventory count audit session" })
+  @ApiOperation({
+    summary: "Initiate a physical inventory count audit session",
+  })
   createStockCount(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateStockCountDto,

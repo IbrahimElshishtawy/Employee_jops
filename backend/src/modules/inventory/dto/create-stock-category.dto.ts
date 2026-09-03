@@ -12,7 +12,9 @@ export class CreateStockCategoryDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ example: "Sheets, pillowcases, bath towels, and bathrobes" })
+  @ApiPropertyOptional({
+    example: "Sheets, pillowcases, bath towels, and bathrobes",
+  })
   @IsOptional()
   @IsString()
   description?: string;

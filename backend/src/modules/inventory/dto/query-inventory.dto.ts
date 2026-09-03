@@ -32,7 +32,9 @@ export class QueryStockItemsDto {
   @IsString()
   categoryId?: string;
 
-  @ApiPropertyOptional({ description: "Filter items where quantityOnHand <= reorderLevel" })
+  @ApiPropertyOptional({
+    description: "Filter items where quantityOnHand <= reorderLevel",
+  })
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()

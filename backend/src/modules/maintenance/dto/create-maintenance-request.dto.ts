@@ -14,27 +14,41 @@ export class CreateMaintenanceRequestDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: "Water dripping from the indoor unit onto the carpet" })
+  @ApiProperty({
+    example: "Water dripping from the indoor unit onto the carpet",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiPropertyOptional({ enum: MaintenanceType, default: MaintenanceType.CORRECTIVE })
+  @ApiPropertyOptional({
+    enum: MaintenanceType,
+    default: MaintenanceType.CORRECTIVE,
+  })
   @IsOptional()
   @IsEnum(MaintenanceType)
   type?: MaintenanceType;
 
-  @ApiPropertyOptional({ enum: MaintenancePriority, default: MaintenancePriority.MEDIUM })
+  @ApiPropertyOptional({
+    enum: MaintenancePriority,
+    default: MaintenancePriority.MEDIUM,
+  })
   @IsOptional()
   @IsEnum(MaintenancePriority)
   priority?: MaintenancePriority;
 
-  @ApiPropertyOptional({ example: "ast-uuid-123", description: "Optional Asset ID" })
+  @ApiPropertyOptional({
+    example: "ast-uuid-123",
+    description: "Optional Asset ID",
+  })
   @IsOptional()
   @IsString()
   assetId?: string;
 
-  @ApiProperty({ example: "dept-engineering-uuid", description: "Target servicing department (Engineering)" })
+  @ApiProperty({
+    example: "dept-engineering-uuid",
+    description: "Target servicing department (Engineering)",
+  })
   @IsString()
   @IsNotEmpty()
   departmentId: string;

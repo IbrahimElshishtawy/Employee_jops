@@ -27,7 +27,10 @@ export class SessionsService {
         action: AuditAction.CREATE,
         entity: "UserDeviceSession",
         entityId: session.id,
-        payload: { sessionToken: dto.sessionToken, deviceModel: dto.deviceModel },
+        payload: {
+          sessionToken: dto.sessionToken,
+          deviceModel: dto.deviceModel,
+        },
       },
     });
 
@@ -40,10 +43,13 @@ export class SessionsService {
 
   async terminateSession(userId: string, sessionId: string) {
     const session = await this.repo.findSessionById(sessionId);
-    if (!session) throw new NotFoundException(`Session '${sessionId}' not found`);
+    if (!session)
+      throw new NotFoundException(`Session '${sessionId}' not found`);
 
     if (session.userId !== userId) {
-      throw new ForbiddenException("Cannot terminate session belonging to another user");
+      throw new ForbiddenException(
+        "Cannot terminate session belonging to another user",
+      );
     }
 
     const updated = await this.repo.terminateSession(sessionId);
@@ -62,7 +68,10 @@ export class SessionsService {
   }
 
   async terminateAllOtherSessions(userId: string, currentSessionId: string) {
-    const result = await this.repo.terminateAllOtherSessions(currentSessionId, userId);
+    const result = await this.repo.terminateAllOtherSessions(
+      currentSessionId,
+      userId,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -70,7 +79,10 @@ export class SessionsService {
         action: AuditAction.DELETE,
         entity: "UserDeviceSession",
         entityId: currentSessionId,
-        payload: { message: "Terminated all other sessions", count: result.count },
+        payload: {
+          message: "Terminated all other sessions",
+          count: result.count,
+        },
       },
     });
 

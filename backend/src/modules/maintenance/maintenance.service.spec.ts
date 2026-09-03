@@ -3,8 +3,16 @@ import { MaintenanceService } from "./maintenance.service";
 import { MaintenanceRepository } from "./maintenance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { BadRequestException, NotFoundException, ConflictException } from "@nestjs/common";
-import { UserStatus, MaintenanceRequestStatus, WorkOrderStatus } from "@prisma/client";
+import {
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import {
+  UserStatus,
+  MaintenanceRequestStatus,
+  WorkOrderStatus,
+} from "@prisma/client";
 
 describe("MaintenanceService", () => {
   let service: MaintenanceService;
@@ -85,7 +93,10 @@ describe("MaintenanceService", () => {
         user: { status: UserStatus.ACTIVE },
       });
       prisma.asset.findUnique.mockResolvedValue({ id: "ast-1" });
-      prisma.department.findUnique.mockResolvedValue({ id: "dept-1", isActive: true });
+      prisma.department.findUnique.mockResolvedValue({
+        id: "dept-1",
+        isActive: true,
+      });
       repo.createRequest.mockResolvedValue({
         id: "maint-1",
         requestNumber: "MR-20260903-0001",

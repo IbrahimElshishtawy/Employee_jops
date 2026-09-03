@@ -108,7 +108,9 @@ export class ProcurementController {
   // Purchase Orders
   @Post("orders")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Create a purchase order (PO) from scratch or from approved PR" })
+  @ApiOperation({
+    summary: "Create a purchase order (PO) from scratch or from approved PR",
+  })
   createPurchaseOrder(
     @CurrentUser("id") userId: string,
     @Body() dto: CreatePurchaseOrderDto,
@@ -130,13 +132,20 @@ export class ProcurementController {
 
   @Patch("orders/:id/status")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Update purchase order status (SENT, PARTIALLY_RECEIVED, RECEIVED, etc.)" })
+  @ApiOperation({
+    summary:
+      "Update purchase order status (SENT, PARTIALLY_RECEIVED, RECEIVED, etc.)",
+  })
   updatePurchaseOrderStatus(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
     @Body("status") status: PurchaseOrderStatus,
   ) {
-    return this.procurementService.updatePurchaseOrderStatus(id, userId, status);
+    return this.procurementService.updatePurchaseOrderStatus(
+      id,
+      userId,
+      status,
+    );
   }
 
   // Supplier Invoices

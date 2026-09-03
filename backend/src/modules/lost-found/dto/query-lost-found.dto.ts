@@ -18,7 +18,9 @@ export class QueryLostFoundDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by itemName, description, itemNumber, locationFound" })
+  @ApiPropertyOptional({
+    description: "Search by itemName, description, itemNumber, locationFound",
+  })
   @IsOptional()
   @IsString()
   search?: string;

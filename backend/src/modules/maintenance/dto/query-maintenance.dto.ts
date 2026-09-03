@@ -1,7 +1,12 @@
 import { IsOptional, IsString, IsEnum, IsInt, Min } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { MaintenanceRequestStatus, WorkOrderStatus, MaintenancePriority, MaintenanceType } from "@prisma/client";
+import {
+  MaintenanceRequestStatus,
+  WorkOrderStatus,
+  MaintenancePriority,
+  MaintenanceType,
+} from "@prisma/client";
 
 export class QueryMaintenanceRequestsDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -18,7 +23,9 @@ export class QueryMaintenanceRequestsDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by title, description, requestNumber" })
+  @ApiPropertyOptional({
+    description: "Search by title, description, requestNumber",
+  })
   @IsOptional()
   @IsString()
   search?: string;
@@ -64,7 +71,9 @@ export class QueryWorkOrdersDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by title, description, orderNumber" })
+  @ApiPropertyOptional({
+    description: "Search by title, description, orderNumber",
+  })
   @IsOptional()
   @IsString()
   search?: string;

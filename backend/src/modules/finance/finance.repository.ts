@@ -172,7 +172,11 @@ export class FinanceRepository {
   // EXPENSES
   // ============================================================
 
-  async createExpense(userId: string, dto: CreateExpenseDto, expenseNumber: string) {
+  async createExpense(
+    userId: string,
+    dto: CreateExpenseDto,
+    expenseNumber: string,
+  ) {
     return this.prisma.financialExpense.create({
       data: {
         expenseNumber,
@@ -233,7 +237,11 @@ export class FinanceRepository {
   // REVENUES
   // ============================================================
 
-  async createRevenue(userId: string, dto: CreateRevenueDto, receiptNumber: string) {
+  async createRevenue(
+    userId: string,
+    dto: CreateRevenueDto,
+    receiptNumber: string,
+  ) {
     return this.prisma.financialRevenue.create({
       data: {
         receiptNumber,

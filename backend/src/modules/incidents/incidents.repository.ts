@@ -33,7 +33,9 @@ export class IncidentsRepository {
         type: dto.type,
         severity: dto.severity,
         location: dto.location,
-        incidentDate: dto.incidentDate ? new Date(dto.incidentDate) : new Date(),
+        incidentDate: dto.incidentDate
+          ? new Date(dto.incidentDate)
+          : new Date(),
         reporterId: reporterProfileId,
         departmentId: dto.departmentId,
         evidenceUrls: dto.evidenceUrls || [],
@@ -49,7 +51,15 @@ export class IncidentsRepository {
   }
 
   async findIncidents(query: QueryIncidentsDto) {
-    const { page = 1, limit = 20, search, type, severity, status, departmentId } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      type,
+      severity,
+      status,
+      departmentId,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.SafetyIncidentWhereInput = {};
@@ -127,7 +137,11 @@ export class IncidentsRepository {
     });
   }
 
-  async addInvestigation(incidentId: string, investigatorProfileId: string, dto: AddInvestigationDto) {
+  async addInvestigation(
+    incidentId: string,
+    investigatorProfileId: string,
+    dto: AddInvestigationDto,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Create investigation
       const investigation = await tx.incidentInvestigation.create({

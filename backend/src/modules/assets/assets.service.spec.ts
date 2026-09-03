@@ -2,7 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AssetsService } from "./assets.service";
 import { AssetsRepository } from "./assets.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { AssetStatus } from "@prisma/client";
 
 describe("AssetsService", () => {
@@ -52,7 +56,11 @@ describe("AssetsService", () => {
 
   describe("createCategory", () => {
     it("should throw ConflictException if category code exists", async () => {
-      repo.findCategoryByCode.mockResolvedValue({ id: "cat-1", code: "IT", name: "IT" } as any);
+      repo.findCategoryByCode.mockResolvedValue({
+        id: "cat-1",
+        code: "IT",
+        name: "IT",
+      } as any);
 
       await expect(
         service.createCategory("user-1", { name: "IT", code: "IT" }),
@@ -61,9 +69,16 @@ describe("AssetsService", () => {
 
     it("should create category and log audit", async () => {
       repo.findCategoryByCode.mockResolvedValue(null);
-      repo.createCategory.mockResolvedValue({ id: "cat-1", code: "IT", name: "IT" } as any);
+      repo.createCategory.mockResolvedValue({
+        id: "cat-1",
+        code: "IT",
+        name: "IT",
+      } as any);
 
-      const result = await service.createCategory("user-1", { name: "IT", code: "IT" });
+      const result = await service.createCategory("user-1", {
+        name: "IT",
+        code: "IT",
+      });
       expect(result.id).toBe("cat-1");
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });
@@ -74,7 +89,11 @@ describe("AssetsService", () => {
       repo.findAssetByCode.mockResolvedValue({ id: "ast-1" } as any);
 
       await expect(
-        service.createAsset("user-1", { assetCode: "AST-01", name: "Laptop", categoryId: "cat-1" }),
+        service.createAsset("user-1", {
+          assetCode: "AST-01",
+          name: "Laptop",
+          categoryId: "cat-1",
+        }),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -83,7 +102,11 @@ describe("AssetsService", () => {
       repo.findCategoryById.mockResolvedValue(null);
 
       await expect(
-        service.createAsset("user-1", { assetCode: "AST-01", name: "Laptop", categoryId: "cat-1" }),
+        service.createAsset("user-1", {
+          assetCode: "AST-01",
+          name: "Laptop",
+          categoryId: "cat-1",
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -135,7 +158,9 @@ describe("AssetsService", () => {
         purchaseDate: null,
       } as any);
 
-      await expect(service.calculateDepreciation("ast-1")).rejects.toThrow(BadRequestException);
+      await expect(service.calculateDepreciation("ast-1")).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

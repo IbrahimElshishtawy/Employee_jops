@@ -25,7 +25,9 @@ export class CreateBudgetLineDto {
   @Min(0)
   allocatedAmount: number;
 
-  @ApiPropertyOptional({ example: "Linen, cleaning chemicals, guest amenities" })
+  @ApiPropertyOptional({
+    example: "Linen, cleaning chemicals, guest amenities",
+  })
   @IsOptional()
   @IsString()
   notes?: string;
@@ -46,7 +48,10 @@ export class CreateBudgetDto {
   @IsInt()
   fiscalYear: number;
 
-  @ApiPropertyOptional({ enum: BudgetPeriodType, default: BudgetPeriodType.ANNUAL })
+  @ApiPropertyOptional({
+    enum: BudgetPeriodType,
+    default: BudgetPeriodType.ANNUAL,
+  })
   @IsOptional()
   @IsEnum(BudgetPeriodType)
   periodType?: BudgetPeriodType;

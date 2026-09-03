@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Query,
+  Param,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -15,7 +16,8 @@ import {
 import { OfflineSyncService } from "./offline-sync.service";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { PushSyncBatchDto, QuerySyncQueueDto } from "./dto";
+import { PushSyncBatchDto, QuerySyncQueueDto, ResolveConflictDto } from "./dto";
+import { SyncStatus } from "@prisma/client";
 
 @ApiTags("Offline Sync Engine")
 @ApiBearerAuth()
@@ -25,7 +27,9 @@ export class OfflineSyncController {
   constructor(private readonly offlineSyncService: OfflineSyncService) {}
 
   @Post("batch")
-  @ApiOperation({ summary: "Push batch of offline actions recorded on mobile client" })
+  @ApiOperation({
+    summary: "Push batch of offline actions recorded on mobile client",
+  })
   @ApiResponse({ status: 200, description: "Batch processed" })
   processSyncBatch(
     @CurrentUser("id") userId: string,
@@ -41,5 +45,37 @@ export class OfflineSyncController {
     @Query() query: QuerySyncQueueDto,
   ) {
     return this.offlineSyncService.getMySyncQueue(userId, query);
+  }
+
+  @Post("retry/:id")
+  @ApiOperation({ summary: "Retry a failed or pending sync item (FR-SYNC-006)" })
+  retryItem(
+    @CurrentUser("id") userId: string,
+    @Param("id") itemId: string,
+  ) {
+    return this.offlineSyncService.retryItem(userId, itemId);
+  }
+
+  @Post("resolve-conflict/:id")
+  @ApiOperation({
+    summary: "Resolve a synchronization conflict item using specified strategy (FR-SYNC-007)",
+  })
+  resolveConflict(
+    @CurrentUser("id") userId: string,
+    @Param("id") itemId: string,
+    @Body() dto: ResolveConflictDto,
+  ) {
+    return this.offlineSyncService.resolveConflict(userId, itemId, dto);
+  }
+
+  @Get("logs")
+  @ApiOperation({ summary: "Query operational synchronization audit logs (FR-SYNC-008)" })
+  getSyncLogs(
+    @Query("entityType") entityType?: string,
+    @Query("status") status?: SyncStatus,
+    @Query("page") page?: number,
+    @Query("limit") limit?: number,
+  ) {
+    return this.offlineSyncService.getSyncLogs({ entityType, status, page, limit });
   }
 }

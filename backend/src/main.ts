@@ -8,7 +8,10 @@ import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "@fastify/helmet";
 import compression from "@fastify/compress";
+import fastifyStatic from "@fastify/static";
 import * as crypto from "crypto";
+import * as path from "path";
+import * as fs from "fs";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
@@ -59,6 +62,17 @@ async function bootstrap() {
 
   // Performance: Fastify Compression
   await app.register(compression as any);
+
+  // File Storage: Serve /uploads statically
+  const uploadsDir = path.resolve(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  await app.register(fastifyStatic as any, {
+    root: uploadsDir,
+    prefix: "/uploads/",
+    decorateReply: false,
+  });
 
   // CORS Configuration
   const isProduction = process.env.NODE_ENV === "production";

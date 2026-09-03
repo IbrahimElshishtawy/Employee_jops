@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { IntegrationsRepository } from "./integrations.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateApiKeyDto, CreateWebhookDto, QueryLogsDto } from "./dto";
@@ -28,7 +24,12 @@ export class IntegrationsService {
     const keyPrefix = rawKey.slice(0, 12);
     const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
 
-    const apiKey = await this.repo.createApiKey(userId, dto, keyPrefix, keyHash);
+    const apiKey = await this.repo.createApiKey(
+      userId,
+      dto,
+      keyPrefix,
+      keyHash,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -36,7 +37,11 @@ export class IntegrationsService {
         action: AuditAction.CREATE,
         entity: "ApiKey",
         entityId: apiKey.id,
-        payload: { name: apiKey.name, keyPrefix: apiKey.keyPrefix, scopes: apiKey.scopes },
+        payload: {
+          name: apiKey.name,
+          keyPrefix: apiKey.keyPrefix,
+          scopes: apiKey.scopes,
+        },
       },
     });
 
@@ -90,7 +95,11 @@ export class IntegrationsService {
         action: AuditAction.CREATE,
         entity: "WebhookConfig",
         entityId: webhook.id,
-        payload: { name: webhook.name, targetUrl: webhook.targetUrl, events: webhook.events },
+        payload: {
+          name: webhook.name,
+          targetUrl: webhook.targetUrl,
+          events: webhook.events,
+        },
       },
     });
 

@@ -3,7 +3,11 @@ import { InventoryService } from "./inventory.service";
 import { InventoryRepository } from "./inventory.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { StockMovementType } from "@prisma/client";
 
 describe("InventoryService", () => {
@@ -62,15 +66,25 @@ describe("InventoryService", () => {
       repo.findWarehouseByCode.mockResolvedValue({ id: "wh-1" } as any);
 
       await expect(
-        service.createWarehouse("user-1", { code: "WH-MAIN", name: "Main Store" }),
+        service.createWarehouse("user-1", {
+          code: "WH-MAIN",
+          name: "Main Store",
+        }),
       ).rejects.toThrow(ConflictException);
     });
 
     it("should create warehouse and log audit", async () => {
       repo.findWarehouseByCode.mockResolvedValue(null);
-      repo.createWarehouse.mockResolvedValue({ id: "wh-1", code: "WH-MAIN", name: "Main Store" } as any);
+      repo.createWarehouse.mockResolvedValue({
+        id: "wh-1",
+        code: "WH-MAIN",
+        name: "Main Store",
+      } as any);
 
-      const result = await service.createWarehouse("user-1", { code: "WH-MAIN", name: "Main Store" });
+      const result = await service.createWarehouse("user-1", {
+        code: "WH-MAIN",
+        name: "Main Store",
+      });
       expect(result.id).toBe("wh-1");
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });

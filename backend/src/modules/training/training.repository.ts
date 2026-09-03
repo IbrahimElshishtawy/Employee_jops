@@ -144,7 +144,12 @@ export class TrainingRepository {
         enrollments: {
           include: {
             employee: {
-              select: { id: true, firstName: true, lastName: true, employeeCode: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                employeeCode: true,
+              },
             },
           },
         },

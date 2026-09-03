@@ -41,7 +41,9 @@ export class TrainingService {
   async createCourse(userId: string, dto: CreateTrainingCourseDto) {
     const existing = await this.repo.findCourseByCode(dto.code);
     if (existing) {
-      throw new ConflictException(`Course with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Course with code '${dto.code}' already exists`,
+      );
     }
 
     const course = await this.repo.createCourse(dto);
@@ -52,7 +54,11 @@ export class TrainingService {
         action: AuditAction.CREATE,
         entity: "TrainingCourse",
         entityId: course.id,
-        payload: { code: course.code, title: course.title, category: course.category },
+        payload: {
+          code: course.code,
+          title: course.title,
+          category: course.category,
+        },
       },
     });
 
@@ -65,7 +71,8 @@ export class TrainingService {
 
   async findCourseById(id: string) {
     const course = await this.repo.findCourseById(id);
-    if (!course) throw new NotFoundException(`Training course '${id}' not found`);
+    if (!course)
+      throw new NotFoundException(`Training course '${id}' not found`);
     return course;
   }
 
@@ -84,7 +91,11 @@ export class TrainingService {
         action: AuditAction.CREATE,
         entity: "TrainingSession",
         entityId: session.id,
-        payload: { courseId: dto.courseId, courseTitle: course.title, startDate: session.startDate },
+        payload: {
+          courseId: dto.courseId,
+          courseTitle: course.title,
+          startDate: session.startDate,
+        },
       },
     });
 
@@ -97,7 +108,8 @@ export class TrainingService {
 
   async findSessionById(id: string) {
     const session = await this.repo.findSessionById(id);
-    if (!session) throw new NotFoundException(`Training session '${id}' not found`);
+    if (!session)
+      throw new NotFoundException(`Training session '${id}' not found`);
     return session;
   }
 
@@ -105,11 +117,18 @@ export class TrainingService {
   // ENROLLMENTS
   // ============================================================
 
-  async enrollEmployee(sessionId: string, userId: string, dto: EnrollEmployeeDto) {
+  async enrollEmployee(
+    sessionId: string,
+    userId: string,
+    dto: EnrollEmployeeDto,
+  ) {
     const session = await this.findSessionById(sessionId);
 
     // Check capacity
-    if (session.maxParticipants && session.enrollments.length >= session.maxParticipants) {
+    if (
+      session.maxParticipants &&
+      session.enrollments.length >= session.maxParticipants
+    ) {
       throw new BadRequestException("Session is already at full capacity");
     }
 
@@ -117,24 +136,32 @@ export class TrainingService {
       where: { id: dto.employeeId },
       include: { user: true },
     });
-    if (!employee) throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
+    if (!employee)
+      throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
 
     const existing = await this.repo.findEnrollment(sessionId, dto.employeeId);
     if (existing) {
-      throw new ConflictException(`Employee is already enrolled in this session`);
+      throw new ConflictException(
+        `Employee is already enrolled in this session`,
+      );
     }
 
-    const enrollment = await this.repo.enrollEmployee(sessionId, dto.employeeId);
+    const enrollment = await this.repo.enrollEmployee(
+      sessionId,
+      dto.employeeId,
+    );
 
     // Notify employee
     if (employee.user?.id) {
-      await this.notificationsService.sendNotification(
-        employee.user.id,
-        "Enrolled in Training Session",
-        `You have been enrolled in '${session.course.title}' scheduled on ${session.startDate.toISOString().slice(0, 10)}.`,
-        NotificationType.GENERAL_ANNOUNCEMENT,
-        { sessionId, courseId: session.courseId },
-      ).catch(() => {});
+      await this.notificationsService
+        .sendNotification(
+          employee.user.id,
+          "Enrolled in Training Session",
+          `You have been enrolled in '${session.course.title}' scheduled on ${session.startDate.toISOString().slice(0, 10)}.`,
+          NotificationType.GENERAL_ANNOUNCEMENT,
+          { sessionId, courseId: session.courseId },
+        )
+        .catch(() => {});
     }
 
     await this.prisma.auditLog.create({
@@ -175,20 +202,23 @@ export class TrainingService {
       where: { id: dto.employeeId },
       include: { user: true },
     });
-    if (!employee) throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
+    if (!employee)
+      throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
 
     const certNumber = await this.repo.generateCertificateNumber();
     const certificate = await this.repo.issueCertificate(dto, certNumber);
 
     // Notify employee
     if (employee.user?.id) {
-      await this.notificationsService.sendNotification(
-        employee.user.id,
-        "Certificate Issued!",
-        `Congratulations! Your certificate '${dto.title}' (${certNumber}) has been issued.`,
-        NotificationType.GENERAL_ANNOUNCEMENT,
-        { certificateId: certificate.id, certNumber },
-      ).catch(() => {});
+      await this.notificationsService
+        .sendNotification(
+          employee.user.id,
+          "Certificate Issued!",
+          `Congratulations! Your certificate '${dto.title}' (${certNumber}) has been issued.`,
+          NotificationType.GENERAL_ANNOUNCEMENT,
+          { certificateId: certificate.id, certNumber },
+        )
+        .catch(() => {});
     }
 
     await this.prisma.auditLog.create({
@@ -197,7 +227,11 @@ export class TrainingService {
         action: AuditAction.CREATE,
         entity: "EmployeeCertificate",
         entityId: certificate.id,
-        payload: { certificateNumber: certNumber, employeeId: dto.employeeId, title: dto.title },
+        payload: {
+          certificateNumber: certNumber,
+          employeeId: dto.employeeId,
+          title: dto.title,
+        },
       },
     });
 

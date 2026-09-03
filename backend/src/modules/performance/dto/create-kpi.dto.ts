@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  Min,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateKPIDto {
@@ -12,7 +18,9 @@ export class CreateKPIDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiPropertyOptional({ example: "Monthly guest review average score percentage" })
+  @ApiPropertyOptional({
+    example: "Monthly guest review average score percentage",
+  })
   @IsOptional()
   @IsString()
   description?: string;

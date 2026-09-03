@@ -7,7 +7,12 @@ import {
 } from "@nestjs/common";
 import { AssetsRepository } from "./assets.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateAssetDto, UpdateAssetDto, CreateAssetCategoryDto, QueryAssetsDto } from "./dto";
+import {
+  CreateAssetDto,
+  UpdateAssetDto,
+  CreateAssetCategoryDto,
+  QueryAssetsDto,
+} from "./dto";
 import { AuditAction, AssetStatus } from "@prisma/client";
 
 @Injectable()
@@ -26,7 +31,9 @@ export class AssetsService {
   async createCategory(userId: string, dto: CreateAssetCategoryDto) {
     const existing = await this.repo.findCategoryByCode(dto.code);
     if (existing) {
-      throw new ConflictException(`Asset category with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Asset category with code '${dto.code}' already exists`,
+      );
     }
 
     const category = await this.repo.createCategory(dto);
@@ -55,12 +62,16 @@ export class AssetsService {
   async createAsset(userId: string, dto: CreateAssetDto) {
     const existingCode = await this.repo.findAssetByCode(dto.assetCode);
     if (existingCode) {
-      throw new ConflictException(`Asset with code '${dto.assetCode}' already exists`);
+      throw new ConflictException(
+        `Asset with code '${dto.assetCode}' already exists`,
+      );
     }
 
     const category = await this.repo.findCategoryById(dto.categoryId);
     if (!category) {
-      throw new NotFoundException(`Asset category '${dto.categoryId}' not found`);
+      throw new NotFoundException(
+        `Asset category '${dto.categoryId}' not found`,
+      );
     }
 
     if (dto.departmentId) {
@@ -68,7 +79,9 @@ export class AssetsService {
         where: { id: dto.departmentId },
       });
       if (!department) {
-        throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+        throw new NotFoundException(
+          `Department '${dto.departmentId}' not found`,
+        );
       }
     }
 
@@ -77,7 +90,9 @@ export class AssetsService {
         where: { id: dto.assignedToId },
       });
       if (!employee) {
-        throw new NotFoundException(`Employee profile '${dto.assignedToId}' not found`);
+        throw new NotFoundException(
+          `Employee profile '${dto.assignedToId}' not found`,
+        );
       }
     }
 
@@ -89,7 +104,11 @@ export class AssetsService {
         action: AuditAction.CREATE,
         entity: "Asset",
         entityId: asset.id,
-        payload: { assetCode: asset.assetCode, name: asset.name, status: asset.status },
+        payload: {
+          assetCode: asset.assetCode,
+          name: asset.name,
+          status: asset.status,
+        },
       },
     });
 
@@ -141,17 +160,25 @@ export class AssetsService {
     const asset = await this.findOne(id);
 
     if (!asset.purchaseCost || !asset.purchaseDate) {
-      throw new BadRequestException("Asset purchase cost and purchase date are required to calculate depreciation");
+      throw new BadRequestException(
+        "Asset purchase cost and purchase date are required to calculate depreciation",
+      );
     }
 
     const cost = Number(asset.purchaseCost);
     const purchaseTime = new Date(asset.purchaseDate).getTime();
     const nowTime = new Date().getTime();
-    const elapsedMonths = Math.max(0, (nowTime - purchaseTime) / (1000 * 60 * 60 * 24 * 30.4375));
+    const elapsedMonths = Math.max(
+      0,
+      (nowTime - purchaseTime) / (1000 * 60 * 60 * 24 * 30.4375),
+    );
 
     let currentBookValue = cost;
 
-    if (asset.category.usefulLifeMonths && asset.category.usefulLifeMonths > 0) {
+    if (
+      asset.category.usefulLifeMonths &&
+      asset.category.usefulLifeMonths > 0
+    ) {
       const monthlyDepreciation = cost / asset.category.usefulLifeMonths;
       const totalDepreciation = monthlyDepreciation * elapsedMonths;
       currentBookValue = Math.max(0, cost - totalDepreciation);

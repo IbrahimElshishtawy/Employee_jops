@@ -72,7 +72,8 @@ export class PerformanceService {
       where: { id: dto.employeeId },
       include: { user: true },
     });
-    if (!employee) throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
+    if (!employee)
+      throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
 
     if (dto.kpiId) {
       const kpi = await this.repo.findKPIById(dto.kpiId);
@@ -87,7 +88,11 @@ export class PerformanceService {
         action: AuditAction.CREATE,
         entity: "PerformanceGoal",
         entityId: goal.id,
-        payload: { employeeId: dto.employeeId, title: goal.title, targetValue: dto.targetValue },
+        payload: {
+          employeeId: dto.employeeId,
+          title: goal.title,
+          targetValue: dto.targetValue,
+        },
       },
     });
 
@@ -98,12 +103,19 @@ export class PerformanceService {
     return this.repo.findGoals(query);
   }
 
-  async updateGoalProgress(id: string, userId: string, dto: UpdateGoalProgressDto) {
+  async updateGoalProgress(
+    id: string,
+    userId: string,
+    dto: UpdateGoalProgressDto,
+  ) {
     const goal = await this.repo.findGoalById(id);
     if (!goal) throw new NotFoundException(`Goal '${id}' not found`);
 
     let status = dto.status || goal.status;
-    if (dto.currentValue >= Number(goal.targetValue) && status !== GoalStatus.ACHIEVED) {
+    if (
+      dto.currentValue >= Number(goal.targetValue) &&
+      status !== GoalStatus.ACHIEVED
+    ) {
       status = GoalStatus.ACHIEVED;
     } else if (dto.currentValue > 0 && status === GoalStatus.NOT_STARTED) {
       status = GoalStatus.IN_PROGRESS;
@@ -137,27 +149,32 @@ export class PerformanceService {
       include: { user: true },
     });
     if (!reviewer || reviewer.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required for reviewer");
+      throw new BadRequestException(
+        "Active employee profile required for reviewer",
+      );
     }
 
     const employee = await this.prisma.employeeProfile.findUnique({
       where: { id: dto.employeeId },
       include: { user: true },
     });
-    if (!employee) throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
+    if (!employee)
+      throw new NotFoundException(`Employee '${dto.employeeId}' not found`);
 
     const reviewNumber = await this.repo.generateReviewNumber();
     const review = await this.repo.createReview(reviewer.id, dto, reviewNumber);
 
     // Notify employee of performance review
     if (employee.user?.id) {
-      await this.notificationsService.sendNotification(
-        employee.user.id,
-        "Performance Review Completed",
-        `Your performance review for cycle '${dto.cycleName}' has been submitted. Rating: ${dto.overallRating}/5.0`,
-        NotificationType.GENERAL_ANNOUNCEMENT,
-        { reviewId: review.id, reviewNumber },
-      ).catch(() => {});
+      await this.notificationsService
+        .sendNotification(
+          employee.user.id,
+          "Performance Review Completed",
+          `Your performance review for cycle '${dto.cycleName}' has been submitted. Rating: ${dto.overallRating}/5.0`,
+          NotificationType.GENERAL_ANNOUNCEMENT,
+          { reviewId: review.id, reviewNumber },
+        )
+        .catch(() => {});
     }
 
     await this.prisma.auditLog.create({
@@ -166,7 +183,11 @@ export class PerformanceService {
         action: AuditAction.CREATE,
         entity: "PerformanceReview",
         entityId: review.id,
-        payload: { reviewNumber, employeeId: dto.employeeId, overallRating: dto.overallRating },
+        payload: {
+          reviewNumber,
+          employeeId: dto.employeeId,
+          overallRating: dto.overallRating,
+        },
       },
     });
 

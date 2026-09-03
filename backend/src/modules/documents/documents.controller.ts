@@ -20,7 +20,11 @@ import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Role } from "@prisma/client";
-import { CreateDocumentDto, UploadDocumentVersionDto, QueryDocumentsDto } from "./dto";
+import {
+  CreateDocumentDto,
+  UploadDocumentVersionDto,
+  QueryDocumentsDto,
+} from "./dto";
 
 @ApiTags("Documents Management")
 @ApiBearerAuth()
@@ -31,7 +35,9 @@ export class DocumentsController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Upload and register a document in central archive" })
+  @ApiOperation({
+    summary: "Upload and register a document in central archive",
+  })
   createDocument(
     @CurrentUser("id") userId: string,
     @Body() dto: CreateDocumentDto,
@@ -50,10 +56,7 @@ export class DocumentsController {
 
   @Get(":id")
   @ApiOperation({ summary: "Get document details and version history" })
-  findDocumentById(
-    @Param("id") id: string,
-    @CurrentUser("role") role: Role,
-  ) {
+  findDocumentById(@Param("id") id: string, @CurrentUser("role") role: Role) {
     return this.documentsService.findDocumentById(id, role);
   }
 
@@ -71,10 +74,7 @@ export class DocumentsController {
   @Patch(":id/archive")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN)
   @ApiOperation({ summary: "Archive an obsolete document" })
-  archiveDocument(
-    @Param("id") id: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  archiveDocument(@Param("id") id: string, @CurrentUser("id") userId: string) {
     return this.documentsService.archiveDocument(id, userId);
   }
 }

@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateDocumentDto, UploadDocumentVersionDto, QueryDocumentsDto } from "./dto";
+import {
+  CreateDocumentDto,
+  UploadDocumentVersionDto,
+  QueryDocumentsDto,
+} from "./dto";
 import { Prisma, DocumentStatus, Role } from "@prisma/client";
 
 @Injectable()
@@ -14,7 +18,11 @@ export class DocumentsRepository {
     return `DOC-${today}-${seq}`;
   }
 
-  async createDocument(userId: string, dto: CreateDocumentDto, documentNumber: string) {
+  async createDocument(
+    userId: string,
+    dto: CreateDocumentDto,
+    documentNumber: string,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       const doc = await tx.documentRecord.create({
         data: {
@@ -27,9 +35,15 @@ export class DocumentsRepository {
           fileType: dto.fileType || "pdf",
           fileSize: dto.fileSize || 0,
           currentVersion: dto.currentVersion || "1.0",
-          expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : null,
+          expirationDate: dto.expirationDate
+            ? new Date(dto.expirationDate)
+            : null,
           departmentId: dto.departmentId,
-          accessRoles: dto.accessRoles || [Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER],
+          accessRoles: dto.accessRoles || [
+            Role.SUPER_ADMIN,
+            Role.HR_ADMIN,
+            Role.HR_MANAGER,
+          ],
           createdById: userId,
         },
         include: {
@@ -53,7 +67,14 @@ export class DocumentsRepository {
   }
 
   async findDocuments(query: QueryDocumentsDto, userRole?: Role) {
-    const { page = 1, limit = 20, search, category, status, departmentId } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      category,
+      status,
+      departmentId,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.DocumentRecordWhereInput = {};
@@ -106,7 +127,11 @@ export class DocumentsRepository {
     });
   }
 
-  async addVersion(documentId: string, userId: string, dto: UploadDocumentVersionDto) {
+  async addVersion(
+    documentId: string,
+    userId: string,
+    dto: UploadDocumentVersionDto,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Create version
       const version = await tx.documentVersion.create({

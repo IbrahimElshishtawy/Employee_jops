@@ -3,8 +3,16 @@ import { ProcurementService } from "./procurement.service";
 import { ProcurementRepository } from "./procurement.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
-import { UserStatus, PurchaseRequestStatus, PurchaseOrderStatus } from "@prisma/client";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import {
+  UserStatus,
+  PurchaseRequestStatus,
+  PurchaseOrderStatus,
+} from "@prisma/client";
 
 describe("ProcurementService", () => {
   let service: ProcurementService;
@@ -71,9 +79,16 @@ describe("ProcurementService", () => {
 
     it("should create supplier and log audit", async () => {
       repo.findSupplierByCode.mockResolvedValue(null);
-      repo.createSupplier.mockResolvedValue({ id: "sup-1", code: "SUP-01", name: "Al-Safwa" } as any);
+      repo.createSupplier.mockResolvedValue({
+        id: "sup-1",
+        code: "SUP-01",
+        name: "Al-Safwa",
+      } as any);
 
-      const result = await service.createSupplier("user-1", { code: "SUP-01", name: "Al-Safwa" });
+      const result = await service.createSupplier("user-1", {
+        code: "SUP-01",
+        name: "Al-Safwa",
+      });
       expect(result.id).toBe("sup-1");
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });

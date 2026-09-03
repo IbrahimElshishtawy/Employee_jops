@@ -40,10 +40,7 @@ export class PerformanceController {
   @Post("kpis")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
   @ApiOperation({ summary: "Define an employee KPI" })
-  createKPI(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateKPIDto,
-  ) {
+  createKPI(@CurrentUser("id") userId: string, @Body() dto: CreateKPIDto) {
     return this.performanceService.createKPI(userId, dto);
   }
 
@@ -57,10 +54,7 @@ export class PerformanceController {
   @Post("goals")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({ summary: "Assign a performance goal to an employee" })
-  createGoal(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateGoalDto,
-  ) {
+  createGoal(@CurrentUser("id") userId: string, @Body() dto: CreateGoalDto) {
     return this.performanceService.createGoal(userId, dto);
   }
 
@@ -71,7 +65,9 @@ export class PerformanceController {
   }
 
   @Patch("goals/:id/progress")
-  @ApiOperation({ summary: "Update goal progress value and trigger auto-achievement" })
+  @ApiOperation({
+    summary: "Update goal progress value and trigger auto-achievement",
+  })
   updateGoalProgress(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,
@@ -98,13 +94,18 @@ export class PerformanceController {
   }
 
   @Get("reviews/:id")
-  @ApiOperation({ summary: "Get review details including strengths and improvement areas" })
+  @ApiOperation({
+    summary: "Get review details including strengths and improvement areas",
+  })
   findReviewById(@Param("id") id: string) {
     return this.performanceService.findReviewById(id);
   }
 
   @Post("reviews/:id/acknowledge")
-  @ApiOperation({ summary: "Employee acknowledges receipt and discussion of performance review" })
+  @ApiOperation({
+    summary:
+      "Employee acknowledges receipt and discussion of performance review",
+  })
   acknowledgeReview(
     @Param("id") id: string,
     @CurrentUser("id") userId: string,

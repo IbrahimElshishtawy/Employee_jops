@@ -20,17 +20,25 @@ export class CreateWorkOrderDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: "Inspect compressor, replace drainage pipe, clean filter" })
+  @ApiProperty({
+    example: "Inspect compressor, replace drainage pipe, clean filter",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiPropertyOptional({ enum: MaintenancePriority, default: MaintenancePriority.MEDIUM })
+  @ApiPropertyOptional({
+    enum: MaintenancePriority,
+    default: MaintenancePriority.MEDIUM,
+  })
   @IsOptional()
   @IsEnum(MaintenancePriority)
   priority?: MaintenancePriority;
 
-  @ApiPropertyOptional({ enum: WorkOrderStatus, default: WorkOrderStatus.PENDING })
+  @ApiPropertyOptional({
+    enum: WorkOrderStatus,
+    default: WorkOrderStatus.PENDING,
+  })
   @IsOptional()
   @IsEnum(WorkOrderStatus)
   status?: WorkOrderStatus;

@@ -34,17 +34,23 @@ export class CreatePerformanceReviewDto {
   @Max(5.0)
   overallRating: number;
 
-  @ApiPropertyOptional({ example: "Exceptional guest communication and leadership under pressure" })
+  @ApiPropertyOptional({
+    example: "Exceptional guest communication and leadership under pressure",
+  })
   @IsOptional()
   @IsString()
   strengths?: string;
 
-  @ApiPropertyOptional({ example: "Further training on PMS back-office night audit" })
+  @ApiPropertyOptional({
+    example: "Further training on PMS back-office night audit",
+  })
   @IsOptional()
   @IsString()
   improvements?: string;
 
-  @ApiPropertyOptional({ example: "Recommended for Senior Concierge promotion" })
+  @ApiPropertyOptional({
+    example: "Recommended for Senior Concierge promotion",
+  })
   @IsOptional()
   @IsString()
   comments?: string;

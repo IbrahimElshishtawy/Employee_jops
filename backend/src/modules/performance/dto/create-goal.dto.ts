@@ -26,7 +26,9 @@ export class CreateGoalDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiPropertyOptional({ example: "Zero guest cleanliness complaints in assigned section" })
+  @ApiPropertyOptional({
+    example: "Zero guest cleanliness complaints in assigned section",
+  })
   @IsOptional()
   @IsString()
   description?: string;

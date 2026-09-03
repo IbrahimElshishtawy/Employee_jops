@@ -10,7 +10,10 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { KeyType, KeyStatus } from "@prisma/client";
 
 export class CreateKeyDto {
-  @ApiProperty({ example: "KEY-RM-401", description: "Unique key identifier or RFID tag" })
+  @ApiProperty({
+    example: "KEY-RM-401",
+    description: "Unique key identifier or RFID tag",
+  })
   @IsString()
   @IsNotEmpty()
   keyCode: string;

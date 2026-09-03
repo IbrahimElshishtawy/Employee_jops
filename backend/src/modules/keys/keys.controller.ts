@@ -39,10 +39,7 @@ export class KeysController {
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
   @ApiOperation({ summary: "Register a new physical key" })
   @ApiResponse({ status: 201, description: "Key registered" })
-  createKey(
-    @CurrentUser("id") userId: string,
-    @Body() dto: CreateKeyDto,
-  ) {
+  createKey(@CurrentUser("id") userId: string, @Body() dto: CreateKeyDto) {
     return this.keysService.createKey(userId, dto);
   }
 
@@ -53,7 +50,9 @@ export class KeysController {
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get key details including active assignment and access history" })
+  @ApiOperation({
+    summary: "Get key details including active assignment and access history",
+  })
   findKeyById(@Param("id") id: string) {
     return this.keysService.findKeyById(id);
   }
@@ -71,7 +70,9 @@ export class KeysController {
 
   @Post("assignments/:assignmentId/return")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Return an assigned key and increment available copies" })
+  @ApiOperation({
+    summary: "Return an assigned key and increment available copies",
+  })
   returnKey(
     @Param("assignmentId") assignmentId: string,
     @CurrentUser("id") userId: string,

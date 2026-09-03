@@ -6,7 +6,11 @@ import {
 } from "@nestjs/common";
 import { DocumentsRepository } from "./documents.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateDocumentDto, UploadDocumentVersionDto, QueryDocumentsDto } from "./dto";
+import {
+  CreateDocumentDto,
+  UploadDocumentVersionDto,
+  QueryDocumentsDto,
+} from "./dto";
 import { AuditAction, DocumentStatus, Role } from "@prisma/client";
 
 @Injectable()
@@ -20,8 +24,13 @@ export class DocumentsService {
 
   async createDocument(userId: string, dto: CreateDocumentDto) {
     if (dto.departmentId) {
-      const dept = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
-      if (!dept) throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+      const dept = await this.prisma.department.findUnique({
+        where: { id: dto.departmentId },
+      });
+      if (!dept)
+        throw new NotFoundException(
+          `Department '${dto.departmentId}' not found`,
+        );
     }
 
     const documentNumber = await this.repo.generateDocumentNumber();
@@ -48,14 +57,24 @@ export class DocumentsService {
     const doc = await this.repo.findDocumentById(id);
     if (!doc) throw new NotFoundException(`Document '${id}' not found`);
 
-    if (userRole && userRole !== Role.SUPER_ADMIN && !doc.accessRoles.includes(userRole)) {
-      throw new ForbiddenException("You do not have permission to access this document");
+    if (
+      userRole &&
+      userRole !== Role.SUPER_ADMIN &&
+      !doc.accessRoles.includes(userRole)
+    ) {
+      throw new ForbiddenException(
+        "You do not have permission to access this document",
+      );
     }
 
     return doc;
   }
 
-  async addVersion(documentId: string, userId: string, dto: UploadDocumentVersionDto) {
+  async addVersion(
+    documentId: string,
+    userId: string,
+    dto: UploadDocumentVersionDto,
+  ) {
     await this.findDocumentById(documentId);
 
     const result = await this.repo.addVersion(documentId, userId, dto);

@@ -13,7 +13,9 @@ export class CreateLostFoundItemDto {
   @IsNotEmpty()
   itemName: string;
 
-  @ApiProperty({ example: "Oyster Perpetual with silver dial found near pool lounger" })
+  @ApiProperty({
+    example: "Oyster Perpetual with silver dial found near pool lounger",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -38,7 +40,9 @@ export class CreateLostFoundItemDto {
   @IsNotEmpty()
   storageLocation: string;
 
-  @ApiPropertyOptional({ example: ["https://storage.hotel.com/lostfound/watch.jpg"] })
+  @ApiPropertyOptional({
+    example: ["https://storage.hotel.com/lostfound/watch.jpg"],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

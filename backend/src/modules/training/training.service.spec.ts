@@ -3,7 +3,11 @@ import { TrainingService } from "./training.service";
 import { TrainingRepository } from "./training.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { EnrollmentStatus } from "@prisma/client";
 
 describe("TrainingService", () => {
@@ -14,7 +18,9 @@ describe("TrainingService", () => {
 
   beforeEach(async () => {
     const mockRepo = {
-      generateCertificateNumber: jest.fn().mockResolvedValue("CERT-20260903-0001"),
+      generateCertificateNumber: jest
+        .fn()
+        .mockResolvedValue("CERT-20260903-0001"),
       createCourse: jest.fn(),
       findCourses: jest.fn(),
       findCourseById: jest.fn(),
@@ -69,7 +75,11 @@ describe("TrainingService", () => {
 
     it("should create course and log audit", async () => {
       repo.findCourseByCode.mockResolvedValue(null);
-      repo.createCourse.mockResolvedValue({ id: "crs-1", code: "CRS-01", title: "Safety" } as any);
+      repo.createCourse.mockResolvedValue({
+        id: "crs-1",
+        code: "CRS-01",
+        title: "Safety",
+      } as any);
 
       const result = await service.createCourse("user-1", {
         code: "CRS-01",
@@ -117,7 +127,9 @@ describe("TrainingService", () => {
         status: EnrollmentStatus.ENROLLED,
       } as any);
 
-      const result = await service.enrollEmployee("sess-1", "user-1", { employeeId: "emp-1" });
+      const result = await service.enrollEmployee("sess-1", "user-1", {
+        employeeId: "emp-1",
+      });
       expect(result.id).toBe("enr-1");
       expect(notifications.sendNotification).toHaveBeenCalled();
       expect(prisma.auditLog.create).toHaveBeenCalled();

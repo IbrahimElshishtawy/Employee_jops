@@ -11,7 +11,11 @@ describe("DashboardService", () => {
       getExecutiveKPIs: jest.fn().mockResolvedValue({
         operational: { totalAssets: 150, assetsUnderMaintenance: 3 },
         supplyChain: { totalStockItems: 420 },
-        financeMonthToDate: { totalRevenue: 500000, totalExpenses: 300000, netProfit: 200000 },
+        financeMonthToDate: {
+          totalRevenue: 500000,
+          totalExpenses: 300000,
+          netProfit: 200000,
+        },
         safetyAndSecurity: { openIncidents: 1 },
         workforce: { activeEmployees: 85 },
       }),

@@ -55,7 +55,11 @@ export class CreatePurchaseOrderDto {
   @IsString()
   paymentTerms?: string;
 
-  @ApiPropertyOptional({ example: 243.75, default: 0, description: "VAT 15% or tax amount" })
+  @ApiPropertyOptional({
+    example: 243.75,
+    default: 0,
+    description: "VAT 15% or tax amount",
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)

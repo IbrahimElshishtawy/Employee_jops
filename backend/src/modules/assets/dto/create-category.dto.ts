@@ -9,7 +9,10 @@ import {
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateAssetCategoryDto {
-  @ApiProperty({ example: "IT Equipment", description: "Name of the asset category" })
+  @ApiProperty({
+    example: "IT Equipment",
+    description: "Name of the asset category",
+  })
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -30,7 +33,10 @@ export class CreateAssetCategoryDto {
   @Min(1)
   usefulLifeMonths?: number;
 
-  @ApiPropertyOptional({ example: 20.0, description: "Annual depreciation rate percentage" })
+  @ApiPropertyOptional({
+    example: 20.0,
+    description: "Annual depreciation rate percentage",
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)

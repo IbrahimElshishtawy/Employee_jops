@@ -36,7 +36,9 @@ export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
   @Post()
-  @ApiOperation({ summary: "Report an incident (safety, security, guest, employee)" })
+  @ApiOperation({
+    summary: "Report an incident (safety, security, guest, employee)",
+  })
   @ApiResponse({ status: 201, description: "Incident reported" })
   createIncident(
     @CurrentUser("id") userId: string,
@@ -52,7 +54,9 @@ export class IncidentsController {
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get incident details, investigations, and corrective actions" })
+  @ApiOperation({
+    summary: "Get incident details, investigations, and corrective actions",
+  })
   findIncidentById(@Param("id") id: string) {
     return this.incidentsService.findIncidentById(id);
   }
@@ -70,7 +74,9 @@ export class IncidentsController {
 
   @Post(":id/investigation")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Add an investigation finding and root cause analysis" })
+  @ApiOperation({
+    summary: "Add an investigation finding and root cause analysis",
+  })
   addInvestigation(
     @Param("id") incidentId: string,
     @CurrentUser("id") userId: string,
@@ -97,6 +103,10 @@ export class IncidentsController {
     @CurrentUser("id") userId: string,
     @Body("resolutionNotes") resolutionNotes?: string,
   ) {
-    return this.incidentsService.resolveCorrectiveAction(actionId, userId, resolutionNotes);
+    return this.incidentsService.resolveCorrectiveAction(
+      actionId,
+      userId,
+      resolutionNotes,
+    );
   }
 }

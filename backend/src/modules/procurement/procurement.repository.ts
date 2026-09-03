@@ -11,7 +11,12 @@ import {
   QueryPurchaseOrdersDto,
   QuerySupplierInvoicesDto,
 } from "./dto";
-import { Prisma, PurchaseRequestStatus, PurchaseOrderStatus, SupplierInvoiceStatus } from "@prisma/client";
+import {
+  Prisma,
+  PurchaseRequestStatus,
+  PurchaseOrderStatus,
+  SupplierInvoiceStatus,
+} from "@prisma/client";
 
 @Injectable()
 export class ProcurementRepository {
@@ -46,7 +51,10 @@ export class ProcurementRepository {
         address: dto.address,
         taxNumber: dto.taxNumber,
         paymentTerms: dto.paymentTerms,
-        rating: dto.rating !== undefined ? new Prisma.Decimal(dto.rating) : new Prisma.Decimal(5.0),
+        rating:
+          dto.rating !== undefined
+            ? new Prisma.Decimal(dto.rating)
+            : new Prisma.Decimal(5.0),
       },
     });
   }
@@ -145,7 +153,9 @@ export class ProcurementRepository {
             quantity: item.quantity,
             unitOfMeasure: item.unitOfMeasure || "PCS",
             estimatedUnitPrice: new Prisma.Decimal(item.estimatedUnitPrice),
-            totalPrice: new Prisma.Decimal(item.estimatedUnitPrice * item.quantity),
+            totalPrice: new Prisma.Decimal(
+              item.estimatedUnitPrice * item.quantity,
+            ),
           })),
         },
       },
@@ -228,7 +238,9 @@ export class ProcurementRepository {
         orderNumber,
         purchaseRequestId: dto.purchaseRequestId,
         supplierId: dto.supplierId,
-        expectedDeliveryDate: dto.expectedDeliveryDate ? new Date(dto.expectedDeliveryDate) : null,
+        expectedDeliveryDate: dto.expectedDeliveryDate
+          ? new Date(dto.expectedDeliveryDate)
+          : null,
         paymentTerms: dto.paymentTerms,
         subtotal: new Prisma.Decimal(subtotal),
         taxAmount: new Prisma.Decimal(taxAmount),
@@ -242,7 +254,9 @@ export class ProcurementRepository {
             quantityOrdered: item.quantityOrdered,
             quantityReceived: 0,
             unitPrice: new Prisma.Decimal(item.unitPrice),
-            totalPrice: new Prisma.Decimal(item.unitPrice * item.quantityOrdered),
+            totalPrice: new Prisma.Decimal(
+              item.unitPrice * item.quantityOrdered,
+            ),
           })),
         },
       },
@@ -374,7 +388,9 @@ export class ProcurementRepository {
   }
 
   async recordInvoicePayment(invoiceId: string, amount: number) {
-    const invoice = await this.prisma.supplierInvoice.findUnique({ where: { id: invoiceId } });
+    const invoice = await this.prisma.supplierInvoice.findUnique({
+      where: { id: invoiceId },
+    });
     if (!invoice) return null;
 
     const newPaid = Number(invoice.paidAmount) + amount;

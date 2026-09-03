@@ -18,7 +18,10 @@ export class QueryVisitorsDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by fullName, phone, company, badgeNumber, visitorNumber" })
+  @ApiPropertyOptional({
+    description:
+      "Search by fullName, phone, company, badgeNumber, visitorNumber",
+  })
   @IsOptional()
   @IsString()
   search?: string;

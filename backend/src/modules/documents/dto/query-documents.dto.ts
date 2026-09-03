@@ -18,7 +18,9 @@ export class QueryDocumentsDto {
   @Min(1)
   limit?: number = 20;
 
-  @ApiPropertyOptional({ description: "Search by title, description, documentNumber" })
+  @ApiPropertyOptional({
+    description: "Search by title, description, documentNumber",
+  })
   @IsOptional()
   @IsString()
   search?: string;

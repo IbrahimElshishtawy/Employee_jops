@@ -113,8 +113,14 @@ export class InventoryRepository {
         categoryId: dto.categoryId,
         warehouseId: dto.warehouseId,
         unitOfMeasure: dto.unitOfMeasure || "PCS",
-        unitPrice: dto.unitPrice !== undefined ? new Prisma.Decimal(dto.unitPrice) : new Prisma.Decimal(0),
-        costPrice: dto.costPrice !== undefined ? new Prisma.Decimal(dto.costPrice) : new Prisma.Decimal(0),
+        unitPrice:
+          dto.unitPrice !== undefined
+            ? new Prisma.Decimal(dto.unitPrice)
+            : new Prisma.Decimal(0),
+        costPrice:
+          dto.costPrice !== undefined
+            ? new Prisma.Decimal(dto.costPrice)
+            : new Prisma.Decimal(0),
         quantityOnHand: dto.quantityOnHand || 0,
         minThreshold: dto.minThreshold !== undefined ? dto.minThreshold : 10,
         maxThreshold: dto.maxThreshold !== undefined ? dto.maxThreshold : 500,
@@ -145,7 +151,14 @@ export class InventoryRepository {
   }
 
   async findStockItems(query: QueryStockItemsDto) {
-    const { page = 1, limit = 20, search, warehouseId, categoryId, lowStock } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      warehouseId,
+      categoryId,
+      lowStock,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.StockItemWhereInput = {};
@@ -185,7 +198,9 @@ export class InventoryRepository {
         total: lowStock ? filteredItems.length : total,
         page,
         limit,
-        totalPages: Math.ceil((lowStock ? filteredItems.length : total) / limit),
+        totalPages: Math.ceil(
+          (lowStock ? filteredItems.length : total) / limit,
+        ),
       },
     };
   }
@@ -200,10 +215,14 @@ export class InventoryRepository {
     if (dto.minThreshold !== undefined) data.minThreshold = dto.minThreshold;
     if (dto.maxThreshold !== undefined) data.maxThreshold = dto.maxThreshold;
     if (dto.reorderLevel !== undefined) data.reorderLevel = dto.reorderLevel;
-    if (dto.unitPrice !== undefined) data.unitPrice = new Prisma.Decimal(dto.unitPrice);
-    if (dto.costPrice !== undefined) data.costPrice = new Prisma.Decimal(dto.costPrice);
-    if (dto.categoryId !== undefined) data.category = { connect: { id: dto.categoryId } };
-    if (dto.warehouseId !== undefined) data.warehouse = { connect: { id: dto.warehouseId } };
+    if (dto.unitPrice !== undefined)
+      data.unitPrice = new Prisma.Decimal(dto.unitPrice);
+    if (dto.costPrice !== undefined)
+      data.costPrice = new Prisma.Decimal(dto.costPrice);
+    if (dto.categoryId !== undefined)
+      data.category = { connect: { id: dto.categoryId } };
+    if (dto.warehouseId !== undefined)
+      data.warehouse = { connect: { id: dto.warehouseId } };
 
     return this.prisma.stockItem.update({
       where: { id },
@@ -255,7 +274,10 @@ export class InventoryRepository {
           referenceType: dto.referenceType,
           referenceId: dto.referenceId,
           reason: dto.reason,
-          unitPrice: dto.unitPrice !== undefined ? new Prisma.Decimal(dto.unitPrice) : null,
+          unitPrice:
+            dto.unitPrice !== undefined
+              ? new Prisma.Decimal(dto.unitPrice)
+              : null,
           createdById: userId,
         },
         include: {
@@ -302,7 +324,11 @@ export class InventoryRepository {
   // STOCK COUNTS
   // ============================================================
 
-  async createStockCount(userId: string, dto: CreateStockCountDto, countNumber: string) {
+  async createStockCount(
+    userId: string,
+    dto: CreateStockCountDto,
+    countNumber: string,
+  ) {
     return this.prisma.stockCount.create({
       data: {
         countNumber,

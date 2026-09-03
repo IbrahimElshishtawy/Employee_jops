@@ -3,7 +3,11 @@ import { BudgetService } from "./budget.service";
 import { BudgetRepository } from "./budget.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { BudgetStatus } from "@prisma/client";
 
 describe("BudgetService", () => {
@@ -92,7 +96,10 @@ describe("BudgetService", () => {
       repo.findBudgetLineById.mockResolvedValue(null);
 
       await expect(
-        service.recordSpending("user-1", { budgetLineId: "line-1", amount: 1000 }),
+        service.recordSpending("user-1", {
+          budgetLineId: "line-1",
+          amount: 1000,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 

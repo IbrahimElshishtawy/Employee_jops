@@ -58,13 +58,21 @@ describe("PerformanceService", () => {
       repo.findKPIByCode.mockResolvedValue({ id: "kpi-1" } as any);
 
       await expect(
-        service.createKPI("user-1", { code: "KPI-01", title: "Satisfaction", targetValue: 90 }),
+        service.createKPI("user-1", {
+          code: "KPI-01",
+          title: "Satisfaction",
+          targetValue: 90,
+        }),
       ).rejects.toThrow(ConflictException);
     });
 
     it("should create KPI and log audit", async () => {
       repo.findKPIByCode.mockResolvedValue(null);
-      repo.createKPI.mockResolvedValue({ id: "kpi-1", code: "KPI-01", title: "Satisfaction" } as any);
+      repo.createKPI.mockResolvedValue({
+        id: "kpi-1",
+        code: "KPI-01",
+        title: "Satisfaction",
+      } as any);
 
       const result = await service.createKPI("user-1", {
         code: "KPI-01",
@@ -91,10 +99,15 @@ describe("PerformanceService", () => {
         status: GoalStatus.ACHIEVED,
       } as any);
 
-      const result = await service.updateGoalProgress("goal-1", "user-1", { currentValue: 100 });
-      expect(repo.updateGoalProgress).toHaveBeenCalledWith("goal-1", expect.objectContaining({
-        status: GoalStatus.ACHIEVED,
-      }));
+      const result = await service.updateGoalProgress("goal-1", "user-1", {
+        currentValue: 100,
+      });
+      expect(repo.updateGoalProgress).toHaveBeenCalledWith(
+        "goal-1",
+        expect.objectContaining({
+          status: GoalStatus.ACHIEVED,
+        }),
+      );
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });
   });
@@ -102,7 +115,10 @@ describe("PerformanceService", () => {
   describe("createReview", () => {
     it("should create review, notify employee, and log audit", async () => {
       prisma.employeeProfile.findUnique
-        .mockResolvedValueOnce({ id: "rev-1", user: { status: UserStatus.ACTIVE } }) // Reviewer
+        .mockResolvedValueOnce({
+          id: "rev-1",
+          user: { status: UserStatus.ACTIVE },
+        }) // Reviewer
         .mockResolvedValueOnce({ id: "emp-1", user: { id: "user-emp-1" } }); // Employee
 
       repo.createReview.mockResolvedValue({

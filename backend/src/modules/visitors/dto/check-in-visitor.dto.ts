@@ -27,7 +27,10 @@ export class CheckInVisitorDto {
   @IsNotEmpty()
   purpose: string;
 
-  @ApiProperty({ example: "emp-profile-uuid", description: "Employee hosting the visitor" })
+  @ApiProperty({
+    example: "emp-profile-uuid",
+    description: "Employee hosting the visitor",
+  })
   @IsString()
   @IsNotEmpty()
   hostEmployeeId: string;
@@ -37,7 +40,9 @@ export class CheckInVisitorDto {
   @IsString()
   badgeNumber?: string;
 
-  @ApiPropertyOptional({ example: "Visitor escorted to Floor 4 conference room" })
+  @ApiPropertyOptional({
+    example: "Visitor escorted to Floor 4 conference room",
+  })
   @IsOptional()
   @IsString()
   remarks?: string;

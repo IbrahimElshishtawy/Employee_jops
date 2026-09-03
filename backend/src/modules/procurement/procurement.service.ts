@@ -44,7 +44,9 @@ export class ProcurementService {
   async createSupplier(userId: string, dto: CreateSupplierDto) {
     const existing = await this.repo.findSupplierByCode(dto.code);
     if (existing) {
-      throw new ConflictException(`Supplier with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Supplier with code '${dto.code}' already exists`,
+      );
     }
 
     const supplier = await this.repo.createSupplier(dto);
@@ -100,14 +102,21 @@ export class ProcurementService {
     });
 
     if (!requester || requester.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required to create purchase requests");
+      throw new BadRequestException(
+        "Active employee profile required to create purchase requests",
+      );
     }
 
-    const department = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
-    if (!department) throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+    const department = await this.prisma.department.findUnique({
+      where: { id: dto.departmentId },
+    });
+    if (!department)
+      throw new NotFoundException(`Department '${dto.departmentId}' not found`);
 
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException("Purchase request must contain at least one line item");
+      throw new BadRequestException(
+        "Purchase request must contain at least one line item",
+      );
     }
 
     const totalEstimatedCost = dto.items.reduce(
@@ -129,7 +138,11 @@ export class ProcurementService {
         action: AuditAction.CREATE,
         entity: "PurchaseRequest",
         entityId: pr.id,
-        payload: { requestNumber, totalEstimatedCost, itemCount: dto.items.length },
+        payload: {
+          requestNumber,
+          totalEstimatedCost,
+          itemCount: dto.items.length,
+        },
       },
     });
 
@@ -148,7 +161,10 @@ export class ProcurementService {
 
   async approvePurchaseRequest(id: string, userId: string) {
     await this.findPurchaseRequestById(id);
-    const updated = await this.repo.updatePurchaseRequestStatus(id, PurchaseRequestStatus.APPROVED);
+    const updated = await this.repo.updatePurchaseRequestStatus(
+      id,
+      PurchaseRequestStatus.APPROVED,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -169,18 +185,27 @@ export class ProcurementService {
 
   async createPurchaseOrder(userId: string, dto: CreatePurchaseOrderDto) {
     const supplier = await this.repo.findSupplierById(dto.supplierId);
-    if (!supplier) throw new NotFoundException(`Supplier '${dto.supplierId}' not found`);
+    if (!supplier)
+      throw new NotFoundException(`Supplier '${dto.supplierId}' not found`);
 
     if (dto.purchaseRequestId) {
       const pr = await this.repo.findPurchaseRequestById(dto.purchaseRequestId);
-      if (!pr) throw new NotFoundException(`Purchase request '${dto.purchaseRequestId}' not found`);
+      if (!pr)
+        throw new NotFoundException(
+          `Purchase request '${dto.purchaseRequestId}' not found`,
+        );
     }
 
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException("Purchase order must contain at least one line item");
+      throw new BadRequestException(
+        "Purchase order must contain at least one line item",
+      );
     }
 
-    const subtotal = dto.items.reduce((sum, item) => sum + item.unitPrice * item.quantityOrdered, 0);
+    const subtotal = dto.items.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantityOrdered,
+      0,
+    );
     const taxAmount = dto.taxAmount || 0;
     const totalAmount = subtotal + taxAmount;
 
@@ -224,7 +249,11 @@ export class ProcurementService {
     return po;
   }
 
-  async updatePurchaseOrderStatus(id: string, userId: string, status: PurchaseOrderStatus) {
+  async updatePurchaseOrderStatus(
+    id: string,
+    userId: string,
+    status: PurchaseOrderStatus,
+  ) {
     await this.findPurchaseOrderById(id);
     const updated = await this.repo.updatePurchaseOrderStatus(id, status);
 
@@ -250,15 +279,21 @@ export class ProcurementService {
       where: { invoiceNumber: dto.invoiceNumber },
     });
     if (existing) {
-      throw new ConflictException(`Invoice with number '${dto.invoiceNumber}' already exists`);
+      throw new ConflictException(
+        `Invoice with number '${dto.invoiceNumber}' already exists`,
+      );
     }
 
     const supplier = await this.repo.findSupplierById(dto.supplierId);
-    if (!supplier) throw new NotFoundException(`Supplier '${dto.supplierId}' not found`);
+    if (!supplier)
+      throw new NotFoundException(`Supplier '${dto.supplierId}' not found`);
 
     if (dto.purchaseOrderId) {
       const po = await this.repo.findPurchaseOrderById(dto.purchaseOrderId);
-      if (!po) throw new NotFoundException(`Purchase order '${dto.purchaseOrderId}' not found`);
+      if (!po)
+        throw new NotFoundException(
+          `Purchase order '${dto.purchaseOrderId}' not found`,
+        );
     }
 
     const totalAmount = dto.subtotal + (dto.taxAmount || 0);
@@ -283,7 +318,8 @@ export class ProcurementService {
 
   async findSupplierInvoiceById(id: string) {
     const invoice = await this.repo.findSupplierInvoiceById(id);
-    if (!invoice) throw new NotFoundException(`Supplier invoice '${id}' not found`);
+    if (!invoice)
+      throw new NotFoundException(`Supplier invoice '${id}' not found`);
     return invoice;
   }
 }

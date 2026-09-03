@@ -50,7 +50,9 @@ export class MaintenanceController {
   }
 
   @Get("requests")
-  @ApiOperation({ summary: "List maintenance requests with pagination and filters" })
+  @ApiOperation({
+    summary: "List maintenance requests with pagination and filters",
+  })
   findRequests(@Query() query: QueryMaintenanceRequestsDto) {
     return this.maintenanceService.findRequests(query);
   }
@@ -91,7 +93,9 @@ export class MaintenanceController {
   }
 
   @Get("work-orders/:id")
-  @ApiOperation({ summary: "Get work order details including spare parts and technicians" })
+  @ApiOperation({
+    summary: "Get work order details including spare parts and technicians",
+  })
   findWorkOrderById(@Param("id") id: string) {
     return this.maintenanceService.findWorkOrderById(id);
   }
@@ -109,7 +113,9 @@ export class MaintenanceController {
 
   @Post("work-orders/:id/spare-parts")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER, Role.SUPERVISOR)
-  @ApiOperation({ summary: "Consume spare parts on a work order and decrement inventory" })
+  @ApiOperation({
+    summary: "Consume spare parts on a work order and decrement inventory",
+  })
   consumeSparePart(
     @Param("id") workOrderId: string,
     @CurrentUser("id") userId: string,

@@ -71,7 +71,10 @@ describe("SessionsService", () => {
         userId: "user-1",
         sessionToken: "token-123",
       } as any);
-      repo.terminateSession.mockResolvedValue({ id: "sess-1", isActive: false } as any);
+      repo.terminateSession.mockResolvedValue({
+        id: "sess-1",
+        isActive: false,
+      } as any);
 
       const result = await service.terminateSession("user-1", "sess-1");
       expect(result.isActive).toBe(false);

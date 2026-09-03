@@ -18,7 +18,11 @@ import {
   QueryStockItemsDto,
   QueryStockMovementsDto,
 } from "./dto";
-import { AuditAction, StockMovementType, NotificationType } from "@prisma/client";
+import {
+  AuditAction,
+  StockMovementType,
+  NotificationType,
+} from "@prisma/client";
 
 @Injectable()
 export class InventoryService {
@@ -37,12 +41,19 @@ export class InventoryService {
   async createWarehouse(userId: string, dto: CreateWarehouseDto) {
     const existing = await this.repo.findWarehouseByCode(dto.code);
     if (existing) {
-      throw new ConflictException(`Warehouse with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Warehouse with code '${dto.code}' already exists`,
+      );
     }
 
     if (dto.departmentId) {
-      const dept = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
-      if (!dept) throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+      const dept = await this.prisma.department.findUnique({
+        where: { id: dto.departmentId },
+      });
+      if (!dept)
+        throw new NotFoundException(
+          `Department '${dto.departmentId}' not found`,
+        );
     }
 
     const warehouse = await this.repo.createWarehouse(dto);
@@ -69,9 +80,13 @@ export class InventoryService {
   // ============================================================
 
   async createCategory(userId: string, dto: CreateStockCategoryDto) {
-    const existing = await this.prisma.stockCategory.findUnique({ where: { code: dto.code } });
+    const existing = await this.prisma.stockCategory.findUnique({
+      where: { code: dto.code },
+    });
     if (existing) {
-      throw new ConflictException(`Stock category with code '${dto.code}' already exists`);
+      throw new ConflictException(
+        `Stock category with code '${dto.code}' already exists`,
+      );
     }
 
     const category = await this.repo.createStockCategory(dto);
@@ -100,14 +115,18 @@ export class InventoryService {
   async createStockItem(userId: string, dto: CreateStockItemDto) {
     const existingSku = await this.repo.findStockItemBySku(dto.sku);
     if (existingSku) {
-      throw new ConflictException(`Stock item with SKU '${dto.sku}' already exists`);
+      throw new ConflictException(
+        `Stock item with SKU '${dto.sku}' already exists`,
+      );
     }
 
     const category = await this.repo.findStockCategoryById(dto.categoryId);
-    if (!category) throw new NotFoundException(`Category '${dto.categoryId}' not found`);
+    if (!category)
+      throw new NotFoundException(`Category '${dto.categoryId}' not found`);
 
     const warehouse = await this.repo.findWarehouseById(dto.warehouseId);
-    if (!warehouse) throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
+    if (!warehouse)
+      throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
 
     const item = await this.repo.createStockItem(dto);
 
@@ -117,7 +136,11 @@ export class InventoryService {
         action: AuditAction.CREATE,
         entity: "StockItem",
         entityId: item.id,
-        payload: { sku: item.sku, name: item.name, warehouseId: item.warehouseId },
+        payload: {
+          sku: item.sku,
+          name: item.name,
+          warehouseId: item.warehouseId,
+        },
       },
     });
 
@@ -158,7 +181,8 @@ export class InventoryService {
   async executeStockMovement(userId: string, dto: CreateStockMovementDto) {
     const item = await this.findStockItemById(dto.itemId);
     const warehouse = await this.repo.findWarehouseById(dto.warehouseId);
-    if (!warehouse) throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
+    if (!warehouse)
+      throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
 
     // Verify sufficient quantity for deduction
     if (
@@ -173,7 +197,11 @@ export class InventoryService {
     }
 
     const movementNumber = await this.repo.generateMovementNumber();
-    const result = await this.repo.executeStockMovement(userId, dto, movementNumber);
+    const result = await this.repo.executeStockMovement(
+      userId,
+      dto,
+      movementNumber,
+    );
 
     // Check low stock trigger
     if (result.updatedItem.quantityOnHand <= result.updatedItem.reorderLevel) {
@@ -210,7 +238,8 @@ export class InventoryService {
 
   async createStockCount(userId: string, dto: CreateStockCountDto) {
     const warehouse = await this.repo.findWarehouseById(dto.warehouseId);
-    if (!warehouse) throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
+    if (!warehouse)
+      throw new NotFoundException(`Warehouse '${dto.warehouseId}' not found`);
 
     const countNumber = await this.repo.generateCountNumber();
     return this.repo.createStockCount(userId, dto, countNumber);

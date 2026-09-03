@@ -17,17 +17,25 @@ export class CreateDocumentDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiPropertyOptional({ example: "Standard guest arrival protocol, ID verification, and payment processing" })
+  @ApiPropertyOptional({
+    example:
+      "Standard guest arrival protocol, ID verification, and payment processing",
+  })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ enum: DocumentCategory, default: DocumentCategory.SOP })
+  @ApiPropertyOptional({
+    enum: DocumentCategory,
+    default: DocumentCategory.SOP,
+  })
   @IsOptional()
   @IsEnum(DocumentCategory)
   category?: DocumentCategory;
 
-  @ApiProperty({ example: "https://storage.hotel.com/docs/sop-fd-checkin-v1.pdf" })
+  @ApiProperty({
+    example: "https://storage.hotel.com/docs/sop-fd-checkin-v1.pdf",
+  })
   @IsString()
   @IsNotEmpty()
   fileUrl: string;
@@ -37,7 +45,11 @@ export class CreateDocumentDto {
   @IsString()
   fileType?: string;
 
-  @ApiPropertyOptional({ example: 1048576, default: 0, description: "File size in bytes" })
+  @ApiPropertyOptional({
+    example: 1048576,
+    default: 0,
+    description: "File size in bytes",
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
@@ -58,7 +70,11 @@ export class CreateDocumentDto {
   @IsString()
   departmentId?: string;
 
-  @ApiPropertyOptional({ enum: Role, isArray: true, default: [Role.SUPER_ADMIN, Role.HR_ADMIN] })
+  @ApiPropertyOptional({
+    enum: Role,
+    isArray: true,
+    default: [Role.SUPER_ADMIN, Role.HR_ADMIN],
+  })
   @IsOptional()
   @IsArray()
   @IsEnum(Role, { each: true })

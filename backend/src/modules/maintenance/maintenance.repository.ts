@@ -33,7 +33,11 @@ export class MaintenanceRepository {
   // MAINTENANCE REQUESTS
   // ============================================================
 
-  async createRequest(requesterProfileId: string, dto: CreateMaintenanceRequestDto, requestNumber: string) {
+  async createRequest(
+    requesterProfileId: string,
+    dto: CreateMaintenanceRequestDto,
+    requestNumber: string,
+  ) {
     return this.prisma.maintenanceRequest.create({
       data: {
         requestNumber,
@@ -80,7 +84,16 @@ export class MaintenanceRepository {
   }
 
   async findRequests(query: QueryMaintenanceRequestsDto) {
-    const { page = 1, limit = 20, search, status, type, priority, departmentId, assetId } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      type,
+      priority,
+      departmentId,
+      assetId,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.MaintenanceRequestWhereInput = {};
@@ -132,8 +145,12 @@ export class MaintenanceRepository {
       }
     }
     if (dto.priority !== undefined) data.priority = dto.priority;
-    if (dto.resolutionNotes !== undefined) data.resolutionNotes = dto.resolutionNotes;
-    if (dto.scheduledDate !== undefined) data.scheduledDate = dto.scheduledDate ? new Date(dto.scheduledDate) : null;
+    if (dto.resolutionNotes !== undefined)
+      data.resolutionNotes = dto.resolutionNotes;
+    if (dto.scheduledDate !== undefined)
+      data.scheduledDate = dto.scheduledDate
+        ? new Date(dto.scheduledDate)
+        : null;
 
     return this.prisma.maintenanceRequest.update({
       where: { id },
@@ -162,7 +179,10 @@ export class MaintenanceRepository {
         priority: dto.priority,
         status: dto.status,
         technicianId: dto.technicianId,
-        estimatedHours: dto.estimatedHours !== undefined ? new Prisma.Decimal(dto.estimatedHours) : null,
+        estimatedHours:
+          dto.estimatedHours !== undefined
+            ? new Prisma.Decimal(dto.estimatedHours)
+            : null,
         notes: dto.notes,
       },
       include: {
@@ -192,7 +212,14 @@ export class MaintenanceRepository {
   }
 
   async findWorkOrders(query: QueryWorkOrdersDto) {
-    const { page = 1, limit = 20, search, status, priority, technicianId } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      priority,
+      technicianId,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.WorkOrderWhereInput = {};
@@ -239,10 +266,15 @@ export class MaintenanceRepository {
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.priority !== undefined) data.priority = dto.priority;
     if (dto.notes !== undefined) data.notes = dto.notes;
-    if (dto.actualHours !== undefined) data.actualHours = dto.actualHours !== null ? new Prisma.Decimal(dto.actualHours) : null;
-    if (dto.cost !== undefined) data.cost = dto.cost !== null ? new Prisma.Decimal(dto.cost) : null;
+    if (dto.actualHours !== undefined)
+      data.actualHours =
+        dto.actualHours !== null ? new Prisma.Decimal(dto.actualHours) : null;
+    if (dto.cost !== undefined)
+      data.cost = dto.cost !== null ? new Prisma.Decimal(dto.cost) : null;
     if (dto.technicianId !== undefined) {
-      data.technician = dto.technicianId ? { connect: { id: dto.technicianId } } : { disconnect: true };
+      data.technician = dto.technicianId
+        ? { connect: { id: dto.technicianId } }
+        : { disconnect: true };
     }
 
     return this.prisma.workOrder.update({
@@ -269,7 +301,10 @@ export class MaintenanceRepository {
         description: dto.description,
         category: dto.category,
         unitOfMeasure: dto.unitOfMeasure || "PCS",
-        unitCost: dto.unitCost !== undefined ? new Prisma.Decimal(dto.unitCost) : new Prisma.Decimal(0),
+        unitCost:
+          dto.unitCost !== undefined
+            ? new Prisma.Decimal(dto.unitCost)
+            : new Prisma.Decimal(0),
         quantityOnHand: dto.quantityOnHand || 0,
         minQuantity: dto.minQuantity || 5,
       },
@@ -294,7 +329,12 @@ export class MaintenanceRepository {
     });
   }
 
-  async consumeSparePart(workOrderId: string, sparePartId: string, quantity: number, unitCost: number) {
+  async consumeSparePart(
+    workOrderId: string,
+    sparePartId: string,
+    quantity: number,
+    unitCost: number,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Decrement spare part quantity
       const updatedPart = await tx.sparePart.update({

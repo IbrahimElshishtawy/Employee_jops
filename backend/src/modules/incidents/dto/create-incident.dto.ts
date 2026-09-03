@@ -15,7 +15,10 @@ export class CreateIncidentDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: "Guest slipped on wet marble floor where no warning sign was placed." })
+  @ApiProperty({
+    example:
+      "Guest slipped on wet marble floor where no warning sign was placed.",
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -25,7 +28,10 @@ export class CreateIncidentDto {
   @IsEnum(IncidentType)
   type?: IncidentType;
 
-  @ApiPropertyOptional({ enum: IncidentSeverity, default: IncidentSeverity.MEDIUM })
+  @ApiPropertyOptional({
+    enum: IncidentSeverity,
+    default: IncidentSeverity.MEDIUM,
+  })
   @IsOptional()
   @IsEnum(IncidentSeverity)
   severity?: IncidentSeverity;
@@ -45,7 +51,9 @@ export class CreateIncidentDto {
   @IsString()
   departmentId?: string;
 
-  @ApiPropertyOptional({ example: ["https://storage.hotel.com/evidence/lobby-wet-floor.jpg"] })
+  @ApiPropertyOptional({
+    example: ["https://storage.hotel.com/evidence/lobby-wet-floor.jpg"],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

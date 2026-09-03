@@ -2,7 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { KeysService } from "./keys.service";
 import { KeysRepository } from "./keys.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { KeyAssignmentStatus } from "@prisma/client";
 
 describe("KeysService", () => {
@@ -97,7 +101,9 @@ describe("KeysService", () => {
         assignedAt: new Date(),
       } as any);
 
-      const result = await service.assignKey("key-1", "user-1", { employeeId: "emp-1" });
+      const result = await service.assignKey("key-1", "user-1", {
+        employeeId: "emp-1",
+      });
       expect(result.id).toBe("assign-1");
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });
@@ -116,7 +122,9 @@ describe("KeysService", () => {
         returnedAt: new Date(),
       } as any);
 
-      const result = await service.returnKey("assign-1", "user-1", { notes: "All good" });
+      const result = await service.returnKey("assign-1", "user-1", {
+        notes: "All good",
+      });
       expect(result.status).toBe(KeyAssignmentStatus.RETURNED);
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });

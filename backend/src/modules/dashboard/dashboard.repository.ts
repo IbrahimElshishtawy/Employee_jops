@@ -17,7 +17,11 @@ export class DashboardRepository {
 
   async getExecutiveKPIs() {
     const today = new Date();
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [
@@ -48,15 +52,25 @@ export class DashboardRepository {
     ] = await Promise.all([
       // Operational
       this.prisma.asset.count(),
-      this.prisma.asset.count({ where: { status: AssetStatus.UNDER_MAINTENANCE } }),
-      this.prisma.maintenanceRequest.count({ where: { status: MaintenanceRequestStatus.SUBMITTED } }),
-      this.prisma.workOrder.count({ where: { status: WorkOrderStatus.IN_PROGRESS } }),
+      this.prisma.asset.count({
+        where: { status: AssetStatus.UNDER_MAINTENANCE },
+      }),
+      this.prisma.maintenanceRequest.count({
+        where: { status: MaintenanceRequestStatus.SUBMITTED },
+      }),
+      this.prisma.workOrder.count({
+        where: { status: WorkOrderStatus.IN_PROGRESS },
+      }),
       this.prisma.physicalKey.count(),
 
       // Inventory & Procurement
       this.prisma.stockItem.count(),
-      this.prisma.purchaseRequest.count({ where: { status: PurchaseRequestStatus.SUBMITTED } }),
-      this.prisma.purchaseOrder.count({ where: { status: PurchaseOrderStatus.SENT } }),
+      this.prisma.purchaseRequest.count({
+        where: { status: PurchaseRequestStatus.SUBMITTED },
+      }),
+      this.prisma.purchaseOrder.count({
+        where: { status: PurchaseOrderStatus.SENT },
+      }),
 
       // Finance
       this.prisma.financialExpense.aggregate({
@@ -70,10 +84,18 @@ export class DashboardRepository {
 
       // Safety & Docs
       this.prisma.safetyIncident.count({
-        where: { status: { in: [IncidentStatus.REPORTED, IncidentStatus.UNDER_INVESTIGATION] } },
+        where: {
+          status: {
+            in: [IncidentStatus.REPORTED, IncidentStatus.UNDER_INVESTIGATION],
+          },
+        },
       }),
-      this.prisma.lostFoundItem.count({ where: { status: LostFoundStatus.FOUND } }),
-      this.prisma.visitorLog.count({ where: { checkInTime: { gte: startOfToday } } }),
+      this.prisma.lostFoundItem.count({
+        where: { status: LostFoundStatus.FOUND },
+      }),
+      this.prisma.visitorLog.count({
+        where: { checkInTime: { gte: startOfToday } },
+      }),
 
       // HR
       this.prisma.employeeProfile.count({
@@ -98,8 +120,12 @@ export class DashboardRepository {
         activePurchaseOrders,
       },
       financeMonthToDate: {
-        totalRevenue: revenuesAgg._sum.amount ? Number(revenuesAgg._sum.amount) : 0,
-        totalExpenses: expensesAgg._sum.amount ? Number(expensesAgg._sum.amount) : 0,
+        totalRevenue: revenuesAgg._sum.amount
+          ? Number(revenuesAgg._sum.amount)
+          : 0,
+        totalExpenses: expensesAgg._sum.amount
+          ? Number(expensesAgg._sum.amount)
+          : 0,
         netProfit:
           (revenuesAgg._sum.amount ? Number(revenuesAgg._sum.amount) : 0) -
           (expensesAgg._sum.amount ? Number(expensesAgg._sum.amount) : 0),

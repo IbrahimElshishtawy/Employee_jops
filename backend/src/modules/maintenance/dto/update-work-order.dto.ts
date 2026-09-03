@@ -1,10 +1,4 @@
-import {
-  IsOptional,
-  IsEnum,
-  IsNumber,
-  IsString,
-  Min,
-} from "class-validator";
+import { IsOptional, IsEnum, IsNumber, IsString, Min } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { WorkOrderStatus, MaintenancePriority } from "@prisma/client";
 
@@ -36,7 +30,9 @@ export class UpdateWorkOrderDto {
   @Min(0)
   cost?: number;
 
-  @ApiPropertyOptional({ example: "Replacement completed and tested successfully." })
+  @ApiPropertyOptional({
+    example: "Replacement completed and tested successfully.",
+  })
   @IsOptional()
   @IsString()
   notes?: string;

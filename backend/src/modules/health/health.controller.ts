@@ -9,6 +9,7 @@ import { FastifyReply } from "fastify";
 import { Public } from "../../common/decorators/public.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../common/redis/redis.service";
+import { SyncStatus, IntegrationStatus } from "@prisma/client";
 
 @ApiTags("Health")
 @Controller("health")
@@ -111,5 +112,84 @@ export class HealthController {
         timestamp: new Date().toISOString(),
       });
     }
+  }
+
+  @Public()
+  @Get("queues")
+  @ApiOperation({ summary: "Offline Sync Queue and Background Workers monitoring (OPS-003)" })
+  async getQueuesHealth(@Res() res: FastifyReply) {
+    try {
+      const [pendingCount, conflictCount, processedCount] = await Promise.all([
+        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.PENDING } }),
+        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.CONFLICT } }),
+        this.prisma.offlineSyncQueue.count({ where: { status: SyncStatus.PROCESSED } }),
+      ]);
+
+      res.status(HttpStatus.OK).send({
+        status: "healthy",
+        offlineSyncQueue: {
+          pending: pendingCount,
+          conflict: conflictCount,
+          processed: processedCount,
+        },
+        redisQueueStatus: this.redis.isAvailable() ? "active" : "degraded",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        status: "error",
+        error: err.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  @Public()
+  @Get("integrations")
+  @ApiOperation({ summary: "External integrations and webhook channel monitoring (OPS-004)" })
+  async getIntegrationsHealth(@Res() res: FastifyReply) {
+    try {
+      const recentLogs = await this.prisma.integrationLog.findMany({
+        take: 20,
+        orderBy: { createdAt: "desc" },
+      });
+
+      const totalRecent = recentLogs.length;
+      const failedRecent = recentLogs.filter((l) => l.status === IntegrationStatus.FAILED).length;
+      const errorRatePercent = totalRecent > 0 ? (failedRecent / totalRecent) * 100 : 0;
+
+      res.status(HttpStatus.OK).send({
+        status: errorRatePercent < 20 ? "healthy" : "elevated_error_rate",
+        totalEvaluated: totalRecent,
+        failedCount: failedRecent,
+        errorRatePercent,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        status: "error",
+        error: err.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  @Public()
+  @Get("system")
+  @ApiOperation({ summary: "Holistic system telemetry, CPU, memory, DB, and cache metrics" })
+  async getSystemTelemetry(@Res() res: FastifyReply) {
+    const memoryUsage = process.memoryUsage();
+    res.status(HttpStatus.OK).send({
+      status: "operational",
+      uptimeSeconds: Math.floor(process.uptime()),
+      nodeVersion: process.version,
+      platform: process.platform,
+      memory: {
+        rssMb: Math.round(memoryUsage.rss / (1024 * 1024)),
+        heapTotalMb: Math.round(memoryUsage.heapTotal / (1024 * 1024)),
+        heapUsedMb: Math.round(memoryUsage.heapUsed / (1024 * 1024)),
+      },
+      timestamp: new Date().toISOString(),
+    });
   }
 }

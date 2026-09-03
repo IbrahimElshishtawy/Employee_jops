@@ -20,7 +20,10 @@ export class DashboardController {
 
   @Get("executive-kpis")
   @Roles(Role.SUPER_ADMIN, Role.HR_ADMIN, Role.HR_MANAGER)
-  @ApiOperation({ summary: "Get unified real-time executive dashboard KPIs across all ERP domains" })
+  @ApiOperation({
+    summary:
+      "Get unified real-time executive dashboard KPIs across all ERP domains",
+  })
   @ApiResponse({ status: 200, description: "Executive KPI metrics summary" })
   getExecutiveKPIs() {
     return this.dashboardService.getExecutiveKPIs();

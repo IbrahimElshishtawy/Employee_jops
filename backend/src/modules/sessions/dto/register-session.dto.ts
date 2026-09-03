@@ -8,7 +8,10 @@ export class RegisterDeviceSessionDto {
   @IsNotEmpty()
   sessionToken: string;
 
-  @ApiPropertyOptional({ enum: DevicePlatform, default: DevicePlatform.ANDROID })
+  @ApiPropertyOptional({
+    enum: DevicePlatform,
+    default: DevicePlatform.ANDROID,
+  })
   @IsOptional()
   @IsEnum(DevicePlatform)
   devicePlatform?: DevicePlatform;

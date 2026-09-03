@@ -28,7 +28,9 @@ export class KeysService {
   async createKey(userId: string, dto: CreateKeyDto) {
     const existing = await this.repo.findKeyByCode(dto.keyCode);
     if (existing) {
-      throw new ConflictException(`Key with code '${dto.keyCode}' already exists`);
+      throw new ConflictException(
+        `Key with code '${dto.keyCode}' already exists`,
+      );
     }
 
     const key = await this.repo.createKey(dto);
@@ -71,7 +73,9 @@ export class KeysService {
       where: { id: dto.employeeId },
     });
     if (!employee) {
-      throw new NotFoundException(`Employee profile '${dto.employeeId}' not found`);
+      throw new NotFoundException(
+        `Employee profile '${dto.employeeId}' not found`,
+      );
     }
 
     const assignment = await this.repo.assignKey(keyId, dto);
@@ -106,7 +110,11 @@ export class KeysService {
       );
     }
 
-    const result = await this.repo.returnKey(assignmentId, assignment.keyId, dto.notes);
+    const result = await this.repo.returnKey(
+      assignmentId,
+      assignment.keyId,
+      dto.notes,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -132,7 +140,9 @@ export class KeysService {
       where: { id: dto.employeeId },
     });
     if (!employee) {
-      throw new NotFoundException(`Employee profile '${dto.employeeId}' not found`);
+      throw new NotFoundException(
+        `Employee profile '${dto.employeeId}' not found`,
+      );
     }
 
     return this.repo.logAccess(keyId, dto);

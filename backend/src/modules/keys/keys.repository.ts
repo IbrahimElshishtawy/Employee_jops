@@ -1,6 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CreateKeyDto, QueryKeysDto, AssignKeyDto, LogKeyAccessDto } from "./dto";
+import {
+  CreateKeyDto,
+  QueryKeysDto,
+  AssignKeyDto,
+  LogKeyAccessDto,
+} from "./dto";
 import { Prisma, KeyAssignmentStatus } from "@prisma/client";
 
 @Injectable()
@@ -101,7 +106,9 @@ export class KeysRepository {
         data: {
           keyId,
           employeeId: dto.employeeId,
-          expectedReturnAt: dto.expectedReturnAt ? new Date(dto.expectedReturnAt) : null,
+          expectedReturnAt: dto.expectedReturnAt
+            ? new Date(dto.expectedReturnAt)
+            : null,
           notes: dto.notes,
           status: KeyAssignmentStatus.ACTIVE,
         },

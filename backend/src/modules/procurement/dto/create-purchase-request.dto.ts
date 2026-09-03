@@ -60,7 +60,9 @@ export class CreatePurchaseRequestDto {
   @IsDateString()
   requiredDate?: string;
 
-  @ApiPropertyOptional({ example: "Urgent restocking for upcoming holiday season" })
+  @ApiPropertyOptional({
+    example: "Urgent restocking for upcoming holiday season",
+  })
   @IsOptional()
   @IsString()
   notes?: string;

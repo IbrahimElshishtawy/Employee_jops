@@ -18,7 +18,13 @@ import {
   QueryMaintenanceRequestsDto,
   QueryWorkOrdersDto,
 } from "./dto";
-import { AuditAction, AssetStatus, MaintenanceRequestStatus, UserStatus, NotificationType } from "@prisma/client";
+import {
+  AuditAction,
+  AssetStatus,
+  MaintenanceRequestStatus,
+  UserStatus,
+  NotificationType,
+} from "@prisma/client";
 
 @Injectable()
 export class MaintenanceService {
@@ -41,11 +47,15 @@ export class MaintenanceService {
     });
 
     if (!requester || requester.user?.status !== UserStatus.ACTIVE) {
-      throw new BadRequestException("Active employee profile required to report maintenance");
+      throw new BadRequestException(
+        "Active employee profile required to report maintenance",
+      );
     }
 
     if (dto.assetId) {
-      const asset = await this.prisma.asset.findUnique({ where: { id: dto.assetId } });
+      const asset = await this.prisma.asset.findUnique({
+        where: { id: dto.assetId },
+      });
       if (!asset) {
         throw new NotFoundException(`Asset '${dto.assetId}' not found`);
       }
@@ -56,13 +66,19 @@ export class MaintenanceService {
       });
     }
 
-    const department = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
+    const department = await this.prisma.department.findUnique({
+      where: { id: dto.departmentId },
+    });
     if (!department || !department.isActive) {
       throw new BadRequestException("Target department not found or inactive");
     }
 
     const requestNumber = await this.repo.generateRequestNumber();
-    const request = await this.repo.createRequest(requester.id, dto, requestNumber);
+    const request = await this.repo.createRequest(
+      requester.id,
+      dto,
+      requestNumber,
+    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -70,7 +86,11 @@ export class MaintenanceService {
         action: AuditAction.CREATE,
         entity: "MaintenanceRequest",
         entityId: request.id,
-        payload: { requestNumber, title: request.title, priority: request.priority },
+        payload: {
+          requestNumber,
+          title: request.title,
+          priority: request.priority,
+        },
       },
     });
 
@@ -89,7 +109,11 @@ export class MaintenanceService {
     return request;
   }
 
-  async updateRequest(id: string, userId: string, dto: UpdateMaintenanceRequestDto) {
+  async updateRequest(
+    id: string,
+    userId: string,
+    dto: UpdateMaintenanceRequestDto,
+  ) {
     const existing = await this.findRequestById(id);
     const updated = await this.repo.updateRequest(id, dto);
 
@@ -107,7 +131,11 @@ export class MaintenanceService {
         action: AuditAction.UPDATE,
         entity: "MaintenanceRequest",
         entityId: id,
-        payload: { previousStatus: existing.status, newStatus: updated.status, changes: JSON.parse(JSON.stringify(dto)) },
+        payload: {
+          previousStatus: existing.status,
+          newStatus: updated.status,
+          changes: JSON.parse(JSON.stringify(dto)),
+        },
       },
     });
 
@@ -122,7 +150,9 @@ export class MaintenanceService {
     if (dto.maintenanceRequestId) {
       const req = await this.repo.findRequestById(dto.maintenanceRequestId);
       if (!req) {
-        throw new NotFoundException(`Maintenance request '${dto.maintenanceRequestId}' not found`);
+        throw new NotFoundException(
+          `Maintenance request '${dto.maintenanceRequestId}' not found`,
+        );
       }
     }
 
@@ -132,7 +162,9 @@ export class MaintenanceService {
         include: { user: true },
       });
       if (!tech) {
-        throw new NotFoundException(`Technician '${dto.technicianId}' not found`);
+        throw new NotFoundException(
+          `Technician '${dto.technicianId}' not found`,
+        );
       }
     }
 
@@ -146,13 +178,15 @@ export class MaintenanceService {
         select: { user: { select: { id: true } } },
       });
       if (technician?.user?.id) {
-        await this.notificationsService.sendNotification(
-          technician.user.id,
-          "Work Order Assigned",
-          `You have been assigned to Work Order '${orderNumber}': ${dto.title}`,
-          NotificationType.TASK_ASSIGNED,
-          { workOrderId: workOrder.id, orderNumber },
-        ).catch(() => {});
+        await this.notificationsService
+          .sendNotification(
+            technician.user.id,
+            "Work Order Assigned",
+            `You have been assigned to Work Order '${orderNumber}': ${dto.title}`,
+            NotificationType.TASK_ASSIGNED,
+            { workOrderId: workOrder.id, orderNumber },
+          )
+          .catch(() => {});
       }
     }
 
@@ -191,7 +225,10 @@ export class MaintenanceService {
         action: AuditAction.UPDATE,
         entity: "WorkOrder",
         entityId: id,
-        payload: { changes: JSON.parse(JSON.stringify(dto)), newStatus: updated.status },
+        payload: {
+          changes: JSON.parse(JSON.stringify(dto)),
+          newStatus: updated.status,
+        },
       },
     });
 
@@ -205,7 +242,9 @@ export class MaintenanceService {
   async createSparePart(userId: string, dto: CreateSparePartDto) {
     const existing = await this.repo.findSparePartByNumber(dto.partNumber);
     if (existing) {
-      throw new ConflictException(`Spare part with number '${dto.partNumber}' already exists`);
+      throw new ConflictException(
+        `Spare part with number '${dto.partNumber}' already exists`,
+      );
     }
 
     const part = await this.repo.createSparePart(dto);
@@ -227,7 +266,11 @@ export class MaintenanceService {
     return this.repo.findSpareParts();
   }
 
-  async consumeSparePart(workOrderId: string, userId: string, dto: ConsumeSparePartDto) {
+  async consumeSparePart(
+    workOrderId: string,
+    userId: string,
+    dto: ConsumeSparePartDto,
+  ) {
     await this.findWorkOrderById(workOrderId);
 
     const part = await this.repo.findSparePartById(dto.sparePartId);

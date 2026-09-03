@@ -2,7 +2,10 @@ import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class LogKeyAccessDto {
-  @ApiProperty({ example: "DOOR_OPENED", description: "Action taken (e.g. DOOR_OPENED, SWIPED, AUDIT)" })
+  @ApiProperty({
+    example: "DOOR_OPENED",
+    description: "Action taken (e.g. DOOR_OPENED, SWIPED, AUDIT)",
+  })
   @IsString()
   @IsNotEmpty()
   action: string;

@@ -8,7 +8,11 @@ import {
 import { BudgetRepository } from "./budget.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { CreateBudgetDto, RecordBudgetSpendingDto, QueryBudgetsDto } from "./dto";
+import {
+  CreateBudgetDto,
+  RecordBudgetSpendingDto,
+  QueryBudgetsDto,
+} from "./dto";
 import { AuditAction, BudgetStatus, NotificationType } from "@prisma/client";
 
 @Injectable()
@@ -24,19 +28,31 @@ export class BudgetService {
   async createBudget(userId: string, dto: CreateBudgetDto) {
     const existing = await this.repo.findBudgetByCode(dto.budgetCode);
     if (existing) {
-      throw new ConflictException(`Budget with code '${dto.budgetCode}' already exists`);
+      throw new ConflictException(
+        `Budget with code '${dto.budgetCode}' already exists`,
+      );
     }
 
     if (dto.departmentId) {
-      const dept = await this.prisma.department.findUnique({ where: { id: dto.departmentId } });
-      if (!dept) throw new NotFoundException(`Department '${dto.departmentId}' not found`);
+      const dept = await this.prisma.department.findUnique({
+        where: { id: dto.departmentId },
+      });
+      if (!dept)
+        throw new NotFoundException(
+          `Department '${dto.departmentId}' not found`,
+        );
     }
 
     if (!dto.lines || dto.lines.length === 0) {
-      throw new BadRequestException("Budget must contain at least one budget line");
+      throw new BadRequestException(
+        "Budget must contain at least one budget line",
+      );
     }
 
-    const totalAllocated = dto.lines.reduce((sum, line) => sum + line.allocatedAmount, 0);
+    const totalAllocated = dto.lines.reduce(
+      (sum, line) => sum + line.allocatedAmount,
+      0,
+    );
 
     const budget = await this.repo.createBudget(dto, totalAllocated);
 
@@ -46,7 +62,11 @@ export class BudgetService {
         action: AuditAction.CREATE,
         entity: "Budget",
         entityId: budget.id,
-        payload: { budgetCode: budget.budgetCode, totalAllocated, fiscalYear: budget.fiscalYear },
+        payload: {
+          budgetCode: budget.budgetCode,
+          totalAllocated,
+          fiscalYear: budget.fiscalYear,
+        },
       },
     });
 
@@ -82,7 +102,10 @@ export class BudgetService {
 
   async recordSpending(userId: string, dto: RecordBudgetSpendingDto) {
     const line = await this.repo.findBudgetLineById(dto.budgetLineId);
-    if (!line) throw new NotFoundException(`Budget line '${dto.budgetLineId}' not found`);
+    if (!line)
+      throw new NotFoundException(
+        `Budget line '${dto.budgetLineId}' not found`,
+      );
 
     const allocated = Number(line.allocatedAmount);
     const currentSpent = Number(line.spentAmount);
@@ -94,7 +117,11 @@ export class BudgetService {
       );
     }
 
-    const result = await this.repo.recordSpending(line.budgetId, line.id, dto.amount);
+    const result = await this.repo.recordSpending(
+      line.budgetId,
+      line.id,
+      dto.amount,
+    );
 
     await this.prisma.auditLog.create({
       data: {
