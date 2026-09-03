@@ -99,5 +99,27 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(`Config validation error: ${errors.toString()}`);
   }
+
+  // Security hardening: reject fallback/weak secrets in production
+  if (validatedConfig.NODE_ENV === Environment.Production) {
+    const forbiddenPatterns = ["default_secret", "password", "secret", "test_secret", "123456"];
+    const access = validatedConfig.JWT_ACCESS_SECRET?.toLowerCase() || "";
+    const refresh = validatedConfig.JWT_REFRESH_SECRET?.toLowerCase() || "";
+
+    for (const pattern of forbiddenPatterns) {
+      if (access === pattern || refresh === pattern) {
+        throw new Error(
+          `Security Alert: Production deployment rejected. Insecure fallback pattern '${pattern}' detected in JWT secrets.`,
+        );
+      }
+    }
+
+    if (validatedConfig.JWT_ACCESS_SECRET.length < 32 || validatedConfig.JWT_REFRESH_SECRET.length < 32) {
+      throw new Error(
+        "Security Alert: Production deployment rejected. JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be at least 32 characters long.",
+      );
+    }
+  }
+
   return validatedConfig;
 }

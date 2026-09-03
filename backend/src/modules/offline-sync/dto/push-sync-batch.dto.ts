@@ -4,11 +4,22 @@ import {
   IsArray,
   ValidateNested,
   IsDateString,
+  IsOptional,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class SyncQueueItemDto {
+  @ApiPropertyOptional({ example: "act-9876-uuid-v4", description: "Unique client-generated idempotency identifier" })
+  @IsOptional()
+  @IsString()
+  clientActionId?: string;
+
+  @ApiPropertyOptional({ example: "task-uuid-or-id", description: "Target entity ID if mutation is an update" })
+  @IsOptional()
+  @IsString()
+  entityId?: string;
+
   @ApiProperty({ example: "ServiceRequest" })
   @IsString()
   @IsNotEmpty()
@@ -34,4 +45,14 @@ export class PushSyncBatchDto {
   @ValidateNested({ each: true })
   @Type(() => SyncQueueItemDto)
   items: SyncQueueItemDto[];
+
+  @ApiPropertyOptional({ example: "2026-09-03T09:00:00.000Z", description: "Cursor or timestamp of last successful sync" })
+  @IsOptional()
+  @IsString()
+  syncCursor?: string;
+
+  @ApiPropertyOptional({ example: "2026-09-03T09:00:00.000Z", description: "Alias for syncCursor" })
+  @IsOptional()
+  @IsString()
+  lastSyncToken?: string;
 }

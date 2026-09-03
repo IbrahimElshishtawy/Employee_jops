@@ -3599,6 +3599,7 @@ model OfflineSyncQueue {
   id              String     @id @default(uuid())
   userId          String
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientActionId  String?
   entityType      String
   action          String
   clientTimestamp DateTime
@@ -3610,6 +3611,7 @@ model OfflineSyncQueue {
   updatedAt       DateTime   @updatedAt
 
   @@index([userId])
+  @@index([userId, clientActionId])
   @@index([status])
   @@map("offline_sync_queue")
 }

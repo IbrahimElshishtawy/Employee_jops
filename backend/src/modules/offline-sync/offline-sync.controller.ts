@@ -26,6 +26,18 @@ import { SyncStatus } from "@prisma/client";
 export class OfflineSyncController {
   constructor(private readonly offlineSyncService: OfflineSyncService) {}
 
+  @Post()
+  @ApiOperation({
+    summary: "Standard mobile client sync endpoint (POST /api/v1/sync)",
+  })
+  @ApiResponse({ status: 200, description: "Batch processed" })
+  sync(
+    @CurrentUser("id") userId: string,
+    @Body() dto: PushSyncBatchDto,
+  ) {
+    return this.offlineSyncService.processSyncBatch(userId, dto);
+  }
+
   @Post("batch")
   @ApiOperation({
     summary: "Push batch of offline actions recorded on mobile client",
@@ -36,6 +48,17 @@ export class OfflineSyncController {
     @Body() dto: PushSyncBatchDto,
   ) {
     return this.offlineSyncService.processSyncBatch(userId, dto);
+  }
+
+  @Get("changes")
+  @ApiOperation({
+    summary: "Retrieve server delta changes since client cursor (FR-SYNC-001)",
+  })
+  getServerChanges(
+    @CurrentUser("id") userId: string,
+    @Query("cursor") cursor?: string,
+  ) {
+    return this.offlineSyncService.getServerChanges(userId, cursor);
   }
 
   @Get("queue")

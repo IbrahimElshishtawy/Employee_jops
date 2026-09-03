@@ -8,6 +8,8 @@ import {
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { TaskStatus, SyncStatus, NotificationType } from "@prisma/client";
+import * as fs from "fs";
+import * as path from "path";
 
 export interface ScheduledJobInfo {
   name: string;
@@ -59,6 +61,20 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       description: "Flags unclosed attendance sessions from previous days",
       intervalSeconds: 1800, // Every 30 minutes
       fn: () => this.reconcileUnclosedAttendance(),
+    });
+
+    this.registerJob({
+      name: "backup-retention-cleanup",
+      description: "Purges backup archives older than 30 days retention policy",
+      intervalSeconds: 86400, // Daily
+      fn: () => this.cleanupOldBackups(),
+    });
+
+    this.registerJob({
+      name: "inventory-low-stock-alert",
+      description: "Audits warehouse inventory and triggers reorder warnings",
+      intervalSeconds: 3600, // Hourly
+      fn: () => this.checkLowStockItems(),
     });
   }
 
@@ -266,4 +282,46 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
     return { openSessionsCount: openSessions.length };
   }
-}
+
+  // ============================================================
+  // JOB 5: Backup Retention Policy Enforcement
+  // ============================================================
+  async cleanupOldBackups() {
+    const backupDir = path.resolve(process.cwd(), "backups");
+    if (!fs.existsSync(backupDir)) return { purgedCount: 0 };
+
+    const retentionDays = 30;
+    const cutoffTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+    const files = fs.readdirSync(backupDir).filter((f) => f.endsWith(".json"));
+    let purgedCount = 0;
+
+    for (const file of files) {
+      try {
+        const fullPath = path.join(backupDir, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.mtimeMs < cutoffTime) {
+          fs.unlinkSync(fullPath);
+          purgedCount++;
+        }
+      } catch (err) {
+        // Skip inaccessible files
+      }
+    }
+
+    return { purgedCount, retentionDays };
+  }
+
+  // ============================================================
+  // JOB 6: Inventory Low Stock Alert
+  // ============================================================
+  async checkLowStockItems() {
+    const lowStockItems = await this.prisma.stockItem
+      .findMany({
+        where: {
+          currentStock: { lte: this.prisma.stockItem.fields.reorderLevel },
+        },
+        take: 50,
+      })
+      .catch(() => []);
+
+    ret

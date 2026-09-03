@@ -7,14 +7,49 @@ import { Prisma, SyncStatus } from "@prisma/client";
 export class OfflineSyncRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findExistingAction(userId: string, clientActionId: string) {
+    if (!clientActionId) return null;
+    return this.prisma.offlineSyncQueue.findFirst({
+      where: { userId, clientActionId },
+    });
+  }
+
+  async createQueueItem(
+    userId: string,
+    item: {
+      clientActionId?: string;
+      entityType: string;
+      action: string;
+      payload: any;
+      clientTimestamp: string | Date;
+      status: SyncStatus;
+      failureReason?: string | null;
+      processedAt?: Date | null;
+    },
+  ) {
+    return this.prisma.offlineSyncQueue.create({
+      data: {
+        userId,
+        clientActionId: item.clientActionId || null,
+        entityType: item.entityType,
+        action: item.action,
+        payload: item.payload,
+        clientTimestamp: new Date(item.clientTimestamp),
+        status: item.status,
+        failureReason: item.failureReason || null,
+        processedAt: item.processedAt || (item.status === SyncStatus.PROCESSED ? new Date() : null),
+      },
+    });
+  }
+
   async enqueueBatch(userId: string, dto: PushSyncBatchDto) {
     return this.prisma.$transaction(
       dto.items.map((item) => {
-        // Detect potential timestamp conflict: if item payload has serverConflict flag
         const isConflict = Boolean((item.payload as any)?.hasConflict);
         return this.prisma.offlineSyncQueue.create({
           data: {
             userId,
+            clientActionId: item.clientActionId || null,
             entityType: item.entityType,
             action: item.action,
             payload: item.payload,

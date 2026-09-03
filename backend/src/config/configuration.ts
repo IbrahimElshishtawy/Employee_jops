@@ -13,9 +13,25 @@ export default () => ({
     password: process.env.REDIS_PASSWORD || undefined,
   },
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET || "default_secret",
+    accessSecret: (() => {
+      const secret = process.env.JWT_ACCESS_SECRET;
+      if (process.env.NODE_ENV === "production") {
+        if (!secret || secret === "default_secret" || secret.includes("test") || secret.length < 32) {
+          throw new Error("FATAL: JWT_ACCESS_SECRET is missing, insecure, or uses default fallback in production");
+        }
+      }
+      return secret || "development_insecure_access_secret_key_32bytes_minimum";
+    })(),
     accessExpiration: process.env.JWT_ACCESS_EXPIRATION || "15m",
-    refreshSecret: process.env.JWT_REFRESH_SECRET || "default_refresh_secret",
+    refreshSecret: (() => {
+      const secret = process.env.JWT_REFRESH_SECRET;
+      if (process.env.NODE_ENV === "production") {
+        if (!secret || secret === "default_refresh_secret" || secret.includes("test") || secret.length < 32) {
+          throw new Error("FATAL: JWT_REFRESH_SECRET is missing, insecure, or uses default fallback in production");
+        }
+      }
+      return secret || "development_insecure_refresh_secret_key_32bytes_minimum";
+    })(),
     refreshExpiration: process.env.JWT_REFRESH_EXPIRATION || "7d",
   },
   cors: {
