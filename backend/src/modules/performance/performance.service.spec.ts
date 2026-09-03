@@ -35,7 +35,7 @@ describe("PerformanceService", () => {
     };
 
     const mockNotifications = {
-      sendInAppNotification: jest.fn().mockResolvedValue({ id: "notif-1" }),
+      sendNotification: jest.fn().mockResolvedValue({ id: "notif-1" }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -120,7 +120,7 @@ describe("PerformanceService", () => {
       });
 
       expect(result.id).toBe("review-1");
-      expect(notifications.sendInAppNotification).toHaveBeenCalled();
+      expect(notifications.sendNotification).toHaveBeenCalled();
       expect(prisma.auditLog.create).toHaveBeenCalled();
     });
   });

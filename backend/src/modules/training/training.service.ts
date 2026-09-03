@@ -128,13 +128,13 @@ export class TrainingService {
 
     // Notify employee
     if (employee.user?.id) {
-      await this.notificationsService.sendInAppNotification({
-        userId: employee.user.id,
-        title: "Enrolled in Training Session",
-        body: `You have been enrolled in '${session.course.title}' scheduled on ${session.startDate.toISOString().slice(0, 10)}.`,
-        type: NotificationType.GENERAL_ANNOUNCEMENT,
-        data: { sessionId, courseId: session.courseId },
-      }).catch(() => {});
+      await this.notificationsService.sendNotification(
+        employee.user.id,
+        "Enrolled in Training Session",
+        `You have been enrolled in '${session.course.title}' scheduled on ${session.startDate.toISOString().slice(0, 10)}.`,
+        NotificationType.GENERAL_ANNOUNCEMENT,
+        { sessionId, courseId: session.courseId },
+      ).catch(() => {});
     }
 
     await this.prisma.auditLog.create({
@@ -182,13 +182,13 @@ export class TrainingService {
 
     // Notify employee
     if (employee.user?.id) {
-      await this.notificationsService.sendInAppNotification({
-        userId: employee.user.id,
-        title: "Certificate Issued!",
-        body: `Congratulations! Your certificate '${dto.title}' (${certNumber}) has been issued.`,
-        type: NotificationType.GENERAL_ANNOUNCEMENT,
-        data: { certificateId: certificate.id, certNumber },
-      }).catch(() => {});
+      await this.notificationsService.sendNotification(
+        employee.user.id,
+        "Certificate Issued!",
+        `Congratulations! Your certificate '${dto.title}' (${certNumber}) has been issued.`,
+        NotificationType.GENERAL_ANNOUNCEMENT,
+        { certificateId: certificate.id, certNumber },
+      ).catch(() => {});
     }
 
     await this.prisma.auditLog.create({

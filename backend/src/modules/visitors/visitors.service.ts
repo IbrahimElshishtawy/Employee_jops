@@ -35,13 +35,13 @@ export class VisitorsService {
 
     // Notify host employee
     if (host.user?.id) {
-      await this.notificationsService.sendInAppNotification({
-        userId: host.user.id,
-        title: "Visitor Arrival",
-        body: `${dto.fullName} (${dto.company || "Guest"}) has checked in to meet you. Purpose: ${dto.purpose}`,
-        type: NotificationType.GENERAL_ANNOUNCEMENT,
-        data: { visitorId: visitor.id, visitorNumber },
-      }).catch(() => {});
+      await this.notificationsService.sendNotification(
+        host.user.id,
+        "Visitor Arrival",
+        `${dto.fullName} (${dto.company || "Guest"}) has checked in to meet you. Purpose: ${dto.purpose}`,
+        NotificationType.GENERAL_ANNOUNCEMENT,
+        { visitorId: visitor.id, visitorNumber },
+      ).catch(() => {});
     }
 
     await this.prisma.auditLog.create({
