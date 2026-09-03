@@ -49,7 +49,9 @@ export class MessagesController {
   }
 
   @Post("groups")
-  @ApiOperation({ summary: "Create a new group conversation with participants" })
+  @ApiOperation({
+    summary: "Create a new group conversation with participants",
+  })
   @ApiResponse({
     status: 201,
     description: "Group conversation created successfully",

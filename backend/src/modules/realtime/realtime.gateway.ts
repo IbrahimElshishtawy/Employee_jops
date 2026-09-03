@@ -8,7 +8,7 @@ import {
   MessageBody,
   ConnectedSocket,
 } from "@nestjs/websockets";
-import { Logger, UseGuards, Inject, forwardRef } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { PresenceService } from "./presence.service";
 import { RealTimeService } from "./realtime.service";
@@ -17,9 +17,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import {
   JoinConversationWsDto,
   LeaveConversationWsDto,
-  SendMessageWsDto,
   TypingWsDto,
-  MarkReadWsDto,
 } from "./dto";
 
 @WebSocketGateway({
@@ -47,7 +45,9 @@ export class RealTimeGateway
 
   afterInit(server: Server) {
     this.realtimeService.setServer(server);
-    this.logger.log("⚡ RealTime Socket.IO Gateway initialized on namespace /realtime");
+    this.logger.log(
+      "⚡ RealTime Socket.IO Gateway initialized on namespace /realtime",
+    );
   }
 
   async handleConnection(client: Socket) {
@@ -72,7 +72,9 @@ export class RealTimeGateway
         timestamp: new Date().toISOString(),
       });
 
-      this.logger.log(`[WS] Client connected & authenticated: user=${user.id} socket=${client.id}`);
+      this.logger.log(
+        `[WS] Client connected & authenticated: user=${user.id} socket=${client.id}`,
+      );
     } catch (err: any) {
       this.logger.warn(`[WS] Connection rejected: ${err?.message || err}`);
       client.emit("error", {
@@ -86,11 +88,16 @@ export class RealTimeGateway
   handleDisconnect(client: Socket) {
     const user = client.data?.user;
     if (user && user.id) {
-      const isOffline = this.presenceService.markUserOffline(user.id, client.id);
+      const isOffline = this.presenceService.markUserOffline(
+        user.id,
+        client.id,
+      );
       if (isOffline) {
         this.realtimeService.notifyPresenceChange(user.id, false);
       }
-      this.logger.log(`[WS] Client disconnected: user=${user.id} socket=${client.id}`);
+      this.logger.log(
+        `[WS] Client disconnected: user=${user.id} socket=${client.id}`,
+      );
     }
   }
 
@@ -120,7 +127,9 @@ export class RealTimeGateway
     });
 
     if (!isParticipant) {
-      this.logger.warn(`[WS] Unauthorized join attempt: user ${user.id} on conv ${dto.conversationId}`);
+      this.logger.warn(
+        `[WS] Unauthorized join attempt: user ${user.id} on conv ${dto.conversationId}`,
+      );
       client.emit("error", {
         code: "FORBIDDEN",
         message: "You are not an authorized participant in this conversation",
@@ -134,7 +143,9 @@ export class RealTimeGateway
       status: "SUCCESS",
     });
 
-    this.logger.debug(`[WS] User ${user.id} joined room conversation:${dto.conversationId}`);
+    this.logger.debug(
+      `[WS] User ${user.id} joined room conversation:${dto.conversationId}`,
+    );
   }
 
   @SubscribeMessage("leave_conversation")

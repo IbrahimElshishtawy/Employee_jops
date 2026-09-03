@@ -29,7 +29,9 @@ export class WsJwtGuard implements CanActivate {
       return true;
     } catch (err: any) {
       this.logger.warn(`[WsJwtGuard] Authentication failed: ${err.message}`);
-      throw new UnauthorizedException(err.message || "Unauthorized WebSocket access");
+      throw new UnauthorizedException(
+        err.message || "Unauthorized WebSocket access",
+      );
     }
   }
 
@@ -39,7 +41,9 @@ export class WsJwtGuard implements CanActivate {
   async authenticateSocket(client: Socket): Promise<any> {
     const token = this.extractToken(client);
     if (!token) {
-      throw new UnauthorizedException("Missing authentication token in handshake");
+      throw new UnauthorizedException(
+        "Missing authentication token in handshake",
+      );
     }
 
     const secret =
@@ -51,7 +55,9 @@ export class WsJwtGuard implements CanActivate {
     try {
       payload = await this.jwtService.verifyAsync(token, { secret });
     } catch (jwtErr: any) {
-      throw new UnauthorizedException(`Invalid or expired token: ${jwtErr.message}`);
+      throw new UnauthorizedException(
+        `Invalid or expired token: ${jwtErr.message}`,
+      );
     }
 
     if (!payload || !payload.sub) {
@@ -81,7 +87,9 @@ export class WsJwtGuard implements CanActivate {
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException(`User account is ${user.status.toLowerCase()}`);
+      throw new UnauthorizedException(
+        `User account is ${user.status.toLowerCase()}`,
+      );
     }
 
     return {
@@ -119,6 +127,8 @@ export class WsJwtGuard implements CanActivate {
   }
 
   private cleanBearerToken(rawToken: string): string {
-    return rawToken.startsWith("Bearer ") ? rawToken.slice(7).trim() : rawToken.trim();
+    return rawToken.startsWith("Bearer ")
+      ? rawToken.slice(7).trim()
+      : rawToken.trim();
   }
 }

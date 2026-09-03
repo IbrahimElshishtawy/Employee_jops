@@ -102,6 +102,14 @@ export class UpdateNotificationPreferencesDto {
 
   @ApiPropertyOptional({
     default: true,
+    description: "Receive task assignments and updates alerts",
+  })
+  @IsOptional()
+  @IsBoolean()
+  taskNotifications?: boolean;
+
+  @ApiPropertyOptional({
+    default: true,
     description: "Enable email notifications channel",
   })
   @IsOptional()

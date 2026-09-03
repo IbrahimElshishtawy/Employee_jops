@@ -21,7 +21,6 @@ import { PayrollModule } from "./modules/payroll/payroll.module";
 import { RealTimeModule } from "./modules/realtime/realtime.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { MessagingModule } from "./modules/messaging/messaging.module";
-import { MessagesModule } from "./modules/messages/messages.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { AuditLogsModule } from "./modules/audit-logs/audit-logs.module";
 

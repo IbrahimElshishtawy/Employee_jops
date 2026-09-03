@@ -103,9 +103,17 @@ export class RealTimeService {
   /**
    * Emits presence status change (online/offline) to relevant rooms or users.
    */
-  notifyPresenceChange(userId: string, isOnline: boolean, targetUserIds?: string[]) {
+  notifyPresenceChange(
+    userId: string,
+    isOnline: boolean,
+    targetUserIds?: string[],
+  ) {
     const event = isOnline ? "user_online" : "user_offline";
-    const data = { userId, status: isOnline ? "ONLINE" : "OFFLINE", timestamp: new Date().toISOString() };
+    const data = {
+      userId,
+      status: isOnline ? "ONLINE" : "OFFLINE",
+      timestamp: new Date().toISOString(),
+    };
 
     if (targetUserIds && targetUserIds.length > 0) {
       this.emitToUsers(targetUserIds, event, data);
@@ -134,6 +142,7 @@ export class RealTimeService {
     listener: (payload: RealTimeEventPayload) => void,
   ) {
     this.localEmitter.on(`conversation:${conversationId}`, listener);
-    return () => this.localEmitter.off(`conversation:${conversationId}`, listener);
+    return () =>
+      this.localEmitter.off(`conversation:${conversationId}`, listener);
   }
 }

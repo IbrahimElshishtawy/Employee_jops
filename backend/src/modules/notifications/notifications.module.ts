@@ -15,6 +15,11 @@ import { AnnouncementsController } from "./announcements.controller";
     NotificationsService,
     AnnouncementsService,
   ],
-  exports: [NotificationsService, AnnouncementsService, FcmService, NotificationsRepository],
+  exports: [
+    NotificationsService,
+    AnnouncementsService,
+    FcmService,
+    NotificationsRepository,
+  ],
 })
 export class NotificationsModule {}

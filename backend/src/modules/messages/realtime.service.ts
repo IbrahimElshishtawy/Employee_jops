@@ -1,1 +1,4 @@
-export { RealTimeService, RealTimeEventPayload } from "../realtime/realtime.service";
+export {
+  RealTimeService,
+  RealTimeEventPayload,
+} from "../realtime/realtime.service";

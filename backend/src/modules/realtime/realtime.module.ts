@@ -21,8 +21,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
           process.env.JWT_ACCESS_SECRET ||
           "default_secret",
         signOptions: {
-          expiresIn:
-            configService.get<string>("jwt.accessExpiration") || "15m",
+          expiresIn: configService.get<string>("jwt.accessExpiration") || "15m",
         },
       }),
     }),

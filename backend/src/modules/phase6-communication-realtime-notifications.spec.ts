@@ -1,13 +1,14 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { Role, UserStatus, NotificationType, NotificationPriority, DevicePlatform } from "@prisma/client";
+import {
+  Role,
+  UserStatus,
+  NotificationType,
+  NotificationPriority,
+  DevicePlatform,
+} from "@prisma/client";
 
 import { PrismaService } from "../prisma/prisma.service";
 import { PresenceService } from "./realtime/presence.service";
@@ -23,16 +24,12 @@ import { ConversationAccessGuard } from "./messaging/guards/conversation-access.
 
 describe("Phase 6 — Communication, Realtime & Notifications Complete Specification", () => {
   let presenceService: PresenceService;
-  let realtimeService: RealTimeService;
   let realtimeGateway: RealTimeGateway;
-  let wsJwtGuard: WsJwtGuard;
   let fcmService: FcmService;
-  let notificationsRepo: NotificationsRepository;
   let notificationsService: NotificationsService;
   let messagingRepo: MessagingRepository;
   let messagingService: MessagingService;
   let conversationAccessGuard: ConversationAccessGuard;
-  let jwtService: JwtService;
 
   // In-Memory Data Store for Mock Prisma
   const mockUsers: Record<string, any> = {
@@ -98,19 +95,25 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
   const mockMessages: any[] = [];
   const mockAuditLogs: any[] = [];
 
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     user: {
-      findUnique: jest.fn(({ where }) => Promise.resolve(mockUsers[where.id] || null)),
+      findUnique: jest.fn(({ where }) =>
+        Promise.resolve(mockUsers[where.id] || null),
+      ),
       findFirst: jest.fn(({ where }) => {
         if (where?.role?.in) {
-          const u = Object.values(mockUsers).find((user) => where.role.in.includes(user.role));
+          const u = Object.values(mockUsers).find((user) =>
+            where.role.in.includes(user.role),
+          );
           return Promise.resolve(u || null);
         }
         return Promise.resolve(null);
       }),
       findMany: jest.fn(({ where }) => {
         if (where?.id?.in) {
-          const list = Object.values(mockUsers).filter((u) => where.id.in.includes(u.id));
+          const list = Object.values(mockUsers).filter((u) =>
+            where.id.in.includes(u.id),
+          );
           return Promise.resolve(list);
         }
         return Promise.resolve(Object.values(mockUsers));
@@ -118,7 +121,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     },
     deviceToken: {
       upsert: jest.fn(({ where, create, update }) => {
-        const idx = mockDeviceTokens.findIndex((t) => t.fcmToken === where.fcmToken);
+        const idx = mockDeviceTokens.findIndex(
+          (t) => t.fcmToken === where.fcmToken,
+        );
         if (idx >= 0) {
           Object.assign(mockDeviceTokens[idx], update);
           return Promise.resolve(mockDeviceTokens[idx]);
@@ -141,7 +146,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         return Promise.resolve({ count });
       }),
       findMany: jest.fn(({ where }) => {
-        let list = mockDeviceTokens.filter((t) => t.isActive === (where.isActive ?? true));
+        let list = mockDeviceTokens.filter(
+          (t) => t.isActive === (where.isActive ?? true),
+        );
         if (where.userId) {
           list = list.filter((t) => t.userId === where.userId);
         }
@@ -185,7 +192,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         return Promise.resolve(list.length);
       }),
       findUnique: jest.fn(({ where }) => {
-        return Promise.resolve(mockNotifications.find((n) => n.id === where.id) || null);
+        return Promise.resolve(
+          mockNotifications.find((n) => n.id === where.id) || null,
+        );
       }),
       update: jest.fn(({ where, data }) => {
         const item = mockNotifications.find((n) => n.id === where.id);
@@ -195,7 +204,10 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       updateMany: jest.fn(({ where, data }) => {
         let count = 0;
         for (const n of mockNotifications) {
-          if (n.userId === where.userId && (where.isRead === undefined || n.isRead === where.isRead)) {
+          if (
+            n.userId === where.userId &&
+            (where.isRead === undefined || n.isRead === where.isRead)
+          ) {
             Object.assign(n, data);
             count++;
           }
@@ -204,10 +216,15 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       }),
     },
     notificationPreference: {
-      findUnique: jest.fn(({ where }) => Promise.resolve(mockPreferences[where.userId] || null)),
+      findUnique: jest.fn(({ where }) =>
+        Promise.resolve(mockPreferences[where.userId] || null),
+      ),
       upsert: jest.fn(({ where, create, update }) => {
         if (!mockPreferences[where.userId]) {
-          mockPreferences[where.userId] = { id: `pref-${where.userId}`, ...create };
+          mockPreferences[where.userId] = {
+            id: `pref-${where.userId}`,
+            ...create,
+          };
         } else {
           Object.assign(mockPreferences[where.userId], update);
         }
@@ -238,7 +255,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
           const userB = where.AND[1].participants.some.userId;
           const conv = mockConversations.find((c) => {
             if (c.isGroup) return false;
-            const pIds = mockParticipants.filter((p) => p.conversationId === c.id).map((p) => p.userId);
+            const pIds = mockParticipants
+              .filter((p) => p.conversationId === c.id)
+              .map((p) => p.userId);
             return pIds.includes(userA) && pIds.includes(userB);
           });
           return Promise.resolve(conv || null);
@@ -280,7 +299,11 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         );
       }),
       create: jest.fn(({ data }) => {
-        const c = { id: `conv-${Date.now()}-${Math.random()}`, ...data, createdAt: new Date() };
+        const c = {
+          id: `conv-${Date.now()}-${Math.random()}`,
+          ...data,
+          createdAt: new Date(),
+        };
         mockConversations.push(c);
         return Promise.resolve(c);
       }),
@@ -294,7 +317,8 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       findUnique: jest.fn(({ where }) => {
         const p = mockParticipants.find(
           (item) =>
-            item.conversationId === where.conversationId_userId.conversationId &&
+            item.conversationId ===
+              where.conversationId_userId.conversationId &&
             item.userId === where.conversationId_userId.userId,
         );
         if (!p) return Promise.resolve(null);
@@ -302,7 +326,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
           ...p,
           conversation: {
             id: p.conversationId,
-            participants: mockParticipants.filter((x) => x.conversationId === p.conversationId),
+            participants: mockParticipants.filter(
+              (x) => x.conversationId === p.conversationId,
+            ),
           },
         });
       }),
@@ -319,7 +345,8 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       update: jest.fn(({ where, data }) => {
         const p = mockParticipants.find(
           (item) =>
-            item.conversationId === where.conversationId_userId.conversationId &&
+            item.conversationId ===
+              where.conversationId_userId.conversationId &&
             item.userId === where.conversationId_userId.userId,
         );
         if (p) Object.assign(p, data);
@@ -340,7 +367,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         return Promise.resolve(msg);
       }),
       findMany: jest.fn(({ where, skip = 0, take = 50 }) => {
-        let list = mockMessages.filter((m) => m.conversationId === where.conversationId);
+        let list = mockMessages.filter(
+          (m) => m.conversationId === where.conversationId,
+        );
         if (where.isDeleted !== undefined) {
           list = list.filter((m) => m.isDeleted === where.isDeleted);
         }
@@ -353,7 +382,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         }
         if (where.conversation?.participants?.some?.userId) {
           const userConvIds = mockParticipants
-            .filter((p) => p.userId === where.conversation.participants.some.userId)
+            .filter(
+              (p) => p.userId === where.conversation.participants.some.userId,
+            )
             .map((p) => p.conversationId);
           list = list.filter((m) => userConvIds.includes(m.conversationId));
         }
@@ -380,7 +411,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         return Promise.resolve({ count });
       }),
       findUnique: jest.fn(({ where }) => {
-        return Promise.resolve(mockMessages.find((m) => m.id === where.id) || null);
+        return Promise.resolve(
+          mockMessages.find((m) => m.id === where.id) || null,
+        );
       }),
       update: jest.fn(({ where, data }) => {
         const m = mockMessages.find((item) => item.id === where.id);
@@ -390,7 +423,11 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     },
     auditLog: {
       create: jest.fn(({ data }) => {
-        const log = { id: `audit-${Date.now()}`, ...data, timestamp: new Date() };
+        const log = {
+          id: `audit-${Date.now()}`,
+          ...data,
+          timestamp: new Date(),
+        };
         mockAuditLogs.push(log);
         return Promise.resolve(log);
       }),
@@ -424,8 +461,10 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
           provide: ConfigService,
           useValue: {
             get: jest.fn((key: string) => {
-              if (key === "jwt.accessSecret") return "test_jwt_secret_key_phase6";
-              if (key === "FIREBASE_PROJECT_ID") return "cyberwise-test-project";
+              if (key === "jwt.accessSecret")
+                return "test_jwt_secret_key_phase6";
+              if (key === "FIREBASE_PROJECT_ID")
+                return "cyberwise-test-project";
               return null;
             }),
           },
@@ -433,11 +472,15 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         {
           provide: JwtService,
           useValue: {
-            verifyAsync: jest.fn((token: string, opts?: any) => {
-              if (token === "valid-token-user-1") return Promise.resolve({ sub: "user-emp-1" });
-              if (token === "valid-token-user-2") return Promise.resolve({ sub: "user-emp-2" });
-              if (token === "valid-token-hr") return Promise.resolve({ sub: "user-hr-admin" });
-              if (token === "valid-token-stranger") return Promise.resolve({ sub: "user-stranger" });
+            verifyAsync: jest.fn((token: string, _opts?: any) => {
+              if (token === "valid-token-user-1")
+                return Promise.resolve({ sub: "user-emp-1" });
+              if (token === "valid-token-user-2")
+                return Promise.resolve({ sub: "user-emp-2" });
+              if (token === "valid-token-hr")
+                return Promise.resolve({ sub: "user-hr-admin" });
+              if (token === "valid-token-stranger")
+                return Promise.resolve({ sub: "user-stranger" });
               throw new Error("Invalid or expired token");
             }),
           },
@@ -446,16 +489,15 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     }).compile();
 
     presenceService = module.get<PresenceService>(PresenceService);
-    realtimeService = module.get<RealTimeService>(RealTimeService);
     realtimeGateway = module.get<RealTimeGateway>(RealTimeGateway);
-    wsJwtGuard = module.get<WsJwtGuard>(WsJwtGuard);
     fcmService = module.get<FcmService>(FcmService);
-    notificationsRepo = module.get<NotificationsRepository>(NotificationsRepository);
-    notificationsService = module.get<NotificationsService>(NotificationsService);
+    notificationsService =
+      module.get<NotificationsService>(NotificationsService);
     messagingRepo = module.get<MessagingRepository>(MessagingRepository);
     messagingService = module.get<MessagingService>(MessagingService);
-    conversationAccessGuard = module.get<ConversationAccessGuard>(ConversationAccessGuard);
-    jwtService = module.get<JwtService>(JwtService);
+    conversationAccessGuard = module.get<ConversationAccessGuard>(
+      ConversationAccessGuard,
+    );
   });
 
   afterEach(() => {
@@ -483,10 +525,13 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       expect(mockSocket.data.user.id).toBe("user-emp-1");
       expect(mockSocket.join).toHaveBeenCalledWith("user:user-emp-1");
       expect(presenceService.isUserOnline("user-emp-1")).toBe(true);
-      expect(mockSocket.emit).toHaveBeenCalledWith("connected", expect.objectContaining({
-        status: "AUTHENTICATED",
-        userId: "user-emp-1",
-      }));
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        "connected",
+        expect.objectContaining({
+          status: "AUTHENTICATED",
+          userId: "user-emp-1",
+        }),
+      );
     });
 
     it("1.2 Successfully authenticates with Authorization Bearer header", async () => {
@@ -517,9 +562,12 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
 
       await realtimeGateway.handleConnection(mockSocket);
 
-      expect(mockSocket.emit).toHaveBeenCalledWith("error", expect.objectContaining({
-        code: "UNAUTHORIZED",
-      }));
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        "error",
+        expect.objectContaining({
+          code: "UNAUTHORIZED",
+        }),
+      );
       expect(mockSocket.disconnect).toHaveBeenCalledWith(true);
     });
 
@@ -561,12 +609,18 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       expect(presenceService.getUserSocketIds("user-emp-1")).toHaveLength(2);
 
       // Disconnect one device
-      const isCompletelyOffline1 = presenceService.markUserOffline("user-emp-1", "socket-phone");
+      const isCompletelyOffline1 = presenceService.markUserOffline(
+        "user-emp-1",
+        "socket-phone",
+      );
       expect(isCompletelyOffline1).toBe(false);
       expect(presenceService.isUserOnline("user-emp-1")).toBe(true);
 
       // Disconnect remaining device
-      const isCompletelyOffline2 = presenceService.markUserOffline("user-emp-1", "socket-laptop");
+      const isCompletelyOffline2 = presenceService.markUserOffline(
+        "user-emp-1",
+        "socket-laptop",
+      );
       expect(isCompletelyOffline2).toBe(true);
       expect(presenceService.isUserOnline("user-emp-1")).toBe(false);
     });
@@ -583,7 +637,8 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       const msg = await messagingService.createConversation("user-emp-1", {
         participantUserId: "user-hr-admin",
         title: "Medical insurance question",
-        content: "Hello, could you please clarify the medical insurance network?",
+        content:
+          "Hello, could you please clarify the medical insurance network?",
       });
 
       expect(msg).toBeDefined();
@@ -605,11 +660,14 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     });
 
     it("2.3 Create group conversation with multiple team members", async () => {
-      const groupConv = await messagingService.createGroupConversation("user-hr-admin", {
-        title: "Engineering & HR Quarterly Sync",
-        participantUserIds: ["user-emp-1", "user-emp-2"],
-        initialMessage: "Welcome everyone to our sync channel!",
-      });
+      const groupConv = await messagingService.createGroupConversation(
+        "user-hr-admin",
+        {
+          title: "Engineering & HR Quarterly Sync",
+          participantUserIds: ["user-emp-1", "user-emp-2"],
+          initialMessage: "Welcome everyone to our sync channel!",
+        },
+      );
 
       expect(groupConv).toBeDefined();
       expect(groupConv.isGroup).toBe(true);
@@ -668,17 +726,25 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         join: jest.fn(),
       };
 
-      await realtimeGateway.handleJoinConversation(mockClient, { conversationId: restrictedConvId });
+      await realtimeGateway.handleJoinConversation(mockClient, {
+        conversationId: restrictedConvId,
+      });
 
-      expect(mockClient.emit).toHaveBeenCalledWith("error", expect.objectContaining({
-        code: "FORBIDDEN",
-      }));
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        "error",
+        expect.objectContaining({
+          code: "FORBIDDEN",
+        }),
+      );
       expect(mockClient.join).not.toHaveBeenCalled();
     });
 
     it("3.2 Unauthorized stranger attempting to read messages is blocked with ForbiddenException", async () => {
       await expect(
-        messagingService.getConversationMessages(restrictedConvId, "user-stranger"),
+        messagingService.getConversationMessages(
+          restrictedConvId,
+          "user-stranger",
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -700,7 +766,8 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         }),
       };
 
-      const canActivate = await conversationAccessGuard.canActivate(mockContext);
+      const canActivate =
+        await conversationAccessGuard.canActivate(mockContext);
       expect(canActivate).toBe(true);
     });
 
@@ -714,7 +781,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
         }),
       };
 
-      await expect(conversationAccessGuard.canActivate(mockContext)).rejects.toThrow(ForbiddenException);
+      await expect(
+        conversationAccessGuard.canActivate(mockContext),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -741,7 +810,8 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     });
 
     it("4.1 Sarah has 3 unread messages from Ahmed", async () => {
-      const unreadRes = await messagingService.getUnreadMessageCount("user-emp-2");
+      const unreadRes =
+        await messagingService.getUnreadMessageCount("user-emp-2");
       expect(unreadRes.unreadCount).toBeGreaterThanOrEqual(3);
     });
 
@@ -752,7 +822,10 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
     });
 
     it("4.3 Sarah marks conversation as read -> updates isRead, readAt, and unreadCount becomes 0", async () => {
-      const readRes = await messagingService.markConversationAsRead(testConvId, "user-emp-2");
+      const readRes = await messagingService.markConversationAsRead(
+        testConvId,
+        "user-emp-2",
+      );
       expect(readRes.markedCount).toBeGreaterThanOrEqual(3);
 
       const convs = await messagingService.getUserConversations("user-emp-2");
@@ -767,11 +840,14 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
 
   describe("5. FCM Push Notifications & Invalid Token Cleanup", () => {
     it("5.1 Registers active FCM device token for user", async () => {
-      const token = await notificationsService.registerDeviceToken("user-emp-1", {
-        fcmToken: "fcm_token_valid_pixel_7_pro",
-        platform: DevicePlatform.ANDROID,
-        deviceId: "device-uuid-pixel-7",
-      });
+      const token = await notificationsService.registerDeviceToken(
+        "user-emp-1",
+        {
+          fcmToken: "fcm_token_valid_pixel_7_pro",
+          platform: DevicePlatform.ANDROID,
+          deviceId: "device-uuid-pixel-7",
+        },
+      );
 
       expect(token).toBeDefined();
       expect(token.fcmToken).toBe("fcm_token_valid_pixel_7_pro");
@@ -809,7 +885,9 @@ describe("Phase 6 — Communication, Realtime & Notifications Complete Specifica
       const tokens = await mockPrismaService.deviceToken.findMany({
         where: { userId: "user-emp-1", isActive: false },
       });
-      const invalidToken = tokens.find((t: any) => t.fcmToken === "fcm_token_invalid_expired_dummy");
+      const invalidToken = tokens.find(
+        (t: any) => t.fcmToken === "fcm_token_invalid_expired_dummy",
+      );
       expect(invalidToken?.isActive).toBe(false);
     });
   });

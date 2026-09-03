@@ -166,7 +166,10 @@ export class NotificationsRepository {
     });
   }
 
-  async upsertUserPreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
+  async upsertUserPreferences(
+    userId: string,
+    dto: UpdateNotificationPreferencesDto,
+  ) {
     return this.prisma.notificationPreference.upsert({
       where: { userId },
       create: {

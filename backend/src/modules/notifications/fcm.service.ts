@@ -64,9 +64,13 @@ export class FcmService {
             scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
           });
           this.isConfigured = true;
-          this.logger.log(`[FCM] Initialized with embedded service account for project: ${this.projectId}`);
+          this.logger.log(
+            `[FCM] Initialized with embedded service account for project: ${this.projectId}`,
+          );
         } catch (parseErr: any) {
-          this.logger.warn(`[FCM] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY: ${parseErr.message}`);
+          this.logger.warn(
+            `[FCM] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY: ${parseErr.message}`,
+          );
         }
       } else if (credentialsPath) {
         this.auth = new GoogleAuth({
@@ -74,7 +78,9 @@ export class FcmService {
           scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
         });
         this.isConfigured = true;
-        this.logger.log(`[FCM] Initialized with credentials file: ${credentialsPath}`);
+        this.logger.log(
+          `[FCM] Initialized with credentials file: ${credentialsPath}`,
+        );
       } else {
         this.logger.log(
           "[FCM] Running in test/development mode with verified schema transport (no service account configured)",
@@ -95,7 +101,11 @@ export class FcmService {
     data?: Record<string, any>,
   ): Promise<FcmSendResult> {
     if (!token || token.trim().length === 0) {
-      return { success: false, error: "Empty device token", isTokenInvalid: true };
+      return {
+        success: false,
+        error: "Empty device token",
+        isTokenInvalid: true,
+      };
     }
 
     // Convert all custom data values to strings (FCM HTTP v1 requires Map<string, string>)
@@ -144,7 +154,9 @@ export class FcmService {
           data: messagePayload,
         });
 
-        this.logger.log(`[FCM HTTP v1] Push dispatched successfully: name=${res.data?.name}`);
+        this.logger.log(
+          `[FCM HTTP v1] Push dispatched successfully: name=${res.data?.name}`,
+        );
         return { success: true, messageId: res.data?.name };
       } catch (err: any) {
         const errorData = err?.response?.data || err;
@@ -160,7 +172,9 @@ export class FcmService {
           err?.message?.includes("not registered") ||
           err?.message?.includes("Requested entity was not found");
 
-        this.logger.warn(`[FCM HTTP v1] Dispatch error for token: ${err.message} (code: ${errorCode})`);
+        this.logger.warn(
+          `[FCM HTTP v1] Dispatch error for token: ${err.message} (code: ${errorCode})`,
+        );
         return {
           success: false,
           error: err.message,
@@ -172,7 +186,9 @@ export class FcmService {
     // Verified standard simulation mode (Dev / Test / Staging without live credentials)
     // Check for explicit test invalid token pattern
     if (token.includes("invalid") || token.includes("unregistered")) {
-      this.logger.warn(`[FCM Simulated] Token detected as invalid: ${token.slice(0, 15)}...`);
+      this.logger.warn(
+        `[FCM Simulated] Token detected as invalid: ${token.slice(0, 15)}...`,
+      );
       return {
         success: false,
         error: "messaging/registration-token-not-registered",
@@ -202,7 +218,9 @@ export class FcmService {
       return { total: 0, successCount: 0, failureCount: 0, invalidTokens: [] };
     }
 
-    const uniqueTokens = Array.from(new Set(tokens.filter((t) => t && t.trim().length > 0)));
+    const uniqueTokens = Array.from(
+      new Set(tokens.filter((t) => t && t.trim().length > 0)),
+    );
     const invalidTokens: string[] = [];
     let successCount = 0;
     let failureCount = 0;

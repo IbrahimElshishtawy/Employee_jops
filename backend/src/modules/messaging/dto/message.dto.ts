@@ -13,7 +13,8 @@ import { PaginationQueryDto } from "../../../common/dto/pagination.dto";
 export class CreateConversationDto {
   @ApiPropertyOptional({
     example: "emp-uuid-123",
-    description: "Direct target user ID (HR representative or specific employee)",
+    description:
+      "Direct target user ID (HR representative or specific employee)",
   })
   @IsOptional()
   @IsString()
@@ -29,7 +30,8 @@ export class CreateConversationDto {
   title?: string;
 
   @ApiProperty({
-    example: "Hello HR Team, I have a question regarding my recent overtime calculation...",
+    example:
+      "Hello HR Team, I have a question regarding my recent overtime calculation...",
     description: "Initial message content to start the conversation",
   })
   @IsString()
@@ -39,7 +41,8 @@ export class CreateConversationDto {
   content: string;
 
   @ApiPropertyOptional({
-    example: "https://storage.cyberwise.internal/attachments/pay_stub_query.pdf",
+    example:
+      "https://storage.cyberwise.internal/attachments/pay_stub_query.pdf",
     description: "Optional file attachment URL",
   })
   @IsOptional()

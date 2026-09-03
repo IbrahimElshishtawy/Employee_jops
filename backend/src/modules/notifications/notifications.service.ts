@@ -157,7 +157,8 @@ export class NotificationsService {
     type: NotificationType,
     data?: any,
   ) {
-    const activeTokens = await this.notificationsRepo.findActiveTokensForUser(userId);
+    const activeTokens =
+      await this.notificationsRepo.findActiveTokensForUser(userId);
 
     if (activeTokens.length === 0) return;
 
@@ -238,11 +239,15 @@ export class NotificationsService {
     userId: string,
     query: Partial<QueryNotificationsDto> = {},
   ) {
-    return this.notificationsRepo.findUserNotifications(userId, query as QueryNotificationsDto);
+    return this.notificationsRepo.findUserNotifications(
+      userId,
+      query as QueryNotificationsDto,
+    );
   }
 
   async markAsRead(notificationId: string, userId: string) {
-    const notification = await this.notificationsRepo.findNotificationById(notificationId);
+    const notification =
+      await this.notificationsRepo.findNotificationById(notificationId);
 
     if (!notification) {
       throw new NotFoundException("Notification not found");
@@ -299,7 +304,10 @@ export class NotificationsService {
     userId: string,
     dto: UpdateNotificationPreferencesDto,
   ) {
-    const pref = await this.notificationsRepo.upsertUserPreferences(userId, dto);
+    const pref = await this.notificationsRepo.upsertUserPreferences(
+      userId,
+      dto,
+    );
 
     await this.prisma.auditLog.create({
       data: {

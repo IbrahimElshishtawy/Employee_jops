@@ -182,14 +182,16 @@ export class MessagingService {
     });
 
     if (existingUsers.length !== uniqueParticipantIds.length) {
-      throw new BadRequestException("One or more participant users do not exist");
+      throw new BadRequestException(
+        "One or more participant users do not exist",
+      );
     }
 
     const initialContent =
       dto.initialMessage ||
       `Group conversation "${dto.title}" created by ${creatorUser.employeeProfile?.firstName || creatorUser.email}`;
 
-    const { conversation, message } =
+    const { conversation } =
       await this.messagingRepo.createConversationWithInitialMessage({
         title: dto.title.trim(),
         isGroup: true,
@@ -308,10 +310,9 @@ export class MessagingService {
     );
 
     // 4. Notifications to Other Participants
-    const otherParticipants =
-      participant.conversation.participants.filter(
-        (p) => p.userId !== senderUserId,
-      );
+    const otherParticipants = participant.conversation.participants.filter(
+      (p) => p.userId !== senderUserId,
+    );
 
     const senderName = senderUser?.employeeProfile
       ? `${senderUser.employeeProfile.firstName} ${senderUser.employeeProfile.lastName}`
