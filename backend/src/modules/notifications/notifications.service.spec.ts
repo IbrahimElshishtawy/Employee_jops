@@ -3,6 +3,9 @@ import { NotificationsService } from "./notifications.service";
 import { AnnouncementsService } from "./announcements.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { ForbiddenException, BadRequestException } from "@nestjs/common";
+import { NotificationsRepository } from "./notifications.repository";
+import { FcmService } from "./fcm.service";
+import { RealTimeService } from "../realtime/realtime.service";
 import {
   NotificationType,
   NotificationPriority,
@@ -62,12 +65,23 @@ describe("NotificationsService & AnnouncementsService (Phase 06 Full Test Suite)
     },
   };
 
+  const mockFcmService = {
+    sendPushNotification: jest.fn().mockResolvedValue(true),
+  };
+  const mockRealTimeService = {
+    emitToUser: jest.fn(),
+    emitToUsers: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
         AnnouncementsService,
+        NotificationsRepository,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: FcmService, useValue: mockFcmService },
+        { provide: RealTimeService, useValue: mockRealTimeService },
       ],
     }).compile();
 

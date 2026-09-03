@@ -6,6 +6,8 @@ import { NotificationsService } from "../notifications/notifications.service";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { Role } from "@prisma/client";
 
+import { MessagingRepository } from "../messaging/messaging.repository";
+
 describe("MessagesService (Phase 06 Messaging Test Suite)", () => {
   let messagesService: MessagesService;
 
@@ -57,6 +59,7 @@ describe("MessagesService (Phase 06 Messaging Test Suite)", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessagesService,
+        MessagingRepository,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: RealTimeService, useValue: mockRealTimeService },
