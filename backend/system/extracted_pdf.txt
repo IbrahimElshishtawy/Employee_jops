@@ -1,0 +1,1159 @@
+--- PAGE 1 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة1 / 36  
+ 
+         
+مواصفات متطلبات البرمجيات 
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS) 
+نظام تخطيط موارد الفندق وإدارة القوى العاملة 
+HOTEL ERP & WORKFORCE MANAGEMENT SYSTEM 
+الوثيقة الشاملة لمتطلبات النظام 
+الإصدار 1.0.0  —  سبتمبر2026  —  Baseline 
+تطبيق الموظفينFlutter    •لوحةERP Web    •النظام الإداريBackend API  •  PostgreSQL  •  Redis  •  File Storage 
+
+--- PAGE 2 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة2 / 36  
+1  .التحكم في الوثيقة 
+البند  القيمة  
+اسم الوثيقة Software Requirements Specification — Hotel ERP & Workforce Management System 
+الإصدار 1.0.0 
+الحالة Baseline 
+النطاق Hotel ERP & Workforce Management 
+الواجهات Employee Mobile App / ERP Web Dashboard / Management System 
+Backend Central Backend API 
+Database PostgreSQL 
+Cache/Queues Redis 
+Files Images / PDF / Attachments 
+ 
+1.1 سجل الإصدارات 
+الإصدار التاريخ  الوصف 
+1.0.0 سبتمبر2026 إصدار خط أساس شامل لمتطلبات النظام 
+ 
+1.2 منهجية الوثيقة 
+
+--- PAGE 3 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة3 / 36  
+هذه الوثيقة تحول نطاق النظام والوحدات والتدفقات الواردة في مواصفة النظام الحالية إلى متطلبات قابلة للتطوير والاختبار. التفاصيل التي لم  
+تحددها المواصفة الأصلية، مثل مزود خدمة محدد أو قيم SLA الرقمية، تبقى نقاط اعتماد قبل التنفيذ النهائي 
+ 
+ 
+
+--- PAGE 4 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة4 / 36  
+3  .المقدمة والغرض 
+الغرض من المستند هو تعريف المتطلبات البرمجية لنظام متكامل لإدارة موارد الفندق والقوى العاملة والعمليات الداخلية. النظام يتكون من تطبيق  
+موظفين ولوحة ERP ويب وواجهة إدارية تتصل جميعها بخادم مركزي 
+3.1 أهداف النظام 
+● توحيد إدارة الموظفين والموارد البشرية والحضور والورديات 
+● تمكين الموظف من الحضور والطلبات والتواصل والمهام والتقارير والإشعارات 
+● إدارة العمليات والأصول والصيانة والمخزون والمشتريات والمالية والرواتب 
+● توحيد الموافقات وسجلات التدقيق 
+● دعم العمل دون اتصال والمزامنة 
+● توفير تكاملات خارجية عبرAPIs وWebhooks. 
+● توفير تقارير تشغيلية ومالية وKPI وتحليلات 
+3.2 الجمهور المستهدف 
+● Backend 
+● Flutter 
+● Web/Admin 
+● QA 
+● DevOps 
+● إدارة الفندق 
+● HR 
+● Finance 
+● Procurement 
+● Department Managers 
+3.3 المصطلحات 
+المصطلح المعنى 
+ERP نظام تخطيط موارد الفندق 
+SRS Software Requirements Specification 
+API واجهة برمجية 
+RBAC التحكم بالوصول حسب الدور 
+Geofence النطاق الجغرافي للحضور 
+SLA مستوى الخدمة 
+PMS نظام إدارة الفندق؛ مذكور حاليًا كتَكامل خارجي  
+POS نقاط البيع 
+BI ذكاء الأعمال 
+Audit Log سجل العمليات 
+Sync المزامنة 
+ 
+
+--- PAGE 5 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة5 / 36  
+4  .نطاق المنتج 
+4.1  داخل النطاق 
+● Organization 
+● Employees & HR 
+● Recruitment & Onboarding 
+● Attendance & Workforce 
+● Shifts & Schedules 
+● Employee Requests 
+● Communication 
+● Tasks 
+● Reports 
+● Service Requests 
+● Shift Handover 
+● Assets 
+● Maintenance 
+● Inventory 
+● Procurement & Suppliers 
+● Finance & Accounting 
+● Payroll 
+● Budget 
+● Incidents & Safety 
+● Documents 
+● Department Operations 
+● Workflow 
+● Notifications 
+● Integrations 
+● Reports & BI 
+● Roles & Permissions 
+● Sessions & Devices 
+● Audit Logs 
+● Offline & Sync 
+● Settings 
+4.2 حدود الإصدار الحالي 
+المواصفة الحالية تذكر PMS وPOS والمحاسبة والرواتب وأجهزة البصمة وGPS وأنظمة التقارير ضمنExternal Integrations  .
+لذلك لا تُعامل إدارة الحجوزات والغرف والنزلاء كمتطلبات داخلية في هذا SRS إلا بعد اعتماد توسعة نطاق مستقلة 
+
+--- PAGE 6 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة6 / 36  
+5  .أصحاب المصلحة والمستخدمون 
+الدور المسؤوليات  
+Super Admin إدارة النظام والصلاحيات والإعدادات 
+Hotel Admin إدارة الفندق والعمليات 
+General Manager المتابعة التنفيذية 
+HR Manager الموارد البشرية والموافقات 
+HR Officer عمليات الموظفين والطلبات 
+Finance Manager المالية والمحاسبة والميزانية 
+Procurement Manager المشتريات والموردون 
+Department Manager إدارة القسم والموظفين والمهام 
+Supervisor الإشراف على التنفيذ 
+Employee الحضور والطلبات والمهام والتواصل والتقارير 
+ 
+SEC-RBAC-001   تطبيق الصلاحيات على مستوى الوحدة والإجراء 
+SEC-RBAC-002   منع أي وصول غير مصرح به 
+SEC-RBAC-003   تسجيل العمليات الإدارية المهمة 
+SEC-RBAC-004   ربط قرارات الموافقة بالـWorkflow. 
+
+--- PAGE 7 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة7 / 36  
+6  .وصف المنتج والمعمارية 
+المكون المسؤولية 
+Employee Flutter App الحضور، الطلبات، التواصل، المهام، الإشعارات، الملف الشخصي 
+ERP Web Dashboard إدارة الوحدات التشغيلية والإدارية والمالية 
+Management System الإدارة العليا والإعدادات والصلاحيات 
+Central Backend API منطق الأعمال والمصادقة والصلاحيات والتكاملات والمزامنة 
+PostgreSQL البيانات التشغيلية والمرجعية 
+Redis Cache / Queues 
+File Storage صور وPDF وملفات 
+ 
+6.1 Backend Modules 
+● auth 
+● organization 
+● employees 
+● hr 
+● attendance 
+● shifts 
+● requests 
+● communication 
+● tasks 
+● reports 
+● service-requests 
+● handover 
+● assets 
+● maintenance 
+● inventory 
+● procurement 
+● suppliers 
+● finance 
+● payroll 
+● budget 
+● incidents 
+● documents 
+● notifications 
+● integrations 
+● analytics 
+● sessions 
+● audit-logs 
+● offline-sync 
+● settings 
+
+--- PAGE 8 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة8 / 36  
+7  .المتطلبات العامة 
+SYS-GEN-001   يجب أن تتصل الواجهات الثلاث بالخادم المركزي 
+SYS-GEN-002   يجب أن تتحقق العمليات المحمية من الهوية والصلاحية 
+SYS-GEN-003   يجب ربط البيانات بالهيكل التنظيمي عند الحاجة 
+SYS-GEN-004   يجب أن تكون للكيانات التشغيلية حالاتLifecycle واضحة 
+SYS-GEN-005   يجب دعم المرفقات حيث تتطلب الوحدة ذلك 
+SYS-GEN-006   يجب إرسال إشعارات لنتائج الطلبات والموافقات والعمليات الحرجة 
+SYS-GEN-007   يجب تسجيل العمليات الحساسة فيAudit Logs . 
+SYS-GEN-008   يجب دعم حالات فشل الشبكة والعمل دون اتصال في الوظائف المحددة 
+SYS-GEN-009   يجب دعم العربية وRTL. 
+SYS-GEN-010   يجب أن تكون الوحدات قابلة للاختبار بصورة مستقلة قدر الإمكان 
+
+--- PAGE 9 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة9 / 36  
+8  .المتطلبات الوظيفية للوحدات الـ31 
+01   Executive Dashboard 
+مؤشرات الموظفين والعمليات والمالية وأداء الأقسام والتنبيهات 
+● إجمالي الموظفين والحاضرون والغائبون والمتأخرون ومن في إجازة 
+● المهام النشطة والمتأخرة وطلبات الخدمة والبلاغات والموافقات 
+● الإيرادات والمصروفات وتكلفة الرواتب والميزانية وقيمة المخزون 
+● أداء الأقسام والتنبيهات والنشاط الأخير 
+FR-EXEC-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-EXEC-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-EXEC-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-EXEC-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+02   Organization Management 
+إدارة الفندق والفروع والأقسام والشُعب والمسميات والهيكل  
+● بيانات الفندق 
+● الفروع 
+● الأقسام والشُعب  
+● المسميات الوظيفية 
+● المدير والموظفون والجداول والحالة 
+FR-ORG-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-ORG-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-ORG-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-ORG-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+03   Employee & HR Management 
+إدارة الملف الوظيفي ودورة حياة الموظف 
+● الملف الشخصي والحالة 
+● بيانات التوظيف والقسم والمسمى 
+● العقد والمستندات والسجل الوظيفي 
+● الترقية والنقل والإيقاف وإنهاء الخدمة 
+FR-EMP-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-EMP-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-EMP-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-EMP-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+04   Recruitment & Onboarding 
+إدارة التوظيف من الشاغر إلى التهيئة 
+● الشواغر والمرشحون والسير الذاتية 
+● المقابلات والتقييم 
+● Pipeline وقرار التعيين 
+● Onboarding والقسم والمسمى والوردية 
+FR-REC-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-REC-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+
+--- PAGE 10 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة10 / 36  
+FR-REC-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-REC-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+05   Attendance & Workforce 
+الحضور والانصراف مع الموقع والـGeofence والبيومتري وOffline. 
+● Check-in/Check-out 
+● جلسات وسجل الحضور 
+● GPS والدقة وGeofence الديناميكي 
+● Biometric والأمان 
+● Offline Queue 
+● Manual Attendance/Correction 
+FR-ATT-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-ATT-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-ATT-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-ATT-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+FR-ATT-005    يجب أن يمرCheck-in/Check-out عبرSession Validation ثمSecurity ثمGPS/Accuracy ثم
+Geofence ثمBiometric وفق التدفق 
+FR-ATT-006    يجب أن يكونGeofence  ديناميكيًا قابلاً للتهيئة وليس قيمة ثابتة في التطبيق  
+FR-ATT-007   عند عدم الاتصال يجب إدراج العملية فيPending Sync. 
+FR-ATT-008    يجب دعمManual Attendance وCorrection للمخولين معAudit Log . 
+06   Shift & Schedule Management 
+قوالب الورديات والتعيين والجداول 
+● صباحية ومسائية وليلية ومخصصة 
+● تعيين موظف أو قسم 
+● جدول أسبوعي وشهري 
+● تغييرات الوردية 
+FR-SHIFT-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-SHIFT-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-SHIFT-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-SHIFT-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+07   Employee Requests 
+طلبات الموظفين ومسارات الموافقة 
+● إجازة 
+● إذن 
+● تأخير 
+● انصراف مبكر 
+● تصحيح حضور 
+● سلفة 
+● طلب عام 
+FR-REQ-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-REQ-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-REQ-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-REQ-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+
+--- PAGE 11 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة11 / 36  
+08   Communication 
+تواصل داخلي وفردي وجماعي وبين الأقسام 
+● HR Chat 
+● Direct Chat 
+● دليل الأقسام والموظفين 
+● مجموعات 
+● إعلانات 
+● طوارئ 
+FR-COM-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-COM-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-COM-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-COM-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+09   Tasks & Work Management 
+إسناد ومتابعة المهام 
+● شخصية وقسمية ومتكررة وقوالب 
+● أولوية واستحقاق وحالة 
+● Checklist ومرفقات وملاحظات 
+● تقرير مطلوب وExternal Action 
+● TODO/ACCEPTED/IN_PROGRESS/BLOCKED/PENDING_REVIEW/COMPLETED/OVERDUE/C
+ANCELLED 
+FR-TASK-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-TASK-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-TASK-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-TASK-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+FR-TASK-005   يجب دعم دورة حالات المهمة كاملة منTODO حتىCOMPLETED/CANCELLED . 
+FR-TASK-006   يجب دعم تقرير مطلوب وربطه بالمهمة 
+FR-TASK-007   يجب دعمExternal Action دون فرض موقع خارجي محدد 
+FR-TASK-008   يجب دعم الإسناد لموظف أو قسم وفق الصلاحية 
+10   Reports Management 
+تقارير ميدانية وتشغيلية 
+● يومي ووردية وموقع 
+● صيانة وأمني وتفتيش 
+● مهمة وبلاغ ومخصص 
+● عنوان وموظف وقسم ووقت وموقع ووصف وصور وملفات ومهمة وحالة 
+FR-RPT-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-RPT-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-RPT-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-RPT-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+11   Service Requests 
+طلبات رسمية بين الأقسام معSLA . 
+● طلب وتصنيف وأولوية 
+● الموقع والوصف والقسم والموظف 
+
+--- PAGE 12 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة12 / 36  
+● SLA والحالة 
+● الحل النهائي 
+FR-SRV-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-SRV-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-SRV-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-SRV-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+12   Shift Handover 
+استمرارية العمل بين الورديات 
+● محضر تسليم 
+● ملاحظات ومهام مفتوحة وبلاغات وأعمال معلقة 
+● مرفقات 
+● استلام وإقرار 
+FR-HAND-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-HAND-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-HAND-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-HAND-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+13   Asset Management 
+سجل دورة حياة الأصول 
+● السجل والتصنيف والكود 
+● الموقع والقسم والموظف 
+● الشراء والحالة والإهلاك 
+● الصيانة والاستبعاد 
+FR-AST-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-AST-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-AST-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-AST-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+14   Maintenance Management 
+الصيانة الوقائية والتصحيحية والطارئة 
+● طلب صيانة وWork Order 
+● جدولة وفنيون 
+● قطع غيار 
+● سجل الصيانة 
+FR-MAINT-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-MAINT-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-MAINT-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-MAINT-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+15   Inventory & Stores 
+حركة الأصناف والمستودعات 
+● مستودعات وتصنيفات وأصناف ووحدات 
+● الرصيد والحركة 
+● استلام وصرف وتحويل وتسوية 
+
+--- PAGE 13 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة13 / 36  
+● جرد وحد إعادة الطلب وتنبيهات النقص 
+FR-INV-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-INV-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-INV-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-INV-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+16   Procurement & Suppliers 
+دورة الشراء والموردين 
+● طلبات الشراء والموافقة 
+● RFQ وعروض الموردين 
+● الموردون وأوامر الشراء 
+● الاستلام وفواتير الموردين 
+FR-PROC-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-PROC-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-PROC-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-PROC-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+17   Finance & Accounting 
+المحاسبة المركزية 
+● دليل الحسابات وGL وJournal 
+● AP/AR 
+● مصروفات وإيرادات 
+● نقدية وبنوك ومدفوعات وتسوية 
+● قوائم مالية 
+FR-FIN-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-FIN-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-FIN-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-FIN-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+18   Payroll 
+احتساب الرواتب وربطها بالحضور 
+● هيكل الراتب والأساسي والبدلات 
+● مكافآت وإضافي واستقطاعات 
+● قروض وسلف 
+● فترة ومعالجة الرواتب وقسائم الراتب 
+FR-PAY-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-PAY-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-PAY-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-PAY-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+19   Budget Management 
+مقارنة المخطط بالفعلي 
+● سنوية وأقسام ومشاريع 
+● حدود الإنفاق 
+● Actual vs Planned 
+
+--- PAGE 14 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة14 / 36  
+● تنبيهات التجاوز 
+FR-BUD-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-BUD-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-BUD-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-BUD-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+20   Incident & Safety 
+الحوادث الأمنية والسلامة والصيانة وغيرها 
+● تصنيف ووصف وموقع وتاريخ 
+● أدلة وأولوية وقسم وموظف 
+● تحقيق وإجراء تصحيحي 
+● حل وإغلاق 
+FR-INC-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-INC-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-INC-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-INC-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+21   Documents Management 
+أرشفة المستندات 
+● موظفين وعقود وسياسات وإجراءات 
+● تقارير ومالية ومشتريات وفواتير ومرفقات 
+● إصدارات وانتهاء وصلاحيات وحالة 
+FR-DOC-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-DOC-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-DOC-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-DOC-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+22   Hotel Department Operations 
+وظائف حسب القسم 
+● Front Office 
+● Housekeeping 
+● Engineering 
+● Security 
+● F&B 
+FR-DEPT-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-DEPT-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-DEPT-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-DEPT-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+23   Workflow & Approval Engine 
+المحرك المركزي للموافقات 
+● Templates وقواعد ومستويات 
+● شروط 
+● Escalation/Delegation 
+● SLA وسجل الموافقات 
+
+--- PAGE 15 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة15 / 36  
+● إجازات وشراء ومصروفات وتقارير ومهام وبلاغات وصيانة ورواتب 
+FR-WF-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-WF-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-WF-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-WF-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+FR-WF-005    يجب اختيار مسار الموافقة حسب نوع العملية والقواعد 
+FR-WF-006    يجب تسجيل كل قرار ومراحله 
+FR-WF-007    يجب منع الانتقال قبل استيفاء شروط الخطوة 
+FR-WF-008    يجب دعمEscalation وDelegation . 
+24   Notifications & Alerts 
+إشعارات متعددة القنوات 
+● Push 
+● In-App 
+● Email 
+● SMS/WhatsApp 
+● إعلانات وطوارئ 
+● تأخير ونقص ومهام وصيانة وميزانية وبلاغات وموافقات 
+FR-NOTIF-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-NOTIF-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-NOTIF-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-NOTIF-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+25   External Integrations 
+تكامل الأنظمة الخارجية 
+● APIs 
+● Webhooks 
+● PMS 
+● POS 
+● Accounting 
+● Payroll 
+● Biometric Devices 
+● GPS 
+● External Reporting 
+FR-INT-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-INT-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-INT-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-INT-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+FR-INT-005    يجب عزل التكاملات داخلIntegration Layer . 
+FR-INT-006    يجب تسجيل النجاح والفشل 
+FR-INT-007    يجب دعمRetry للعمليات القابلة لإعادة المحاولة 
+26   Reports & Business Intelligence 
+تقارير وKPI وتحليلات 
+● HR/Attendance/Payroll/Finance 
+
+--- PAGE 16 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة16 / 36  
+● Inventory/Maintenance/Tasks/Incidents 
+● Operational Reports 
+● KPI وأداء الأقسام والموظفين 
+● اتجاهات وتحليلات مخصصة 
+FR-BI-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-BI-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-BI-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-BI-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+27   Roles & Permissions 
+إدارة الأدوار والصلاحيات الدقيقة 
+● Super Admin إلىEmployee 
+● view/create/update/manage/approve 
+● تطبيق الصلاحية لكل وحدة 
+FR-RBAC-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-RBAC-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-RBAC-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-RBAC-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+28   Device & Session Management 
+تتبع الأجهزة والجلسات 
+● المستخدم والجهاز والنظام والإصدار 
+● الدخول وآخر نشاط والحالة 
+● عرض وإلغاء وForce Logout 
+● Login History 
+FR-SESS-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-SESS-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-SESS-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-SESS-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+29   Audit Logs & Compliance 
+سجل العمليات المهمة 
+● المستخدم والإجراء والوحدة والهدف 
+● القيمة القديمة والجديدة 
+● التاريخ والوقت والنتيجة 
+FR-AUDIT-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-AUDIT-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-AUDIT-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-AUDIT-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+30   Offline & Sync Engine 
+استمرار الوظائف المدعومة دون اتصال 
+● Local DB وCache 
+● Pending Queue 
+● Background Sync 
+
+--- PAGE 17 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة17 / 36  
+● Retry 
+● Conflict Resolution 
+● Sync Status/Logs 
+FR-SYNC-001   يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-SYNC-002   يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-SYNC-003   يجب حفظ حالة العملية والتغييرات المهمة 
+FR-SYNC-004   يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+FR-SYNC-005   يجب توفير حالة لكل عنصرPending . 
+FR-SYNC-006   يجب تنفيذRetry عند الفشل 
+FR-SYNC-007   يجب تطبيق استراتيجية لحل التعارضات 
+FR-SYNC-008   يجب توفيرSync Logs. 
+31   System Administration & Settings 
+إعدادات الفندق والنظام 
+● الفندق والفروع والأقسام والمسميات والمواقع 
+● سياسات الحضور والإجازات والورديات 
+● Workflow والإشعارات 
+● Roles/Permissions 
+● Feature Flags 
+● Integrations 
+● General Settings 
+FR-SET-001    يجب توفير الوظائف الأساسية المعرفة ضمن نطاق الوحدة 
+FR-SET-002    يجب تطبيق الصلاحيات قبل العمليات الحساسة 
+FR-SET-003    يجب حفظ حالة العملية والتغييرات المهمة 
+FR-SET-004    يجب ربط الوحدة بالإشعارات والتدقيق والمرفقات عند الحاجة 
+
+--- PAGE 18 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة18 / 36  
+9  .تطبيق الموظف 
+EMPAPP-001    يجب أن يتيح التطبيق الرئيسية 
+EMPAPP-002    يجب أن يتيح التطبيق الحضور والانصراف 
+EMPAPP-003    يجب أن يتيح التطبيق الطلبات 
+EMPAPP-004    يجب أن يتيح التطبيق التواصل 
+EMPAPP-005    يجب أن يتيح التطبيق مهامّي  
+EMPAPP-006    يجب أن يتيح التطبيق الإشعارات 
+EMPAPP-007    يجب أن يتيح التطبيق الملف الشخصي 
+EMPAPP-008    يجب أن يتيح التطبيق البيانات الشخصية والقسم والمسمى 
+EMPAPP-009    يجب أن يتيح التطبيق الجلسات والأمان 
+EMPAPP-010    يجب أن يتيح التطبيق الإعدادات 
+EMPAPP-011    يجب أن يتيح التطبيق التقارير عند الحاجة 
+● واجهة بسيطة ومباشرة 
+● دعم العربية وRTL 
+● دعم الوظائفOffline المحددة 
+● عرض حالة الطلبات والمهام والإشعارات 
+
+--- PAGE 19 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة19 / 36  
+10  .لوحةERP والواجهة الإدارية 
+● Dashboard 
+● Organization 
+● Employees & HR 
+● Recruitment 
+● Attendance 
+● Shifts 
+● Payroll 
+● Requests 
+● Communication 
+● Tasks 
+● Reports 
+● Service Requests 
+● Handover 
+● Assets 
+● Maintenance 
+● Inventory 
+● Procurement 
+● Suppliers 
+● Finance 
+● Budget 
+● Incidents & Safety 
+● Documents 
+● Notifications 
+● Integrations 
+● Analytics & BI 
+● Sessions 
+● Audit Logs 
+● Roles & Permissions 
+● Settings 
+WEB-001   يجب أن تظهر الوحدات حسب الصلاحية 
+WEB-002   يجب منع الوصول للصفحات والإجراءات غير المصرح بها 
+WEB-003   يجب دعم البحث والتصفية والقوائم 
+WEB-004   يجب دعم الموافقات والإسناد والإغلاق حسب الدور 
+WEB-005   يجب عرض المؤشرات والتنبيهات المهمة 
+
+--- PAGE 20 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة20 / 36  
+11  .Workflow & Approval Engine 
+1. إنشاء العملية 
+2. تحديد القالب 
+3. تحديد المستوى 
+4. تقييم الشروط 
+5. تعيين الموافق 
+6. قبول/رفض 
+7. تسجيلApproval History 
+8. Escalation عند الحاجة 
+9. إرسال الإشعار 
+10. الانتقال أو الإغلاق 
+WF-CORE-001   قوالب متعددة 
+WF-CORE-002   مستويات موافقة متعددة 
+WF-CORE-003   شروط للمسار 
+WF-CORE-004   Escalation وDelegation 
+WF-CORE-005   سجل كامل للقرارات 
+
+--- PAGE 21 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة21 / 36  
+12  .Notifications & Alerts 
+الحدث الهدف 
+تأخر موظف تنبيه تشغيلي  
+نقص مخزون المسؤولون  
+مهمة متأخرة  الموظف/المشرف  
+صيانة متأخرة التشغيل  
+تجاوز ميزانية المالية 
+بلاغ حرج  الإدارة/المسؤول 
+موافقة معلقة الموافق 
+نتيجة طلب  صاحب الطلب  
+ 
+NOTIF-001    يجب دعم قناة/وظيفةPush وفق الإعداد المعتمد 
+NOTIF-002    يجب دعم قناة/وظيفةIn-App وفق الإعداد المعتمد 
+NOTIF-003    يجب دعم قناة/وظيفةEmail وفق الإعداد المعتمد 
+NOTIF-004    يجب دعم قناة/وظيفةSMS/WhatsApp وفق الإعداد المعتمد 
+NOTIF-005    يجب دعم قناة/وظيفة إعلانات وفق الإعداد المعتمد 
+NOTIF-006    يجب دعم قناة/وظيفة طوارئ وفق الإعداد المعتمد 
+
+--- PAGE 22 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة22 / 36  
+13   .External Integrations 
+● APIs 
+● External Websites 
+● Webhooks 
+● PMS 
+● POS 
+● Accounting 
+● Payroll 
+● Biometric Devices 
+● GPS 
+● External Reporting 
+INT-CORE-001   عزل التكاملات داخلIntegration Layer . 
+INT-CORE-002   التحقق من البيانات الواردة 
+INT-CORE-003   تسجيل نتائج التكامل 
+INT-CORE-004   Retry للعمليات المناسبة 
+INT-CORE-005   عدم كشف أسرار التكامل في تطبيق العميل 
+
+--- PAGE 23 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة23 / 36  
+14   .Offline & Sync 
+SYNC-CORE-001   يجب دعمLocal Database ضمن الوظائف التي تتطلبOffline. 
+SYNC-CORE-002   يجب دعمCache ضمن الوظائف التي تتطلبOffline . 
+SYNC-CORE-003   يجب دعمPending Queue ضمن الوظائف التي تتطلبOffline. 
+SYNC-CORE-004   يجب دعمBackground Sync ضمن الوظائف التي تتطلبOffline. 
+SYNC-CORE-005   يجب دعمRetry Strategy ضمن الوظائف التي تتطلبOffline . 
+SYNC-CORE-006   يجب دعمConflict Resolution ضمن الوظائف التي تتطلبOffline. 
+SYNC-CORE-007   يجب دعمSync Status ضمن الوظائف التي تتطلبOffline. 
+SYNC-CORE-008   يجب دعمSync Logs ضمن الوظائف التي تتطلبOffline . 
+تدفق الحضورEmployee 
+↓ 
+Check-in 
+↓ 
+Internet? 
+↓ 
+Backend Validation عند توفر الاتصال؛ وإLocal Queue 
+↓ 
+Pending Sync 
+↓ 
+عودة الاتصال 
+↓ 
+Sync. 
+
+--- PAGE 24 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة24 / 36  
+15   .Security, Sessions & Permissions 
+15.1 المصادقة 
+SEC-AUTH-001   التحقق من الهوية قبل الموارد المحمية 
+SEC-AUTH-002   حماية الجلسات 
+SEC-AUTH-003   منع المحاولات غير المصرح بها 
+SEC-AUTH-004   عدم كشف الأسرار في تطبيق العميل 
+15.2 Device & Session 
+SEC-SESS-001   تسجيل المستخدم والجهاز والنظام وإصدار التطبيق 
+SEC-SESS-002   تسجيل وقت الدخول وآخر نشاط والحالة 
+SEC-SESS-003   عرض وإلغاء الجلسات للمخولين 
+SEC-SESS-004   Force Logout للمخولين 
+SEC-SESS-005   Login History . 
+15.3 Attendance Security 
+SEC-ATT-001   يجب تنفيذSession Validation في مسار الحضور 
+SEC-ATT-002   يجب تنفيذSecurity Check في مسار الحضور 
+SEC-ATT-003   يجب تنفيذGPS/Accuracy في مسار الحضور 
+SEC-ATT-004   يجب تنفيذGeofence في مسار الحضور 
+SEC-ATT-005   يجب تنفيذBiometric في مسار الحضور 
+SEC-ATT-006   يجب تنفيذAttendance Event Result في مسار الحضور 
+
+--- PAGE 25 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة25 / 36  
+16  .Data, Documents & Audit 
+16.1 البيانات 
+DATA-001   معرف فريد لكل سجل 
+DATA-002   تسجيلCreated/Updated عند الحاجة 
+DATA-003    ربط السجل بالموظف/القسم عند الحاجة 
+DATA-004   فرض صلاحيات البيانات 
+DATA-005   Lifecycle واضح للكيانات التشغيلية 
+16.2 المستندات 
+DOC-001   تخزين الملفات مع مرجع آمن 
+DOC-002    ربط المستند بالكيان 
+DOC-003   دعم الإصدارات والانتهاء والصلاحيات والحالة 
+DOC-004   تسجيل الوصول والتغييرات الحساسة 
+16.3 Audit Log 
+الحقل المحتوى  
+User المستخدم 
+Action الإجراء 
+Module الوحدة 
+Target الهدف 
+Old Value القيمة القديمة 
+New Value القيمة الجديدة 
+Timestamp التاريخ والوقت 
+Result النتيجة 
+ 
+AUDIT-001    تسجيل العمليات الحساسة 
+AUDIT-002    منع تعديل السجلات بواسطة غير المخولين 
+AUDIT-003   البحث والتصفية حسب الصلاحية 
+AUDIT-004   Retention وفق سياسة الامتثال 
+
+--- PAGE 26 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة26 / 36  
+17  .Reports & Business Intelligence 
+● HR 
+● Attendance 
+● Payroll 
+● Finance 
+● Inventory 
+● Maintenance 
+● Tasks 
+● Incidents 
+● Operations 
+● KPI 
+● Department Performance 
+● Employee Performance 
+● Operational Trends 
+● Financial Trends 
+● Custom Analytics 
+BI-001   التقارير حسب الصلاحية 
+BI-002   التصفية والفترة الزمنية حسب التقرير 
+BI-003   KPI من بيانات النظام الرسمية 
+BI-004   حماية البيانات المالية والموظفين 
+
+--- PAGE 27 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة27 / 36  
+18   .المتطلبات غير الوظيفية 
+ID الفئة المتطلب 
+NFR-PERF-
+001 Performance زمن الاستجابة المستهدف النهائي يحدد فيSLA قبل الإنتاج 
+NFR-SEC-001 Security حمايةAPIs والبيانات والملفات وتطبيقRBAC. 
+NFR-SEC-002 Secrets عدم كشف أسرار التكاملات في العميل 
+NFR-REL-001 Reliability Retry ومعالجة فشل الشبكة 
+NFR-SCALE-
+001 Scalability المعمارية تسمح بالتوسع التدريجي 
+NFR-MAINT-
+001 Maintainability فصل الوحدات وتقليل الترابط 
+NFR-USAB-
+001 Usability تجربة موظف بسيطة ومباشرة 
+NFR-I18N-001 Localization العربية وRTL. 
+NFR-AUD-001 Auditability العمليات الحساسة قابلة للتتبع 
+NFR-OFF-001 Offline الوظائف المدعومة تستمر دون اتصال 
+NFR-DATA-
+001 Integrity معاملات آمنة للعمليات متعددة السجلات 
+NFR-OBS-001 Observability رصد أخطاءAPI وصحة المكونات 
+ 
+
+--- PAGE 28 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة28 / 36  
+19  .API Requirements 
+● EXEC 
+● ORG 
+● EMP 
+● REC 
+● ATT 
+● SHIFT 
+● REQ 
+● COM 
+● TASK 
+● RPT 
+● SRV 
+● HAND 
+● AST 
+● MAINT 
+● INV 
+● PROC 
+● FIN 
+● PAY 
+● BUD 
+● INC 
+● DOC 
+● DEPT 
+● WF 
+● NOTIF 
+● INT 
+● BI 
+● RBAC 
+● SESS 
+● AUDIT 
+● SYNC 
+● SET 
+API-001   Authentication/Authorization للـAPIs المحمية 
+API-002   Input Validation . 
+API-003   شكل موحد للأخطاء قدر الإمكان 
+API-004   Pagination للقوائم الكبيرة 
+API-005   Filtering/Search . 
+API-006   عدم تسريب معلومات حساسة في الأخطاء 
+API-007   API Versioning . 
+
+--- PAGE 29 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة29 / 36  
+20  .Database Requirements 
+قاعدة البيانات الأساسيةPostgreSQL،مع Redis للتخزين المؤقت والطوابير وتخزين ملفات للصور وPDF والمرفقات 
+DB-001   فصل البيانات المرجعية والتشغيلية عند الحاجة 
+DB-002   تعريف العلاقات بين الموظف والقسم والمسمى والوردية 
+DB-003   ربط العمليات المالية والمخزون والمشتريات 
+DB-004   استخدامTransactions للعمليات الحساسة 
+DB-005   فهارس للبحث والتصفية 
+DB-006   عدم تخزين الملفات الكبيرة داخل السجلات التشغيلية دون تصميم معتمد 
+20.1 الكيانات الرئيسية 
+● User/Employee/Role/Permission 
+● Hotel/Branch/Department/Unit/Job Title 
+● Employment/Contract/Employee Document 
+● Candidate/Vacancy/Interview/Onboarding 
+● Attendance Session/Event/Geofence/Sync Item 
+● Shift Template/Assignment/Schedule 
+● Employee Request/Approval 
+● Conversation/Message/Group/Announcement 
+● Task/Checklist/Attachment 
+● Report/Attachment 
+● Service Request/SLA 
+● Handover 
+● Asset 
+● Maintenance Request/Work Order/Spare Part 
+● Warehouse/Item/Stock Movement/Inventory Count 
+● Purchase Request/RFQ/Supplier Quote/Purchase Order/Supplier Invoice 
+● Account/Journal/AP/AR/Expense/Revenue/Payment/Bank Reconciliation 
+● Salary Structure/Payroll Period/Payroll Run/Payslip 
+● Budget/Budget Line 
+● Incident/Investigation/Corrective Action 
+● Document/Version 
+● Workflow Template/Rule/Step/Approval Record 
+● Notification/Template 
+● Integration/Webhook/Integration Log 
+● KPI/Report Definition 
+● Device Session/Login Event 
+● Audit Log 
+● Sync Queue 
+● System Setting/Feature Flag 
+
+--- PAGE 30 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة30 / 36  
+21  .Monitoring, Operations & Backup 
+OPS-001   Health Checks للخدمات 
+OPS-002   مراقبةAPI Errors . 
+OPS-003   مراقبةRedis/Queues . 
+OPS-004   مراقبة التكاملات 
+OPS-005   Operational Logs دون بيانات حساسة 
+OPS-006   Backup لقاعدة البيانات والملفات 
+OPS-007   اختبارRestore. 
+OPS-008   Retention للنسخ الاحتياطية 
+
+--- PAGE 31 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة31 / 36  
+22  .Testing & Acceptance 
+22.1 مستويات الاختبار 
+● Unit 
+● Integration 
+● API 
+● End-to-End 
+● Security 
+● Offline/Sync 
+● UI 
+● Regression 
+● Performance 
+22.2 Acceptance Criteria 
+ID الشرط 
+AC-ATT-001 موظف مصادق عليه + داخلGeofence + Biometric ناجح⇒ Attendance Event مقبول 
+AC-ATT-002 لا اتصال + عمليةOffline مدعومة⇒ Local Queue وPending Sync . 
+AC-TASK-
+001 الموظف يغير مهمة إلىIN_PROGRESS ⇒ يحفظ التغيير وفق الصلاحية 
+AC-REQ-
+001 طلب إجازة صالح⇒ يدخل Workflow ويُخطر الموافق  
+AC-RBAC-
+001 مستخدم بلا صلاحية⇒ رفض العملية.  
+AC-AUD-
+001 عملية حساسة ناجحة⇒ Audit Log كامل 
+ 
+22.3 Definition of Done 
+● المتطلب منفذ ومراجع 
+● الاختبارات مناسبة وناجحة 
+● الصلاحيات مطبقة 
+● الأخطاء والحالات الحدية معالجة 
+● Audit/Notification/Sync مطبقة عند الحاجة 
+● لا توجد أخطاءRegression حرجة 
+● التوثيق محدث 
+
+--- PAGE 32 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة32 / 36  
+23  .Traceability Matrix 
+Requirement Module Interface Test IDs 
+FR-EXEC-001 Executive Dashboard App/Web/API TC-EXEC-* 
+FR-ORG-001 Organization Management App/Web/API TC-ORG- * 
+FR-EMP-001 Employee & HR Management App/Web/API TC-EMP-* 
+FR-REC-001 Recruitment & Onboarding App/Web/API TC-REC-* 
+FR-ATT-001 Attendance & Workforce App/Web/API TC-ATT- * 
+FR-SHIFT-001 Shift & Schedule Management App/Web/API TC-SHIFT- * 
+FR-REQ-001 Employee Requests App/Web/API TC-REQ-* 
+FR-COM-001 Communication App/Web/API TC-COM- * 
+FR-TASK-001 Tasks & Work Management App/Web/API TC-TASK-* 
+FR-RPT-001 Reports Management App/Web/API TC-RPT- * 
+FR-SRV-001 Service Requests App/Web/API TC-SRV- * 
+FR-HAND-001 Shift Handover App/Web/API TC-HAND-* 
+FR-AST-001 Asset Management App/Web/API TC-AST- * 
+FR-MAINT-001 Maintenance Management App/Web/API TC-MAINT-* 
+FR-INV-001 Inventory & Stores App/Web/API TC-INV-* 
+FR-PROC-001 Procurement & Suppliers App/Web/API TC-PROC- * 
+FR-FIN-001 Finance & Accounting App/Web/API TC-FIN-* 
+FR-PAY-001 Payroll App/Web/API TC-PAY- * 
+FR-BUD-001 Budget Management App/Web/API TC-BUD-* 
+FR-INC-001 Incident & Safety App/Web/API TC-INC-* 
+FR-DOC-001 Documents Management App/Web/API TC-DOC-* 
+FR-DEPT-001 Hotel Department Operations App/Web/API TC-DEPT-* 
+FR-WF-001 Workflow & Approval Engine App/Web/API TC-WF-* 
+FR-NOTIF-001 Notifications & Alerts App/Web/API TC-NOTIF-* 
+FR-INT-001 External Integrations App/Web/API TC-INT-* 
+FR-BI-001 Reports & Business Intelligence App/Web/API TC-BI-* 
+FR-RBAC-001 Roles & Permissions App/Web/API TC-RBAC-* 
+FR-SESS-001 Device & Session Management App/Web/API TC-SESS-* 
+FR-AUDIT-001 Audit Logs & Compliance App/Web/API TC-AUDIT-* 
+FR-SYNC-001 Offline & Sync Engine App/Web/API TC-SYNC-* 
+FR-SET-001 System Administration & Settings App/Web/API TC-SET- * 
+ 
+تُستكمل أرقام Test Cases وEndpoints النهائية بعد تثبيت التصميم التفصيلي 
+
+--- PAGE 33 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة33 / 36  
+24   .القيود والافتراضات والنقاط المفتوحة 
+24.1 قيود 
+● Backend API مركزي 
+● PostgreSQL + Redis + File Storage جزء من المعمارية 
+● التكاملات الخارجية تحتاج مواصفات مزود 
+● GPS/Geofence يخضعان للإعدادات والسياسة 
+● Offline لا يتجاوز قواعد الموافقة أو التحقق المركزي 
+24.2 نقاط اعتماد 
+● هل النظام لفندق واحد أمHotel Group/Multi-Tenant؟ 
+● مزودGPS/Maps. 
+● مزودPush/Email/SMS/WhatsApp. 
+● طريقة التكامل مع أجهزة البصمة 
+● هلPMS External فقط أم توسعة داخلية؟ 
+● قيمSLA النهائية 
+● سياسةData Retention وBackup . 
+● مزودFile Storage. 
+● تفاصيل الدفع والبنوك 
+● القواعد المحلية النهائية للرواتب والضرائب والتأمينات إذا لزم 
+
+--- PAGE 34 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة34 / 36  
+25   .Production Readiness 
+● Scope ومتطلبات كل وحدة معتمدة 
+● Database migrations جاهزة 
+●  لاSecrets فيGit . 
+● Authentication/RBAC مختبرة 
+● Audit Logs فعالة 
+● File Uploads محمية 
+● Backup/Restore مجرب 
+● Monitoring/Health Checks . 
+● Queue/Worker/Scheduler مراقبة عند الاستخدام 
+● Integrations لهاRetry/Error Handling . 
+● Offline Sync مختبر 
+● API Documentation محدثة 
+● Flutter Production Config. 
+● ERP Web Production Config . 
+● CI/CD ناجحة 
+● Regression ناجحة 
+● Security Review . 
+● Performance Baseline . 
+● Runbook ودعم الحوادث 
+25.1 ترتيب التنفيذ المقترح 
+المرحلة المجال الوحدات  
+1 Foundation Auth, RBAC, Organization, Employees, Settings, Sessions, Audit 
+2 Workforce Attendance, Geofence, Biometric Flow, Shifts, Requests 
+3 Operations Tasks, Reports, Service Requests, Communication, Handover 
+4 Assets & Supply Assets, Maintenance, Inventory, Procurement, Suppliers 
+5 Finance Finance, Payroll, Budget 
+6 Safety   &
+Documents Incidents, Documents, Department Operations 
+7 Platform Workflow, Notifications, Integrations, BI, Offline Sync 
+8 Hardening Security, Performance, Backup, Monitoring, E2E, Production 
+ 
+
+--- PAGE 35 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة35 / 36  
+26   .الملاحق 
+26.1 حالات المهمة 
+الحالة المعنى 
+TODO قيد الانتظار 
+ACCEPTED مقبولة 
+IN_PROGRESS قيد التنفيذ 
+BLOCKED متوقفة 
+PENDING_REVIEW بانتظار المراجعة 
+COMPLETED مكتملة 
+OVERDUE متأخرة 
+CANCELLED ملغاة 
+ 
+26.2 تدفقات النظام 
+الحضور 
+Employee 
+↓ 
+Login 
+↓ 
+Session 
+↓ 
+Security 
+↓ 
+GPS 
+↓ 
+Geofence 
+↓ 
+Biometric 
+↓ 
+Internet? 
+↓ 
+Backend / Offline Queue 
+الطلبات 
+Employee 
+↓ 
+Request 
+↓ 
+Workflow 
+↓ 
+Accept/Reject 
+↓ 
+Notification 
+الشراء 
+
+--- PAGE 36 ---
+SRS  —  نظام تخطيط موارد الفندق وإدارة القوى العاملة—   v1.0.0 
+صفحة36 / 36  
+Department 
+↓ 
+Purchase Request 
+↓ 
+Approval 
+↓ 
+Procurement 
+↓ 
+Supplier 
+↓ 
+PO 
+↓ 
+Receiving 
+↓ 
+Inventory 
+↓ 
+Finance 
+تسليم الوردية 
+Current Shift 
+↓ 
+Handover 
+↓ 
+Notes/Open Tasks/Incidents/Attachments 
+↓ 
+Next Shift 
+↓ 
+Acknowledgement 
+التقرير الخارجي 
+Employee App 
+↓ 
+Backend API 
+↓ 
+Integration Layer 
+↓ 
+External API/Site 
+↓ 
+Report ID/URL/Status 
+↓ 
+Task Update 
+
