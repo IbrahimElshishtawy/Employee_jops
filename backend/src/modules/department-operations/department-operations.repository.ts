@@ -3,7 +3,6 @@ import { PrismaService } from "../../prisma/prisma.service";
 import {
   AttendanceStatus,
   HandoverStatus,
-  Prisma,
   ServiceRequestPriority,
   ServiceRequestStatus,
   TaskStatus,

@@ -12,7 +12,7 @@ import {
   DepartmentTriageRequestDto,
   DepartmentReportQueryDto,
 } from "./dto";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 import { CsvExporterUtil } from "../reports/utils/csv-exporter.util";
 
 @Injectable()

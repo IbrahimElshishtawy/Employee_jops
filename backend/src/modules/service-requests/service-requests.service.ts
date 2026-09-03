@@ -722,7 +722,7 @@ export class ServiceRequestsService {
     if (!isInternalStaff) {
       // Filter out internal comments from the requester view
       serviceRequest.comments = serviceRequest.comments.filter(
-        (c) => !c.isInternal,
+        (c: any) => !c.isInternal,
       );
     }
 
