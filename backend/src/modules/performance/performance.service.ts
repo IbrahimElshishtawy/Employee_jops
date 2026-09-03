@@ -151,13 +151,13 @@ export class PerformanceService {
 
     // Notify employee of performance review
     if (employee.user?.id) {
-      await this.notificationsService.sendInAppNotification({
-        userId: employee.user.id,
-        title: "Performance Review Completed",
-        body: `Your performance review for cycle '${dto.cycleName}' has been submitted. Rating: ${dto.overallRating}/5.0`,
-        type: NotificationType.GENERAL_ANNOUNCEMENT,
-        data: { reviewId: review.id, reviewNumber },
-      }).catch(() => {});
+      await this.notificationsService.sendNotification(
+        employee.user.id,
+        "Performance Review Completed",
+        `Your performance review for cycle '${dto.cycleName}' has been submitted. Rating: ${dto.overallRating}/5.0`,
+        NotificationType.GENERAL_ANNOUNCEMENT,
+        { reviewId: review.id, reviewNumber },
+      ).catch(() => {});
     }
 
     await this.prisma.auditLog.create({

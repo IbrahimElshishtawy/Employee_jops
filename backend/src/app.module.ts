@@ -37,6 +37,24 @@ import { ServiceRequestsModule } from "./modules/service-requests/service-reques
 import { HandoverModule } from "./modules/handover/handover.module";
 import { DepartmentOperationsModule } from "./modules/department-operations/department-operations.module";
 
+import { AssetsModule } from "./modules/assets/assets.module";
+import { MaintenanceModule } from "./modules/maintenance/maintenance.module";
+import { KeysModule } from "./modules/keys/keys.module";
+import { InventoryModule } from "./modules/inventory/inventory.module";
+import { ProcurementModule } from "./modules/procurement/procurement.module";
+import { FinanceModule } from "./modules/finance/finance.module";
+import { BudgetModule } from "./modules/budget/budget.module";
+import { IncidentsModule } from "./modules/incidents/incidents.module";
+import { DocumentsModule } from "./modules/documents/documents.module";
+import { LostFoundModule } from "./modules/lost-found/lost-found.module";
+import { VisitorsModule } from "./modules/visitors/visitors.module";
+import { PerformanceModule } from "./modules/performance/performance.module";
+import { TrainingModule } from "./modules/training/training.module";
+import { SessionsModule } from "./modules/sessions/sessions.module";
+import { IntegrationsModule } from "./modules/integrations/integrations.module";
+import { OfflineSyncModule } from "./modules/offline-sync/offline-sync.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
+
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
@@ -95,6 +113,25 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     ServiceRequestsModule,
     HandoverModule,
     DepartmentOperationsModule,
+
+    // Hotel ERP & Governance Modules
+    AssetsModule,
+    MaintenanceModule,
+    KeysModule,
+    InventoryModule,
+    ProcurementModule,
+    FinanceModule,
+    BudgetModule,
+    IncidentsModule,
+    DocumentsModule,
+    LostFoundModule,
+    VisitorsModule,
+    PerformanceModule,
+    TrainingModule,
+    SessionsModule,
+    IntegrationsModule,
+    OfflineSyncModule,
+    DashboardModule,
   ],
   providers: [
     // Global Throttler Guard

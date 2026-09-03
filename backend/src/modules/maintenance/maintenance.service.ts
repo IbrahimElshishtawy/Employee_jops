@@ -141,18 +141,19 @@ export class MaintenanceService {
 
     // Notify technician if assigned
     if (dto.technicianId) {
-      const tech = await this.prisma.employeeProfile.findUnique({
+      const technician = await this.prisma.employeeProfile.findUnique({
         where: { id: dto.technicianId },
-        select: { userId: true },
+        select: { user: { select: { id: true } } },
       });
-      if (tech) {
-        await this.notificationsService.sendInAppNotification({
-          userId: tech.userId,
-          title: "New Work Order Assigned",
-          body: `You have been assigned to work order ${orderNumber}: ${dto.title}`,
-          type: NotificationType.TASK_ASSIGNED,
-          data: { workOrderId: workOrder.id, orderNumber },
-        }).catch(() => {});
+      const asset = dto.assetId ? await this.prisma.asset.findUnique({ where: { id: dto.assetId } }) : { name: "N/A" };
+      if (technician?.user?.id) {
+        await this.notificationsService.sendNotification(
+          technician.user.id,
+          "Work Order Assigned",
+          `You have been assigned to Work Order '${orderNumber}' for Asset '${asset.name}'.`,
+          NotificationType.TASK_ASSIGNMENT,
+          { workOrderId: workOrder.id, orderNumber },
+        ).catch(() => {});
       }
     }
 
