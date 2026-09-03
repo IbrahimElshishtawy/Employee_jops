@@ -33,6 +33,9 @@ import { RecruitmentModule } from "./modules/recruitment/recruitment.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
 import { WorkManagementModule } from "./modules/work-management/work-management.module";
+import { ServiceRequestsModule } from "./modules/service-requests/service-requests.module";
+import { HandoverModule } from "./modules/handover/handover.module";
+import { DepartmentOperationsModule } from "./modules/department-operations/department-operations.module";
 
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformResponseInterceptor } from "./common/interceptors/transform-response.interceptor";
@@ -89,6 +92,9 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     AuditLogsModule,
     TasksModule,
     WorkManagementModule,
+    ServiceRequestsModule,
+    HandoverModule,
+    DepartmentOperationsModule,
   ],
   providers: [
     // Global Throttler Guard

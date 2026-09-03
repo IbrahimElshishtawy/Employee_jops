@@ -183,6 +183,11 @@ enum NotificationType {
   TASK_STATUS_UPDATE
   TASK_REPORT_SUBMITTED
   TASK_REPORT_REVIEWED
+  SERVICE_REQUEST_CREATED
+  SERVICE_REQUEST_ASSIGNED
+  SERVICE_REQUEST_STATUS_UPDATE
+  HANDOVER_SUBMITTED
+  HANDOVER_ACKNOWLEDGED
 }
 
 enum NotificationPriority {
@@ -336,6 +341,17 @@ enum AuditAction {
   TASK_REPORT_SUBMITTED
   TASK_REPORT_REVIEWED
   TASK_DELETED
+  SERVICE_REQUEST_CREATED
+  SERVICE_REQUEST_ASSIGNED
+  SERVICE_REQUEST_STATUS_CHANGED
+  SERVICE_REQUEST_RESOLVED
+  SERVICE_REQUEST_CLOSED
+  SERVICE_REQUEST_CANCELLED
+  SERVICE_REQUEST_REVIEWED
+  HANDOVER_CREATED
+  HANDOVER_ACKNOWLEDGED
+  HANDOVER_DISPUTED
+  DEPARTMENT_OPERATION_LOGGED
 }
 
 enum BranchType {
@@ -406,6 +422,9 @@ enum PermissionSubject {
   EMPLOYEE_DOCUMENTS
   TASKS
   WORK_MANAGEMENT
+  SERVICE_REQUESTS
+  HANDOVER
+  DEPARTMENT_OPERATIONS
 }
 
 enum JobOpeningStatus {
@@ -538,6 +557,7 @@ model User {
   taskComments              TaskComment[]
   taskAttachments           TaskAttachment[]
   reviewedTaskReports       TaskReport[]              @relation("TaskReportReviewer")
+  serviceRequestComments    ServiceRequestComment[]
 
   @@index([email])
   @@index([googleId])
@@ -626,6 +646,10 @@ model EmployeeProfile {
   onboardingWorkflow OnboardingWorkflow?
   assignedTasks      Task[]                   @relation("TaskAssignee")
   taskReports        TaskReport[]
+  serviceRequestsRequested ServiceRequest[] @relation("ServiceRequestRequester")
+  serviceRequestsAssigned  ServiceRequest[] @relation("ServiceRequestAssignee")
+  handoversGiven           ShiftHandover[]  @relation("HandoverGiver")
+  handoversReceived        ShiftHandover[]  @relation("HandoverReceiver")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -669,6 +693,7 @@ model Workplace {
   attendances AttendanceRecord[]
   schedules   Schedule[]
   tasks       Task[]
+  shiftHandovers ShiftHandover[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -697,6 +722,7 @@ model Schedule {
   isDefault            Boolean  @default(false)
 
   employees EmployeeProfile[]
+  shiftHandovers ShiftHandover[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -895,6 +921,7 @@ model WorkflowDefinition {
 
   steps          WorkflowStepDefinition[]
   requests       Request[]
+  serviceRequests ServiceRequest[]
 
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
@@ -1439,6 +1466,8 @@ model Department {
   jobOffers          JobOffer[]
   workflowDefinitions WorkflowDefinition[]
   tasks               Task[]
+  serviceRequests     ServiceRequest[]
+  shiftHandovers      ShiftHandover[]
 
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
@@ -1936,6 +1965,7 @@ model Task {
   attachments    TaskAttachment[]
   reports        TaskReport[]
   history        TaskHistory[]
+  shiftHandoverItems ShiftHandoverItem[]
 
   metadata       Json?         // Custom labels, project tags, workflow references
 
@@ -2052,6 +2082,225 @@ model TaskHistory {
   @@index([taskId])
   @@index([createdAt])
   @@map("task_history")
+}
+
+// ============================================================
+// PHASE 7: SERVICE REQUESTS, SHIFT HANDOVER & DEPARTMENT OPERATIONS
+// ============================================================
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  UNDER_REVIEW
+  CLOSED
+  CANCELLED
+  REJECTED
+}
+
+enum ServiceRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ServiceRequestCategory {
+  IT_SUPPORT
+  MAINTENANCE
+  FACILITY
+  EQUIPMENT
+  CLEANING
+  SECURITY
+  LOGISTICS
+  GENERAL
+}
+
+enum HandoverStatus {
+  PENDING_ACKNOWLEDGEMENT
+  ACKNOWLEDGED
+  REJECTED
+  FLAGGED
+}
+
+enum HandoverItemCategory {
+  TASK
+  ISSUE
+  INCIDENT
+  NOTE
+  ASSET
+  SAFETY
+  GENERAL
+}
+
+enum HandoverItemPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model ServiceRequest {
+  id                 String                 @id @default(uuid())
+  requestNumber      String                 @unique // e.g. "SR-2026-0001"
+  title              String
+  description        String
+  category           ServiceRequestCategory @default(GENERAL)
+  priority           ServiceRequestPriority @default(MEDIUM)
+  status             ServiceRequestStatus   @default(SUBMITTED)
+
+  requesterId        String
+  requester          EmployeeProfile        @relation("ServiceRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  departmentId       String
+  department         Department             @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  assignedToId       String?
+  assignedTo         EmployeeProfile?       @relation("ServiceRequestAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedById       String?
+  assignedAt         DateTime?
+
+  location           String?                // Specific room/office/desk/facility area
+  dueDate            DateTime?
+  completedAt        DateTime?
+  resolutionNotes    String?
+  closedAt           DateTime?
+  closedById         String?
+
+  reviewRating       Int?                   // 1 - 5 star customer satisfaction
+  reviewFeedback     String?
+  rejectionReason    String?
+  cancellationReason String?
+
+  workflowId         String?
+  workflow           WorkflowDefinition?    @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  currentStepOrder   Int                    @default(1)
+
+  metadata           Json?                  // Assets, custom tags, coordinates, extra telemetry
+
+  history            ServiceRequestHistory[]
+  comments           ServiceRequestComment[]
+  shiftHandoverItems ShiftHandoverItem[]
+
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([requesterId])
+  @@index([departmentId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+  @@index([dueDate])
+  @@map("service_requests")
+}
+
+model ServiceRequestHistory {
+  id               String                @id @default(uuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest        @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  actorId          String
+  action           String                // CREATED, ASSIGNED, STATUS_CHANGE, RESOLVED, REVIEWED, CLOSED, CANCELLED, REJECTED
+  oldStatus        ServiceRequestStatus?
+  newStatus        ServiceRequestStatus?
+  notes            String?
+  metadata         Json?
+
+  createdAt        DateTime              @default(now())
+
+  @@index([serviceRequestId])
+  @@index([createdAt])
+  @@map("service_request_history")
+}
+
+model ServiceRequestComment {
+  id               String         @id @default(uuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  authorId         String
+  author           User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content          String
+  attachmentUrl    String?
+  isInternal       Boolean        @default(false)
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([serviceRequestId])
+  @@index([authorId])
+  @@map("service_request_comments")
+}
+
+model ShiftHandover {
+  id                   String              @id @default(uuid())
+  handoverNumber       String              @unique // e.g. "HO-2026-0001"
+  shiftDate            DateTime            @db.Date
+  shiftName            String              // Morning, Evening, Night, or Schedule name
+  scheduleId           String?
+  schedule             Schedule?           @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+
+  departmentId         String
+  department           Department          @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  workplaceId          String?
+  workplace            Workplace?          @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+
+  handedOverById       String
+  handedOverBy         EmployeeProfile     @relation("HandoverGiver", fields: [handedOverById], references: [id], onDelete: Cascade)
+
+  receivedById         String?
+  receivedBy           EmployeeProfile?    @relation("HandoverReceiver", fields: [receivedById], references: [id], onDelete: SetNull)
+
+  status               HandoverStatus      @default(PENDING_ACKNOWLEDGEMENT)
+  summary              String
+  notes                String?
+
+  acknowledgedAt       DateTime?
+  acknowledgementNotes String?
+  discrepancyNotes     String?
+
+  metadata             Json?
+
+  items                ShiftHandoverItem[]
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([departmentId])
+  @@index([shiftDate])
+  @@index([status])
+  @@index([handedOverById])
+  @@index([receivedById])
+  @@map("shift_handovers")
+}
+
+model ShiftHandoverItem {
+  id               String               @id @default(uuid())
+  handoverId       String
+  handover         ShiftHandover        @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  category         HandoverItemCategory @default(GENERAL)
+  priority         HandoverItemPriority @default(MEDIUM)
+
+  taskId           String?
+  task             Task?                @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  serviceRequestId String?
+  serviceRequest   ServiceRequest?      @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  isResolved       Boolean              @default(false)
+  requiresAction   Boolean              @default(true)
+  metadata         Json?
+
+  createdAt        DateTime             @default(now())
+
+  @@index([handoverId])
+  @@index([taskId])
+  @@index([serviceRequestId])
+  @@map("shift_handover_items")
 }
 
 
