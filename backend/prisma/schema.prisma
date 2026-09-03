@@ -1190,8 +1190,9 @@ model NotificationPreference {
   advanceNotifications      Boolean  @default(true)
   announcementNotifications  Boolean  @default(true)
   messageNotifications       Boolean  @default(true)
-  emailNotifications        Boolean  @default(true)
-  pushNotifications         Boolean  @default(true)
+  taskNotifications          Boolean  @default(true)
+  emailNotifications         Boolean  @default(true)
+  pushNotifications          Boolean  @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1312,6 +1313,7 @@ model ChatMessage {
   updatedAt DateTime @updatedAt
 
   @@index([conversationId, createdAt])
+  @@index([conversationId, isRead])
   @@index([senderId])
   @@index([isRead])
   @@map("chat_messages")

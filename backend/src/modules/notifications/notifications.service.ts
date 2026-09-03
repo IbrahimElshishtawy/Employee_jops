@@ -4,7 +4,9 @@ import {
   NotFoundException,
   ForbiddenException,
 } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsRepository } from "./notifications.repository";
+import { FcmService } from "./fcm.service";
+import { RealTimeService } from "../realtime/realtime.service";
 import {
   RegisterDeviceTokenDto,
   QueryNotificationsDto,
@@ -14,44 +16,30 @@ import {
   NotificationType,
   NotificationPriority,
   AuditAction,
-  Prisma,
 } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly notificationsRepo: NotificationsRepository,
+    private readonly fcmService: FcmService,
+    private readonly realtimeService: RealTimeService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   // ============================================================
   // 1. DEVICE TOKENS & PUSH REGISTRATION
   // ============================================================
 
   async registerDeviceToken(userId: string, dto: RegisterDeviceTokenDto) {
-    return this.prisma.deviceToken.upsert({
-      where: { fcmToken: dto.fcmToken },
-      update: {
-        userId,
-        platform: dto.platform,
-        deviceId: dto.deviceId,
-        isActive: true,
-        updatedAt: new Date(),
-      },
-      create: {
-        userId,
-        fcmToken: dto.fcmToken,
-        platform: dto.platform,
-        deviceId: dto.deviceId,
-        isActive: true,
-      },
-    });
+    return this.notificationsRepo.upsertDeviceToken(userId, dto);
   }
 
   async removeDeviceToken(userId: string, fcmToken: string) {
-    return this.prisma.deviceToken.updateMany({
-      where: { userId, fcmToken },
-      data: { isActive: false },
-    });
+    return this.notificationsRepo.deactivateDeviceToken(fcmToken);
   }
 
   // ============================================================
@@ -81,19 +69,20 @@ export class NotificationsService {
         return null;
       }
 
-      // 2. Persist in-app notification in DB
-      const notification = await this.prisma.notification.create({
-        data: {
-          userId,
-          title,
-          body,
-          type,
-          priority,
-          data: data ? this.sanitizeData(data) : undefined,
-        },
+      // 2. Persist in-app notification in DB via repository
+      const notification = await this.notificationsRepo.createNotification({
+        userId,
+        title,
+        body,
+        type,
+        priority,
+        data: data ? this.sanitizeData(data) : undefined,
       });
 
-      // 3. Dispatch Push Notification to all active device tokens
+      // 3. Emit real-time WebSocket event to user's private room: "user:{userId}"
+      this.realtimeService.emitToUser(userId, "new_notification", notification);
+
+      // 4. Dispatch Push Notification to all active device tokens via real FCM
       if (isSecurityOrCritical || preferences.pushNotifications) {
         await this.dispatchPushToUserDevices(userId, title, body, type, data);
       }
@@ -129,13 +118,20 @@ export class NotificationsService {
         data: data ? this.sanitizeData(data) : undefined,
       }));
 
-      await this.prisma.notification.createMany({
-        data: records,
-        skipDuplicates: true,
-      });
+      await this.notificationsRepo.createBatchNotifications(records);
 
-      // Dispatch push in background
+      // Dispatch RealTime event & Push in background
       for (const userId of userIds) {
+        this.realtimeService.emitToUser(userId, "new_notification", {
+          userId,
+          title,
+          body,
+          type,
+          priority,
+          data,
+          createdAt: new Date(),
+        });
+
         this.dispatchPushToUserDevices(userId, title, body, type, data).catch(
           (err) => {
             this.logger.warn(
@@ -159,35 +155,35 @@ export class NotificationsService {
     title: string,
     body: string,
     type: NotificationType,
-    _data?: any,
+    data?: any,
   ) {
-    const activeTokens = await this.prisma.deviceToken.findMany({
-      where: { userId, isActive: true },
-      select: { id: true, fcmToken: true },
-    });
+    const activeTokens = await this.notificationsRepo.findActiveTokensForUser(userId);
 
     if (activeTokens.length === 0) return;
 
     for (const token of activeTokens) {
       try {
-        // FCM delivery hook
-        this.logger.log(
-          `[FCM] Dispatched push [${type}] "${title}" to device token ${token.fcmToken.slice(0, 10)}... (User: ${userId})`,
+        const res = await this.fcmService.sendToDevice(
+          token.fcmToken,
+          title,
+          body,
+          {
+            type,
+            ...(data || {}),
+          },
         );
-      } catch (fcmErr: any) {
-        // Handle invalid/unregistered token by deactivating it
-        if (
-          fcmErr?.code === "messaging/registration-token-not-registered" ||
-          fcmErr?.code === "messaging/invalid-registration-token"
-        ) {
-          await this.prisma.deviceToken.update({
-            where: { id: token.id },
-            data: { isActive: false },
-          });
+
+        if (!res.success && res.isTokenInvalid) {
+          // Deactivate invalid / unregistered device token in DB
+          await this.notificationsRepo.deactivateDeviceToken(token.fcmToken);
           this.logger.warn(
             `Deactivated invalid FCM token ${token.id} for user ${userId}`,
           );
         }
+      } catch (fcmErr: any) {
+        this.logger.warn(
+          `FCM delivery exception for user ${userId}: ${fcmErr?.message || fcmErr}`,
+        );
       }
     }
   }
@@ -213,6 +209,11 @@ export class NotificationsService {
       case NotificationType.CHAT_MESSAGE:
       case NotificationType.HR_MESSAGE:
         return prefs.messageNotifications;
+      case NotificationType.TASK_ASSIGNED:
+      case NotificationType.TASK_STATUS_UPDATE:
+      case NotificationType.TASK_REPORT_SUBMITTED:
+      case NotificationType.TASK_REPORT_REVIEWED:
+        return prefs.taskNotifications !== false;
       default:
         return true;
     }
@@ -237,47 +238,11 @@ export class NotificationsService {
     userId: string,
     query: Partial<QueryNotificationsDto> = {},
   ) {
-    const {
-      page = 1,
-      limit = 20,
-      type,
-      priority,
-      isRead,
-      startDate,
-      endDate,
-    } = query;
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.NotificationWhereInput = { userId };
-    if (type) where.type = type;
-    if (priority) where.priority = priority;
-    if (isRead !== undefined) where.isRead = isRead;
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
-    }
-
-    const [total, data] = await Promise.all([
-      this.prisma.notification.count({ where }),
-      this.prisma.notification.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
-
-    return {
-      data,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    };
+    return this.notificationsRepo.findUserNotifications(userId, query as QueryNotificationsDto);
   }
 
   async markAsRead(notificationId: string, userId: string) {
-    const notification = await this.prisma.notification.findUnique({
-      where: { id: notificationId },
-    });
+    const notification = await this.notificationsRepo.findNotificationById(notificationId);
 
     if (!notification) {
       throw new NotFoundException("Notification not found");
@@ -289,17 +254,12 @@ export class NotificationsService {
       );
     }
 
-    return this.prisma.notification.update({
-      where: { id: notificationId },
-      data: { isRead: true, readAt: new Date() },
-    });
+    await this.notificationsRepo.markAsRead(notificationId, userId);
+    return { ...notification, isRead: true, readAt: new Date() };
   }
 
   async markAllAsRead(userId: string) {
-    const result = await this.prisma.notification.updateMany({
-      where: { userId, isRead: false },
-      data: { isRead: true, readAt: new Date() },
-    });
+    const result = await this.notificationsRepo.markAllAsRead(userId);
 
     return {
       message: "All notifications marked as read",
@@ -308,10 +268,7 @@ export class NotificationsService {
   }
 
   async getUnreadCount(userId: string) {
-    const count = await this.prisma.notification.count({
-      where: { userId, isRead: false },
-    });
-
+    const count = await this.notificationsRepo.countUnread(userId);
     return { unreadCount: count };
   }
 
@@ -320,13 +277,18 @@ export class NotificationsService {
   // ============================================================
 
   async getPreferences(userId: string) {
-    let pref = await this.prisma.notificationPreference.findUnique({
-      where: { userId },
-    });
+    let pref = await this.notificationsRepo.findUserPreferences(userId);
 
     if (!pref) {
-      pref = await this.prisma.notificationPreference.create({
-        data: { userId },
+      pref = await this.notificationsRepo.upsertUserPreferences(userId, {
+        attendanceNotifications: true,
+        requestNotifications: true,
+        payrollNotifications: true,
+        advanceNotifications: true,
+        announcementNotifications: true,
+        messageNotifications: true,
+        emailNotifications: true,
+        pushNotifications: true,
       });
     }
 
@@ -337,11 +299,7 @@ export class NotificationsService {
     userId: string,
     dto: UpdateNotificationPreferencesDto,
   ) {
-    const pref = await this.prisma.notificationPreference.upsert({
-      where: { userId },
-      update: { ...dto },
-      create: { userId, ...dto },
-    });
+    const pref = await this.notificationsRepo.upsertUserPreferences(userId, dto);
 
     await this.prisma.auditLog.create({
       data: {

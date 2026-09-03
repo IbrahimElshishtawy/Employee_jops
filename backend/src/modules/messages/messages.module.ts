@@ -1,11 +1,8 @@
 import { Module } from "@nestjs/common";
-import { MessagesService } from "./messages.service";
-import { MessagesController } from "./messages.controller";
-import { RealTimeService } from "./realtime.service";
+import { MessagingModule } from "../messaging/messaging.module";
 
 @Module({
-  controllers: [MessagesController],
-  providers: [MessagesService, RealTimeService],
-  exports: [MessagesService, RealTimeService],
+  imports: [MessagingModule],
+  exports: [MessagingModule],
 })
 export class MessagesModule {}

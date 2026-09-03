@@ -18,7 +18,9 @@ import { WorkflowModule } from "./modules/workflow/workflow.module";
 import { ApprovalsModule } from "./modules/approvals/approvals.module";
 import { RequestsModule } from "./modules/requests/requests.module";
 import { PayrollModule } from "./modules/payroll/payroll.module";
+import { RealTimeModule } from "./modules/realtime/realtime.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { MessagingModule } from "./modules/messaging/messaging.module";
 import { MessagesModule } from "./modules/messages/messages.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { AuditLogsModule } from "./modules/audit-logs/audit-logs.module";
@@ -81,8 +83,9 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
     ApprovalsModule,
     RequestsModule,
     PayrollModule,
+    RealTimeModule,
     NotificationsModule,
-    MessagesModule,
+    MessagingModule,
     ReportsModule,
     AuditLogsModule,
     TasksModule,
