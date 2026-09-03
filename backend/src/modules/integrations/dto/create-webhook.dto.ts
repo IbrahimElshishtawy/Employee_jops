@@ -17,9 +17,9 @@ export class CreateWebhookDto {
   })
   @IsArray()
   @IsString({ each: true })
-  eventTypes: string[];
+  events: string[];
 
   @ApiPropertyOptional({ example: 3, default: 3 })
   @IsOptional()
-  retryCount?: number;
+  retryLimit?: number;
 }

@@ -144,7 +144,7 @@ export class InventoryService {
         action: AuditAction.UPDATE,
         entity: "StockItem",
         entityId: id,
-        payload: { changes: dto },
+        payload: { changes: JSON.parse(JSON.stringify(dto)) },
       },
     });
 

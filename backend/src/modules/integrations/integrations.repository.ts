@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateApiKeyDto, CreateWebhookDto, QueryLogsDto } from "./dto";
+import { IntegrationStatus } from "@prisma/client";
 
 @Injectable()
 export class IntegrationsRepository {
@@ -9,17 +10,17 @@ export class IntegrationsRepository {
   async createApiKey(
     userId: string,
     dto: CreateApiKeyDto,
-    prefix: string,
+    keyPrefix: string,
     keyHash: string,
   ) {
     return this.prisma.apiKey.create({
       data: {
         name: dto.name,
-        prefix,
+        keyPrefix,
         keyHash,
         scopes: dto.scopes || ["*"],
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
-        createdById: userId,
+        userId,
         isActive: true,
       },
     });
@@ -31,7 +32,7 @@ export class IntegrationsRepository {
       select: {
         id: true,
         name: true,
-        prefix: true,
+        keyPrefix: true,
         scopes: true,
         isActive: true,
         expiresAt: true,
@@ -54,14 +55,14 @@ export class IntegrationsRepository {
     });
   }
 
-  async createWebhook(dto: CreateWebhookDto, secretKey: string) {
+  async createWebhook(dto: CreateWebhookDto, secret: string) {
     return this.prisma.webhookConfig.create({
       data: {
         name: dto.name,
         targetUrl: dto.targetUrl,
-        secretKey,
-        eventTypes: dto.eventTypes,
-        retryCount: dto.retryCount || 3,
+        secret,
+        events: dto.events,
+        retryLimit: dto.retryLimit || 3,
         isActive: true,
       },
     });
@@ -87,25 +88,25 @@ export class IntegrationsRepository {
   }
 
   async logIntegration(data: {
-    apiKeyId?: string;
-    endpoint: string;
-    method: string;
-    statusCode: number;
-    requestBody?: any;
-    responseBody?: any;
-    durationMs: number;
-    ipAddress?: string;
+    source: string;
+    target: string;
+    action: string;
+    status: IntegrationStatus;
+    requestPayload?: any;
+    responsePayload?: any;
+    errorMessage?: string;
+    durationMs?: number;
   }) {
     return this.prisma.integrationLog.create({
       data: {
-        apiKeyId: data.apiKeyId,
-        endpoint: data.endpoint,
-        method: data.method,
-        statusCode: data.statusCode,
-        requestBody: data.requestBody,
-        responseBody: data.responseBody,
+        source: data.source,
+        target: data.target,
+        action: data.action,
+        status: data.status,
+        requestPayload: data.requestPayload,
+        responsePayload: data.responsePayload,
+        errorMessage: data.errorMessage,
         durationMs: data.durationMs,
-        ipAddress: data.ipAddress,
       },
     });
   }
@@ -120,9 +121,6 @@ export class IntegrationsRepository {
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
-          apiKey: { select: { name: true, prefix: true } },
-        },
       }),
     ]);
 

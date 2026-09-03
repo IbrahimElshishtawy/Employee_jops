@@ -1,28 +1,33 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { RegisterDeviceSessionDto } from "./dto";
+import { DevicePlatform } from "@prisma/client";
 
 @Injectable()
 export class SessionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async registerOrUpdateSession(userId: string, dto: RegisterDeviceSessionDto) {
-    const existing = await this.prisma.userDeviceSession.findFirst({
-      where: { userId, deviceId: dto.deviceId },
+    const existing = await this.prisma.userDeviceSession.findUnique({
+      where: { sessionToken: dto.sessionToken },
     });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30-day session expiry
 
     if (existing) {
       return this.prisma.userDeviceSession.update({
         where: { id: existing.id },
         data: {
-          deviceName: dto.deviceName || existing.deviceName,
-          deviceType: dto.deviceType || existing.deviceType,
+          devicePlatform: dto.devicePlatform || existing.devicePlatform,
+          deviceModel: dto.deviceModel || existing.deviceModel,
           osVersion: dto.osVersion || existing.osVersion,
           appVersion: dto.appVersion || existing.appVersion,
           ipAddress: dto.ipAddress || existing.ipAddress,
-          fcmToken: dto.fcmToken || existing.fcmToken,
+          userAgent: dto.userAgent || existing.userAgent,
           isActive: true,
           lastActiveAt: new Date(),
+          expiresAt,
         },
       });
     }
@@ -30,15 +35,16 @@ export class SessionsRepository {
     return this.prisma.userDeviceSession.create({
       data: {
         userId,
-        deviceId: dto.deviceId,
-        deviceName: dto.deviceName,
-        deviceType: dto.deviceType || "MOBILE",
+        sessionToken: dto.sessionToken,
+        devicePlatform: dto.devicePlatform || DevicePlatform.ANDROID,
+        deviceModel: dto.deviceModel,
         osVersion: dto.osVersion,
         appVersion: dto.appVersion,
         ipAddress: dto.ipAddress,
-        fcmToken: dto.fcmToken,
+        userAgent: dto.userAgent,
         isActive: true,
         lastActiveAt: new Date(),
+        expiresAt,
       },
     });
   }

@@ -44,7 +44,7 @@ describe("IntegrationsService", () => {
       repo.createApiKey.mockResolvedValue({
         id: "key-1",
         name: "Test Key",
-        prefix: "sec_live_123",
+        keyPrefix: "sec_live_123",
         scopes: ["*"],
         expiresAt: null,
         createdAt: new Date(),
@@ -64,13 +64,13 @@ describe("IntegrationsService", () => {
         id: "wh-1",
         name: "Test Hook",
         targetUrl: "https://hook.com",
-        eventTypes: ["room.status_changed"],
+        events: ["room.status_changed"],
       } as any);
 
       const result = await service.createWebhook("user-1", {
         name: "Test Hook",
         targetUrl: "https://hook.com",
-        eventTypes: ["room.status_changed"],
+        events: ["room.status_changed"],
       });
 
       expect(result.id).toBe("wh-1");

@@ -1,7 +1,7 @@
-import { IsOptional, IsString, IsEnum, IsInt, Min } from "class-validator";
+import { IsOptional, IsEnum, IsInt, Min } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { SyncQueueStatus } from "@prisma/client";
+import { SyncStatus } from "@prisma/client";
 
 export class QuerySyncQueueDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -18,13 +18,8 @@ export class QuerySyncQueueDto {
   @Min(1)
   limit?: number = 50;
 
-  @ApiPropertyOptional({ enum: SyncQueueStatus })
+  @ApiPropertyOptional({ enum: SyncStatus })
   @IsOptional()
-  @IsEnum(SyncQueueStatus)
-  status?: SyncQueueStatus;
-
-  @ApiPropertyOptional({ example: "dev-hardware-12345" })
-  @IsOptional()
-  @IsString()
-  deviceId?: string;
+  @IsEnum(SyncStatus)
+  status?: SyncStatus;
 }

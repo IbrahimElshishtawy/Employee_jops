@@ -129,7 +129,7 @@ export class AssetsService {
         payload: {
           previousStatus: current.status,
           newStatus: updated.status,
-          changes: dto,
+          changes: JSON.parse(JSON.stringify(dto)),
         },
       },
     });

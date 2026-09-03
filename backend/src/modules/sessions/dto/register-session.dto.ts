@@ -1,21 +1,22 @@
-import { IsString, IsNotEmpty, IsOptional } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { DevicePlatform } from "@prisma/client";
 
 export class RegisterDeviceSessionDto {
-  @ApiProperty({ example: "device-uuid-hardware" })
+  @ApiProperty({ example: "session-token-string" })
   @IsString()
   @IsNotEmpty()
-  deviceId: string;
+  sessionToken: string;
+
+  @ApiPropertyOptional({ enum: DevicePlatform, default: DevicePlatform.ANDROID })
+  @IsOptional()
+  @IsEnum(DevicePlatform)
+  devicePlatform?: DevicePlatform;
 
   @ApiPropertyOptional({ example: "iPhone 15 Pro" })
   @IsOptional()
   @IsString()
-  deviceName?: string;
-
-  @ApiPropertyOptional({ example: "MOBILE_IOS", default: "MOBILE_IOS" })
-  @IsOptional()
-  @IsString()
-  deviceType?: string;
+  deviceModel?: string;
 
   @ApiPropertyOptional({ example: "iOS 17.5" })
   @IsOptional()
@@ -32,8 +33,8 @@ export class RegisterDeviceSessionDto {
   @IsString()
   ipAddress?: string;
 
-  @ApiPropertyOptional({ example: "fcm-device-token-string" })
+  @ApiPropertyOptional({ example: "Mozilla/5.0 Mobile" })
   @IsOptional()
   @IsString()
-  fcmToken?: string;
+  userAgent?: string;
 }

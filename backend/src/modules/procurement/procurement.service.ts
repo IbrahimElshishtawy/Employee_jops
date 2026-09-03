@@ -82,7 +82,7 @@ export class ProcurementService {
         action: AuditAction.UPDATE,
         entity: "Supplier",
         entityId: id,
-        payload: { changes: dto },
+        payload: { changes: JSON.parse(JSON.stringify(dto)) },
       },
     });
 

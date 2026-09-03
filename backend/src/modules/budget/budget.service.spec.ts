@@ -29,7 +29,7 @@ describe("BudgetService", () => {
     };
 
     const mockNotifications = {
-      sendInAppNotification: jest.fn().mockResolvedValue({ id: "notif-1" }),
+      sendNotification: jest.fn().mockResolvedValue({ id: "notif-1" }),
     };
 
     const module: TestingModule = await Test.createTestingModule({

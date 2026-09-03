@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
   AssetStatus,
-  MaintenanceStatus,
+  MaintenanceRequestStatus,
   WorkOrderStatus,
   PurchaseRequestStatus,
   PurchaseOrderStatus,
@@ -49,7 +49,7 @@ export class DashboardRepository {
       // Operational
       this.prisma.asset.count(),
       this.prisma.asset.count({ where: { status: AssetStatus.UNDER_MAINTENANCE } }),
-      this.prisma.maintenanceRequest.count({ where: { status: MaintenanceStatus.SUBMITTED } }),
+      this.prisma.maintenanceRequest.count({ where: { status: MaintenanceRequestStatus.SUBMITTED } }),
       this.prisma.workOrder.count({ where: { status: WorkOrderStatus.IN_PROGRESS } }),
       this.prisma.physicalKey.count(),
 

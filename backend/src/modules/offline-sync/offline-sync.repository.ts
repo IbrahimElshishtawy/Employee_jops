@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { PushSyncBatchDto, QuerySyncQueueDto } from "./dto";
-import { Prisma, SyncQueueStatus } from "@prisma/client";
+import { Prisma, SyncStatus } from "@prisma/client";
 
 @Injectable()
 export class OfflineSyncRepository {
@@ -13,13 +13,11 @@ export class OfflineSyncRepository {
         this.prisma.offlineSyncQueue.create({
           data: {
             userId,
-            deviceId: dto.deviceId,
             entityType: item.entityType,
-            entityId: item.entityId,
-            operation: item.operation,
+            action: item.action,
             payload: item.payload,
             clientTimestamp: new Date(item.clientTimestamp),
-            status: SyncQueueStatus.PROCESSED, // Mark processed in batch or simulate successful ingestion
+            status: SyncStatus.PROCESSED,
             processedAt: new Date(),
           },
         }),
@@ -28,12 +26,11 @@ export class OfflineSyncRepository {
   }
 
   async findQueue(userId: string, query: QuerySyncQueueDto) {
-    const { page = 1, limit = 50, status, deviceId } = query;
+    const { page = 1, limit = 50, status } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.OfflineSyncQueueWhereInput = { userId };
     if (status) where.status = status;
-    if (deviceId) where.deviceId = deviceId;
 
     const [total, items] = await Promise.all([
       this.prisma.offlineSyncQueue.count({ where }),
@@ -51,12 +48,12 @@ export class OfflineSyncRepository {
     };
   }
 
-  async updateItemStatus(id: string, status: SyncQueueStatus, errorMessage?: string) {
+  async updateItemStatus(id: string, status: SyncStatus, failureReason?: string) {
     return this.prisma.offlineSyncQueue.update({
       where: { id },
       data: {
         status,
-        errorMessage,
+        failureReason,
         processedAt: new Date(),
       },
     });

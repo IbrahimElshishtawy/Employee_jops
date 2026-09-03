@@ -107,7 +107,7 @@ export class MaintenanceService {
         action: AuditAction.UPDATE,
         entity: "MaintenanceRequest",
         entityId: id,
-        payload: { previousStatus: existing.status, newStatus: updated.status, changes: dto },
+        payload: { previousStatus: existing.status, newStatus: updated.status, changes: JSON.parse(JSON.stringify(dto)) },
       },
     });
 
@@ -145,13 +145,12 @@ export class MaintenanceService {
         where: { id: dto.technicianId },
         select: { user: { select: { id: true } } },
       });
-      const asset = dto.assetId ? await this.prisma.asset.findUnique({ where: { id: dto.assetId } }) : { name: "N/A" };
       if (technician?.user?.id) {
         await this.notificationsService.sendNotification(
           technician.user.id,
           "Work Order Assigned",
-          `You have been assigned to Work Order '${orderNumber}' for Asset '${asset.name}'.`,
-          NotificationType.TASK_ASSIGNMENT,
+          `You have been assigned to Work Order '${orderNumber}': ${dto.title}`,
+          NotificationType.TASK_ASSIGNED,
           { workOrderId: workOrder.id, orderNumber },
         ).catch(() => {});
       }
@@ -192,7 +191,7 @@ export class MaintenanceService {
         action: AuditAction.UPDATE,
         entity: "WorkOrder",
         entityId: id,
-        payload: { changes: dto, newStatus: updated.status },
+        payload: { changes: JSON.parse(JSON.stringify(dto)), newStatus: updated.status },
       },
     });
 

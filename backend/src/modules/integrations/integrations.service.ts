@@ -25,10 +25,10 @@ export class IntegrationsService {
   async createApiKey(userId: string, dto: CreateApiKeyDto) {
     const rawSecret = crypto.randomBytes(24).toString("hex");
     const rawKey = `sec_live_${rawSecret}`;
-    const prefix = rawKey.slice(0, 12);
+    const keyPrefix = rawKey.slice(0, 12);
     const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
 
-    const apiKey = await this.repo.createApiKey(userId, dto, prefix, keyHash);
+    const apiKey = await this.repo.createApiKey(userId, dto, keyPrefix, keyHash);
 
     await this.prisma.auditLog.create({
       data: {
@@ -36,7 +36,7 @@ export class IntegrationsService {
         action: AuditAction.CREATE,
         entity: "ApiKey",
         entityId: apiKey.id,
-        payload: { name: apiKey.name, prefix: apiKey.prefix, scopes: apiKey.scopes },
+        payload: { name: apiKey.name, keyPrefix: apiKey.keyPrefix, scopes: apiKey.scopes },
       },
     });
 
@@ -44,12 +44,12 @@ export class IntegrationsService {
       apiKey: {
         id: apiKey.id,
         name: apiKey.name,
-        prefix: apiKey.prefix,
+        keyPrefix: apiKey.keyPrefix,
         scopes: apiKey.scopes,
         expiresAt: apiKey.expiresAt,
         createdAt: apiKey.createdAt,
       },
-      plainTextKey: rawKey, // Plain text key returned only once!
+      plainTextKey: rawKey,
     };
   }
 
@@ -81,8 +81,8 @@ export class IntegrationsService {
   // ============================================================
 
   async createWebhook(userId: string, dto: CreateWebhookDto) {
-    const secretKey = `whsec_${crypto.randomBytes(24).toString("hex")}`;
-    const webhook = await this.repo.createWebhook(dto, secretKey);
+    const secret = `whsec_${crypto.randomBytes(24).toString("hex")}`;
+    const webhook = await this.repo.createWebhook(dto, secret);
 
     await this.prisma.auditLog.create({
       data: {
@@ -90,7 +90,7 @@ export class IntegrationsService {
         action: AuditAction.CREATE,
         entity: "WebhookConfig",
         entityId: webhook.id,
-        payload: { name: webhook.name, targetUrl: webhook.targetUrl, eventTypes: webhook.eventTypes },
+        payload: { name: webhook.name, targetUrl: webhook.targetUrl, events: webhook.events },
       },
     });
 

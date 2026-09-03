@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { OfflineSyncService } from "./offline-sync.service";
 import { OfflineSyncRepository } from "./offline-sync.repository";
 import { PrismaService } from "../../prisma/prisma.service";
-import { SyncOperation, SyncQueueStatus } from "@prisma/client";
+import { SyncStatus } from "@prisma/client";
 
 describe("OfflineSyncService", () => {
   let service: OfflineSyncService;
@@ -39,17 +39,16 @@ describe("OfflineSyncService", () => {
         {
           id: "queue-1",
           entityType: "ServiceRequest",
-          entityId: "temp-1",
-          status: SyncQueueStatus.PROCESSED,
+          action: "CREATE",
+          status: SyncStatus.PROCESSED,
         },
       ] as any);
 
       const result = await service.processSyncBatch("user-1", {
-        deviceId: "dev-1",
         items: [
           {
             entityType: "ServiceRequest",
-            operation: SyncOperation.CREATE,
+            action: "CREATE",
             payload: { roomNumber: "101" },
             clientTimestamp: "2026-09-03T10:00:00.000Z",
           },

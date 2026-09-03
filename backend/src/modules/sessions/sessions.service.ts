@@ -27,7 +27,7 @@ export class SessionsService {
         action: AuditAction.CREATE,
         entity: "UserDeviceSession",
         entityId: session.id,
-        payload: { deviceId: dto.deviceId, deviceName: dto.deviceName },
+        payload: { sessionToken: dto.sessionToken, deviceModel: dto.deviceModel },
       },
     });
 
@@ -54,7 +54,7 @@ export class SessionsService {
         action: AuditAction.DELETE,
         entity: "UserDeviceSession",
         entityId: sessionId,
-        payload: { deviceId: session.deviceId },
+        payload: { sessionToken: session.sessionToken },
       },
     });
 

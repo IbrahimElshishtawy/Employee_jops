@@ -88,7 +88,7 @@ export class IncidentsService {
         action: AuditAction.UPDATE,
         entity: "SafetyIncident",
         entityId: id,
-        payload: { changes: dto, newStatus: updated.status },
+        payload: { changes: JSON.parse(JSON.stringify(dto)), newStatus: updated.status },
       },
     });
 

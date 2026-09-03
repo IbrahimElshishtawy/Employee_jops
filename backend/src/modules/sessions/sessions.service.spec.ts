@@ -39,13 +39,13 @@ describe("SessionsService", () => {
     it("should register session and log audit", async () => {
       repo.registerOrUpdateSession.mockResolvedValue({
         id: "sess-1",
-        deviceId: "dev-1",
-        deviceName: "iPhone",
+        sessionToken: "token-123",
+        deviceModel: "iPhone",
       } as any);
 
       const result = await service.registerDeviceSession("user-1", {
-        deviceId: "dev-1",
-        deviceName: "iPhone",
+        sessionToken: "token-123",
+        deviceModel: "iPhone",
       });
 
       expect(result.id).toBe("sess-1");
@@ -69,7 +69,7 @@ describe("SessionsService", () => {
       repo.findSessionById.mockResolvedValue({
         id: "sess-1",
         userId: "user-1",
-        deviceId: "dev-1",
+        sessionToken: "token-123",
       } as any);
       repo.terminateSession.mockResolvedValue({ id: "sess-1", isActive: false } as any);
 

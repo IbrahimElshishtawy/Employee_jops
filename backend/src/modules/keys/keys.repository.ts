@@ -157,9 +157,6 @@ export class KeysRepository {
       },
       include: {
         key: true,
-        employee: {
-          select: { id: true, firstName: true, lastName: true },
-        },
       },
     });
   }
