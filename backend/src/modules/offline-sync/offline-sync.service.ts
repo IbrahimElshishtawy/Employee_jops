@@ -256,14 +256,21 @@ export class OfflineSyncService {
           };
         }
 
-        const reqNum = `REQ-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const created = await this.prisma.request.create({
           data: {
-            requestNumber: reqNum,
             employeeId: employee.id,
-            type: item.payload?.type || "LEAVE",
-            title: item.payload?.title || "Offline Request",
-            description: item.payload?.description || "Submitted offline",
+            type: (item.payload?.type as any) || "LEAVE",
+            reason:
+              item.payload?.reason ||
+              item.payload?.description ||
+              item.payload?.title ||
+              "Submitted offline",
+            startDate: item.payload?.startDate
+              ? new Date(item.payload.startDate)
+              : clientTs,
+            endDate: item.payload?.endDate
+              ? new Date(item.payload.endDate)
+              : clientTs,
             status: "PENDING",
           },
         });
@@ -527,7 +534,7 @@ export class OfflineSyncService {
     const updated = await this.repo.updateItemStatus(
       itemId,
       execution.status,
-      execution.failureReason,
+      execution.failureReason || undefined,
     );
 
     await this.prisma.auditLog.create({
