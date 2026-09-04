@@ -1,13 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { SchedulerService } from "./scheduler.service";
+import { DistributedLockService } from "./distributed-lock.service";
+import { OfflineSyncService } from "../offline-sync/offline-sync.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { TaskStatus } from "@prisma/client";
+import { TaskStatus, SyncStatus } from "@prisma/client";
 
 describe("SchedulerService", () => {
   let service: SchedulerService;
   let prisma: any;
   let notifications: any;
+  let lockService: any;
+  let offlineSync: any;
 
   beforeEach(async () => {
     prisma = {
@@ -27,7 +31,16 @@ describe("SchedulerService", () => {
         deleteMany: jest.fn().mockResolvedValue({ count: 5 }),
       },
       offlineSyncQueue: {
-        findMany: jest.fn().mockResolvedValue([{ id: "sync-1" }]),
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: "sync-1",
+            userId: "user-1",
+            entityType: "Task",
+            action: "UPDATE",
+            payload: {},
+            clientTimestamp: new Date(),
+          },
+        ]),
         update: jest.fn().mockResolvedValue({ id: "sync-1" }),
       },
       attendanceRecord: {
@@ -39,11 +52,28 @@ describe("SchedulerService", () => {
       sendNotification: jest.fn().mockResolvedValue({ id: "notif-1" }),
     };
 
+    lockService = {
+      withLock: jest.fn().mockImplementation(async (_key, _ttl, fn) => {
+        const result = await fn();
+        return { executed: true, result };
+      }),
+    };
+
+    offlineSync = {
+      applyEntityOperation: jest.fn().mockResolvedValue({
+        status: SyncStatus.PROCESSED,
+        failureReason: null,
+        appliedData: { success: true },
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SchedulerService,
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: notifications },
+        { provide: DistributedLockService, useValue: lockService },
+        { provide: OfflineSyncService, useValue: offlineSync },
       ],
     }).compile();
 
@@ -70,5 +100,23 @@ describe("SchedulerService", () => {
     const result = await service.executeJob("session-cleanup");
     expect(result.status).toBe("SUCCESS");
     expect(prisma.userDeviceSession.deleteMany).toHaveBeenCalled();
+  });
+
+  it("should skip execution when locked by another instance in multi-instance cluster", async () => {
+    lockService.withLock.mockResolvedValue({
+      executed: false,
+      skippedReason: "LOCKED_BY_ANOTHER_INSTANCE",
+    });
+
+    const result = await service.executeJob("task-overdue-checker");
+    expect(result.status).toBe("SKIPPED");
+    expect(result.reason).toBe("LOCKED_BY_ANOTHER_INSTANCE");
+  });
+
+  it("should execute offline sync retries through real offlineSyncService", async () => {
+    const result = await service.processPendingSyncQueue();
+    expect(result.processed).toBe(1);
+    expect(offlineSync.applyEntityOperation).toHaveBeenCalled();
+    expect(prisma.offlineSyncQueue.update).toHaveBeenCalled();
   });
 });

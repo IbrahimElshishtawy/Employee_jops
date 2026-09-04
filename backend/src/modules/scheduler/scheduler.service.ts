@@ -7,6 +7,8 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
+import { DistributedLockService } from "./distributed-lock.service";
+import { OfflineSyncService } from "../offline-sync/offline-sync.service";
 import { TaskStatus, SyncStatus, NotificationType } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
@@ -16,7 +18,7 @@ export interface ScheduledJobInfo {
   description: string;
   intervalSeconds: number;
   lastRunAt: string | null;
-  lastStatus: "IDLE" | "SUCCESS" | "FAILED";
+  lastStatus: "IDLE" | "SUCCESS" | "FAILED" | "SKIPPED";
   lastError: string | null;
   totalExecutions: number;
   fn: () => Promise<any>;
@@ -31,6 +33,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly lockService: DistributedLockService,
+    private readonly offlineSyncService: OfflineSyncService,
   ) {
     this.registerJob({
       name: "task-overdue-checker",
@@ -135,35 +139,44 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     }
 
     const start = Date.now();
-    try {
-      this.logger.debug(`Starting background job '${name}'`);
-      const result = await job.fn();
-      job.lastRunAt = new Date().toISOString();
-      job.lastStatus = "SUCCESS";
-      job.lastError = null;
-      job.totalExecutions++;
-      this.logger.debug(
-        `Job '${name}' finished in ${Date.now() - start}ms: ${JSON.stringify(result)}`,
+    const lockTtlMs = Math.max(30000, job.intervalSeconds * 1000);
+
+    const lockExecution = await this.lockService.withLock(
+      `scheduler:${name}`,
+      lockTtlMs,
+      async () => {
+        this.logger.debug(`Starting background job '${name}'`);
+        const result = await job.fn();
+        job.lastRunAt = new Date().toISOString();
+        job.lastStatus = "SUCCESS";
+        job.lastError = null;
+        job.totalExecutions++;
+        this.logger.debug(
+          `Job '${name}' finished in ${Date.now() - start}ms: ${JSON.stringify(result)}`,
+        );
+        return result;
+      },
+    );
+
+    if (!lockExecution.executed) {
+      this.logger.log(
+        `Job '${name}' execution skipped: locked by another active instance`,
       );
+      job.lastStatus = "SKIPPED";
       return {
         job: name,
-        status: "SUCCESS",
+        status: "SKIPPED",
+        reason: "LOCKED_BY_ANOTHER_INSTANCE",
         durationMs: Date.now() - start,
-        result,
-      };
-    } catch (err: any) {
-      job.lastRunAt = new Date().toISOString();
-      job.lastStatus = "FAILED";
-      job.lastError = err?.message || String(err);
-      job.totalExecutions++;
-      this.logger.error(`Job '${name}' failed: ${job.lastError}`);
-      return {
-        job: name,
-        status: "FAILED",
-        durationMs: Date.now() - start,
-        error: job.lastError,
       };
     }
+
+    return {
+      job: name,
+      status: "SUCCESS",
+      durationMs: Date.now() - start,
+      result: lockExecution.result,
+    };
   }
 
   // ============================================================
@@ -238,7 +251,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     const pendingItems = await this.prisma.offlineSyncQueue
       .findMany({
         where: {
-          status: SyncStatus.PENDING,
+          status: { in: [SyncStatus.PENDING, SyncStatus.FAILED] },
         },
         take: 50,
         orderBy: { createdAt: "asc" },
@@ -246,20 +259,66 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       .catch(() => []);
 
     let processedCount = 0;
+    let failedCount = 0;
+
     for (const item of pendingItems) {
+      const payloadObj =
+        typeof item.payload === "object" && item.payload !== null
+          ? (item.payload as any)
+          : {};
+      const retryAttempts = (payloadObj._retryAttempts || 0) + 1;
+      const MAX_RETRIES = 5;
+
+      if (retryAttempts > MAX_RETRIES) {
+        await this.prisma.offlineSyncQueue
+          .update({
+            where: { id: item.id },
+            data: {
+              status: SyncStatus.FAILED,
+              failureReason: `Max retry limit (${MAX_RETRIES}) reached`,
+            },
+          })
+          .catch(() => null);
+        failedCount++;
+        continue;
+      }
+
+      const result = await this.offlineSyncService.applyEntityOperation(
+        item.userId,
+        {
+          entityType: item.entityType,
+          action: item.action,
+          entityId: payloadObj.id || payloadObj.taskId,
+          payload: { ...payloadObj, _retryAttempts: retryAttempts },
+          clientTimestamp: item.clientTimestamp,
+        },
+      );
+
       await this.prisma.offlineSyncQueue
         .update({
           where: { id: item.id },
           data: {
-            status: SyncStatus.PROCESSED,
-            processedAt: new Date(),
+            status: result.status,
+            failureReason: result.failureReason || null,
+            processedAt:
+              result.status === SyncStatus.PROCESSED ? new Date() : null,
+            payload: { ...payloadObj, _retryAttempts: retryAttempts },
           },
         })
         .catch(() => null);
-      processedCount++;
+
+      if (result.status === SyncStatus.PROCESSED) {
+        processedCount++;
+      } else {
+        failedCount++;
+      }
     }
 
-    return { pendingFound: pendingItems.length, processed: processedCount };
+    return {
+      pendingFound: pendingItems.length,
+      processed: processedCount,
+      failed: failedCount,
+    };
   }
 
   // ============================================================
