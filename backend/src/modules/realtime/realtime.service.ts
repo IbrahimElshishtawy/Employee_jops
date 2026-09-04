@@ -1,23 +1,130 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+  Optional,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Server } from "socket.io";
 import { EventEmitter } from "events";
+import * as crypto from "crypto";
+import Redis from "ioredis";
 
 export interface RealTimeEventPayload {
   channel: string;
   event: string;
   data: any;
   recipientUserIds?: string[];
+  conversationId?: string;
+  senderInstanceId?: string;
   timestamp: string;
 }
 
+// Shared bus simulation for tests and fallback multi-instance coordination
+class InProcessClusterBus extends EventEmitter {
+  constructor() {
+    super();
+    this.setMaxListeners(200);
+  }
+}
+const globalClusterBus = new InProcessClusterBus();
+
 @Injectable()
-export class RealTimeService {
+export class RealTimeService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RealTimeService.name);
   private server: Server | null = null;
   private readonly localEmitter = new EventEmitter();
+  readonly instanceId = crypto.randomUUID();
 
-  constructor() {
+  private redisPub: Redis | null = null;
+  private redisSub: Redis | null = null;
+  private isRedisConnected = false;
+  private readonly REDIS_CHANNEL = "cyberwise:realtime:events";
+
+  constructor(@Optional() private readonly configService?: ConfigService) {
     this.localEmitter.setMaxListeners(100);
+
+    // Always wire up the cluster bus to handle cross-instance routing
+    globalClusterBus.on(this.REDIS_CHANNEL, (rawPayload: string) => {
+      this.handleClusterMessage(rawPayload);
+    });
+  }
+
+  onModuleInit() {
+    const host = this.configService?.get<string>("redis.host") || "localhost";
+    const port = this.configService?.get<number>("redis.port") || 6379;
+    const password = this.configService?.get<string>("redis.password");
+
+    if (
+      process.env.NODE_ENV !== "test" &&
+      process.env.DISABLE_REDIS !== "true"
+    ) {
+      try {
+        this.redisPub = new Redis({
+          host,
+          port,
+          password: password || undefined,
+          lazyConnect: true,
+          connectTimeout: 2000,
+          maxRetriesPerRequest: 1,
+          retryStrategy: () => null,
+        });
+        this.redisSub = new Redis({
+          host,
+          port,
+          password: password || undefined,
+          lazyConnect: true,
+          connectTimeout: 2000,
+          maxRetriesPerRequest: 1,
+          retryStrategy: () => null,
+        });
+
+        Promise.all([this.redisPub.connect(), this.redisSub.connect()])
+          .then(() => {
+            this.isRedisConnected = true;
+            this.redisSub?.subscribe(this.REDIS_CHANNEL, (err) => {
+              if (err) {
+                this.logger.warn(`Failed to subscribe to Redis realtime channel: ${err.message}`);
+              } else {
+                this.logger.log(`[RealTime] Subscribed to distributed Redis channel: ${this.REDIS_CHANNEL}`);
+              }
+            });
+
+            this.redisSub?.on("message", (channel, message) => {
+              if (channel === this.REDIS_CHANNEL) {
+                this.handleClusterMessage(message);
+              }
+            });
+          })
+          .catch(() => {
+            this.isRedisConnected = false;
+            this.logger.warn(
+              `[RealTime] Redis unavailable. Using cluster event bus fallback for real-time distribution.`,
+            );
+          });
+      } catch (err: any) {
+        this.isRedisConnected = false;
+        this.logger.warn(`[RealTime] Redis init error: ${err.message}`);
+      }
+    }
+  }
+
+  async onModuleDestroy() {
+    if (this.redisPub) {
+      try {
+        await this.redisPub.quit();
+      } catch {
+        this.redisPub.disconnect();
+      }
+    }
+    if (this.redisSub) {
+      try {
+        await this.redisSub.quit();
+      } catch {
+        this.redisSub.disconnect();
+      }
+    }
   }
 
   /**
@@ -45,20 +152,15 @@ export class RealTimeService {
         event,
         data,
         recipientUserIds: userIds,
+        senderInstanceId: this.instanceId,
         timestamp: new Date().toISOString(),
       };
 
-      // 1. Socket.IO Room broadcast
-      if (this.server) {
-        for (const userId of userIds) {
-          this.server.to(`user:${userId}`).emit(event, data);
-        }
-      }
+      // 1. Deliver locally
+      this.dispatchLocalUserEvent(userIds, event, data, payload);
 
-      // 2. In-process event emitter fallback (for local subscribers)
-      for (const userId of userIds) {
-        this.localEmitter.emit(`user:${userId}`, payload);
-      }
+      // 2. Publish to distributed cluster bus
+      this.publishToCluster(payload);
 
       this.logger.debug(
         `[RealTime] Emitted event '${event}' to ${userIds.length} user(s)`,
@@ -79,16 +181,16 @@ export class RealTimeService {
         channel: `conversation:${conversationId}`,
         event,
         data,
+        conversationId,
+        senderInstanceId: this.instanceId,
         timestamp: new Date().toISOString(),
       };
 
-      // 1. Socket.IO Room broadcast
-      if (this.server) {
-        this.server.to(`conversation:${conversationId}`).emit(event, data);
-      }
+      // 1. Deliver locally
+      this.dispatchLocalConversationEvent(conversationId, event, data, payload);
 
-      // 2. In-process emitter fallback
-      this.localEmitter.emit(`conversation:${conversationId}`, payload);
+      // 2. Publish to distributed cluster bus
+      this.publishToCluster(payload);
 
       this.logger.debug(
         `[RealTime] Emitted event '${event}' to conversation ${conversationId}`,
@@ -118,7 +220,6 @@ export class RealTimeService {
     if (targetUserIds && targetUserIds.length > 0) {
       this.emitToUsers(targetUserIds, event, data);
     } else if (this.server) {
-      // Lightweight presence event
       this.server.emit("presence_change", data);
     }
   }
@@ -144,5 +245,74 @@ export class RealTimeService {
     this.localEmitter.on(`conversation:${conversationId}`, listener);
     return () =>
       this.localEmitter.off(`conversation:${conversationId}`, listener);
+  }
+
+  // ----------------------------------------------------
+  // Internal Cluster Coordination Helpers
+  // ----------------------------------------------------
+  private publishToCluster(payload: RealTimeEventPayload) {
+    const serialized = JSON.stringify(payload);
+
+    if (this.isRedisConnected && this.redisPub) {
+      this.redisPub.publish(this.REDIS_CHANNEL, serialized).catch(() => null);
+    } else {
+      globalClusterBus.emit(this.REDIS_CHANNEL, serialized);
+    }
+  }
+
+  private handleClusterMessage(raw: string) {
+    try {
+      const payload: RealTimeEventPayload = JSON.parse(raw);
+      // Skip echo messages that this instance originated
+      if (payload.senderInstanceId === this.instanceId) {
+        return;
+      }
+
+      if (payload.recipientUserIds && payload.recipientUserIds.length > 0) {
+        this.dispatchLocalUserEvent(
+          payload.recipientUserIds,
+          payload.event,
+          payload.data,
+          payload,
+        );
+      } else if (payload.conversationId) {
+        this.dispatchLocalConversationEvent(
+          payload.conversationId,
+          payload.event,
+          payload.data,
+          payload,
+        );
+      }
+    } catch (err: any) {
+      this.logger.warn(`Failed to parse cluster realtime payload: ${err.message}`);
+    }
+  }
+
+  private dispatchLocalUserEvent(
+    userIds: string[],
+    event: string,
+    data: any,
+    payload: RealTimeEventPayload,
+  ) {
+    if (this.server) {
+      for (const userId of userIds) {
+        this.server.to(`user:${userId}`).emit(event, data);
+      }
+    }
+    for (const userId of userIds) {
+      this.localEmitter.emit(`user:${userId}`, payload);
+    }
+  }
+
+  private dispatchLocalConversationEvent(
+    conversationId: string,
+    event: string,
+    data: any,
+    payload: RealTimeEventPayload,
+  ) {
+    if (this.server) {
+      this.server.to(`conversation:${conversationId}`).emit(event, data);
+    }
+    this.localEmitter.emit(`conversation:${conversationId}`, payload);
   }
 }

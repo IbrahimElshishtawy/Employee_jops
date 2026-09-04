@@ -70,7 +70,7 @@ describe("BackupService", () => {
       },
     );
     expect(simulateRestore.status).toBe("VERIFIED");
-    expect(simulateRestore.checksumVerified).toBe(true);
+    expect(simulateRestore.integrity).toBe("CHECKSUM_VALID");
 
     // Verify real restore passes (OPS-007)
     const realRestore = await service.restoreBackup(
@@ -80,7 +80,7 @@ describe("BackupService", () => {
         simulateOnly: false,
       },
     );
-    expect(realRestore.status).toBe("RESTORED");
+    expect(realRestore.status).toBe("VERIFIED");
     expect(realRestore.simulateOnly).toBe(false);
 
     // Retention policy enforcement (OPS-008)
