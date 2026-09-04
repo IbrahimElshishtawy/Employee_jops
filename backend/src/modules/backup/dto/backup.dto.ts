@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsBoolean } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateBackupDto {
   @ApiPropertyOptional({ example: "Daily automated database snapshot" })

@@ -7,11 +7,7 @@ import {
   Param,
   UseGuards,
 } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { BackupService } from "./backup.service";
 import { CreateBackupDto, RestoreBackupDto } from "./dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";

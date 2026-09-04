@@ -3,12 +3,7 @@ import { BudgetService } from "./budget.service";
 import { BudgetRepository } from "./budget.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import {
-  ConflictException,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import { BudgetStatus } from "@prisma/client";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 
 describe("BudgetService", () => {
   let service: BudgetService;
@@ -49,6 +44,7 @@ describe("BudgetService", () => {
     repo = module.get(BudgetRepository);
     prisma = module.get(PrismaService);
     notifications = module.get(NotificationsService);
+    expect(notifications).toBeDefined();
   });
 
   describe("createBudget", () => {
