@@ -515,7 +515,8 @@ export class AuthService {
     };
 
     const accessSecret =
-      this.configService.get<string>("jwt.accessSecret") || "default_secret";
+      this.configService.get<string>("jwt.accessSecret") ||
+      "development_insecure_access_secret_key_32bytes_minimum";
     const accessExpiration =
       this.configService.get<string>("jwt.accessExpiration") || "15m";
 

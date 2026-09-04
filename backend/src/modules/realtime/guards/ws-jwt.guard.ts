@@ -49,7 +49,7 @@ export class WsJwtGuard implements CanActivate {
     const secret =
       this.configService.get<string>("jwt.accessSecret") ||
       process.env.JWT_ACCESS_SECRET ||
-      "default_secret";
+      "development_insecure_access_secret_key_32bytes_minimum";
 
     let payload: any;
     try {

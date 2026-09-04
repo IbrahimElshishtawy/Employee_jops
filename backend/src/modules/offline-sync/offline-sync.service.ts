@@ -24,6 +24,284 @@ export class OfflineSyncService {
   ) {}
 
   /**
+   * Applies the business operation to the database for a specific entity mutation.
+   */
+  async applyEntityOperation(
+    userId: string,
+    item: {
+      entityType: string;
+      action: string;
+      entityId?: string;
+      payload: any;
+      clientTimestamp: string | Date;
+    },
+  ): Promise<{
+    status: SyncStatus;
+    failureReason: string | null;
+    appliedData: any;
+  }> {
+    const clientTs = new Date(item.clientTimestamp);
+
+    try {
+      // ----------------------------------------------------
+      // 1. Task Mutations
+      // ----------------------------------------------------
+      if (
+        item.entityType === "Task" &&
+        (item.action === "UPDATE_STATUS" || item.action === "UPDATE")
+      ) {
+        const taskId =
+          item.entityId || item.payload?.taskId || item.payload?.id;
+        if (!taskId) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: "Missing taskId in payload",
+            appliedData: null,
+          };
+        }
+
+        const task = await this.prisma.task.findUnique({
+          where: { id: taskId },
+        });
+
+        if (!task) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: `Task '${taskId}' not found on server`,
+            appliedData: null,
+          };
+        }
+
+        // Server has newer update with divergent status: CONFLICT
+        if (
+          task.updatedAt > clientTs &&
+          item.payload?.status &&
+          item.payload.status !== task.status
+        ) {
+          return {
+            status: SyncStatus.CONFLICT,
+            failureReason: `Concurrent modification: server task was updated at ${task.updatedAt.toISOString()} to status '${task.status}'`,
+            appliedData: null,
+          };
+        }
+
+        const updated = await this.prisma.task.update({
+          where: { id: taskId },
+          data: {
+            ...(item.payload?.status ? { status: item.payload.status } : {}),
+            ...(item.payload?.notes ? { notes: item.payload.notes } : {}),
+          },
+        });
+
+        return {
+          status: SyncStatus.PROCESSED,
+          failureReason: null,
+          appliedData: updated,
+        };
+      }
+
+      // ----------------------------------------------------
+      // 2. Service Request Creation
+      // ----------------------------------------------------
+      if (
+        item.entityType === "ServiceRequest" &&
+        item.action === "CREATE"
+      ) {
+        const employee = await this.prisma.employeeProfile.findFirst({
+          where: { userId },
+        });
+
+        if (!employee) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: `Employee profile not found for user '${userId}'`,
+            appliedData: null,
+          };
+        }
+
+        const reqNum = `SR-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const deptId = employee.departmentId || item.payload?.departmentId;
+
+        if (!deptId) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: "No department assigned for service request",
+            appliedData: null,
+          };
+        }
+
+        const created = await this.prisma.serviceRequest.create({
+          data: {
+            requestNumber: reqNum,
+            requesterId: employee.id,
+            departmentId: deptId,
+            title:
+              item.payload?.title ||
+              item.payload?.issue ||
+              "Offline Service Request",
+            description:
+              item.payload?.description ||
+              item.payload?.issue ||
+              "Submitted offline",
+            priority: item.payload?.priority || "MEDIUM",
+          },
+        });
+
+        return {
+          status: SyncStatus.PROCESSED,
+          failureReason: null,
+          appliedData: created,
+        };
+      }
+
+      // ----------------------------------------------------
+      // 3. Attendance Mutations (Check-In / Check-Out)
+      // ----------------------------------------------------
+      if (item.entityType === "Attendance") {
+        const employee = await this.prisma.employeeProfile.findFirst({
+          where: { userId },
+        });
+
+        if (!employee) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: `Employee profile not found for user '${userId}'`,
+            appliedData: null,
+          };
+        }
+
+        const todayStart = new Date(clientTs);
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date(clientTs);
+        todayEnd.setHours(23, 59, 59, 999);
+
+        if (item.action === "CHECK_IN") {
+          const existing = await this.prisma.attendanceRecord.findFirst({
+            where: {
+              employeeId: employee.id,
+              date: { gte: todayStart, lte: todayEnd },
+            },
+          });
+
+          if (existing && existing.checkInTime) {
+            // Already checked in
+            return {
+              status: SyncStatus.PROCESSED,
+              failureReason: null,
+              appliedData: existing,
+            };
+          }
+
+          const record = await this.prisma.attendanceRecord.create({
+            data: {
+              employeeId: employee.id,
+              date: todayStart,
+              checkInTime: clientTs,
+              status: "PRESENT",
+              notes: `Offline sync check-in (recorded: ${clientTs.toISOString()})`,
+            },
+          });
+
+          return {
+            status: SyncStatus.PROCESSED,
+            failureReason: null,
+            appliedData: record,
+          };
+        }
+
+        if (item.action === "CHECK_OUT") {
+          const existing = await this.prisma.attendanceRecord.findFirst({
+            where: {
+              employeeId: employee.id,
+              date: { gte: todayStart, lte: todayEnd },
+            },
+          });
+
+          if (!existing) {
+            return {
+              status: SyncStatus.FAILED,
+              failureReason: "No check-in record found to check out from",
+              appliedData: null,
+            };
+          }
+
+          const updated = await this.prisma.attendanceRecord.update({
+            where: { id: existing.id },
+            data: {
+              checkOutTime: clientTs,
+            },
+          });
+
+          return {
+            status: SyncStatus.PROCESSED,
+            failureReason: null,
+            appliedData: updated,
+          };
+        }
+      }
+
+      // ----------------------------------------------------
+      // 4. Employee Request Creation (Leaves, Permissions)
+      // ----------------------------------------------------
+      if (item.entityType === "Request" && item.action === "CREATE") {
+        const employee = await this.prisma.employeeProfile.findFirst({
+          where: { userId },
+        });
+
+        if (!employee) {
+          return {
+            status: SyncStatus.FAILED,
+            failureReason: `Employee profile not found for user '${userId}'`,
+            appliedData: null,
+          };
+        }
+
+        const reqNum = `REQ-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const created = await this.prisma.request.create({
+          data: {
+            requestNumber: reqNum,
+            employeeId: employee.id,
+            type: item.payload?.type || "LEAVE",
+            title: item.payload?.title || "Offline Request",
+            description: item.payload?.description || "Submitted offline",
+            status: "PENDING",
+          },
+        });
+
+        return {
+          status: SyncStatus.PROCESSED,
+          failureReason: null,
+          appliedData: created,
+        };
+      }
+
+      // Simulated conflict flag fallback for tests
+      if (Boolean((item.payload as any)?.hasConflict)) {
+        return {
+          status: SyncStatus.CONFLICT,
+          failureReason: "Concurrent modification conflict detected",
+          appliedData: null,
+        };
+      }
+
+      return {
+        status: SyncStatus.PROCESSED,
+        failureReason: null,
+        appliedData: { entityType: item.entityType, action: item.action },
+      };
+    } catch (err: any) {
+      this.logger.warn(
+        `Error applying offline action '${item.action}' on '${item.entityType}': ${err.message}`,
+      );
+      return {
+        status: SyncStatus.FAILED,
+        failureReason: err.message || "Failed to apply operation",
+        appliedData: null,
+      };
+    }
+  }
+
+  /**
    * Processes batch of offline mutations with idempotency, real conflict detection,
    * database transaction execution, and returns server change deltas (FR-SYNC-001..008).
    */
@@ -66,92 +344,8 @@ export class OfflineSyncService {
         }
       }
 
-      // 2. Conflict Detection & Execution per Entity Type
-      let itemStatus: SyncStatus = SyncStatus.PROCESSED;
-      let failureReason: string | null = null;
-      let appliedData: any = null;
-
-      try {
-        if (
-          item.entityType === "Task" &&
-          (item.action === "UPDATE_STATUS" || item.action === "UPDATE")
-        ) {
-          const taskId =
-            item.entityId || item.payload?.taskId || item.payload?.id;
-          if (taskId) {
-            const task = await this.prisma.task.findUnique({
-              where: { id: taskId },
-            });
-            if (!task) {
-              itemStatus = SyncStatus.FAILED;
-              failureReason = `Task '${taskId}' not found on server`;
-            } else if (
-              task.updatedAt > new Date(item.clientTimestamp) &&
-              item.payload?.status &&
-              item.payload.status !== task.status
-            ) {
-              // Server has newer update with divergent status: CONFLICT
-              itemStatus = SyncStatus.CONFLICT;
-              failureReason = `Concurrent modification: server task was updated at ${task.updatedAt.toISOString()} to status '${task.status}'`;
-            } else {
-              // Apply update within transaction
-              const updated = await this.prisma.task.update({
-                where: { id: taskId },
-                data: {
-                  ...(item.payload?.status
-                    ? { status: item.payload.status }
-                    : {}),
-                  ...(item.payload?.notes ? { notes: item.payload.notes } : {}),
-                },
-              });
-              appliedData = updated;
-            }
-          }
-        } else if (
-          item.entityType === "ServiceRequest" &&
-          item.action === "CREATE"
-        ) {
-          // Real transaction execution for offline-created ServiceRequest
-          const employee = await this.prisma.employeeProfile.findFirst({
-            where: { userId },
-          });
-          if (employee) {
-            const reqNum = `SR-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-            const deptId = employee.departmentId || item.payload?.departmentId;
-            if (deptId) {
-              const created = await this.prisma.serviceRequest.create({
-                data: {
-                  requestNumber: reqNum,
-                  requesterId: employee.id,
-                  departmentId: deptId,
-                  title:
-                    item.payload?.title ||
-                    item.payload?.issue ||
-                    "Offline Service Request",
-                  description:
-                    item.payload?.description ||
-                    item.payload?.issue ||
-                    "Submitted offline",
-                  priority: item.payload?.priority || "MEDIUM",
-                },
-              });
-              appliedData = created;
-            }
-          }
-        } else {
-          // Explicit simulated conflict flag fallback
-          if (Boolean((item.payload as any)?.hasConflict)) {
-            itemStatus = SyncStatus.CONFLICT;
-            failureReason = "Concurrent modification conflict detected";
-          }
-        }
-      } catch (err: any) {
-        this.logger.warn(
-          `Error applying offline action '${item.action}' on '${item.entityType}': ${err.message}`,
-        );
-        itemStatus = SyncStatus.FAILED;
-        failureReason = err.message || "Failed to apply operation";
-      }
+      // 2. Real Conflict Detection & Execution per Entity Type
+      const execution = await this.applyEntityOperation(userId, item);
 
       // Persist to offline sync queue
       const record = await this.repo.createQueueItem(userId, {
@@ -160,9 +354,10 @@ export class OfflineSyncService {
         action: item.action,
         payload: item.payload,
         clientTimestamp: item.clientTimestamp,
-        status: itemStatus,
-        failureReason,
-        processedAt: itemStatus === SyncStatus.PROCESSED ? new Date() : null,
+        status: execution.status,
+        failureReason: execution.failureReason,
+        processedAt:
+          execution.status === SyncStatus.PROCESSED ? new Date() : null,
       });
 
       processedResults.push({
@@ -172,7 +367,7 @@ export class OfflineSyncService {
         action: record.action,
         status: record.status,
         failureReason: record.failureReason,
-        appliedData,
+        appliedData: execution.appliedData,
       });
     }
 
@@ -220,14 +415,21 @@ export class OfflineSyncService {
   }
 
   /**
-   * Retrieves server delta changes (tasks, notifications, requests) since client cursor
+   * Retrieves server delta changes (tasks, notifications, requests, serviceRequests, attendance)
+   * since client cursor with clock skew metadata
    */
   async getServerChanges(userId: string, cursor?: string) {
     const since = cursor
       ? new Date(cursor)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default 7 days
 
-    const [recentNotifications, assignedTasks, myRequests] = await Promise.all([
+    const [
+      recentNotifications,
+      assignedTasks,
+      myRequests,
+      myServiceRequests,
+      recentAttendance,
+    ] = await Promise.all([
       this.prisma.notification
         .findMany({
           where: {
@@ -258,12 +460,36 @@ export class OfflineSyncService {
           take: 50,
         })
         .catch(() => []),
+      this.prisma.serviceRequest
+        .findMany({
+          where: {
+            requester: { userId },
+            updatedAt: { gt: since },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        })
+        .catch(() => []),
+      this.prisma.attendanceRecord
+        .findMany({
+          where: {
+            employee: { userId },
+            updatedAt: { gt: since },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 20,
+        })
+        .catch(() => []),
     ]);
 
     return {
       notifications: recentNotifications,
       tasks: assignedTasks,
       requests: myRequests,
+      serviceRequests: myServiceRequests,
+      attendance: recentAttendance,
+      tombstones: [],
+      serverTime: new Date().toISOString(),
       cursor: new Date().toISOString(),
     };
   }
@@ -289,10 +515,19 @@ export class OfflineSyncService {
       };
     }
 
+    // Re-execute business operation for the item
+    const execution = await this.applyEntityOperation(userId, {
+      entityType: item.entityType,
+      action: item.action,
+      entityId: (item.payload as any)?.id || (item.payload as any)?.taskId,
+      payload: item.payload,
+      clientTimestamp: item.clientTimestamp,
+    });
+
     const updated = await this.repo.updateItemStatus(
       itemId,
-      SyncStatus.PROCESSED,
-      undefined,
+      execution.status,
+      execution.failureReason,
     );
 
     await this.prisma.auditLog.create({
@@ -304,7 +539,8 @@ export class OfflineSyncService {
         payload: {
           action: "RETRY",
           previousStatus: item.status,
-          newStatus: SyncStatus.PROCESSED,
+          newStatus: execution.status,
+          failureReason: execution.failureReason,
         },
       },
     });
@@ -314,8 +550,13 @@ export class OfflineSyncService {
       entityType: updated.entityType,
       action: updated.action,
       status: updated.status,
+      failureReason: updated.failureReason,
       processedAt: updated.processedAt,
-      message: "Sync item successfully retried and applied",
+      appliedData: execution.appliedData,
+      message:
+        execution.status === SyncStatus.PROCESSED
+          ? "Sync item successfully retried and applied"
+          : `Sync item retry result: ${execution.status} (${execution.failureReason || "N/A"})`,
     };
   }
 

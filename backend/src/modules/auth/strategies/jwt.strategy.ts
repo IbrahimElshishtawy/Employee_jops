@@ -17,7 +17,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey:
-        configService.get<string>("jwt.accessSecret") || "default_secret",
+        configService.get<string>("jwt.accessSecret") ||
+        "development_insecure_access_secret_key_32bytes_minimum",
     });
   }
 
