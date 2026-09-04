@@ -1,0 +1,49 @@
+{
+  "backupId": "c2046949-21cb-40ea-903c-c380d6d233ac",
+  "backupNumber": "BKP-1788543781808",
+  "createdAt": "2026-09-04T17:43:01.815Z",
+  "createdById": "user-super-admin",
+  "schemaVersion": "2.0.0",
+  "backupType": "LOGICAL_APPLICATION_SNAPSHOT",
+  "disasterRecoveryStatus": "LOGICAL_SNAPSHOT_VERIFIED — PG_DUMP_CLI_NOT_FOUND_ON_HOST",
+  "secretsExcluded": true,
+  "notes": "Test snapshot",
+  "entityCounts": {
+    "users": 10,
+    "departments": 5,
+    "attendanceRecords": 100,
+    "employeeRequests": 20,
+    "tasks": 15,
+    "assets": 50,
+    "stockItems": 30,
+    "supplierInvoices": 8,
+    "incidents": 0,
+    "handovers": 0
+  },
+  "snapshotData": {
+    "departments": [
+      {
+        "id": "dept-1",
+        "name": "Front Office"
+      }
+    ],
+    "workplaces": [],
+    "workSchedules": [],
+    "assetCategories": [
+      {
+        "id": "cat-1",
+        "name": "HVAC",
+        "code": "HVC"
+      }
+    ],
+    "warehouses": [],
+    "stockCategories": [],
+    "systemSettings": [
+      {
+        "key": "SITE_NAME",
+        "value": "CyberWise"
+      }
+    ],
+    "chartOfAccounts": []
+  }
+}

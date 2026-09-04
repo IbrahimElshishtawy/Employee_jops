@@ -30,7 +30,7 @@ describe("Backup & Disaster Recovery Drill Verification (Phase 3)", () => {
       asset: { count: jest.fn().mockResolvedValue(150) },
       stockItem: { count: jest.fn().mockResolvedValue(600) },
       supplierInvoice: { count: jest.fn().mockResolvedValue(40) },
-      incidentReport: { count: jest.fn().mockResolvedValue(5) },
+      safetyIncident: { count: jest.fn().mockResolvedValue(5) },
       shiftHandover: { count: jest.fn().mockResolvedValue(30) },
       systemSetting: {
         findMany: jest.fn().mockResolvedValue([

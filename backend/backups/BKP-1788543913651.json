@@ -1,0 +1,79 @@
+{
+  "backupId": "69dbb56f-1254-417a-9a04-ddffee22c173",
+  "backupNumber": "BKP-1788543913651",
+  "createdAt": "2026-09-04T17:45:13.663Z",
+  "createdById": "admin-1",
+  "schemaVersion": "2.0.0",
+  "backupType": "LOGICAL_APPLICATION_SNAPSHOT",
+  "disasterRecoveryStatus": "LOGICAL_SNAPSHOT_VERIFIED — PG_DUMP_CLI_NOT_FOUND_ON_HOST",
+  "secretsExcluded": true,
+  "notes": "Simulation Test",
+  "entityCounts": {
+    "users": 120,
+    "departments": 12,
+    "attendanceRecords": 450,
+    "employeeRequests": 85,
+    "tasks": 210,
+    "assets": 150,
+    "stockItems": 600,
+    "supplierInvoices": 40,
+    "incidents": 5,
+    "handovers": 30
+  },
+  "snapshotData": {
+    "departments": [
+      {
+        "id": "dept-1",
+        "name": "Front Office",
+        "code": "FOFF",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "dept-2",
+        "name": "Housekeeping",
+        "code": "HKPG",
+        "status": "ACTIVE"
+      }
+    ],
+    "workplaces": [
+      {
+        "id": "wp-1",
+        "name": "HQ",
+        "code": "HQ01",
+        "radiusMeters": 100,
+        "isActive": true
+      }
+    ],
+    "workSchedules": [],
+    "assetCategories": [
+      {
+        "id": "cat-1",
+        "name": "HVAC",
+        "code": "HVAC",
+        "depreciationRate": 15
+      }
+    ],
+    "warehouses": [
+      {
+        "id": "wh-1",
+        "name": "Main Store",
+        "code": "MAIN",
+        "isActive": true
+      }
+    ],
+    "stockCategories": [],
+    "systemSettings": [
+      {
+        "key": "HOTEL_NAME",
+        "value": "CyberWise Grand",
+        "category": "GENERAL"
+      },
+      {
+        "key": "JWT_SECRET",
+        "value": "[REDACTED_SECRET]",
+        "category": "SECURITY"
+      }
+    ],
+    "chartOfAccounts": []
+  }
+}

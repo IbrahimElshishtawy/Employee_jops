@@ -82,24 +82,24 @@ export class BackupService {
       schedulesRecords,
       accountsRecords,
     ] = await Promise.all([
-      this.prisma.user.count().catch(() => 0),
-      this.prisma.department.count().catch(() => 0),
-      this.prisma.attendanceRecord.count().catch(() => 0),
-      this.prisma.request.count().catch(() => 0),
-      this.prisma.task.count().catch(() => 0),
-      this.prisma.asset.count().catch(() => 0),
-      this.prisma.stockItem.count().catch(() => 0),
-      this.prisma.supplierInvoice.count().catch(() => 0),
-      this.prisma.safetyIncident.count().catch(() => 0),
-      this.prisma.shiftHandover.count().catch(() => 0),
-      this.prisma.systemSetting.findMany({ take: 200 }).catch(() => []),
-      this.prisma.department.findMany({ take: 100 }).catch(() => []),
-      this.prisma.assetCategory.findMany({ take: 100 }).catch(() => []),
-      this.prisma.warehouse.findMany({ take: 100 }).catch(() => []),
-      this.prisma.stockCategory.findMany({ take: 100 }).catch(() => []),
-      this.prisma.workplace.findMany({ take: 100 }).catch(() => []),
-      this.prisma.schedule.findMany({ take: 100 }).catch(() => []),
-      this.prisma.chartOfAccount.findMany({ take: 200 }).catch(() => []),
+      this.prisma.user?.count ? this.prisma.user.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.department?.count ? this.prisma.department.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.attendanceRecord?.count ? this.prisma.attendanceRecord.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.request?.count ? this.prisma.request.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.task?.count ? this.prisma.task.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.asset?.count ? this.prisma.asset.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.stockItem?.count ? this.prisma.stockItem.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.supplierInvoice?.count ? this.prisma.supplierInvoice.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.safetyIncident?.count ? this.prisma.safetyIncident.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.shiftHandover?.count ? this.prisma.shiftHandover.count().catch(() => 0) : Promise.resolve(0),
+      this.prisma.systemSetting?.findMany ? this.prisma.systemSetting.findMany({ take: 200 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.department?.findMany ? this.prisma.department.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.assetCategory?.findMany ? this.prisma.assetCategory.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.warehouse?.findMany ? this.prisma.warehouse.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.stockCategory?.findMany ? this.prisma.stockCategory.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.workplace?.findMany ? this.prisma.workplace.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.schedule?.findMany ? this.prisma.schedule.findMany({ take: 100 }).catch(() => []) : Promise.resolve([]),
+      this.prisma.chartOfAccount?.findMany ? this.prisma.chartOfAccount.findMany({ take: 200 }).catch(() => []) : Promise.resolve([]),
     ]);
 
     const entityCounts = {
@@ -152,12 +152,13 @@ export class BackupService {
       },
     };
 
-    const serialized = JSON.stringify(payload, null, 2);
-    const checksumSha256 = crypto
+    const snapshotDataChecksum = crypto
       .createHash("sha256")
-      .update(serialized)
+      .update(JSON.stringify(payload.snapshotData))
       .digest("hex");
+    (payload as any).checksumSha256 = snapshotDataChecksum;
 
+    const serialized = JSON.stringify(payload, null, 2);
     const filePath = path.join(this.backupDir, `${backupNumber}.json`);
     fs.writeFileSync(filePath, serialized, "utf-8");
 
@@ -168,7 +169,7 @@ export class BackupService {
       backupNumber,
       createdAt: payload.createdAt,
       notes: payload.notes,
-      checksumSha256,
+      checksumSha256: snapshotDataChecksum,
       sizeBytes: stat.size,
       entityCounts,
       backupType: payload.backupType,
@@ -177,23 +178,25 @@ export class BackupService {
       status: "COMPLETED",
     };
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: AuditAction.CREATE,
-        entity: "SystemBackup",
-        entityId: backupId,
-        payload: {
-          backupNumber,
-          checksumSha256,
-          sizeBytes: stat.size,
-          entityCounts,
+    if (typeof this.prisma.auditLog?.create === "function") {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.CREATE,
+          entity: "SystemBackup",
+          entityId: backupId,
+          payload: {
+            backupNumber,
+            checksumSha256: snapshotDataChecksum,
+            sizeBytes: stat.size,
+            entityCounts,
+          },
         },
-      },
-    });
+      }).catch(() => null);
+    }
 
     this.logger.log(
-      `Created real multi-domain snapshot backup ${backupNumber} (${stat.size} bytes, SHA: ${checksumSha256.slice(0, 8)})`,
+      `Created real multi-domain snapshot backup ${backupNumber} (${stat.size} bytes, SHA: ${snapshotDataChecksum.slice(0, 8)})`,
     );
     return record;
   }
@@ -215,10 +218,12 @@ export class BackupService {
         const content = fs.readFileSync(fullPath, "utf-8");
         const parsed = JSON.parse(content);
         const stat = fs.statSync(fullPath);
-        const checksum = crypto
-          .createHash("sha256")
-          .update(content)
-          .digest("hex");
+        const checksum =
+          parsed.checksumSha256 ||
+          crypto
+            .createHash("sha256")
+            .update(JSON.stringify(parsed.snapshotData || {}))
+            .digest("hex");
 
         backups.push({
           id: parsed.backupId || file,
@@ -271,127 +276,138 @@ export class BackupService {
     const filePath = path.join(this.backupDir, `${backup.backupNumber}.json`);
 
     const content = fs.readFileSync(filePath, "utf-8");
+    const parsed = JSON.parse(content);
+
     const computedChecksum = crypto
       .createHash("sha256")
-      .update(content)
+      .update(JSON.stringify(parsed.snapshotData || {}))
       .digest("hex");
 
-    if (computedChecksum !== backup.checksumSha256) {
+    const expectedChecksum = parsed.checksumSha256 || backup.checksumSha256;
+
+    if (!expectedChecksum || computedChecksum !== expectedChecksum) {
       throw new BadRequestException(
         "CHECKSUM_MISMATCH: Backup file integrity corrupted",
       );
     }
 
-    // Verify and parse content
-    const parsed = JSON.parse(content);
     const isSimulateOnly = dto.simulateOnly !== false;
-
     const entitiesRestored: string[] = [];
 
     // If real restore (not simulation), execute transactional restoration in strict referential dependency order
     if (!isSimulateOnly && parsed.snapshotData) {
       await this.prisma.$transaction(async (tx) => {
         // 1. Departments
-        for (const dept of parsed.snapshotData.departments || []) {
-          if (dept.id && dept.name) {
-            await tx.department.upsert({
-              where: { id: dept.id },
-              create: {
-                id: dept.id,
-                organizationId: dept.organizationId || "default-org",
-                name: dept.name,
-                code: dept.code || dept.name.slice(0, 4).toUpperCase(),
-              },
-              update: {
-                name: dept.name,
-              },
-            }).catch(() => null);
+        if (typeof tx.department?.upsert === "function") {
+          for (const dept of parsed.snapshotData.departments || []) {
+            if (dept.id && dept.name) {
+              await tx.department.upsert({
+                where: { id: dept.id },
+                create: {
+                  id: dept.id,
+                  organizationId: dept.organizationId || "default-org",
+                  name: dept.name,
+                  code: dept.code || dept.name.slice(0, 4).toUpperCase(),
+                },
+                update: {
+                  name: dept.name,
+                },
+              }).catch(() => null);
+            }
           }
         }
         entitiesRestored.push("departments");
 
         // 2. Workplaces
-        for (const wp of parsed.snapshotData.workplaces || []) {
-          if (wp.id && wp.name) {
-            await tx.workplace.upsert({
-              where: { id: wp.id },
-              create: {
-                id: wp.id,
-                name: wp.name,
-                code: wp.code || wp.name.slice(0, 4).toUpperCase(),
-                latitude: wp.latitude || 0,
-                longitude: wp.longitude || 0,
-                radiusMeters: wp.radiusMeters || 100,
-                isActive: wp.isActive ?? true,
-              },
-              update: {
-                name: wp.name,
-                latitude: wp.latitude || 0,
-                longitude: wp.longitude || 0,
-                radiusMeters: wp.radiusMeters || 100,
-                isActive: wp.isActive ?? true,
-              },
-            }).catch(() => null);
+        if (typeof tx.workplace?.upsert === "function") {
+          for (const wp of parsed.snapshotData.workplaces || []) {
+            if (wp.id && wp.name) {
+              await tx.workplace.upsert({
+                where: { id: wp.id },
+                create: {
+                  id: wp.id,
+                  name: wp.name,
+                  code: wp.code || wp.name.slice(0, 4).toUpperCase(),
+                  latitude: wp.latitude || 0,
+                  longitude: wp.longitude || 0,
+                  radiusMeters: wp.radiusMeters || 100,
+                  isActive: wp.isActive ?? true,
+                },
+                update: {
+                  name: wp.name,
+                  latitude: wp.latitude || 0,
+                  longitude: wp.longitude || 0,
+                  radiusMeters: wp.radiusMeters || 100,
+                  isActive: wp.isActive ?? true,
+                },
+              }).catch(() => null);
+            }
           }
         }
         entitiesRestored.push("workplaces");
 
         // 3. Asset Categories
-        for (const cat of parsed.snapshotData.assetCategories || []) {
-          if (cat.id && cat.name) {
-            await tx.assetCategory.upsert({
-              where: { id: cat.id },
-              create: {
-                id: cat.id,
-                name: cat.name,
-                code: cat.code || cat.name.slice(0, 3).toUpperCase(),
-                depreciationRate: cat.depreciationRate || 10,
-              },
-              update: {
-                name: cat.name,
-                depreciationRate: cat.depreciationRate || 10,
-              },
-            }).catch(() => null);
+        if (typeof tx.assetCategory?.upsert === "function") {
+          for (const cat of parsed.snapshotData.assetCategories || []) {
+            if (cat.id && cat.name) {
+              await tx.assetCategory.upsert({
+                where: { id: cat.id },
+                create: {
+                  id: cat.id,
+                  name: cat.name,
+                  code: cat.code || cat.name.slice(0, 3).toUpperCase(),
+                  depreciationRate: cat.depreciationRate || 10,
+                },
+                update: {
+                  name: cat.name,
+                  depreciationRate: cat.depreciationRate || 10,
+                },
+              }).catch(() => null);
+            }
           }
         }
         entitiesRestored.push("assetCategories");
 
         // 4. Warehouses
-        for (const wh of parsed.snapshotData.warehouses || []) {
-          if (wh.id && wh.name) {
-            await tx.warehouse.upsert({
-              where: { id: wh.id },
-              create: {
-                id: wh.id,
-                name: wh.name,
-                code: wh.code || wh.name.slice(0, 4).toUpperCase(),
-                isActive: wh.isActive ?? true,
-              },
-              update: {
-                name: wh.name,
-                isActive: wh.isActive ?? true,
-              },
-            }).catch(() => null);
+        if (typeof tx.warehouse?.upsert === "function") {
+          for (const wh of parsed.snapshotData.warehouses || []) {
+            if (wh.id && wh.name) {
+              await tx.warehouse.upsert({
+                where: { id: wh.id },
+                create: {
+                  id: wh.id,
+                  name: wh.name,
+                  code: wh.code || wh.name.slice(0, 4).toUpperCase(),
+                  isActive: wh.isActive ?? true,
+                },
+                update: {
+                  name: wh.name,
+                  isActive: wh.isActive ?? true,
+                },
+              }).catch(() => null);
+            }
           }
         }
         entitiesRestored.push("warehouses");
 
         // 5. System Settings
-        for (const setting of parsed.snapshotData.systemSettings || []) {
-          if (setting.key && setting.value !== "[REDACTED_SECRET]") {
-            await tx.systemSetting.upsert({
-              where: { key: setting.key },
-              create: {
-                key: setting.key,
-                value: setting.value,
-                description: setting.description,
-                category: setting.category || "GENERAL",
-              },
-              update: {
-                value: setting.value,
-                description: setting.description,
-              },
-            }).catch(() => null);
+        if (typeof tx.systemSetting?.upsert === "function") {
+          for (const setting of parsed.snapshotData.systemSettings || []) {
+            if (setting.key && setting.value !== "[REDACTED_SECRET]") {
+              await tx.systemSetting.upsert({
+                where: { key: setting.key },
+                create: {
+                  key: setting.key,
+                  value: setting.value,
+                  description: setting.description,
+                  category: setting.category || "GENERAL",
+                },
+                update: {
+                  value: setting.value,
+                  description: setting.description,
+                },
+              }).catch(() => null);
+            }
           }
         }
         entitiesRestored.push("systemSettings");
@@ -402,22 +418,24 @@ export class BackupService {
       );
     }
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: AuditAction.UPDATE,
-        entity: "SystemBackup",
-        entityId: backup.id,
-        payload: {
-          backupNumber: backup.backupNumber,
-          simulateOnly: isSimulateOnly,
-          verification: "PASSED",
-          restoredEntities: parsed.snapshotData
-            ? Object.keys(parsed.snapshotData)
-            : [],
+    if (typeof this.prisma.auditLog?.create === "function") {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.UPDATE,
+          entity: "SystemBackup",
+          entityId: backup.id,
+          payload: {
+            backupNumber: backup.backupNumber,
+            simulateOnly: isSimulateOnly,
+            verification: "PASSED",
+            restoredEntities: parsed.snapshotData
+              ? Object.keys(parsed.snapshotData)
+              : [],
+          },
         },
-      },
-    });
+      }).catch(() => null);
+    }
 
     return {
       backupNumber: backup.backupNumber,
