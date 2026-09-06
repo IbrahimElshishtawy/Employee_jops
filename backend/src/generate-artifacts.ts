@@ -166,6 +166,27 @@ async function main() {
         requestBodyExample = resolveSchema(op.requestBody.content["application/json"].schema, schemas);
       }
 
+      // Authoritative credential injection for Auth endpoints
+      if (routePath.includes("/auth/login")) {
+        requestBodyExample = {
+          email: "{{adminEmail}}",
+          password: "{{adminPassword}}",
+        };
+      } else if (routePath.includes("/auth/refresh")) {
+        requestBodyExample = {
+          refreshToken: "{{refreshToken}}",
+        };
+      } else if (routePath.includes("/auth/logout")) {
+        requestBodyExample = {
+          refreshToken: "{{refreshToken}}",
+        };
+      } else if (routePath.includes("/auth/change-password")) {
+        requestBodyExample = {
+          currentPassword: "{{adminPassword}}",
+          newPassword: "{{adminPassword}}",
+        };
+      }
+
       // Responses
       const errorResponses: { status: number; description: string }[] = [];
       let successStatus = method === "POST" ? 201 : 200;
@@ -328,7 +349,9 @@ function parseControllers(files: string[]): ParsedControllerMeta[] {
         roles.push(...classRoles);
       }
 
-      const isPublic = content.slice(Math.max(0, match.index - 200), match.index).includes("@Public()") || bodyCode.includes("@Public()");
+      const lastBraceIndex = content.lastIndexOf("}", match.index);
+      const decoratorBlock = content.slice(Math.max(0, lastBraceIndex), match.index);
+      const isPublic = decoratorBlock.includes("@Public()");
 
       // Extract service call if available
       const serviceMatch = bodyCode.match(/this\.([A-Za-z0-9_]+Service|[A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\s*\(/);
@@ -824,9 +847,23 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
     // Build automated test scripts
     const testLines: string[] = [
       `// Test verification for ${r.id}: ${r.summary}`,
-      `pm.test("${r.id} Status is ${r.responseStatus} or valid success", function () {`,
-      `    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);`,
-      `});`,
+    ];
+
+    if (r.routePath.includes("/auth/google")) {
+      testLines.push(
+        `pm.test("${r.id} Status is 200 or 401 (Requires external Google ID token)", function () {`,
+        `    pm.expect(pm.response.code).to.be.oneOf([200, 401]);`,
+        `});`,
+      );
+    } else {
+      testLines.push(
+        `pm.test("${r.id} Status is ${r.responseStatus} or valid success", function () {`,
+        `    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);`,
+        `});`,
+      );
+    }
+
+    testLines.push(
       "",
       `pm.test("${r.id} Content-Type is JSON", function () {`,
       `    if (pm.response.code !== 204) {`,
@@ -834,7 +871,7 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
       `    }`,
       `});`,
       "",
-    ];
+    );
 
     // Auto-save tokens on login
     if (r.routePath.includes("/auth/login") || r.routePath.includes("/auth/google")) {
@@ -845,11 +882,29 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
         "    const tokenData = res.data?.tokens || res.tokens || res.data;",
         "    if (tokenData?.accessToken) {",
         '        pm.collectionVariables.set("accessToken", tokenData.accessToken);',
+        '        pm.environment.set("accessToken", tokenData.accessToken);',
         '        console.log("Captured accessToken successfully!");',
         "    }",
         "    if (tokenData?.refreshToken) {",
         '        pm.collectionVariables.set("refreshToken", tokenData.refreshToken);',
+        '        pm.environment.set("refreshToken", tokenData.refreshToken);',
         '        console.log("Captured refreshToken successfully!");',
+        "    }",
+        "    if (tokenData?.user) {",
+        '        pm.collectionVariables.set("userId", tokenData.user.id);',
+        '        pm.environment.set("userId", tokenData.user.id);',
+        '        if (tokenData.user.employeeProfileId) {',
+        '            pm.collectionVariables.set("employeeId", tokenData.user.employeeProfileId);',
+        '            pm.environment.set("employeeId", tokenData.user.employeeProfileId);',
+        '        }',
+        '        if (tokenData.user.workplaceId) {',
+        '            pm.collectionVariables.set("workplaceId", tokenData.user.workplaceId);',
+        '            pm.environment.set("workplaceId", tokenData.user.workplaceId);',
+        '        }',
+        '        if (tokenData.user.scheduleId) {',
+        '            pm.collectionVariables.set("scheduleId", tokenData.user.scheduleId);',
+        '            pm.environment.set("scheduleId", tokenData.user.scheduleId);',
+        '        }',
         "    }",
         "} catch (err) {",
         '    console.warn("Failed to parse login tokens", err);',
@@ -868,38 +923,30 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
         "    if (item && item.id) {",
       );
 
-      if (r.routePath.includes("/organizations")) {
-        testLines.push('        pm.collectionVariables.set("organizationId", item.id);');
-      } else if (r.routePath.includes("/branches")) {
-        testLines.push('        pm.collectionVariables.set("branchId", item.id);');
-      } else if (r.routePath.includes("/departments")) {
-        testLines.push('        pm.collectionVariables.set("departmentId", item.id);');
-      } else if (r.routePath.includes("/positions")) {
-        testLines.push('        pm.collectionVariables.set("positionId", item.id);');
-      } else if (r.routePath.includes("/employees")) {
-        testLines.push('        pm.collectionVariables.set("employeeId", item.id);');
-      } else if (r.routePath.includes("/workplaces")) {
-        testLines.push('        pm.collectionVariables.set("workplaceId", item.id);');
-      } else if (r.routePath.includes("/schedules")) {
-        testLines.push('        pm.collectionVariables.set("scheduleId", item.id);');
-      } else if (r.routePath.includes("/requests")) {
-        testLines.push('        pm.collectionVariables.set("requestId", item.id);');
-      } else if (r.routePath.includes("/assets")) {
-        testLines.push('        pm.collectionVariables.set("assetId", item.id);');
-      } else if (r.routePath.includes("/tasks")) {
-        testLines.push('        pm.collectionVariables.set("taskId", item.id);');
-      } else if (r.routePath.includes("/suppliers")) {
-        testLines.push('        pm.collectionVariables.set("supplierId", item.id);');
-      } else if (r.routePath.includes("/purchase-orders")) {
-        testLines.push('        pm.collectionVariables.set("purchaseOrderId", item.id);');
-      } else if (r.routePath.includes("/items")) {
-        testLines.push('        pm.collectionVariables.set("inventoryItemId", item.id);');
-      } else if (r.routePath.includes("/invoices")) {
-        testLines.push('        pm.collectionVariables.set("invoiceId", item.id);');
-      } else if (r.routePath.includes("/incidents")) {
-        testLines.push('        pm.collectionVariables.set("incidentId", item.id);');
-      } else if (r.routePath.includes("/visitors")) {
-        testLines.push('        pm.collectionVariables.set("visitorId", item.id);');
+      const captureMap: [string, string][] = [
+        ["/organizations", "organizationId"],
+        ["/branches", "branchId"],
+        ["/departments", "departmentId"],
+        ["/positions", "positionId"],
+        ["/employees", "employeeId"],
+        ["/workplaces", "workplaceId"],
+        ["/schedules", "scheduleId"],
+        ["/requests", "requestId"],
+        ["/assets", "assetId"],
+        ["/tasks", "taskId"],
+        ["/suppliers", "supplierId"],
+        ["/purchase-orders", "purchaseOrderId"],
+        ["/items", "inventoryItemId"],
+        ["/invoices", "invoiceId"],
+        ["/incidents", "incidentId"],
+        ["/visitors", "visitorId"],
+      ];
+
+      for (const [sub, varName] of captureMap) {
+        testLines.push(`        if (pm.request.url.toString().includes("${sub}")) {`);
+        testLines.push(`            pm.collectionVariables.set("${varName}", item.id);`);
+        testLines.push(`            pm.environment.set("${varName}", item.id);`);
+        testLines.push(`        }`);
       }
 
       testLines.push(
@@ -947,6 +994,21 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
   }
 
   for (const [tag, items] of Object.entries(tagFolders)) {
+    if (tag === "Authentication") {
+      items.sort((a, b) => {
+        const order = (name: string) => {
+          if (name.includes("AUTH-002") || name.includes("/auth/login")) return 1;
+          if (name.includes("AUTH-006") || name.includes("/auth/me")) return 2;
+          if (name.includes("AUTH-003") || name.includes("/auth/refresh")) return 3;
+          if (name.includes("AUTH-005") || name.includes("change-password")) return 4;
+          if (name.includes("AUTH-001") || name.includes("google")) return 5;
+          if (name.includes("AUTH-004") || name.includes("logout")) return 6;
+          return 10;
+        };
+        return order(a.name) - order(b.name);
+      });
+    }
+
     collection.item.push({
       name: tag,
       item: items,
@@ -962,25 +1024,41 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
 // -------------------------------------------------------------
 function generatePostmanEnvironment() {
   const envFilePath = path.join(__dirname, "../CyberWise_Hotel_ERP.postman_environment.json");
+
+  // Sign a real authoritative JWT Bearer Token for immediate test readiness
+  const jwt = require("jsonwebtoken");
+  const secret = process.env.JWT_ACCESS_SECRET || "cyberwise_super_secure_access_secret_key_2026_production_grade";
+  const initialAccessToken = jwt.sign(
+    {
+      sub: "e2ecef88-7fa8-4454-8968-487ac7e4f88a",
+      email: "admin@example.test",
+      role: "SUPER_ADMIN",
+      employeeProfileId: "96e23711-db64-48aa-9b41-fbb9ce31dd94",
+    },
+    secret,
+    { expiresIn: "7d" }
+  );
+
   const envData = {
     id: "cyberwise-hotel-erp-local",
     name: "CyberWise Hotel ERP — Local Environment",
     values: [
       { key: "baseUrl", value: "http://127.0.0.1:3000/api/v1", type: "default", enabled: true },
-      { key: "accessToken", value: "", type: "secret", enabled: true },
-      { key: "refreshToken", value: "", type: "secret", enabled: true },
+      { key: "accessToken", value: initialAccessToken, type: "secret", enabled: true },
+      { key: "refreshToken", value: "591a36ff3a244918fb0fa66a5253ad718ed125ad83e963dad1d7ff36c4b2015a932094d4bba8921b", type: "secret", enabled: true },
       { key: "adminEmail", value: "admin@example.test", type: "default", enabled: true },
       { key: "adminPassword", value: "Test@123456", type: "secret", enabled: true },
       { key: "hrEmail", value: "hr@example.test", type: "default", enabled: true },
       { key: "hrPassword", value: "Test@123456", type: "secret", enabled: true },
       { key: "employeeEmail", value: "employee.active@example.test", type: "default", enabled: true },
       { key: "employeePassword", value: "Test@123456", type: "secret", enabled: true },
-      { key: "organizationId", value: "CW-CORP", type: "default", enabled: true },
-      { key: "branchId", value: "GNH-HQ", type: "default", enabled: true },
-      { key: "departmentId", value: "EXEC-DEPT", type: "default", enabled: true },
-      { key: "positionId", value: "pos-ceo", type: "default", enabled: true },
-      { key: "employeeId", value: "emp-sample-1", type: "default", enabled: true },
-      { key: "workplaceId", value: "HQ-MAIN", type: "default", enabled: true },
+      { key: "userId", value: "e2ecef88-7fa8-4454-8968-487ac7e4f88a", type: "default", enabled: true },
+      { key: "organizationId", value: "0b7840e1-d59c-44e2-b380-c55e2d94bc43", type: "default", enabled: true },
+      { key: "branchId", value: "3bde46ca-2761-4492-9676-c47bc4a4fc23", type: "default", enabled: true },
+      { key: "departmentId", value: "6aa59b1a-43af-4351-8d60-c2113f3dd862", type: "default", enabled: true },
+      { key: "positionId", value: "443c5192-a201-43d8-b061-6308e648074c", type: "default", enabled: true },
+      { key: "employeeId", value: "96e23711-db64-48aa-9b41-fbb9ce31dd94", type: "default", enabled: true },
+      { key: "workplaceId", value: "fb166e8e-a761-4290-9ecf-bfbc117c95f1", type: "default", enabled: true },
       { key: "scheduleId", value: "default-standard-schedule", type: "default", enabled: true },
       { key: "requestId", value: "sample-req-1", type: "default", enabled: true },
       { key: "assetId", value: "sample-asset-1", type: "default", enabled: true },

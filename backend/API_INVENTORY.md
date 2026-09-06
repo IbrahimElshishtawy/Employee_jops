@@ -396,8 +396,8 @@ X-Request-Id: <UUID_CORRELATION_ID>
 **Request Body Payload**:
 ```json
 {
-  "email": "admin@cyberwise.com",
-  "password": "Admin@123456"
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
 }
 ```
 
@@ -433,7 +433,7 @@ X-Request-Id: <UUID_CORRELATION_ID>
 **Request Body Payload**:
 ```json
 {
-  "refreshToken": "sample_refreshToken"
+  "refreshToken": "{{refreshToken}}"
 }
 ```
 
@@ -469,7 +469,7 @@ X-Request-Id: <UUID_CORRELATION_ID>
 **Request Body Payload**:
 ```json
 {
-  "refreshToken": "sample_refreshToken"
+  "refreshToken": "{{refreshToken}}"
 }
 ```
 
@@ -505,8 +505,8 @@ X-Request-Id: <UUID_CORRELATION_ID>
 **Request Body Payload**:
 ```json
 {
-  "oldPassword": "Test@123456",
-  "newPassword": "Test@123456"
+  "currentPassword": "{{adminPassword}}",
+  "newPassword": "{{adminPassword}}"
 }
 ```
 
