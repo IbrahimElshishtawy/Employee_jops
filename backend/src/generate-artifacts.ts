@@ -262,16 +262,19 @@ async function main() {
   // 1. Generate API_INVENTORY.md
   generateApiInventoryMarkdown(routes);
 
-  // 2. Generate CyberWise_Hotel_ERP.postman_collection.json with automated tests
+  // 2. Generate API_DOCUMENTATION.md
+  generateApiDocumentationMarkdown(routes);
+
+  // 3. Generate CyberWise_Hotel_ERP.postman_collection.json with automated tests
   generatePostmanCollectionWithTests(routes, spec, schemas);
 
-  // 3. Generate CyberWise_Hotel_ERP.postman_environment.json
+  // 4. Generate CyberWise_Hotel_ERP.postman_environment.json
   generatePostmanEnvironment();
 
-  // 4. Generate API_TESTING_GUIDE.md
+  // 5. Generate API_TESTING_GUIDE.md
   generateApiTestingGuide(routes);
 
-  // 5. Generate API_COVERAGE_REPORT.md
+  // 6. Generate API_COVERAGE_REPORT.md
   generateApiCoverageReport(routes);
 
   console.log("🎉 All artifacts generated successfully!");
@@ -571,11 +574,816 @@ function resolveSchema(schema: any, schemas: Record<string, any>): any {
 }
 
 // -------------------------------------------------------------
+// Generates rich Arabic descriptions for endpoints
+// -------------------------------------------------------------
+function getArabicEndpointDetails(r: RouteInfo): {
+  action: string;
+  roles: string;
+  postmanDescription: string;
+} {
+  const normPath = r.routePath.toLowerCase();
+  const tag = r.tag;
+  const method = r.method;
+  const summary = r.summary;
+
+  let action = "";
+
+  // 1. Health
+  if (tag === "Health") {
+    if (normPath.endsWith("/live")) action = "فحص حيوية التطبيق (Liveness Probe) للتأكد من أن خادم الباك إند قيد التشغيل ويعمل بدون توقف.";
+    else if (normPath.endsWith("/ready")) action = "فحص جاهزية التطبيق (Readiness Probe) للتأكد من أن السيرفر جاهز يستقبل ترافيك ومتصل بقاعدة البيانات.";
+    else if (normPath.endsWith("/db")) action = "فحص مباشر للاتصال بقاعدة بيانات PostgreSQL للتأكد من استجابتها وسرعة الاستعلام.";
+    else if (normPath.endsWith("/redis")) action = "فحص حالة وسرعة استجابة خادم Redis Cache للكاشينج وتوزيع المهام.";
+    else if (normPath.endsWith("/sync")) action = "فحص سلامة عمليات مزامنة البيانات المتزامنة والعمليات المعلقة في الـ Offline Sync Engine.";
+    else if (normPath.endsWith("/integrations")) action = "فحص حالة الاتصال بجميع واجهات وخدمات التكامل الخارجية (Webhooks/Integrations).";
+    else if (normPath.endsWith("/disk")) action = "فحص مساحة التخزين الحرة على القرص الصلب لنظام التشغيل.";
+    else action = "فحص شامل لصحة النظام وأداء السيرفر وقاعدة البيانات والميموري هيب.";
+  }
+  // 2. Authentication
+  else if (tag === "Authentication") {
+    if (normPath.includes("/login")) action = "تسجيل دخول المستخدم (مدير النظام أو مسؤولي الموارد البشرية) بالبريد الإلكتروني وكلمة المرور، واستخراج Access Token و Refresh Token لتأمين باقي الطلبات.";
+    else if (normPath.includes("/google")) action = "تسجيل دخول موظف الفندق عبر حساب Google (Google Sign-In) لتطبيق الموبايل، والتحقق من حالة تهيئة حسابه.";
+    else if (normPath.includes("/refresh")) action = "تجديد وتدوير Access Token منتهي الصلاحية باستخدام Refresh Token ساري بدون الحاجة لإعادة تسجيل الدخول.";
+    else if (normPath.includes("/me")) action = "جلب الملف الشخصي الكامل للمستخدم المسجل حالياً، شامل أدواره وصلاحياته وبيانات الموظف والفرع التابع له.";
+    else if (normPath.includes("/change-password")) action = "تغيير كلمة المرور الخاصة بالمستخدم الحالي بعد مطابقة كلمة المرور القديمة وتشفير الجديدة بتقنية Argon2id.";
+    else if (normPath.includes("/logout")) action = "تسجيل الخروج من النظام، وإلغاء صلاحية الـ Refresh Token وإنهاء الجلسة النشطة في قاعدة البيانات وريديس.";
+    else action = "إجراء عمليات المصادقة والتحقق الأمني للمستخدمين.";
+  }
+  // 3. Organization & Hierarchy
+  else if (tag === "Organization & Hierarchy") {
+    if (normPath.includes("/branches")) {
+      if (method === "POST") action = "إضافة فرع أو فندق جديد تابع للمجموعة الفندقية مع تحديد موقعه الجغرافي ونطاق الـ Geofence.";
+      else if (method === "GET" && normPath.includes(":")) action = "جلب البيانات الكاملة لفرع فندقي محدد وإحداثياته وأقسامه.";
+      else if (method === "GET") action = "عرض قائمة بجميع فروع وفنادق المؤسسة الفندقية مع إحصائيات كل فرع.";
+      else if (method === "PATCH" || method === "PUT") action = "تعديل بيانات فرع فندقي (الاسم، العنوان، الإحداثيات الجغرافية، حالة النشاط).";
+      else if (method === "DELETE") action = "أرشفة أو حذف فرع فندقي من النظام بعد التأكد من عدم وجود ارتباطات حية.";
+    } else if (normPath.includes("/departments")) {
+      if (method === "POST") action = "إنشاء قسم جديد داخل الفندق (مثل الاستقبال، الهاوس كيبينج، الحسابات، الأغذية والمشروبات).";
+      else if (method === "GET" && normPath.includes(":")) action = "جلب تفاصيل قسم محدد في الفندق وبيانات مديره والموظفين التابعين له.";
+      else if (method === "GET") action = "جلب قائمة بجميع الأقسام التابعة للفندق أو الفرع مع هيكلها الإداري.";
+      else if (method === "PATCH" || method === "PUT") action = "تحديث بيانات وقسم فندقي معين وربطه برئيس القسم.";
+      else if (method === "DELETE") action = "حذف أو تعطيل قسم في الفندق ونقل الموظفين المرتبطين به.";
+    } else if (normPath.includes("/positions")) {
+      if (method === "POST") action = "إضافة مسمى وظيفي جديد في الهيكل التنظيمي وتحديد المستوى والمسؤوليات وسقف الراتب.";
+      else if (method === "GET" && normPath.includes(":")) action = "عرض تفاصيل المسمى الوظيفي والوصف الوظيفي والمؤهلات المطلوبة.";
+      else if (method === "GET") action = "جلب قائمة المسميات والوظائف المعتمدة في الفندق مصنفة حسب الأقسام.";
+      else if (method === "PATCH" || method === "PUT") action = "تعديل بيانات المسمى الوظيفي ومستواه الإداري والراتب الأساسي.";
+      else if (method === "DELETE") action = "حذف مسمى وظيفي من الهيكل التنظيمي للفندق.";
+    } else {
+      if (method === "POST") action = "تسجيل وإنشاء كيان تنظيمي جديد للمجموعة الفندقية.";
+      else if (method === "GET" && normPath.includes(":")) action = "عرض التفاصيل الكاملة لبيانات المؤسسة الفندقية.";
+      else if (method === "GET") action = "استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.";
+      else if (method === "PATCH" || method === "PUT") action = "تعديل بيانات المؤسسة الفندقية (الاسم، الشعار، العملة، المنطقة الزمنية).";
+      else action = "إدارة بيانات الهيكل التنظيمي للمؤسسة الفندقية.";
+    }
+  }
+  // 4. Roles & Permissions
+  else if (tag === "Roles") {
+    if (method === "POST") action = "إنشاء دور وظيفي جديد وتحديد صلاحياته ومسؤولياته في النظام.";
+    else if (method === "GET" && normPath.includes(":")) action = "جلب بيانات دور وظيفي محدد وقائمة المستخدمين المعينين عليه.";
+    else if (method === "GET") action = "استعراض قائمة بجميع الأدوار الوظيفية المتاحة في النظام ومستوياتها.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل بيانات الدور الوظيفي وتحديث الصلاحيات المرتبطة به.";
+    else if (method === "DELETE") action = "حذف أو تعطيل دور وظيفي من النظام بعد التأكد من عدم ارتباط مستخدمين به.";
+    else action = "إدارة الأدوار الوظيفية والصلاحيات في النظام.";
+  }
+  else if (tag === "Permissions") {
+    action = "استعراض والتحقق من الصلاحيات التفصيلية المتاحة للمستخدمين عبر وحدات النظام المختلفة.";
+  }
+  // 5. Settings
+  else if (tag === "Settings & Feature Flags") {
+    if (method === "POST" || method === "PATCH" || method === "PUT") action = "تحديث وضبط إعدادات النظام ومفاتيح الخصائص (Feature Flags) لتفعيل أو إيقاف ميزات معينة.";
+    else action = "جلب واستعراض إعدادات النظام والتكوينات التشغيلية الحالية.";
+  }
+  // 6. HR & Recruitment & Onboarding & Employees
+  else if (tag === "HR Management") {
+    action = "إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.";
+  }
+  else if (tag === "Recruitment & ATS") {
+    if (normPath.includes("/jobs") || normPath.includes("/openings")) {
+      if (method === "POST") action = "نشر إعلان وظيفة شاغرة جديدة وتحديد الشروط والمؤهلات المطلوبة.";
+      else action = "استعراض وإدارة الوظائف الشاغرة ومتابعة طلبات التوظيف المقدمة للفندق.";
+    } else if (normPath.includes("/candidates") || normPath.includes("/applications")) {
+      if (method === "POST") action = "تسجيل متقدم جديد لشغل وظيفة في الفندق وإرفاق السيرة الذاتية.";
+      else action = "متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).";
+    } else if (normPath.includes("/interviews")) {
+      if (method === "POST") action = "جدولة موعد مقابلة شخصية أو اختبار فني لمرشح للوظيفة.";
+      else action = "إدارة مواعيد ونتائج مقابلات التوظيف وتقييمات مسؤولي الأقسام.";
+    } else {
+      action = "إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.";
+    }
+  }
+  else if (tag === "Employee Onboarding") {
+    if (method === "POST") action = "بدء خطة تهيئة موظف جديد (Onboarding) وتكليفه بقائمة المهام المطلوبة قبل مباشرة العمل.";
+    else if (normPath.includes("/tasks")) action = "متابعة وإنجاز مهام تهيئة الموظف الجديد واستلام مسوغات التعيين والزي الرسمي.";
+    else action = "إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.";
+  }
+  else if (tag === "Employees") {
+    if (method === "POST") action = "إضافة وتعيين موظف فندقي جديد في النظام وربطه بالفرع والقسم والمسمى الوظيفي.";
+    else if (normPath.includes("/status") || normPath.includes("/suspend") || normPath.includes("/activate")) action = "تحديث الحالة الوظيفية للموظف (نشط، موقوف، في إجازة، منتهي التعاقد).";
+    else if (normPath.includes("/documents") || normPath.includes("/docs")) action = "إدارة ورفع المستندات الرسمية ومسوغات التعيين لملف الموظف.";
+    else if (method === "GET" && normPath.includes(":")) action = "جلب الملف الوظيفي والشخصي الكامل لموظف محدد وسجلاته التعاقدية.";
+    else if (method === "GET") action = "عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل البيانات الشخصية أو الوظيفية أو المصرفية للموظف.";
+    else if (method === "DELETE") action = "إنهاء خدمة موظف وأرشفة سجله الوظيفي في النظام.";
+    else action = "إدارة ملفات الموظفين والبيانات الوظيفية في المؤسسة الفندقية.";
+  }
+  // 7. Workplaces
+  else if (tag === "Workplaces") {
+    if (method === "POST") action = "تسجيل موقع عمل أو فرع فندقي جديد وتحديد إحداثيات الـ GPS ونصف قطر البصمة (Geofence).";
+    else if (method === "GET" && normPath.includes(":")) action = "عرض بيانات مكان العمل وإحداثياته الجغرافية والموظفين التابعين له.";
+    else if (method === "GET") action = "استعراض قائمة مواقع العمل والفروع الفندقية ونطاقاتها الجغرافية المعتمدة.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل إحداثيات الموقع أو نطاق الـ Geofence المسموح بتسجيل الحضور داخله.";
+    else if (method === "DELETE") action = "حذف أو تعطيل موقع عمل من النظام.";
+    else action = "إدارة أماكن ومواقع العمل الجغرافية ونطاقات الحضور.";
+  }
+  // 8. Attendance & Workforce
+  else if (tag === "Attendance & Workforce Operations" || tag === "Workforce Operations & Analytics") {
+    if (normPath.includes("/check-in")) action = "تسجيل حركة حضور الموظف بالبصمة الجغرافية مع التحقق الصارم من موقع الـ GPS داخل النطاق المسموح به لمقر العمل (Geofence).";
+    else if (normPath.includes("/check-out")) action = "تسجيل حركة انصراف الموظف واحتساب ساعات العمل الفعلية وساعات العمل الإضافية (Overtime) آلياً.";
+    else if (normPath.includes("/live")) action = "شاشة متابعة الحضور اللحظية في الفندق لمعرفة المتواجدين على رأس العمل والمتأخرين والغائبين الآن.";
+    else if (normPath.includes("/history") || normPath.includes("/logs")) action = "استعراض سجل حركات الحضور والانصراف التفصيلية للموظفين خلال فترة زمنية محددة مع خيارات الفلترة.";
+    else if (normPath.includes("/summary") || normPath.includes("/stats")) action = "استخراج إحصائيات ومعدلات الحضور ونسب الانضباط والغياب الشهرية والأسبوعية.";
+    else if (normPath.includes("/override") || normPath.includes("/adjust")) action = "تعديل أو تصحيح يدوي لحركة حضور أو انصراف بواسطة مسؤول الـ HR مع تسجيل سبب التعديل للتدقيق.";
+    else if (method === "GET") action = "جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.";
+    else action = "إدارة وتسجيل ومتابعة عمليات الحضور والانصراف وانضباط القوى العاملة.";
+  }
+  // 9. Schedules
+  else if (tag === "Schedules") {
+    if (method === "POST" && normPath.includes("/assign")) action = "تعيين وتسكين جدول ورديات عمل على موظف أو قسم كامل في الفندق.";
+    else if (method === "POST") action = "إنشاء نمط وردية جديد (صباحية، مسائية، ليلية) مع تحديد ساعات البداية والنهاية وفترة السماح.";
+    else if (method === "GET" && normPath.includes(":")) action = "عرض تفاصيل جدول عمل أو وردية معينة وأسماء الموظفين المسكنين عليها.";
+    else if (method === "GET") action = "استعراض جميع جداول الورديات المعتمدة ومواعيد العمل في الفندق.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل مواعيد الوردية أو فترة السماح أو ساعات الراحة لجدول عمل.";
+    else if (method === "DELETE") action = "إلغاء أو حذف جدول ورديات من النظام.";
+    else action = "إدارة ومتابعة جداول الورديات وساعات العمل الفندقية.";
+  }
+  // 10. Workflows & Approvals & Requests
+  else if (tag === "Workflows") {
+    if (method === "POST") action = "تصميم وتعريف مسار عمل وموافقات إدارية جديد (Workflow) للطلبات والعمليات الفندقية.";
+    else if (method === "GET" && normPath.includes(":")) action = "جلب تفاصيل مسار موافقات محدد والمستويات الإدارية المعتمدة فيه.";
+    else if (method === "GET") action = "استعراض قائمة مسارات العمل ودورات الموافقات المعتمدة في النظام.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل مستويات وسلسلة الموافقات في مسار عمل محدد.";
+    else if (method === "DELETE") action = "حذف مسار عمل إداري من النظام.";
+    else action = "إدارة مسارات العمل ودورات الموافقات الإدارية.";
+  }
+  else if (tag === "Approvals" || tag === "Work Management & Approvals") {
+    if (normPath.includes("/approve")) action = "الموافقة الرسمية واعتماد طلب الموظف وتمريره للمستوى التالي في دورة العمل أو تطبيقه فوراً.";
+    else if (normPath.includes("/reject")) action = "رفض طلب الموظف مع تسجيل السبب التوضيحي للرفض وإشعار الموظف آلياً.";
+    else if (normPath.includes("/pending")) action = "جلب قائمة الطلبات المعلقة التي تنتظر موافقة أو توقيع المستخدم الحالي.";
+    else if (method === "GET") action = "استعراض سجل الموافقات والاعتمادات السابقة وحالاتها وملاحظات المديرين.";
+    else action = "إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.";
+  }
+  else if (tag === "Requests") {
+    if (method === "POST") action = "تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).";
+    else if (normPath.includes("/balance")) action = "جلب رصيد إجازات وأذونات الموظف المستحق والمتبقي والمستهلك.";
+    else if (normPath.includes("/cancel")) action = "إلغاء طلب معلق بواسطة الموظف قبل اتخاذ إجراء الاعتماد عليه.";
+    else if (method === "GET" && normPath.includes(":")) action = "عرض تفاصيل طلب محدد ومرفقاته ومسار الموافقات الحالي عليه.";
+    else if (method === "GET") action = "استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.";
+    else if (method === "PATCH" || method === "PUT") action = "تعديل بيانات طلب معلق قبل اعتماده.";
+    else action = "إدارة وتقديم طلبات الموظفين الذاتية ومتابعة دورة اعتمادها.";
+  }
+  // 11. Notifications & Announcements & Messages
+  else if (tag === "Notifications & In-App Alerts") {
+    if (normPath.includes("/read") || normPath.includes("/mark")) action = "تحديث حالة الإشعار إلى (تمت القراءة) للمستخدم الحالي.";
+    else if (normPath.includes("/tokens") || normPath.includes("/fcm")) action = "تسجيل أو تحديث رمز جهاز الموبايل (FCM Token) لاستقبال الإشعارات اللحظية.";
+    else if (method === "POST") action = "إرسال تنبيه أو إشعار فوري لموظف أو مجموعة موظفين داخل التطبيق.";
+    else action = "جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.";
+  }
+  else if (tag === "HR Announcements & Broadcasts") {
+    if (method === "POST") action = "نشر تعميم أو إعلان إداري جديد لموظفي الفندق مع تحديد الفروع المستهدفة.";
+    else if (method === "GET" && normPath.includes(":")) action = "عرض تفاصيل إعلان إداري ومرفقاته وتاريخ نشره.";
+    else action = "استعراض الإعلانات والتعميمات الإدارية الصادرة من إدارة الموارد البشرية.";
+  }
+  else if (tag === "Internal Messaging & Conversations") {
+    if (method === "POST" && normPath.includes("/messages")) action = "إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.";
+    else if (normPath.includes("/conversations")) action = "جلب المحادثات وقنوات التواصل الخاصة بالموظف الحالي وسجل الرسائل.";
+    else action = "إدارة المراسلات الداخلية والمحادثات الفورية بين موظفي الفندق.";
+  }
+  // 12. Payroll
+  else if (tag === "Payroll, Salary Advances & Deductions") {
+    if (normPath.includes("/calculate") || normPath.includes("/generate")) action = "تشغيل احتساب مسير الرواتب الشهري للموظفين آلياً بناءً على ساعات العمل، الغياب، الإضافي، والسلف.";
+    else if (normPath.includes("/advances")) {
+      if (method === "POST") action = "تسجيل طلب صرف سلفة مالية على الراتب لموظف مع خطة الأقساط الشهرية.";
+      else if (normPath.includes("/approve")) action = "الموافقة على صرف السلفة المالية وجدولتها للاستقطاع من الراتب.";
+      else action = "استعراض طلبات وسجلات السلف المالية وأرصدتها المتبقية.";
+    } else if (normPath.includes("/deductions")) action = "إدارة الخصومات والجزاءات المالية على الموظفين وربطها بمسير الرواتب.";
+    else if (normPath.includes("/payslips") || normPath.includes("/slip")) action = "عرض وطباعة قسيمة الراتب التفصيلية (Payslip) للموظف شاملة الاستحقاقات والاستقطاعات.";
+    else if (normPath.includes("/lock") || normPath.includes("/finalize")) action = "إقفال واعتماد مسير الرواتب النهائي لشهر محدد وتجهيزه للتحويل البنكي.";
+    else if (method === "GET") action = "جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.";
+    else action = "إدارة مسيرات الرواتب والسلف المالية والاستقطاعات للموظفين.";
+  }
+  // 13. Reports & Analytics
+  else if (tag === "Reports & Analytics Engine") {
+    if (normPath.includes("/export") || normPath.includes("/download")) action = "تصدير وطباعة التقرير بصيغة PDF أو Excel للتحليل والمراجعة الإدارية.";
+    else action = `استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.`;
+  }
+  else if (tag === "Executive Dashboard & BI") {
+    action = "جلب مؤشرات الأداء الرئيسية (KPIs) ولوحة التحكم التنفيذية لنسب الإشغال والعمالة والإيرادات للإدارة العليا.";
+  }
+  else if (tag === "Audit Logs") {
+    action = "استعراض سجل الرقابة والتدقيق الأمني (Audit Trail) لجميع العمليات الحساسة لمعرفة من قام بأي إجراء ومتى بالتفصيل.";
+  }
+  // 14. Tasks & Work Execution & Service Requests
+  else if (tag === "Tasks & Work Execution") {
+    if (normPath.includes("/status") || normPath.includes("/complete")) action = "تحديث حالة المهمة (جارية، معلقة، مكتملة) وتوثيق نسبة الإنجاز.";
+    else if (method === "POST") action = "إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.";
+    else if (method === "GET" && normPath.includes(":")) action = "جلب تفاصيل المهمة وتاريخ الإجراءات والتعليقات المضافة عليها.";
+    else action = "متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.";
+  }
+  else if (tag === "Service Requests") {
+    if (normPath.includes("/assign")) action = "إسناد طلب خدمة فندقية (مثل تنظيف، خدمة غرف، حقائب) إلى موظف التنفيذ المتاح.";
+    else if (method === "POST") action = "إنشاء طلب خدمة فندقية جديد من النزيل أو القسم وتوجيهه للجهة المختصة.";
+    else action = "إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.";
+  }
+  else if (tag === "Shift Handover") {
+    if (method === "POST") action = "تسجيل محضر تسليم واستلام الوردية (Handover) وتدوين الملاحظات والمهام المعلقة للوردية القادمة.";
+    else action = "استعراض سجلات تسليم الورديات بين موظفي الأقسام الفندقية للتحقق من استمرارية التشغيل.";
+  }
+  else if (tag === "Department Operations") {
+    action = "إدارة ومتابعة العمليات التشغيلية واللوجستية الداخلية للأقسام الفندقية.";
+  }
+  // 15. Hotel Operations (Assets, Maintenance, Keys, Lost & Found, Visitors, Incidents, Documents)
+  else if (tag === "Assets Management") {
+    if (method === "POST") action = "تسجيل أصل أو جهاز فندقي جديد في العهدة (مثل تكييفات، أثاث غرف، أجهزة مطبخ) وتحديد الباركود وقيمة الشراء.";
+    else if (normPath.includes("/depreciation")) action = "حساب ومتابعة قسط الإهلاك الدوري للأصل الفندقي.";
+    else if (method === "GET" && normPath.includes(":")) action = "جلب بيانات وتاريخ وحالة أصل فندقي محدد وسجل صيانة وموقعه.";
+    else if (method === "GET") action = "استعراض سجل الأصول والمعدات الفندقية وتوزيعها على الفروع والأقسام.";
+    else if (method === "PATCH" || method === "PUT") action = "تحديث بيانات الأصل الفندقي (الموقع، الحالة التشغيلية، المسؤول عنه).";
+    else action = "إدارة أصول ومعدات الفندق الثابتة وجردها وتتبع إهلاكها.";
+  }
+  else if (tag === "Maintenance Management") {
+    if (normPath.includes("/work-orders")) {
+      if (method === "POST") action = "إصدار أمر شغل صيانة جديد (Work Order) لعطل في غرفة أو مرفق بالفندق مع تحديد درجة الأهمية.";
+      else if (normPath.includes("/complete") || normPath.includes("/close")) action = "إغلاق أمر الصيانة وتوثيق الإصلاحات وقطع الغيار المستخدمة وتكلفة الصيانة.";
+      else action = "متابعة وإدارة أوامر شغل الصيانة المفتوحة والجارية والمنتهية في الفندق.";
+    } else if (normPath.includes("/preventive")) {
+      action = "جدولة ومتابعة خطط الصيانة الوقائية الدورية لأجهزة ومرافق الفندق لمنع الأعطال المفاجئة.";
+    } else {
+      action = "استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.";
+    }
+  }
+  else if (tag === "Key & Physical Access Management") {
+    if (normPath.includes("/assign") || normPath.includes("/issue")) action = "إصدار وتسليم مفتاح أو بطاقة غرفة/جناح فندقي لنزيل أو موظف مع تسجيل وقت التسليم.";
+    else if (normPath.includes("/return")) action = "استرجاع وتسجيل تسليم المفتاح أو البطاقة وإعادتها للاستقبال.";
+    else if (method === "POST") action = "تسجيل مفتاح مادي أو بطاقة دخول إلكترونية جديدة في نظام الفندق.";
+    else action = "إدارة ومتابعة حركة مفاتيح وكروت الغرف والمرافق الحيوية في الفندق لضمان الأمان.";
+  }
+  else if (tag === "Lost & Found") {
+    if (normPath.includes("/claim") || normPath.includes("/deliver")) action = "توثيق تسليم الأمانة أو المفقودات لنزيل الفندق والتوقيع على الاستلام.";
+    else if (method === "POST") action = "تسجيل أمانة أو مقتنيات مفقودة تم العثور عليها في غرف أو مرافق الفندق مع وصفها وصورتها.";
+    else action = "استعراض وإدارة سجل المفقودات والأمانات الخاصة بالنزلاء وأماكن حفظها بالفندق.";
+  }
+  else if (tag === "Visitor Management") {
+    if (normPath.includes("/check-out")) action = "تسجيل وقت مغادرة الزائر وتسليم بطاقة الدخول.";
+    else if (method === "POST") action = "تسجيل دخول زائر جديد للفندق أو الإدارة وإصدار تصريح زيارة مؤقت.";
+    else action = "استعراض وإدارة سجل الزوار ومواعيد الدخول والخروج والجهة المقصودة بالزيارة.";
+  }
+  else if (tag === "Incident & Safety Management") {
+    if (method === "POST") action = "تسجيل بلاغ حادث أمني أو مهني جديد داخل الفندق وتوثيق التفاصيل والمصابين إن وجدوا.";
+    else action = "متابعة والتحقيق في حوادث الأمن والسلامة المهنية وإجراءات تصحيح المسار بالفندق.";
+  }
+  else if (tag === "Documents Management") {
+    if (method === "POST") action = "أرشفة ورفع مستند أو عقد رسمي جديد في نظام إدارة الوثائق الفندقية.";
+    else action = "استعراض وإدارة المستندات والعقود والوثائق الرسمية المصنفة في النظام.";
+  }
+  // 16. Supply Chain (Inventory & Procurement)
+  else if (tag === "Inventory & Stores") {
+    if (normPath.includes("/transactions") || normPath.includes("/transfer")) action = "تسجيل حركة تحويل أو صرف أصناف ومواد استهلاكية بين مخازن الفندق.";
+    else if (normPath.includes("/adjust")) action = "تسوية جردية لرصيد صنف مخزني لتطابق الرصيد الفعلي بالرصيد الدفتري.";
+    else if (method === "POST") action = "إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.";
+    else if (method === "GET" && normPath.includes(":")) action = "عرض تفاصيل ورصيد صنف معين في جميع مستودعات الفندق.";
+    else action = "متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.";
+  }
+  else if (tag === "Procurement & Suppliers") {
+    if (normPath.includes("/orders") || normPath.includes("/purchase-orders")) {
+      if (method === "POST") action = "إنشاء أمر شراء رسمي (Purchase Order) وتوجيهه للمورد لتوريد مستلزمات الفندق.";
+      else if (normPath.includes("/approve")) action = "اعتماد أمر الشراء مالياً وإدارياً للموافقة على التوريد والصرف.";
+      else action = "إدارة ومتابعة أوامر الشراء وحالات استلام البضائع من الموردين.";
+    } else if (normPath.includes("/suppliers")) {
+      if (method === "POST") action = "تسجيل مورد تجاري جديد للفندق وتوثيق بيانات الاتصال وشروط الدفع والتعاقد.";
+      else action = "إدارة قائمة الموردين المعتمدين وسجل التعاملات والتقييم الدوري لكل مورد.";
+    } else {
+      action = "إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.";
+    }
+  }
+  // 17. Finance & Budget
+  else if (tag === "Finance & Accounting") {
+    if (normPath.includes("/invoices")) {
+      if (method === "POST") action = "تسجيل فاتورة جديدة (مشتريات، خدمات نزلاء، أو فواتير تشغيلية) وتوجيهها للمطابقة المحاسبية.";
+      else action = "استعراض وإدارة الفواتير وحالات سدادها وأرصدة المستحقات.";
+    } else if (normPath.includes("/journal") || normPath.includes("/entries")) {
+      action = "تسجيل أو استعراض قيود اليومية المحاسبية المزدوجة وضبط توازن الدائن والمدين.";
+    } else {
+      action = "إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.";
+    }
+  }
+  else if (tag === "Budget Management") {
+    action = "إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.";
+  }
+  // 18. Performance & Training
+  else if (tag === "Performance Management") {
+    if (method === "POST") action = "إنشاء وتوثيق تقييم أداء دوري لموظف وربطه بمؤشرات الأداء (KPIs) والأهداف المحددة.";
+    else action = "متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.";
+  }
+  else if (tag === "Training & Development") {
+    if (method === "POST" && normPath.includes("/enroll")) action = "تسجيل وإلحاق موظف بدورة تدريبية متخصصة في الضيافة أو السلامة.";
+    else if (method === "POST") action = "إضافة برنامج أو دورة تدريبية جديدة وتحديد مدتها ومحتواها والمدرب المسؤول.";
+    else action = "إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.";
+  }
+  // 19. Sessions & Integrations & Sync & Storage & Scheduler & Backup
+  else if (tag === "Sessions & Active Devices") {
+    if (method === "DELETE") action = "إنهاء وإلغاء جلسة نشطة على جهاز محدد وتسجيل خروجه إجبارياً من النظام.";
+    else action = "عرض قائمة الأجهزة والجلسات النشطة حالياً للمستخدم لضمان الأمان والرقابة.";
+  }
+  else if (tag === "Integrations & Webhooks") {
+    action = "إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).";
+  }
+  else if (tag === "Offline Sync Engine") {
+    if (normPath.includes("/push") || method === "POST") action = "إرسال ومزامنة العمليات التي تم تنفيذها دون اتصال (Offline Data) من تطبيق الموبايل للسيرفر.";
+    else if (normPath.includes("/pull") || method === "GET") action = "سحب آخر تحديثات البيانات من السيرفر لتحديث قاعدة البيانات المحلية في تطبيق الموبايل.";
+    else action = "محرك مزامنة البيانات للعمل الميداني دون انقطاع حتى في حال ضعف الإنترنت.";
+  }
+  else if (tag === "File Storage") {
+    if (method === "POST") action = "رفع ملف أو مستند أو صورة جديدة إلى خادم التخزين والحصول على رابط الوصول الآمن.";
+    else if (method === "GET") action = "تحميل أو استعراض ملف مخزن في النظام عبر معرفه أو مساره.";
+    else action = "إدارة التخزين السحابي والمحلي للمستندات والملفات المرفقة في النظام.";
+  }
+  else if (tag === "Background Jobs & Scheduler") {
+    action = "إدارة وتشغيل ومراقبة المهام المجدولة في الخلفية (Cron Jobs) للعمليات الآلية اليومية.";
+  }
+  else if (tag === "Backup & Disaster Recovery") {
+    if (normPath.includes("/create") || (method === "POST" && !normPath.includes("/restore"))) action = "بدء تشغيل نسخة احتياطية فورية وشاملة لقاعدة بيانات وملفات النظام وتخزينها بأمان.";
+    else if (normPath.includes("/restore")) action = "استعادة النظام وقاعدة البيانات من نسخة احتياطية سابقة في حالات الطوارئ.";
+    else if (normPath.includes("/download")) action = "تحميل ملف النسخة الاحتياطية المضغوطة لتخزينها خارج السيرفر.";
+    else action = "إدارة ومتابعة عمليات النسخ الاحتياطي الدوري وتاريخها والتحقق من سلامتها.";
+  }
+  // Generic fallback
+  else {
+    if (method === "GET") {
+      if (normPath.includes(":")) action = `جلب واستعراض تفاصيل السجل المحدد من موديول ${tag}.`;
+      else action = `استعراض قائمة سجلات موديول ${tag} مع دعم الفلاتر والفرز.`;
+    } else if (method === "POST") {
+      action = `إنشاء وإضافة سجل جديد في موديول ${tag}.`;
+    } else if (method === "PATCH" || method === "PUT") {
+      action = `تعديل وتحديث بيانات السجل المحدد في موديول ${tag}.`;
+    } else if (method === "DELETE") {
+      action = `حذف أو أرشفة السجل المحدد في موديول ${tag}.`;
+    } else {
+      action = r.purpose || summary;
+    }
+  }
+
+  // Roles formatting
+  let rolesText = "";
+  if (r.authType === "Public") {
+    rolesText = "متاحة للجميع بدون تسجيل دخول (Public Endpoint)";
+  } else if (r.roles && r.roles.length > 0 && !r.roles.includes("Public")) {
+    rolesText = r.roles.join(", ");
+  } else {
+    rolesText = "أي مستخدم مسجل دخوله في النظام (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)";
+  }
+
+  let bodyText = "";
+  if (r.requestBodyExample) {
+    bodyText = `\`\`\`json\n${JSON.stringify(r.requestBodyExample, null, 2)}\n\`\`\``;
+  } else {
+    bodyText = "لا يحتاج Body (Empty Body)";
+  }
+
+  const postmanDescription = `### ${r.method} ${r.routePath}
+
+**بتعمل إيه؟**
+${action}
+
+**مين يقدر يستخدمها؟**
+${rolesText}
+
+**الـ Headers المطلوبة:**
+\`\`\`http
+Content-Type: application/json
+${r.authRequired ? "Authorization: Bearer {{accessToken}}\n" : ""}X-Request-Id: {{guid}}
+\`\`\`
+
+**الـ Body:**
+${bodyText}
+
+**الكيانات المرتبطة بقاعدة البيانات (Prisma Entities):**
+${r.databaseEntities.join(", ")}
+
+**أسبقية الاختبار والاعتماديات:**
+- الأولوية: ${r.testPriority}
+- الاعتماديات: ${r.dependencies.join(", ")}`;
+
+  return {
+    action,
+    roles: rolesText,
+    postmanDescription,
+  };
+}
+
+// -------------------------------------------------------------
+// Returns the full comprehensive Arabic setup & testing guide
+// -------------------------------------------------------------
+function getArabicGuideMarkdown(routes: RouteInfo[]): string {
+  return `# 🚀 تشغيل Backend واستخدام Postman
+
+أهلاً بيك في الدليل الشامل لتشغيل واختبار الباك إند الخاص بنظام **CyberWise Hotel ERP & Workforce Management** المخصص لإدارة الفنادق والمنتجعات والقوى العاملة.
+تم إعداد هذا الدليل بالكامل لمساعدتك في تشغيل السيرفر من الصفر وتجربة الـ **${routes.length} endpoint** الحقيقية الموجودة في الكود الفعلي باستخدام Postman بدون أي تعقيد وبدون أي افتراضات.
+
+---
+
+## الخطوة 1 — متطلبات التشغيل (System Prerequisites)
+
+تأكد إن جهازك أو السيرفر متوفر عليه المتطلبات دي قبل ما تبدأ:
+
+- **Node.js**: إصدار \`Node.js 18.x\` أو \`Node.js 20.x LTS\` أو أحدث (المشروع متوافق ومبني بـ TypeScript 5).
+- **npm**: الإصدار \`npm 9+\` أو \`10+\` أو \`11+\` لإدارة الحزم والـ dependencies.
+- **PostgreSQL**: الإصدار \`15\` (متاح وجاهز عبر \`docker-compose.yml\` كـ Alpine image على بورت \`5432\`).
+- **Redis**: الإصدار \`7\` (متاح في \`docker-compose.yml\` كـ Alpine image على بورت \`6379\`).
+- **Docker & Docker Compose**: لتشغيل قاعدة البيانات وريديس بنقرة واحدة.
+- **Prisma ORM**: الإصدار \`^5.14.0\` (مُثبت ضمن devDependencies لإدارة الـ Schema والـ Migrations).
+- **Firebase Admin SDK (FCM)** *(اختياري)*: \`FCM_PROJECT_ID\`, \`FCM_CLIENT_EMAIL\`, \`FCM_PRIVATE_KEY\` لإرسال إشعارات وتنبيهات تطبيق الموبايل.
+- **Environment Variables**: ملف \`.env\` مهيأ بجميع المتغيرات المطلوبة المستخرجة من \`.env.example\`.
+
+---
+
+## الخطوة 2 — تثبيت Dependencies
+
+افتح التيرمينال داخل مجلد المشروع:
+\`\`\`bash
+cd "C:\\flutter pro\\Employee_jops\\backend"
+\`\`\`
+
+ونفّذ أمر التثبيت الرسمي:
+\`\`\`bash
+npm install
+\`\`\`
+الأمر ده هيثبت كل المكتبات الخاصة بـ NestJS 10 ومحرك Fastify و Prisma ORM وحزم التشفير والأمان.
+
+---
+
+## الخطوة 3 — إعداد Environment Variables
+
+المشروع بيحتوي على ملف نموذجي جاهز باسم \`.env.example\`. انسخ الملف ده وأنشئ منه ملف \`.env\` في المسار الرئيسي للباك إند:
+
+\`\`\`bash
+# لو على نظام Windows PowerShell:
+Copy-Item .env.example .env
+
+# أو باستخدام CMD / Bash:
+cp .env.example .env
+\`\`\`
+
+افتح ملف \`.env\` وتأكد من القيم الأساسية (ممنوع وضع Secrets حقيقية على مستودعات عامة):
+
+\`\`\`env
+# تكوين السيرفر الأساسي
+NODE_ENV=development
+PORT=3000
+HOST=0.0.0.0
+APP_NAME=CyberWise-IE-Backend
+API_PREFIX=api/v1
+
+# رابط الاتصال بقاعدة بيانات PostgreSQL
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyberwise_db?schema=public"
+
+# خادم Redis للكاشينج والمهام الموزعة
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# مفاتيح تشفير توكنات الأمان (JWT)
+JWT_ACCESS_SECRET="YOUR_SUPER_SECURE_JWT_ACCESS_SECRET_KEY"
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_SECRET="YOUR_SUPER_SECURE_JWT_REFRESH_SECRET_KEY"
+JWT_REFRESH_EXPIRATION=7d
+
+# إعدادات الأمان ومعدل الطلبات
+CORS_ORIGINS=*
+THROTTLE_TTL=60
+THROTTLE_LIMIT=100
+
+# إعدادات Firebase Cloud Messaging (FCM) للإشعارات
+FCM_PROJECT_ID=
+FCM_CLIENT_EMAIL=
+FCM_PRIVATE_KEY=
+\`\`\`
+
+---
+
+## الخطوة 4 — تشغيل PostgreSQL
+
+المشروع جاهز ومجهز بملف \`docker-compose.yml\` بيشغل PostgreSQL 15:
+
+1. شغّل الحاوية في الخلفية:
+\`\`\`bash
+docker-compose up -d postgres
+\`\`\`
+2. بيانات قاعدة البيانات الافتراضية من المشروع:
+   - **اسم الحاوية**: \`cyberwise_postgres\`
+   - **المستخدم (User)**: \`postgres\`
+   - **كلمة المرور (Password)**: \`postgres\`
+   - **اسم قاعدة البيانات (DB Name)**: \`cyberwise_db\`
+   - **البورت (Port)**: \`5432\`
+3. للتأكد إن قاعدة البيانات شغالة وتستقبل اتصالات:
+\`\`\`bash
+docker ps
+# أو افحصها مباشرة بالأمر المدمج:
+docker exec -it cyberwise_postgres pg_isready -U postgres -d cyberwise_db
+\`\`\`
+
+---
+
+## الخطوة 5 — تشغيل Redis
+
+خادم Redis 7 موجود وجاهز في الـ \`docker-compose.yml\`:
+
+1. شغّل حاوية Redis:
+\`\`\`bash
+docker-compose up -d redis
+\`\`\`
+2. بيانات Redis:
+   - **اسم الحاوية**: \`cyberwise_redis\`
+   - **البورت (Port)**: \`6379\`
+3. التأكد إنه شغال:
+\`\`\`bash
+docker exec -it cyberwise_redis redis-cli ping
+# المتوقع يرد: PONG
+\`\`\`
+4. **دور Redis في الكود الفعلي للمشروع**:
+   - **الكاشينج السريع**: حفظ الاستعلامات المتكررة لتقليل الضغط على قاعدة البيانات (\`RedisService\`).
+   - **القفل الموزع (Distributed Locks)**: منع تكرار تنفيذ الـ Cron Jobs والمهام المجدولة لو السيرفر شغال منه أكتر من نسخة (\`DistributedLockService\`).
+   - **التواصل اللحظي (Realtime Pub/Sub)**: إدارة غرف وتجمعات اتصالات Socket.IO للمحادثات والإشعارات اللحظية (\`RealtimeService\`).
+   - **المرونة العالية (Resilient Degradation)**: كود المشروع مصمم بمرونة فائقة؛ لو Redis مش متاح أو توقف، السيرفر لا يتوقف وبيتحول تلقائياً لـ In-Memory Fallback ويكمل شغل عادي جداً!
+
+---
+
+## الخطوة 6 — Prisma Database (الهيكل والبيانات الأولية)
+
+نفّذ الخطوات دي بالترتيب الدقيق:
+
+### أ) توليد عميل Prisma:
+\`\`\`bash
+npm run prisma:generate
+\`\`\`
+
+### ب) تطبيق الـ Migrations:
+- **في بيئة التطوير (Development)**:
+\`\`\`bash
+npm run prisma:migrate
+\`\`\`
+*(أو للمزامنة السريعة للنماذج: \`npm run prisma:push\`)*
+
+- **في بيئة الإنتاج (Production)**:
+\`\`\`bash
+npx prisma migrate deploy
+\`\`\`
+
+> [!WARNING]
+> ⚠️ **تحذير هام جداً**: إياك تشغل \`npx prisma migrate reset\` على سيرفر إنتاج أو قاعدة بيانات فيها شغل حقيقي، لأن الأمر ده بيعمل Drop ومسح كامل لقاعدة البيانات بكل اللي فيها! الأمر ده مسموح بيه فقط في مرحلة التطوير المبدئي لو محتاج تصفر الداتابيز تماماً.
+
+### ج) زراعة البيانات الافتراضية (Seed Database):
+لتجهيز حسابات النظام الأساسية والهيكل التنظيمي المعتمد في المشروع، شغّل الأمر:
+\`\`\`bash
+npm run prisma:seed
+\`\`\`
+الأمر ده هينشئ في قاعدة البيانات تلقائياً:
+- المؤسسة الفندقية المركزية: \`CyberWise Hospitality & Enterprise Group\` (كود: \`CW-CORP\`).
+- الفندق الرئيسي / الفرع: \`Grand Nile Headquarters & Resort\` (كود: \`GNH-HQ\`).
+- الأقسام الرئيسية (Executive Management, HR, Housekeeping, Front Office).
+- حسابات المستخدمين الأساسية للاختبار:
+  - **Super Admin**: \`admin@example.test\` / كلمة المرور: \`Test@123456\`
+  - **HR Manager**: \`hr@example.test\` / كلمة المرور: \`Test@123456\`
+  - **Active Employee**: \`employee.active@example.test\` / كلمة المرور: \`Test@123456\`
+
+---
+
+## الخطوة 7 — تشغيل Backend
+
+شغّل خادم الباك إند بأمر التطوير الرسمي الموجود في \`package.json\`:
+
+\`\`\`bash
+npm run start:dev
+\`\`\`
+
+معلومات الاتصال بالسيرفر المستخرجة من \`src/main.ts\`:
+- **Port**: \`3000\`
+- **Host**: \`0.0.0.0\` (أو \`localhost\`)
+- **API Prefix**: \`api/v1\`
+- **Base URL الفعلي**:
+  \`http://localhost:3000/api/v1\`
+
+---
+
+## الخطوة 8 — التأكد أن Backend يعمل
+
+تقدر تتأكد إن السيرفر قيد التشغيل وقاعد البيانات جاهزة فوراً باستخدام Health API:
+
+- **Method**: \`GET\`
+- **URL**: \`http://localhost:3000/api/v1/health/live\`
+- **Expected Response**:
+\`\`\`json
+{
+  "status": "ok",
+  "uptimeSeconds": 14,
+  "timestamp": "2026-09-06T14:00:00.000Z"
+}
+\`\`\`
+
+أو لفحص تفصيلي للـ Database والميموري:
+- **Method**: \`GET\`
+- **URL**: \`http://localhost:3000/api/v1/health\`
+- **Expected Response**:
+\`\`\`json
+{
+  "status": "ok",
+  "info": {
+    "database": { "status": "up" },
+    "memory_heap": { "status": "up" }
+  },
+  "error": {},
+  "details": {
+    "database": { "status": "up" },
+    "memory_heap": { "status": "up" }
+  }
+}
+\`\`\`
+
+---
+
+# 📚 API Documentation (Swagger)
+
+المشروع بيوفر توثيق تفاعلي كامل ومباشر مبني بـ Swagger OpenAPI:
+
+🔗 **رابط Swagger التفاعلي المباشر**:
+👉 [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+
+من خلال الرابط ده تقدر:
+- تستعرض الـ ${routes.length} endpoint وتفاصيل الـ Request والـ Response DTOs.
+- تضغط على زر **Authorize** في أعلى اليمين وتحط الـ Bearer Token لتجربة الـ APIs مباشرة من المتصفح مع حفظ الجلسة (\`persistAuthorization: true\`).
+
+---
+
+# 📮 Postman Collection
+
+### تحميل Postman Collection
+
+ملفات Postman موجودة فعلياً داخل المجلد الرئيسي للمشروع كالتالي:
+
+- 📄 **ملف الكوليكشن الكاملة (${routes.length} APIs)**:
+  \`CyberWise_Hotel_ERP.postman_collection.json\`
+- 🌍 **ملف البيئة المحلية (Environment)**:
+  \`CyberWise_Hotel_ERP.postman_environment.json\`
+
+#### خطوات الاستيراد في Postman:
+1. افتح برنامج **Postman**.
+2. اضغط على زر **Import** في أعلى يسار الشاشة.
+3. اختر ملف الكوليكشن: \`CyberWise_Hotel_ERP.postman_collection.json\`.
+4. اضغط **Import** مرة تانية واختر ملف البيئة: \`CyberWise_Hotel_ERP.postman_environment.json\`.
+5. من القائمة المنسدلة للبيئات في أعلى اليمين (Environment Selector)، تأكد من اختيار:
+   **CyberWise Hotel ERP — Local Environment**.
+6. توجه لمجلد \`Authentication\` ونفذ طلب تسجيل الدخول أولاً:
+   \`[AUTH-002] Login user with Email/Password\`.
+7. بعد نجاح الـ Login، كل التوكنات ومعرفات المستخدمين بتتخزن تلقائياً في متغيرات Postman وتقدر تشغل أي API تاني في الكوليكشن بسلاسة!
+
+---
+
+# 🧪 تشغيل Postman لأول مرة
+
+علشان تختبر النظام لأول مرة بنجاح وبدون أي أخطاء، اتبع الخطوات دي بالترتيب:
+
+1. **شغّل PostgreSQL**: \`docker-compose up -d postgres\`
+2. **شغّل Redis**: \`docker-compose up -d redis\`
+3. **شغّل الباك إند**: \`npm run start:dev\`
+4. **تأكد من الـ Health API**: افتح المتصفح على \`http://localhost:3000/api/v1/health/live\`
+5. **افتح Postman**.
+6. **استورد الكوليكشن**: \`CyberWise_Hotel_ERP.postman_collection.json\`
+7. **استورد الـ Environment**: \`CyberWise_Hotel_ERP.postman_environment.json\`
+8. **اختر البيئة**: حدد \`CyberWise Hotel ERP — Local Environment\` من القائمة في Postman.
+9. **نفّذ تسجيل الدخول (Login)**: افتح مجلد \`Authentication\` واضغط Send على طلب \`[AUTH-002] Login user with Email/Password\`.
+10. **تحقق من حفظ التوكن**: افتح تبويب الـ Environment في Postman هتلاقي قيمة \`accessToken\` و \`refreshToken\` و \`userId\` و \`employeeId\` اتحدثت تلقائياً من خلال التيست سكريبت المدمج.
+11. **اختبر باقي الـ APIs**: جرب باقي الموديولات حسب ترتيب الاعتماديات الموضح بالأسفل.
+
+---
+
+# 🔐 شرح نظام المصادقة (Authentication & Authorization)
+
+النظام بيعتمد على معيار **RFC 6750 Bearer Token** مع تشفير كلمات المرور بأقوى معيار عالمي **Argon2id**:
+
+### 1. مسار تسجيل الدخول (Login Endpoint):
+- **Method**: \`POST\`
+- **Path**: \`/api/v1/auth/login\`
+- **الوصول**: عام بدون توكن (Public)
+- **Body**:
+\`\`\`json
+{
+  "email": "admin@example.test",
+  "password": "Test@123456"
+}
+\`\`\`
+
+### 2. الـ Tokens المرتجعة:
+- **Access Token**: توكن بصيغة JWT صالح لمدة **15 دقيقة**، بيحتوي على معرف المستخدم ودوره الوظيفي (\`SUPER_ADMIN\`, \`HR_ADMIN\`, \`EMPLOYEE\`).
+- **Refresh Token**: توكن آمن مشفر صالح لمدة **7 أيام** بيستخدم لتجديد الـ Access Token من غير ما تطلب من المستخدم يسجل دخول من جديد.
+
+### 3. تمرير الـ Authorization Header:
+جميع الـ APIs المحمية في النظام بتتطلب تمرير الـ Header التالي في كل طلب:
+\`\`\`http
+Authorization: Bearer {{accessToken}}
+\`\`\`
+> [!TIP]
+> 💡 **ميزة كوليكشن Postman المجهزة**: الكوليكشن مضبوطة في جذر المجلد الأساسي على استخدام Bearer Token بقيمة \`{{accessToken}}\` تلقائياً لكل الطلبات، فمش هتحتاج تضيف الـ Header ده يدوي نهائياً!
+
+### 4. تجديد التوكن (Token Refresh):
+- **Method**: \`POST\`
+- **Path**: \`/api/v1/auth/refresh\`
+- **Body**:
+\`\`\`json
+{
+  "refreshToken": "{{refreshToken}}"
+}
+\`\`\`
+
+---
+
+# 🔄 ترتيب اختبار النظام (Chained Execution Order)
+
+علشان تختبر الـ ${routes.length} API بدون ما تقابلك مشاكل المفاتيح الأجنبية (Foreign Keys) المفقودة في الداتابيز، الترتيب المنطقي المعتمد على الـ Dependencies الفعلية في الكود هو كالتالي:
+
+1. **المرحلة 1: الصحة والاتصال (Health & Diagnostics)**
+   - تشغيل \`[HLT-001]\` إلى \`[HLT-008]\` للتأكد من اتصال PostgreSQL و Redis وذاكرة السيرفر.
+2. **المرحلة 2: المصادقة والتوكنات (Authentication & Profile)**
+   - تسجيل الدخول \`[AUTH-002]\` والتقاط الـ Access Token تلقائياً.
+   - قراءة بيانات البروفايل \`[AUTH-006] GET /auth/me\`.
+   - تجربة تجديد التوكن \`[AUTH-003] POST /auth/refresh\`.
+3. **المرحلة 3: الهيكل التنظيمي والفروع (Organization & Hierarchy)**
+   - استعراض المؤسسة المركزية \`[ORG-001]\`، وفروع الفندق \`[ORG-004]\`، والأقسام \`[ORG-010]\`، والمسميات الوظيفية \`[ORG-018]\`.
+4. **المرحلة 4: الأدوار والصلاحيات (Roles & Permissions)**
+   - استعراض الأدوار الوظيفية المتاحة في النظام \`[ROLE-001]\` ومصفوفة الصلاحيات التفصيلية \`[PERM-001]\`.
+5. **المرحلة 5: مواقع العمل والنطاقات الجغرافية (Workplaces & Geofences)**
+   - إعداد إحداثيات موقع الفندق ونطاق البصمة الجغرافية (Latitude / Longitude / Radius) \`[WKP-001]\`.
+6. **المرحلة 6: الورديات وجداول العمل (Schedules & Shifts)**
+   - استعراض وتعريف ورديات العمل وساعات البداية والنهاية وفترات السماح \`[SCH-001]\`.
+7. **المرحلة 7: الموظفون والتهيئة (Employees & Onboarding)**
+   - استعراض دليل الموظفين \`[EMP-001]\`، وتسكين موظف جديد وربطه بالفرع والقسم ومكان العمل.
+8. **المرحلة 8: الحضور والانصراف (Attendance Operations)**
+   - محاكاة تسجيل حضور الموظف بالبصمة الجغرافية داخل نطاق الـ Geofence \`[ATT-001]\`.
+   - استعراض شاشة المتابعة الحية لتواجد الموظفين في الفندق \`[ATT-004] GET /attendance/live\`.
+   - تسجيل حركة الانصراف وحساب ساعات العمل الإضافية \`[ATT-002]\`.
+9. **المرحلة 9: طلبات الموظفين والاعتمادات (Requests & Approvals)**
+   - تقديم طلب إجازة سنوية أو إذن ساعي \`[REQ-001]\`.
+   - استعراض الطلبات المعلقة واعتمادها رسمياً من قِبل مسؤول الـ HR أو المدير \`[APR-001]\`.
+10. **المرحلة 10: المهام وإدارة العمل (Tasks & Work Management)**
+    - إنشاء وتكليف مهمة عمل فندقية وتحديث نسبة إنجازها \`[TSK-001]\`.
+11. **المرحلة 11: طلبات الخدمة وتسليم الورديات (Service Requests & Shift Handover)**
+    - تقديم ومتابعة طلبات خدمة الغرف والصيانة للنزلاء \`[SRV-001]\`.
+    - تدوين محضر تسليم واستلام الوردية لضمان استمرارية التشغيل \`[HND-001]\`.
+12. **المرحلة 12: تشغيل الفندق والأصول والصيانة (Hotel Operations & Maintenance)**
+    - تسجيل أصول ومعدات الفندق وحساب إهلاكها \`[AST-001]\`.
+    - إصدار ومتابعة أوامر شغل الصيانة (Work Orders) \`[MNT-001]\`.
+    - إصدار وتسليم واسترجاع كروت ومفاتيح الغرف \`[KEY-001]\`.
+    - تسجيل الأمانات والمفقودات \`[LNF-001]\`، وسجل تصاريح الزوار \`[VIS-001]\`.
+13. **المرحلة 13: سلاسل الإمداد والمخازن (Inventory & Procurement)**
+    - إدارة أصناف المخازن والتسويات الجردية \`[INV-001]\`.
+    - تسجيل الموردين وإنشاء أوامر الشراء (Purchase Orders) \`[PRC-001]\`.
+14. **المرحلة 14: المالية والموازنات (Finance & Accounting & Budget)**
+    - تسجيل قيود اليومية وفواتير المصروفات ومتابعة الموازنات التقديرية \`[FIN-001]\`، \`[BDG-001]\`.
+15. **المرحلة 15: مسيرات الرواتب والسلف (Payroll, Advances & Deductions)**
+    - احتساب مسير الرواتب الشهري آلياً وخصم السلف والغياب \`[PAY-001]\`.
+    - تقديم واعتماد طلبات السلف المالية على الراتب \`[PAY-010]\`.
+16. **المرحلة 16: الإشعارات والمراسلات (Notifications & Messaging)**
+    - اختبار الإشعارات والتنبيهات وربط Firebase FCM \`[NOTIF-001]\`.
+    - المحادثات الفورية الفردية والجماعية \`[MSG-001]\`.
+    - نشر الإعلانات والتعميمات الإدارية \`[ANN-001]\`.
+17. **المرحلة 17: التقارير ولوحة المؤشرات (Reports & BI Dashboard)**
+    - استعراض لوحة مؤشرات الأداء التنفيذية (KPIs) \`[DSH-001]\`.
+    - استخراج وتصدير تقارير الحضور والرواتب والعمليات \`[REP-001]\`.
+18. **المرحلة 18: أمان النظام والمزامنة والنسخ الاحتياطي (System, Sync & Backup)**
+    - اختبار محرك مزامنة البيانات دون اتصال \`[SNC-001]\`.
+    - فحص سجلات الرقابة والتدقيق الأمني \`[AUD-001]\`.
+    - إجراء وتنزيل نسخة احتياطية كاملة للنظام \`[BKP-001]\`.
+`;
+}
+
+// -------------------------------------------------------------
+// Generates standalone API_DOCUMENTATION.md
+// -------------------------------------------------------------
+function generateApiDocumentationMarkdown(routes: RouteInfo[]) {
+  const outputPath = path.join(__dirname, "../API_DOCUMENTATION.md");
+  const md = getArabicGuideMarkdown(routes);
+  fs.writeFileSync(outputPath, md, "utf-8");
+  console.log(`📖 Wrote Dedicated API Documentation: ${outputPath} (${(md.length / 1024).toFixed(1)} KB)`);
+}
+
+// -------------------------------------------------------------
 // Generates API_INVENTORY.md
 // -------------------------------------------------------------
 function generateApiInventoryMarkdown(routes: RouteInfo[]) {
   const outputPath = path.join(__dirname, "../API_INVENTORY.md");
-  let md = `# CyberWise Hotel ERP — Complete API Inventory
+  let md = getArabicGuideMarkdown(routes);
+
+  md += "\n---\n\n";
+  md += `# CyberWise Hotel ERP — Complete API Inventory
 
 **Platform**: CyberWise Hospitality & Enterprise Resource Planning Backend  
 **Architecture**: NestJS 10 (Fastify Engine), Prisma ORM, PostgreSQL, Redis Cache  
@@ -615,7 +1423,11 @@ function generateApiInventoryMarkdown(routes: RouteInfo[]) {
 
     // Detailed breakdown per endpoint
     for (const r of modRoutes) {
+      const arabicInfo = getArabicEndpointDetails(r);
+
       md += `### ${r.id} — ${r.summary}\n\n`;
+      md += `**بتعمل إيه؟**:\n${arabicInfo.action}\n\n`;
+      md += `**مين يقدر يستخدمها؟**:\n${arabicInfo.roles}\n\n`;
       md += `- **Method**: \`${r.method}\`\n`;
       md += `- **Full URL**: \`${r.fullUrl}\`\n`;
       md += `- **Controller**: \`${r.controller} -> ${r.controllerMethod}()\`\n`;
@@ -685,6 +1497,7 @@ function generateApiInventoryMarkdown(routes: RouteInfo[]) {
   fs.writeFileSync(outputPath, md, "utf-8");
   console.log(`📝 Wrote Complete API Inventory: ${outputPath} (${(md.length / 1024).toFixed(1)} KB)`);
 }
+
 
 // -------------------------------------------------------------
 // Generates CyberWise_Hotel_ERP.postman_collection.json
@@ -956,6 +1769,8 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
       );
     }
 
+    const arabicInfo = getArabicEndpointDetails(r);
+
     const requestItem: any = {
       name: `[${r.id}] ${r.summary}`,
       request: {
@@ -968,7 +1783,7 @@ function generatePostmanCollectionWithTests(routes: RouteInfo[], spec: any, sche
           },
         ],
         url: urlObj,
-        description: `**${r.id}**: ${r.purpose}\n\n- **Roles**: ${r.roles.join(", ")}\n- **Auth**: ${r.authType}\n- **DB Entities**: ${r.databaseEntities.join(", ")}`,
+        description: arabicInfo.postmanDescription,
       },
       response: [],
       event: [

@@ -1,3 +1,383 @@
+# 🚀 تشغيل Backend واستخدام Postman
+
+أهلاً بيك في الدليل الشامل لتشغيل واختبار الباك إند الخاص بنظام **CyberWise Hotel ERP & Workforce Management** المخصص لإدارة الفنادق والمنتجعات والقوى العاملة.
+تم إعداد هذا الدليل بالكامل لمساعدتك في تشغيل السيرفر من الصفر وتجربة الـ **416 endpoint** الحقيقية الموجودة في الكود الفعلي باستخدام Postman بدون أي تعقيد وبدون أي افتراضات.
+
+---
+
+## الخطوة 1 — متطلبات التشغيل (System Prerequisites)
+
+تأكد إن جهازك أو السيرفر متوفر عليه المتطلبات دي قبل ما تبدأ:
+
+- **Node.js**: إصدار `Node.js 18.x` أو `Node.js 20.x LTS` أو أحدث (المشروع متوافق ومبني بـ TypeScript 5).
+- **npm**: الإصدار `npm 9+` أو `10+` أو `11+` لإدارة الحزم والـ dependencies.
+- **PostgreSQL**: الإصدار `15` (متاح وجاهز عبر `docker-compose.yml` كـ Alpine image على بورت `5432`).
+- **Redis**: الإصدار `7` (متاح في `docker-compose.yml` كـ Alpine image على بورت `6379`).
+- **Docker & Docker Compose**: لتشغيل قاعدة البيانات وريديس بنقرة واحدة.
+- **Prisma ORM**: الإصدار `^5.14.0` (مُثبت ضمن devDependencies لإدارة الـ Schema والـ Migrations).
+- **Firebase Admin SDK (FCM)** *(اختياري)*: `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY` لإرسال إشعارات وتنبيهات تطبيق الموبايل.
+- **Environment Variables**: ملف `.env` مهيأ بجميع المتغيرات المطلوبة المستخرجة من `.env.example`.
+
+---
+
+## الخطوة 2 — تثبيت Dependencies
+
+افتح التيرمينال داخل مجلد المشروع:
+```bash
+cd "C:\flutter pro\Employee_jops\backend"
+```
+
+ونفّذ أمر التثبيت الرسمي:
+```bash
+npm install
+```
+الأمر ده هيثبت كل المكتبات الخاصة بـ NestJS 10 ومحرك Fastify و Prisma ORM وحزم التشفير والأمان.
+
+---
+
+## الخطوة 3 — إعداد Environment Variables
+
+المشروع بيحتوي على ملف نموذجي جاهز باسم `.env.example`. انسخ الملف ده وأنشئ منه ملف `.env` في المسار الرئيسي للباك إند:
+
+```bash
+# لو على نظام Windows PowerShell:
+Copy-Item .env.example .env
+
+# أو باستخدام CMD / Bash:
+cp .env.example .env
+```
+
+افتح ملف `.env` وتأكد من القيم الأساسية (ممنوع وضع Secrets حقيقية على مستودعات عامة):
+
+```env
+# تكوين السيرفر الأساسي
+NODE_ENV=development
+PORT=3000
+HOST=0.0.0.0
+APP_NAME=CyberWise-IE-Backend
+API_PREFIX=api/v1
+
+# رابط الاتصال بقاعدة بيانات PostgreSQL
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyberwise_db?schema=public"
+
+# خادم Redis للكاشينج والمهام الموزعة
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# مفاتيح تشفير توكنات الأمان (JWT)
+JWT_ACCESS_SECRET="YOUR_SUPER_SECURE_JWT_ACCESS_SECRET_KEY"
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_SECRET="YOUR_SUPER_SECURE_JWT_REFRESH_SECRET_KEY"
+JWT_REFRESH_EXPIRATION=7d
+
+# إعدادات الأمان ومعدل الطلبات
+CORS_ORIGINS=*
+THROTTLE_TTL=60
+THROTTLE_LIMIT=100
+
+# إعدادات Firebase Cloud Messaging (FCM) للإشعارات
+FCM_PROJECT_ID=
+FCM_CLIENT_EMAIL=
+FCM_PRIVATE_KEY=
+```
+
+---
+
+## الخطوة 4 — تشغيل PostgreSQL
+
+المشروع جاهز ومجهز بملف `docker-compose.yml` بيشغل PostgreSQL 15:
+
+1. شغّل الحاوية في الخلفية:
+```bash
+docker-compose up -d postgres
+```
+2. بيانات قاعدة البيانات الافتراضية من المشروع:
+   - **اسم الحاوية**: `cyberwise_postgres`
+   - **المستخدم (User)**: `postgres`
+   - **كلمة المرور (Password)**: `postgres`
+   - **اسم قاعدة البيانات (DB Name)**: `cyberwise_db`
+   - **البورت (Port)**: `5432`
+3. للتأكد إن قاعدة البيانات شغالة وتستقبل اتصالات:
+```bash
+docker ps
+# أو افحصها مباشرة بالأمر المدمج:
+docker exec -it cyberwise_postgres pg_isready -U postgres -d cyberwise_db
+```
+
+---
+
+## الخطوة 5 — تشغيل Redis
+
+خادم Redis 7 موجود وجاهز في الـ `docker-compose.yml`:
+
+1. شغّل حاوية Redis:
+```bash
+docker-compose up -d redis
+```
+2. بيانات Redis:
+   - **اسم الحاوية**: `cyberwise_redis`
+   - **البورت (Port)**: `6379`
+3. التأكد إنه شغال:
+```bash
+docker exec -it cyberwise_redis redis-cli ping
+# المتوقع يرد: PONG
+```
+4. **دور Redis في الكود الفعلي للمشروع**:
+   - **الكاشينج السريع**: حفظ الاستعلامات المتكررة لتقليل الضغط على قاعدة البيانات (`RedisService`).
+   - **القفل الموزع (Distributed Locks)**: منع تكرار تنفيذ الـ Cron Jobs والمهام المجدولة لو السيرفر شغال منه أكتر من نسخة (`DistributedLockService`).
+   - **التواصل اللحظي (Realtime Pub/Sub)**: إدارة غرف وتجمعات اتصالات Socket.IO للمحادثات والإشعارات اللحظية (`RealtimeService`).
+   - **المرونة العالية (Resilient Degradation)**: كود المشروع مصمم بمرونة فائقة؛ لو Redis مش متاح أو توقف، السيرفر لا يتوقف وبيتحول تلقائياً لـ In-Memory Fallback ويكمل شغل عادي جداً!
+
+---
+
+## الخطوة 6 — Prisma Database (الهيكل والبيانات الأولية)
+
+نفّذ الخطوات دي بالترتيب الدقيق:
+
+### أ) توليد عميل Prisma:
+```bash
+npm run prisma:generate
+```
+
+### ب) تطبيق الـ Migrations:
+- **في بيئة التطوير (Development)**:
+```bash
+npm run prisma:migrate
+```
+*(أو للمزامنة السريعة للنماذج: `npm run prisma:push`)*
+
+- **في بيئة الإنتاج (Production)**:
+```bash
+npx prisma migrate deploy
+```
+
+> [!WARNING]
+> ⚠️ **تحذير هام جداً**: إياك تشغل `npx prisma migrate reset` على سيرفر إنتاج أو قاعدة بيانات فيها شغل حقيقي، لأن الأمر ده بيعمل Drop ومسح كامل لقاعدة البيانات بكل اللي فيها! الأمر ده مسموح بيه فقط في مرحلة التطوير المبدئي لو محتاج تصفر الداتابيز تماماً.
+
+### ج) زراعة البيانات الافتراضية (Seed Database):
+لتجهيز حسابات النظام الأساسية والهيكل التنظيمي المعتمد في المشروع، شغّل الأمر:
+```bash
+npm run prisma:seed
+```
+الأمر ده هينشئ في قاعدة البيانات تلقائياً:
+- المؤسسة الفندقية المركزية: `CyberWise Hospitality & Enterprise Group` (كود: `CW-CORP`).
+- الفندق الرئيسي / الفرع: `Grand Nile Headquarters & Resort` (كود: `GNH-HQ`).
+- الأقسام الرئيسية (Executive Management, HR, Housekeeping, Front Office).
+- حسابات المستخدمين الأساسية للاختبار:
+  - **Super Admin**: `admin@example.test` / كلمة المرور: `Test@123456`
+  - **HR Manager**: `hr@example.test` / كلمة المرور: `Test@123456`
+  - **Active Employee**: `employee.active@example.test` / كلمة المرور: `Test@123456`
+
+---
+
+## الخطوة 7 — تشغيل Backend
+
+شغّل خادم الباك إند بأمر التطوير الرسمي الموجود في `package.json`:
+
+```bash
+npm run start:dev
+```
+
+معلومات الاتصال بالسيرفر المستخرجة من `src/main.ts`:
+- **Port**: `3000`
+- **Host**: `0.0.0.0` (أو `localhost`)
+- **API Prefix**: `api/v1`
+- **Base URL الفعلي**:
+  `http://localhost:3000/api/v1`
+
+---
+
+## الخطوة 8 — التأكد أن Backend يعمل
+
+تقدر تتأكد إن السيرفر قيد التشغيل وقاعد البيانات جاهزة فوراً باستخدام Health API:
+
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/api/v1/health/live`
+- **Expected Response**:
+```json
+{
+  "status": "ok",
+  "uptimeSeconds": 14,
+  "timestamp": "2026-09-06T14:00:00.000Z"
+}
+```
+
+أو لفحص تفصيلي للـ Database والميموري:
+- **Method**: `GET`
+- **URL**: `http://localhost:3000/api/v1/health`
+- **Expected Response**:
+```json
+{
+  "status": "ok",
+  "info": {
+    "database": { "status": "up" },
+    "memory_heap": { "status": "up" }
+  },
+  "error": {},
+  "details": {
+    "database": { "status": "up" },
+    "memory_heap": { "status": "up" }
+  }
+}
+```
+
+---
+
+# 📚 API Documentation (Swagger)
+
+المشروع بيوفر توثيق تفاعلي كامل ومباشر مبني بـ Swagger OpenAPI:
+
+🔗 **رابط Swagger التفاعلي المباشر**:
+👉 [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+
+من خلال الرابط ده تقدر:
+- تستعرض الـ 416 endpoint وتفاصيل الـ Request والـ Response DTOs.
+- تضغط على زر **Authorize** في أعلى اليمين وتحط الـ Bearer Token لتجربة الـ APIs مباشرة من المتصفح مع حفظ الجلسة (`persistAuthorization: true`).
+
+---
+
+# 📮 Postman Collection
+
+### تحميل Postman Collection
+
+ملفات Postman موجودة فعلياً داخل المجلد الرئيسي للمشروع كالتالي:
+
+- 📄 **ملف الكوليكشن الكاملة (416 APIs)**:
+  `CyberWise_Hotel_ERP.postman_collection.json`
+- 🌍 **ملف البيئة المحلية (Environment)**:
+  `CyberWise_Hotel_ERP.postman_environment.json`
+
+#### خطوات الاستيراد في Postman:
+1. افتح برنامج **Postman**.
+2. اضغط على زر **Import** في أعلى يسار الشاشة.
+3. اختر ملف الكوليكشن: `CyberWise_Hotel_ERP.postman_collection.json`.
+4. اضغط **Import** مرة تانية واختر ملف البيئة: `CyberWise_Hotel_ERP.postman_environment.json`.
+5. من القائمة المنسدلة للبيئات في أعلى اليمين (Environment Selector)، تأكد من اختيار:
+   **CyberWise Hotel ERP — Local Environment**.
+6. توجه لمجلد `Authentication` ونفذ طلب تسجيل الدخول أولاً:
+   `[AUTH-002] Login user with Email/Password`.
+7. بعد نجاح الـ Login، كل التوكنات ومعرفات المستخدمين بتتخزن تلقائياً في متغيرات Postman وتقدر تشغل أي API تاني في الكوليكشن بسلاسة!
+
+---
+
+# 🧪 تشغيل Postman لأول مرة
+
+علشان تختبر النظام لأول مرة بنجاح وبدون أي أخطاء، اتبع الخطوات دي بالترتيب:
+
+1. **شغّل PostgreSQL**: `docker-compose up -d postgres`
+2. **شغّل Redis**: `docker-compose up -d redis`
+3. **شغّل الباك إند**: `npm run start:dev`
+4. **تأكد من الـ Health API**: افتح المتصفح على `http://localhost:3000/api/v1/health/live`
+5. **افتح Postman**.
+6. **استورد الكوليكشن**: `CyberWise_Hotel_ERP.postman_collection.json`
+7. **استورد الـ Environment**: `CyberWise_Hotel_ERP.postman_environment.json`
+8. **اختر البيئة**: حدد `CyberWise Hotel ERP — Local Environment` من القائمة في Postman.
+9. **نفّذ تسجيل الدخول (Login)**: افتح مجلد `Authentication` واضغط Send على طلب `[AUTH-002] Login user with Email/Password`.
+10. **تحقق من حفظ التوكن**: افتح تبويب الـ Environment في Postman هتلاقي قيمة `accessToken` و `refreshToken` و `userId` و `employeeId` اتحدثت تلقائياً من خلال التيست سكريبت المدمج.
+11. **اختبر باقي الـ APIs**: جرب باقي الموديولات حسب ترتيب الاعتماديات الموضح بالأسفل.
+
+---
+
+# 🔐 شرح نظام المصادقة (Authentication & Authorization)
+
+النظام بيعتمد على معيار **RFC 6750 Bearer Token** مع تشفير كلمات المرور بأقوى معيار عالمي **Argon2id**:
+
+### 1. مسار تسجيل الدخول (Login Endpoint):
+- **Method**: `POST`
+- **Path**: `/api/v1/auth/login`
+- **الوصول**: عام بدون توكن (Public)
+- **Body**:
+```json
+{
+  "email": "admin@example.test",
+  "password": "Test@123456"
+}
+```
+
+### 2. الـ Tokens المرتجعة:
+- **Access Token**: توكن بصيغة JWT صالح لمدة **15 دقيقة**، بيحتوي على معرف المستخدم ودوره الوظيفي (`SUPER_ADMIN`, `HR_ADMIN`, `EMPLOYEE`).
+- **Refresh Token**: توكن آمن مشفر صالح لمدة **7 أيام** بيستخدم لتجديد الـ Access Token من غير ما تطلب من المستخدم يسجل دخول من جديد.
+
+### 3. تمرير الـ Authorization Header:
+جميع الـ APIs المحمية في النظام بتتطلب تمرير الـ Header التالي في كل طلب:
+```http
+Authorization: Bearer {{accessToken}}
+```
+> [!TIP]
+> 💡 **ميزة كوليكشن Postman المجهزة**: الكوليكشن مضبوطة في جذر المجلد الأساسي على استخدام Bearer Token بقيمة `{{accessToken}}` تلقائياً لكل الطلبات، فمش هتحتاج تضيف الـ Header ده يدوي نهائياً!
+
+### 4. تجديد التوكن (Token Refresh):
+- **Method**: `POST`
+- **Path**: `/api/v1/auth/refresh`
+- **Body**:
+```json
+{
+  "refreshToken": "{{refreshToken}}"
+}
+```
+
+---
+
+# 🔄 ترتيب اختبار النظام (Chained Execution Order)
+
+علشان تختبر الـ 416 API بدون ما تقابلك مشاكل المفاتيح الأجنبية (Foreign Keys) المفقودة في الداتابيز، الترتيب المنطقي المعتمد على الـ Dependencies الفعلية في الكود هو كالتالي:
+
+1. **المرحلة 1: الصحة والاتصال (Health & Diagnostics)**
+   - تشغيل `[HLT-001]` إلى `[HLT-008]` للتأكد من اتصال PostgreSQL و Redis وذاكرة السيرفر.
+2. **المرحلة 2: المصادقة والتوكنات (Authentication & Profile)**
+   - تسجيل الدخول `[AUTH-002]` والتقاط الـ Access Token تلقائياً.
+   - قراءة بيانات البروفايل `[AUTH-006] GET /auth/me`.
+   - تجربة تجديد التوكن `[AUTH-003] POST /auth/refresh`.
+3. **المرحلة 3: الهيكل التنظيمي والفروع (Organization & Hierarchy)**
+   - استعراض المؤسسة المركزية `[ORG-001]`، وفروع الفندق `[ORG-004]`، والأقسام `[ORG-010]`، والمسميات الوظيفية `[ORG-018]`.
+4. **المرحلة 4: الأدوار والصلاحيات (Roles & Permissions)**
+   - استعراض الأدوار الوظيفية المتاحة في النظام `[ROLE-001]` ومصفوفة الصلاحيات التفصيلية `[PERM-001]`.
+5. **المرحلة 5: مواقع العمل والنطاقات الجغرافية (Workplaces & Geofences)**
+   - إعداد إحداثيات موقع الفندق ونطاق البصمة الجغرافية (Latitude / Longitude / Radius) `[WKP-001]`.
+6. **المرحلة 6: الورديات وجداول العمل (Schedules & Shifts)**
+   - استعراض وتعريف ورديات العمل وساعات البداية والنهاية وفترات السماح `[SCH-001]`.
+7. **المرحلة 7: الموظفون والتهيئة (Employees & Onboarding)**
+   - استعراض دليل الموظفين `[EMP-001]`، وتسكين موظف جديد وربطه بالفرع والقسم ومكان العمل.
+8. **المرحلة 8: الحضور والانصراف (Attendance Operations)**
+   - محاكاة تسجيل حضور الموظف بالبصمة الجغرافية داخل نطاق الـ Geofence `[ATT-001]`.
+   - استعراض شاشة المتابعة الحية لتواجد الموظفين في الفندق `[ATT-004] GET /attendance/live`.
+   - تسجيل حركة الانصراف وحساب ساعات العمل الإضافية `[ATT-002]`.
+9. **المرحلة 9: طلبات الموظفين والاعتمادات (Requests & Approvals)**
+   - تقديم طلب إجازة سنوية أو إذن ساعي `[REQ-001]`.
+   - استعراض الطلبات المعلقة واعتمادها رسمياً من قِبل مسؤول الـ HR أو المدير `[APR-001]`.
+10. **المرحلة 10: المهام وإدارة العمل (Tasks & Work Management)**
+    - إنشاء وتكليف مهمة عمل فندقية وتحديث نسبة إنجازها `[TSK-001]`.
+11. **المرحلة 11: طلبات الخدمة وتسليم الورديات (Service Requests & Shift Handover)**
+    - تقديم ومتابعة طلبات خدمة الغرف والصيانة للنزلاء `[SRV-001]`.
+    - تدوين محضر تسليم واستلام الوردية لضمان استمرارية التشغيل `[HND-001]`.
+12. **المرحلة 12: تشغيل الفندق والأصول والصيانة (Hotel Operations & Maintenance)**
+    - تسجيل أصول ومعدات الفندق وحساب إهلاكها `[AST-001]`.
+    - إصدار ومتابعة أوامر شغل الصيانة (Work Orders) `[MNT-001]`.
+    - إصدار وتسليم واسترجاع كروت ومفاتيح الغرف `[KEY-001]`.
+    - تسجيل الأمانات والمفقودات `[LNF-001]`، وسجل تصاريح الزوار `[VIS-001]`.
+13. **المرحلة 13: سلاسل الإمداد والمخازن (Inventory & Procurement)**
+    - إدارة أصناف المخازن والتسويات الجردية `[INV-001]`.
+    - تسجيل الموردين وإنشاء أوامر الشراء (Purchase Orders) `[PRC-001]`.
+14. **المرحلة 14: المالية والموازنات (Finance & Accounting & Budget)**
+    - تسجيل قيود اليومية وفواتير المصروفات ومتابعة الموازنات التقديرية `[FIN-001]`، `[BDG-001]`.
+15. **المرحلة 15: مسيرات الرواتب والسلف (Payroll, Advances & Deductions)**
+    - احتساب مسير الرواتب الشهري آلياً وخصم السلف والغياب `[PAY-001]`.
+    - تقديم واعتماد طلبات السلف المالية على الراتب `[PAY-010]`.
+16. **المرحلة 16: الإشعارات والمراسلات (Notifications & Messaging)**
+    - اختبار الإشعارات والتنبيهات وربط Firebase FCM `[NOTIF-001]`.
+    - المحادثات الفورية الفردية والجماعية `[MSG-001]`.
+    - نشر الإعلانات والتعميمات الإدارية `[ANN-001]`.
+17. **المرحلة 17: التقارير ولوحة المؤشرات (Reports & BI Dashboard)**
+    - استعراض لوحة مؤشرات الأداء التنفيذية (KPIs) `[DSH-001]`.
+    - استخراج وتصدير تقارير الحضور والرواتب والعمليات `[REP-001]`.
+18. **المرحلة 18: أمان النظام والمزامنة والنسخ الاحتياطي (System, Sync & Backup)**
+    - اختبار محرك مزامنة البيانات دون اتصال `[SNC-001]`.
+    - فحص سجلات الرقابة والتدقيق الأمني `[AUD-001]`.
+    - إجراء وتنزيل نسخة احتياطية كاملة للنظام `[BKP-001]`.
+
+---
+
 # CyberWise Hotel ERP — Complete API Inventory
 
 **Platform**: CyberWise Hospitality & Enterprise Resource Planning Backend  
@@ -78,6 +458,12 @@
 
 ### HLT-001 — System overall health status
 
+**بتعمل إيه؟**:
+فحص شامل لصحة النظام وأداء السيرفر وقاعدة البيانات والميموري هيب.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health`
 - **Controller**: `HealthController -> HealthCheck()`
@@ -110,6 +496,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HLT-002 — Liveness probe (Is process alive?)
 
+**بتعمل إيه؟**:
+فحص حيوية التطبيق (Liveness Probe) للتأكد من أن خادم الباك إند قيد التشغيل ويعمل بدون توقف.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/live`
 - **Controller**: `HealthController -> HealthCheck()`
@@ -140,6 +532,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HLT-003 — Readiness probe (Can instance accept traffic?)
+
+**بتعمل إيه؟**:
+فحص جاهزية التطبيق (Readiness Probe) للتأكد من أن السيرفر جاهز يستقبل ترافيك ومتصل بقاعدة البيانات.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/ready`
@@ -172,6 +570,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HLT-004 — PostgreSQL Database Connectivity probe
 
+**بتعمل إيه؟**:
+فحص مباشر للاتصال بقاعدة بيانات PostgreSQL للتأكد من استجابتها وسرعة الاستعلام.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/db`
 - **Controller**: `HealthController -> HealthCheck()`
@@ -202,6 +606,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HLT-005 — Redis Cache & Rate Limiting probe
+
+**بتعمل إيه؟**:
+فحص حالة وسرعة استجابة خادم Redis Cache للكاشينج وتوزيع المهام.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/redis`
@@ -234,6 +644,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HLT-006 — Offline Sync Queue and Background Workers monitoring (OPS-003)
 
+**بتعمل إيه؟**:
+فحص شامل لصحة النظام وأداء السيرفر وقاعدة البيانات والميموري هيب.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/queues`
 - **Controller**: `HealthController -> HealthCheck()`
@@ -265,6 +681,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HLT-007 — External integrations and webhook channel monitoring (OPS-004)
 
+**بتعمل إيه؟**:
+فحص حالة الاتصال بجميع واجهات وخدمات التكامل الخارجية (Webhooks/Integrations).
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/integrations`
 - **Controller**: `HealthController -> HealthCheck()`
@@ -295,6 +717,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HLT-008 — Holistic system telemetry, CPU, memory, DB, and cache metrics
+
+**بتعمل إيه؟**:
+فحص شامل لصحة النظام وأداء السيرفر وقاعدة البيانات والميموري هيب.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/health/system`
@@ -338,6 +766,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AUTH-001 — Employee Google Sign-In with authoritative onboarding state
 
+**بتعمل إيه؟**:
+تسجيل دخول موظف الفندق عبر حساب Google (Google Sign-In) لتطبيق الموبايل، والتحقق من حالة تهيئة حسابه.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/auth/google`
 - **Controller**: `AuthController -> HttpCode()`
@@ -374,6 +808,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AUTH-002 — Login user with Email/Password (HR Dashboard / Admin)
+
+**بتعمل إيه؟**:
+تسجيل دخول المستخدم (مدير النظام أو مسؤولي الموارد البشرية) بالبريد الإلكتروني وكلمة المرور، واستخراج Access Token و Refresh Token لتأمين باقي الطلبات.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/auth/login`
@@ -412,6 +852,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AUTH-003 — Rotate and refresh JWT access token
 
+**بتعمل إيه؟**:
+تجديد وتدوير Access Token منتهي الصلاحية باستخدام Refresh Token ساري بدون الحاجة لإعادة تسجيل الدخول.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/auth/refresh`
 - **Controller**: `AuthController -> HttpCode()`
@@ -447,6 +893,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AUTH-004 — Logout and revoke refresh token
+
+**بتعمل إيه؟**:
+تسجيل الخروج من النظام، وإلغاء صلاحية الـ Refresh Token وإنهاء الجلسة النشطة في قاعدة البيانات وريديس.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/auth/logout`
@@ -484,6 +936,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AUTH-005 — Change password for authenticated user
 
+**بتعمل إيه؟**:
+تغيير كلمة المرور الخاصة بالمستخدم الحالي بعد مطابقة كلمة المرور القديمة وتشفير الجديدة بتقنية Argon2id.
+
+**مين يقدر يستخدمها؟**:
+متاحة للجميع بدون تسجيل دخول (Public Endpoint)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/auth/change-password`
 - **Controller**: `AuthController -> HttpCode()`
@@ -520,6 +978,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AUTH-006 — Get current authenticated user & profile status
+
+**بتعمل إيه؟**:
+جلب الملف الشخصي الكامل للمستخدم المسجل حالياً، شامل أدواره وصلاحياته وبيانات الموظف والفرع التابع له.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/auth/me`
@@ -586,6 +1050,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-001 — Create organization root (Super Admin only)
 
+**بتعمل إيه؟**:
+تسجيل وإنشاء كيان تنظيمي جديد للمجموعة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/organization`
 - **Controller**: `OrganizationController -> Roles()`
@@ -635,6 +1105,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-002 — List all organizations
 
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization`
 - **Controller**: `OrganizationController -> Roles()`
@@ -676,6 +1152,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-003 — Get complete nested organization structure tree
 
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/tree/hierarchy`
 - **Controller**: `OrganizationController -> Roles()`
@@ -714,6 +1196,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-004 — Get employee reporting lines (Chain of command & direct reports)
+
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/reporting-tree/{employeeProfileId}`
@@ -755,6 +1243,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-005 — Get organization details by ID or code
 
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -794,6 +1288,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-006 — Update organization details
+
+**بتعمل إيه؟**:
+تعديل بيانات المؤسسة الفندقية (الاسم، الشعار، العملة، المنطقة الزمنية).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/organization/{id}`
@@ -850,6 +1350,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-007 — Delete organization
 
+**بتعمل إيه؟**:
+إدارة بيانات الهيكل التنظيمي للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/organization/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -889,6 +1395,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-008 — Create a branch, hotel, or site location
+
+**بتعمل إيه؟**:
+إضافة فرع أو فندق جديد تابع للمجموعة الفندقية مع تحديد موقعه الجغرافي ونطاق الـ Geofence.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/organization/branches`
@@ -941,6 +1453,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-009 — List branches/hotels
 
+**بتعمل إيه؟**:
+عرض قائمة بجميع فروع وفنادق المؤسسة الفندقية مع إحصائيات كل فرع.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/branches`
 - **Controller**: `OrganizationController -> Roles()`
@@ -984,6 +1502,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-010 — Get branch details
 
+**بتعمل إيه؟**:
+عرض قائمة بجميع فروع وفنادق المؤسسة الفندقية مع إحصائيات كل فرع.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/branches/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1024,6 +1548,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-011 — Update branch details
+
+**بتعمل إيه؟**:
+تعديل بيانات فرع فندقي (الاسم، العنوان، الإحداثيات الجغرافية، حالة النشاط).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/organization/branches/{id}`
@@ -1081,6 +1611,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-012 — Delete branch
 
+**بتعمل إيه؟**:
+أرشفة أو حذف فرع فندقي من النظام بعد التأكد من عدم وجود ارتباطات حية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/organization/branches/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1121,6 +1657,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-013 — Create a department or division
+
+**بتعمل إيه؟**:
+إنشاء قسم جديد داخل الفندق (مثل الاستقبال، الهاوس كيبينج، الحسابات، الأغذية والمشروبات).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/organization/departments`
@@ -1168,6 +1710,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-014 — List departments
 
+**بتعمل إيه؟**:
+جلب قائمة بجميع الأقسام التابعة للفندق أو الفرع مع هيكلها الإداري.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/departments`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1212,6 +1760,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-015 — Get department details
 
+**بتعمل إيه؟**:
+جلب قائمة بجميع الأقسام التابعة للفندق أو الفرع مع هيكلها الإداري.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/departments/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1252,6 +1806,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-016 — Update department details
+
+**بتعمل إيه؟**:
+تحديث بيانات وقسم فندقي معين وربطه برئيس القسم.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/organization/departments/{id}`
@@ -1304,6 +1864,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-017 — Delete department
 
+**بتعمل إيه؟**:
+حذف أو تعطيل قسم في الفندق ونقل الموظفين المرتبطين به.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/organization/departments/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1344,6 +1910,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-018 — Create a section inside a department
+
+**بتعمل إيه؟**:
+تسجيل وإنشاء كيان تنظيمي جديد للمجموعة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/organization/sections`
@@ -1388,6 +1960,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-019 — List sections
 
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/sections`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1426,6 +2004,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-020 — Get section details
+
+**بتعمل إيه؟**:
+استعراض الهيكل التنظيمي الشامل للمؤسسة والفروع التابعة لها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/sections/{id}`
@@ -1466,6 +2050,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-021 — Update section
+
+**بتعمل إيه؟**:
+تعديل بيانات المؤسسة الفندقية (الاسم، الشعار، العملة، المنطقة الزمنية).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/organization/sections/{id}`
@@ -1515,6 +2105,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-022 — Delete section
 
+**بتعمل إيه؟**:
+إدارة بيانات الهيكل التنظيمي للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/organization/sections/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1554,6 +2150,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-023 — Create a job position
+
+**بتعمل إيه؟**:
+إضافة مسمى وظيفي جديد في الهيكل التنظيمي وتحديد المستوى والمسؤوليات وسقف الراتب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/organization/positions`
@@ -1602,6 +2204,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-024 — List positions
 
+**بتعمل إيه؟**:
+جلب قائمة المسميات والوظائف المعتمدة في الفندق مصنفة حسب الأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/positions`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1642,6 +2250,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ORG-025 — Get position details
 
+**بتعمل إيه؟**:
+جلب قائمة المسميات والوظائف المعتمدة في الفندق مصنفة حسب الأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/organization/positions/{id}`
 - **Controller**: `OrganizationController -> Roles()`
@@ -1681,6 +2295,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-026 — Update position
+
+**بتعمل إيه؟**:
+تعديل بيانات المسمى الوظيفي ومستواه الإداري والراتب الأساسي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/organization/positions/{id}`
@@ -1733,6 +2353,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ORG-027 — Delete position
+
+**بتعمل إيه؟**:
+حذف مسمى وظيفي من الهيكل التنظيمي للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/organization/positions/{id}`
@@ -1787,6 +2413,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ROLE-001 — Create a custom role with optional initial permissions
 
+**بتعمل إيه؟**:
+إنشاء دور وظيفي جديد وتحديد صلاحياته ومسؤولياته في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/roles`
 - **Controller**: `RolesController -> Roles()`
@@ -1833,6 +2465,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ROLE-002 — List all roles with pagination and search
 
+**بتعمل إيه؟**:
+استعراض قائمة بجميع الأدوار الوظيفية المتاحة في النظام ومستوياتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/roles`
 - **Controller**: `RolesController -> Roles()`
@@ -1874,6 +2512,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ROLE-003 — Get effective roles and permissions of a user
 
+**بتعمل إيه؟**:
+استعراض قائمة بجميع الأدوار الوظيفية المتاحة في النظام ومستوياتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/roles/users/{userId}`
 - **Controller**: `RolesController -> Roles()`
@@ -1913,6 +2557,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ROLE-004 — Assign database roles to a specific user
+
+**بتعمل إيه؟**:
+إنشاء دور وظيفي جديد وتحديد صلاحياته ومسؤولياته في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/roles/users/assign`
@@ -1957,6 +2607,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ROLE-005 — Get role details by ID or slug
 
+**بتعمل إيه؟**:
+استعراض قائمة بجميع الأدوار الوظيفية المتاحة في النظام ومستوياتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/roles/{id}`
 - **Controller**: `RolesController -> Roles()`
@@ -1996,6 +2652,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ROLE-006 — Update role details
+
+**بتعمل إيه؟**:
+تعديل بيانات الدور الوظيفي وتحديث الصلاحيات المرتبطة به.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/roles/{id}`
@@ -2044,6 +2706,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ROLE-007 — Delete a custom role (System roles cannot be deleted)
 
+**بتعمل إيه؟**:
+حذف أو تعطيل دور وظيفي من النظام بعد التأكد من عدم ارتباط مستخدمين به.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/roles/{id}`
 - **Controller**: `RolesController -> Roles()`
@@ -2083,6 +2751,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ROLE-008 — Synchronize permission matrix for a role
+
+**بتعمل إيه؟**:
+تعديل بيانات الدور الوظيفي وتحديث الصلاحيات المرتبطة به.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/roles/{id}/permissions`
@@ -2142,6 +2816,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PERM-001 — Create a new granular permission (Super Admin only)
 
+**بتعمل إيه؟**:
+استعراض والتحقق من الصلاحيات التفصيلية المتاحة للمستخدمين عبر وحدات النظام المختلفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/permissions`
 - **Controller**: `PermissionsController -> Roles()`
@@ -2184,6 +2864,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PERM-002 — List all permissions with filtering and pagination
+
+**بتعمل إيه؟**:
+استعراض والتحقق من الصلاحيات التفصيلية المتاحة للمستخدمين عبر وحدات النظام المختلفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/permissions`
@@ -2229,6 +2915,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PERM-003 — Get all permissions grouped by domain module
 
+**بتعمل إيه؟**:
+استعراض والتحقق من الصلاحيات التفصيلية المتاحة للمستخدمين عبر وحدات النظام المختلفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/permissions/catalog/grouped`
 - **Controller**: `PermissionsController -> Roles()`
@@ -2262,6 +2954,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PERM-004 — Get permission by ID or slug
+
+**بتعمل إيه؟**:
+استعراض والتحقق من الصلاحيات التفصيلية المتاحة للمستخدمين عبر وحدات النظام المختلفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/permissions/{id}`
@@ -2315,6 +3013,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SET-001 — Get public system settings (Unauthenticated bootstrap endpoint)
 
+**بتعمل إيه؟**:
+جلب واستعراض إعدادات النظام والتكوينات التشغيلية الحالية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/settings/public`
 - **Controller**: `SettingsController -> Public()`
@@ -2348,6 +3052,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SET-002 — Get all system settings with category filtering
+
+**بتعمل إيه؟**:
+جلب واستعراض إعدادات النظام والتكوينات التشغيلية الحالية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/settings`
@@ -2391,6 +3101,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SET-003 — Set or update a system setting (Super Admin only)
+
+**بتعمل إيه؟**:
+تحديث وضبط إعدادات النظام ومفاتيح الخصائص (Feature Flags) لتفعيل أو إيقاف ميزات معينة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/settings`
@@ -2436,6 +3152,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SET-004 — Delete a system setting (Super Admin only)
 
+**بتعمل إيه؟**:
+جلب واستعراض إعدادات النظام والتكوينات التشغيلية الحالية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/settings/{key}`
 - **Controller**: `SettingsController -> ApiBearerAuth()`
@@ -2476,6 +3198,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SET-005 — List all system feature flags
 
+**بتعمل إيه؟**:
+جلب واستعراض إعدادات النظام والتكوينات التشغيلية الحالية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/settings/flags`
 - **Controller**: `SettingsController -> Public()`
@@ -2514,6 +3242,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SET-006 — Create a feature flag
+
+**بتعمل إيه؟**:
+تحديث وضبط إعدادات النظام ومفاتيح الخصائص (Feature Flags) لتفعيل أو إيقاف ميزات معينة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/settings/flags`
@@ -2558,6 +3292,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SET-007 — Update feature flag status and rules
+
+**بتعمل إيه؟**:
+تحديث وضبط إعدادات النظام ومفاتيح الخصائص (Feature Flags) لتفعيل أو إيقاف ميزات معينة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PUT`
 - **Full URL**: `http://localhost:3000/api/v1/settings/flags/{key}`
@@ -2620,6 +3360,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HR-001 — Get enriched paginated employee list with organizational & hierarchy filters
 
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/hr/employees`
 - **Controller**: `HrController -> Roles()`
@@ -2668,6 +3414,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HR-002 — Get detailed HR employee profile with full hierarchy, documents, and onboarding status
 
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/hr/employees/{id}`
 - **Controller**: `HrController -> Roles()`
@@ -2708,6 +3460,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HR-003 — Reassign employee department, position, section, manager, workplace, or schedule
+
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/hr/employees/{id}/assignment`
@@ -2764,6 +3522,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HR-004 — Add document metadata for employee
 
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/hr/employees/{id}/documents`
 - **Controller**: `HrController -> Roles()`
@@ -2818,6 +3582,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HR-005 — List all document records and verification statuses for employee
 
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/hr/employees/{id}/documents`
 - **Controller**: `HrController -> Roles()`
@@ -2858,6 +3628,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HR-006 — Verify or revoke verification of employee document metadata
+
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/hr/documents/{docId}/verify`
@@ -2904,6 +3680,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HR-007 — Update document metadata
+
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/hr/documents/{docId}`
@@ -2958,6 +3740,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HR-008 — Delete employee document metadata
+
+**بتعمل إيه؟**:
+إدارة سياسات الموارد البشرية، وتتبع عمليات الموظفين وسجلات الامتثال واللوائح الداخلية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/hr/documents/{docId}`
@@ -3028,6 +3816,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-001 — Create a new job opening requisition
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/job-openings`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3081,6 +3875,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-002 — List paginated job openings with filter support
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/job-openings`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3126,6 +3926,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-003 — Get job opening details with applications timeline
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/job-openings/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3165,6 +3971,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-004 — Update job opening parameters or status
+
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/job-openings/{id}`
@@ -3225,6 +4037,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-005 — Delete job opening
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/job-openings/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3264,6 +4082,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-006 — Create candidate talent profile
+
+**بتعمل إيه؟**:
+تسجيل متقدم جديد لشغل وظيفة في الفندق وإرفاق السيرة الذاتية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/candidates`
@@ -3319,6 +4143,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-007 — Search and list candidate talent database
 
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/candidates`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3361,6 +4191,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-008 — Get candidate profile with full application & interview history
 
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/candidates/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3400,6 +4236,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-009 — Update candidate contact details and skills
+
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/candidates/{id}`
@@ -3461,6 +4303,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-010 — Delete candidate record
 
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/candidates/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3500,6 +4348,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-011 — Submit/link candidate application for a job opening
+
+**بتعمل إيه؟**:
+تسجيل متقدم جديد لشغل وظيفة في الفندق وإرفاق السيرة الذاتية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/applications`
@@ -3543,6 +4397,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-012 — List and filter job applications by opening or status
+
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/applications`
@@ -3588,6 +4448,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-013 — Get application details with interview notes and evaluations
 
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/applications/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3627,6 +4493,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-014 — Update application stage, rating, or rejection reason
+
+**بتعمل إيه؟**:
+متابعة وتقييم طلبات المتقدمين للوظائف ومراحل الفرز والمقابلات (ATS).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/applications/{id}`
@@ -3676,6 +4548,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-015 — Schedule candidate interview round
 
+**بتعمل إيه؟**:
+جدولة موعد مقابلة شخصية أو اختبار فني لمرشح للوظيفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/interviews`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3723,6 +4601,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-016 — List scheduled interviews
 
+**بتعمل إيه؟**:
+إدارة مواعيد ونتائج مقابلات التوظيف وتقييمات مسؤولي الأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/interviews`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3767,6 +4651,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-017 — Get interview details and scorecard
 
+**بتعمل إيه؟**:
+إدارة مواعيد ونتائج مقابلات التوظيف وتقييمات مسؤولي الأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/interviews/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3806,6 +4696,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-018 — Update interview time, meeting link, or status
+
+**بتعمل إيه؟**:
+إدارة مواعيد ونتائج مقابلات التوظيف وتقييمات مسؤولي الأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/interviews/{id}`
@@ -3859,6 +4755,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-019 — Submit structured interviewer scorecard and rating
+
+**بتعمل إيه؟**:
+جدولة موعد مقابلة شخصية أو اختبار فني لمرشح للوظيفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/interviews/{id}/evaluations`
@@ -3915,6 +4817,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-020 — Generate job offer for candidate
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/offers`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -3964,6 +4872,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-021 — List all generated job offers
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/offers`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -4008,6 +4922,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REC-022 — Get job offer terms and acceptance status
 
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/offers/{id}`
 - **Controller**: `RecruitmentController -> Roles()`
@@ -4047,6 +4967,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-023 — Update job offer details, status (SENT, ACCEPTED, REJECTED)
+
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/offers/{id}`
@@ -4102,6 +5028,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REC-024 — Execute atomic hiring: Creates corporate user account, employee profile, links hierarchy & starts onboarding
+
+**بتعمل إيه؟**:
+إدارة دورة التوظيف واستقطاب الكفاءات الفندقية من مرحلة الإعلان حتى الاختيار.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/recruitment/hire`
@@ -4173,6 +5105,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ONB-001 — Initialize an onboarding workflow and standard checklist
 
+**بتعمل إيه؟**:
+بدء خطة تهيئة موظف جديد (Onboarding) وتكليفه بقائمة المهام المطلوبة قبل مباشرة العمل.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows`
 - **Controller**: `OnboardingController -> Roles()`
@@ -4214,6 +5152,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-002 — List and track all employee onboarding workflows
+
+**بتعمل إيه؟**:
+إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows`
@@ -4258,6 +5202,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ONB-003 — Get current employee onboarding checklist and roadmap (Self-Service)
 
+**بتعمل إيه؟**:
+إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows/my`
 - **Controller**: `OnboardingController -> Roles()`
@@ -4291,6 +5241,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-004 — Get onboarding workflow details with complete task list
+
+**بتعمل إيه؟**:
+إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows/{id}`
@@ -4331,6 +5287,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-005 — Update onboarding workflow dates or status
+
+**بتعمل إيه؟**:
+إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows/{id}`
@@ -4381,6 +5343,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ONB-006 — Finalize employee onboarding and unlock full profile
 
+**بتعمل إيه؟**:
+إدارة ومتابعة مراحل تهيئة وتسكين الموظفين الجدد في الأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/workflows/{id}/finalize`
 - **Controller**: `OnboardingController -> Roles()`
@@ -4420,6 +5388,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-007 — Add a custom checklist task to an onboarding workflow
+
+**بتعمل إيه؟**:
+بدء خطة تهيئة موظف جديد (Onboarding) وتكليفه بقائمة المهام المطلوبة قبل مباشرة العمل.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/tasks`
@@ -4467,6 +5441,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-008 — Update task metadata, category, or assignment
+
+**بتعمل إيه؟**:
+متابعة وإنجاز مهام تهيئة الموظف الجديد واستلام مسوغات التعيين والزي الرسمي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/tasks/{id}`
@@ -4521,6 +5501,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ONB-009 — Delete an onboarding checklist task
 
+**بتعمل إيه؟**:
+متابعة وإنجاز مهام تهيئة الموظف الجديد واستلام مسوغات التعيين والزي الرسمي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/tasks/{id}`
 - **Controller**: `OnboardingController -> Roles()`
@@ -4560,6 +5546,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ONB-010 — Complete or toggle onboarding task status
+
+**بتعمل إيه؟**:
+متابعة وإنجاز مهام تهيئة الموظف الجديد واستلام مسوغات التعيين والزي الرسمي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/onboarding/tasks/{id}/complete`
@@ -4621,6 +5613,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-001 — Get current employee profile & onboarding status
 
+**بتعمل إيه؟**:
+عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/employees/me`
 - **Controller**: `EmployeesController -> ApiOperation()`
@@ -4655,6 +5653,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### EMP-002 — Complete employee initial onboarding profile
+
+**بتعمل إيه؟**:
+تعديل البيانات الشخصية أو الوظيفية أو المصرفية للموظف.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/employees/me/profile`
@@ -4703,6 +5707,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-003 — Get assigned workplace & geofence parameters for current employee
 
+**بتعمل إيه؟**:
+عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/employees/me/workplace`
 - **Controller**: `EmployeesController -> ApiOperation()`
@@ -4738,6 +5748,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-004 — Get work schedule & server-time working hours for current employee
 
+**بتعمل إيه؟**:
+عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/employees/me/schedule`
 - **Controller**: `EmployeesController -> ApiOperation()`
@@ -4772,6 +5788,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### EMP-005 — Create new employee profile & user account (HR Dashboard)
+
+**بتعمل إيه؟**:
+إضافة وتعيين موظف فندقي جديد في النظام وربطه بالفرع والقسم والمسمى الوظيفي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/employees`
@@ -4826,6 +5848,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-006 — Get paginated employee list
 
+**بتعمل إيه؟**:
+عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/employees`
 - **Controller**: `EmployeesController -> ApiOperation()`
@@ -4867,6 +5895,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-007 — Get employee details by profile ID
 
+**بتعمل إيه؟**:
+عرض دليل وبنك بيانات موظفي الفندق مع إمكانية الفلترة بالفرع والقسم والحالة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/employees/{id}`
 - **Controller**: `EmployeesController -> ApiOperation()`
@@ -4907,6 +5941,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### EMP-008 — Update employee profile (HR Dashboard)
+
+**بتعمل إيه؟**:
+تعديل البيانات الشخصية أو الوظيفية أو المصرفية للموظف.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/employees/{id}`
@@ -4968,6 +6008,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### EMP-009 — Delete employee profile & associated user
 
+**بتعمل إيه؟**:
+إنهاء خدمة موظف وأرشفة سجله الوظيفي في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/employees/{id}`
 - **Controller**: `EmployeesController -> Roles()`
@@ -5019,6 +6065,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WKP-001 — Create a new workplace / branch
 
+**بتعمل إيه؟**:
+تسجيل موقع عمل أو فرع فندقي جديد وتحديد إحداثيات الـ GPS ونصف قطر البصمة (Geofence).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/workplaces`
 - **Controller**: `WorkplacesController -> Roles()`
@@ -5066,6 +6118,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WKP-002 — List all active workplaces
 
+**بتعمل إيه؟**:
+استعراض قائمة مواقع العمل والفروع الفندقية ونطاقاتها الجغرافية المعتمدة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workplaces`
 - **Controller**: `WorkplacesController -> Roles()`
@@ -5099,6 +6157,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WKP-003 — Get workplace details including geofence
+
+**بتعمل إيه؟**:
+استعراض قائمة مواقع العمل والفروع الفندقية ونطاقاتها الجغرافية المعتمدة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workplaces/{id}`
@@ -5139,6 +6203,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WKP-004 — Update workplace settings & geofence
+
+**بتعمل إيه؟**:
+تعديل إحداثيات الموقع أو نطاق الـ Geofence المسموح بتسجيل الحضور داخله.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/workplaces/{id}`
@@ -5192,6 +6262,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WKP-005 — Delete workplace
+
+**بتعمل إيه؟**:
+حذف أو تعطيل موقع عمل من النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/workplaces/{id}`
@@ -5248,6 +6324,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-001 — Register employee check-in with GPS evidence & security signals
 
+**بتعمل إيه؟**:
+تسجيل حركة حضور الموظف بالبصمة الجغرافية مع التحقق الصارم من موقع الـ GPS داخل النطاق المسموح به لمقر العمل (Geofence).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/check-in`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5300,6 +6382,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-002 — Register employee check-out with GPS evidence & duration calculations
 
+**بتعمل إيه؟**:
+تسجيل حركة انصراف الموظف واحتساب ساعات العمل الفعلية وساعات العمل الإضافية (Overtime) آلياً.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/check-out`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5351,6 +6439,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-003 — Get current authenticated employee attendance status for today
 
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/today`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5384,6 +6478,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ATT-004 — Get personal attendance history for current employee (supports month/date filters)
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/me`
@@ -5431,6 +6531,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-005 — Backward-compatible personal attendance history
 
+**بتعمل إيه؟**:
+استعراض سجل حركات الحضور والانصراف التفصيلية للموظفين خلال فترة زمنية محددة مع خيارات الفلترة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/history`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5477,6 +6583,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-006 — HR Manual Attendance Adjustment / Creation with mandatory reason
 
+**بتعمل إيه؟**:
+إدارة وتسجيل ومتابعة عمليات الحضور والانصراف وانضباط القوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/manual`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5520,6 +6632,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ATT-007 — HR Query: Get specific employee attendance records
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/employee/{employeeId}`
@@ -5573,6 +6691,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-008 — HR Query: Get attendance records for a specific workplace/branch
 
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/workplace/{workplaceId}`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5625,6 +6749,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ATT-009 — HR Query: Get attendance records for a specific department
 
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/department/{department}`
 - **Controller**: `AttendanceController -> ApiOperation()`
@@ -5676,6 +6806,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ATT-010 — HR General Query: List attendance records across company
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/attendance/records`
@@ -5731,6 +6867,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFO-001 — Get real-time live presence dashboard for today (checked in, not checked in, late, on leave)
 
+**بتعمل إيه؟**:
+شاشة متابعة الحضور اللحظية في الفندق لمعرفة المتواجدين على رأس العمل والمتأخرين والغائبين الآن.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/live-status`
 - **Controller**: `WorkforceController -> ApiOperation()`
@@ -5777,6 +6919,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFO-002 — Get consolidated attendance & workforce statistics (attendance rate, total work hours, overtime, late)
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/statistics`
@@ -5825,6 +6973,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFO-003 — Get daily / periodic aggregated attendance trends with pagination
 
+**بتعمل إيه؟**:
+استخراج إحصائيات ومعدلات الحضور ونسب الانضباط والغياب الشهرية والأسبوعية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/summary`
 - **Controller**: `WorkforceController -> ApiOperation()`
@@ -5871,6 +7025,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFO-004 — Get department-level workforce distribution, attendance rates, and hours
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/departments`
@@ -5920,6 +7080,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFO-005 — Get workplace/branch-level workforce distribution and performance metrics
 
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/workplaces`
 - **Controller**: `WorkforceController -> ApiOperation()`
@@ -5967,6 +7133,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFO-006 — Identify employees scheduled to work on a date who have no check-in and no approved leave
 
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/absent-employees`
 - **Controller**: `WorkforceController -> ApiOperation()`
@@ -6007,6 +7179,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFO-007 — Batch/auto mark identified absent employees with audit trail recording
+
+**بتعمل إيه؟**:
+إدارة وتسجيل ومتابعة عمليات الحضور والانصراف وانضباط القوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/mark-absent`
@@ -6051,6 +7229,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFO-008 — Get top overtime workers and total overtime hours within period
+
+**بتعمل إيه؟**:
+جلب سجلات وبيانات الحضور والانصراف مع الفلاتر الزمنية والوظيفية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workforce/overtime-summary`
@@ -6109,6 +7293,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SCH-001 — Create a new shift schedule
 
+**بتعمل إيه؟**:
+إنشاء نمط وردية جديد (صباحية، مسائية، ليلية) مع تحديد ساعات البداية والنهاية وفترة السماح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/schedules`
 - **Controller**: `SchedulesController -> Roles()`
@@ -6162,6 +7352,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SCH-002 — List all active shift schedules
 
+**بتعمل إيه؟**:
+استعراض جميع جداول الورديات المعتمدة ومواعيد العمل في الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/schedules`
 - **Controller**: `SchedulesController -> Roles()`
@@ -6195,6 +7391,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SCH-003 — Get schedule details
+
+**بتعمل إيه؟**:
+استعراض جميع جداول الورديات المعتمدة ومواعيد العمل في الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/schedules/{id}`
@@ -6235,6 +7437,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SCH-004 — Update schedule timings
+
+**بتعمل إيه؟**:
+تعديل مواعيد الوردية أو فترة السماح أو ساعات الراحة لجدول عمل.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/schedules/{id}`
@@ -6295,6 +7503,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SCH-005 — Delete schedule
 
+**بتعمل إيه؟**:
+إلغاء أو حذف جدول ورديات من النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/schedules/{id}`
 - **Controller**: `SchedulesController -> Roles()`
@@ -6345,6 +7559,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 | **WFL-006** | `DELETE` | `/api/v1/workflows/{id}` | JWT Bearer | SUPER_ADMIN, HR_ADMIN +1 | Delete workflow definition |
 
 ### WFL-001 — Create a new approval workflow definition
+
+**بتعمل إيه؟**:
+تصميم وتعريف مسار عمل وموافقات إدارية جديد (Workflow) للطلبات والعمليات الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/workflows`
@@ -6398,6 +7618,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFL-002 — List workflows with filtering and pagination
 
+**بتعمل إيه؟**:
+استعراض قائمة مسارات العمل ودورات الموافقات المعتمدة في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workflows`
 - **Controller**: `WorkflowController -> Roles()`
@@ -6443,6 +7669,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFL-003 — Preview/Simulate workflow matching for a given request criteria
 
+**بتعمل إيه؟**:
+تصميم وتعريف مسار عمل وموافقات إدارية جديد (Workflow) للطلبات والعمليات الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/workflows/match-preview`
 - **Controller**: `WorkflowController -> Roles()`
@@ -6476,6 +7708,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFL-004 — Get workflow definition by ID
+
+**بتعمل إيه؟**:
+استعراض قائمة مسارات العمل ودورات الموافقات المعتمدة في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/workflows/{id}`
@@ -6516,6 +7754,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WFL-005 — Update workflow definition
+
+**بتعمل إيه؟**:
+تعديل مستويات وسلسلة الموافقات في مسار عمل محدد.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/workflows/{id}`
@@ -6575,6 +7819,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WFL-006 — Delete workflow definition
 
+**بتعمل إيه؟**:
+حذف مسار عمل إداري من النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/workflows/{id}`
 - **Controller**: `WorkflowController -> Roles()`
@@ -6626,6 +7876,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### APR-001 — Get pending requests awaiting review by current user (as Direct Manager, Dept Head, Role, or Delegate)
 
+**بتعمل إيه؟**:
+جلب قائمة الطلبات المعلقة التي تنتظر موافقة أو توقيع المستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/pending`
 - **Controller**: `ApprovalsController -> ApiOperation()`
@@ -6670,6 +7926,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### APR-002 — Process approval, rejection, or delegation for current active workflow step
+
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/{requestId}/action`
@@ -6718,6 +7980,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### APR-003 — Get full approval history and step progression audit trail for a request
 
+**بتعمل إيه؟**:
+استعراض سجل الموافقات والاعتمادات السابقة وحالاتها وملاحظات المديرين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/history/{requestId}`
 - **Controller**: `ApprovalsController -> ApiOperation()`
@@ -6757,6 +8025,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### APR-004 — Delegate approval authority to another user for a temporary period
+
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/delegations`
@@ -6801,6 +8075,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### APR-005 — List active and historical delegations for current user
 
+**بتعمل إيه؟**:
+استعراض سجل الموافقات والاعتمادات السابقة وحالاتها وملاحظات المديرين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/delegations`
 - **Controller**: `ApprovalsController -> ApiOperation()`
@@ -6834,6 +8114,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### APR-006 — Revoke an active delegation before its expiration
+
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE, 
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/approvals/delegations/{id}/revoke`
@@ -6891,6 +8177,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-001 — Register/Refresh FCM device token for push notifications
 
+**بتعمل إيه؟**:
+إرسال تنبيه أو إشعار فوري لموظف أو مجموعة موظفين داخل التطبيق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/device-token`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -6931,6 +8223,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-002 — Unregister/Deactivate device token on logout
 
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/device-token/{fcmToken}`
 - **Controller**: `NotificationsController -> HttpCode()`
@@ -6969,6 +8267,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### NOTIF-003 — Get current user notifications with pagination & filters
+
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/notifications`
@@ -7015,6 +8319,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-004 — Get current user notifications (alias)
 
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/my`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -7060,6 +8370,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-005 — Get count of unread in-app notifications
 
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/unread-count`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -7092,6 +8408,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### NOTIF-006 — Mark single notification as read
+
+**بتعمل إيه؟**:
+تحديث حالة الإشعار إلى (تمت القراءة) للمستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/{id}/read`
@@ -7132,6 +8454,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-007 — Mark single notification as read (PATCH alias)
 
+**بتعمل إيه؟**:
+تحديث حالة الإشعار إلى (تمت القراءة) للمستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/{id}/read`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -7171,6 +8499,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-008 — Mark all notifications as read in bulk
 
+**بتعمل إيه؟**:
+تحديث حالة الإشعار إلى (تمت القراءة) للمستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/read-all`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -7203,6 +8537,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### NOTIF-009 — Mark all notifications as read in bulk (PATCH alias)
+
+**بتعمل إيه؟**:
+تحديث حالة الإشعار إلى (تمت القراءة) للمستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/read-all`
@@ -7237,6 +8577,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### NOTIF-010 — Get user notification channel preferences
 
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/preferences`
 - **Controller**: `NotificationsController -> ApiOperation()`
@@ -7269,6 +8615,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### NOTIF-011 — Update user notification channel preferences
+
+**بتعمل إيه؟**:
+جلب واستعراض قائمة الإشعارات والتنبيهات الخاصة بالموظف وحالاتها.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/notifications/preferences`
@@ -7327,6 +8679,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ANN-001 — HR: Create a company or department announcement
 
+**بتعمل إيه؟**:
+نشر تعميم أو إعلان إداري جديد لموظفي الفندق مع تحديد الفروع المستهدفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/announcements`
 - **Controller**: `AnnouncementsController -> Roles()`
@@ -7377,6 +8735,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ANN-002 — Get announcements visible to current user (or all if HR)
 
+**بتعمل إيه؟**:
+استعراض الإعلانات والتعميمات الإدارية الصادرة من إدارة الموارد البشرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/announcements`
 - **Controller**: `AnnouncementsController -> ApiOperation()`
@@ -7421,6 +8785,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ANN-003 — View announcement details (auto-marks as read)
 
+**بتعمل إيه؟**:
+استعراض الإعلانات والتعميمات الإدارية الصادرة من إدارة الموارد البشرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/announcements/{id}`
 - **Controller**: `AnnouncementsController -> ApiOperation()`
@@ -7460,6 +8830,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ANN-004 — HR: Publish announcement and broadcast notifications
+
+**بتعمل إيه؟**:
+نشر تعميم أو إعلان إداري جديد لموظفي الفندق مع تحديد الفروع المستهدفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/announcements/{id}/publish`
@@ -7501,6 +8877,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### ANN-005 — HR: Cancel an announcement
 
+**بتعمل إيه؟**:
+نشر تعميم أو إعلان إداري جديد لموظفي الفندق مع تحديد الفروع المستهدفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/announcements/{id}/cancel`
 - **Controller**: `AnnouncementsController -> Roles()`
@@ -7540,6 +8922,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### ANN-006 — Mark announcement as read by employee
+
+**بتعمل إيه؟**:
+نشر تعميم أو إعلان إداري جديد لموظفي الفندق مع تحديد الفروع المستهدفة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/announcements/{id}/read`
@@ -7601,6 +8989,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-001 — Submit a new request (Leave, Absence, Permission, Late Excuse, Early Leave, Half Day, etc.)
 
+**بتعمل إيه؟**:
+تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/requests`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -7653,6 +9047,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-002 — HR: Filtered and paginated queue of employee requests (status, department, workplace, dates)
 
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -7703,6 +9103,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-003 — Get paginated submitted requests for current employee
+
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests/me`
@@ -7755,6 +9161,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-004 — Alias: Get submitted requests for current employee
 
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests/my-requests`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -7806,6 +9218,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-005 — Get current year leave balances and remaining days for current employee
 
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests/leave-balances/me`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -7845,6 +9263,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-006 — HR: Get leave balances for a specific employee
+
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests/leave-balances/employee/{employeeId}`
@@ -7892,6 +9316,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-007 — HR: Allocate / Initialize new leave balance for an employee
 
+**بتعمل إيه؟**:
+تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/requests/leave-balances`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -7934,6 +9364,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-008 — HR: Adjust total or used days on an existing leave balance
+
+**بتعمل إيه؟**:
+تعديل بيانات طلب معلق قبل اعتماده.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/requests/leave-balances/{id}`
@@ -7983,6 +9419,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-009 — Get request details with approval history (IDOR protected: Owner or HR)
 
+**بتعمل إيه؟**:
+استعراض قائمة طلبات الموظفين مع إمكانية الفلترة بنوع الطلب وحالته والتاريخ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -8023,6 +9465,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-010 — Employee: Cancel a pending request
+
+**بتعمل إيه؟**:
+تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/cancel`
@@ -8070,6 +9518,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-011 — Employee: Cancel a pending request (PATCH method)
 
+**بتعمل إيه؟**:
+إلغاء طلب معلق بواسطة الموظف قبل اتخاذ إجراء الاعتماد عليه.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/cancel`
 - **Controller**: `RequestsController -> Roles()`
@@ -8115,6 +9569,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-012 — HR: Approve an employee request (updates leave balance, attendance records, audit & notification)
+
+**بتعمل إيه؟**:
+تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/approve`
@@ -8162,6 +9622,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-013 — HR: Approve an employee request (PATCH method)
 
+**بتعمل إيه؟**:
+تعديل بيانات طلب معلق قبل اعتماده.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/approve`
 - **Controller**: `RequestsController -> Roles()`
@@ -8208,6 +9674,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REQ-014 — HR: Reject an employee request with mandatory reason
 
+**بتعمل إيه؟**:
+تقديم طلب موظف جديد (إجازة سنوية/مرضية، إذن خروج ساعي، عمل عن بعد، سلفة مالية، بدل إضافي).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/reject`
 - **Controller**: `RequestsController -> ApiOperation()`
@@ -8253,6 +9725,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REQ-015 — HR: Reject an employee request with mandatory reason (PATCH method)
+
+**بتعمل إيه؟**:
+تعديل بيانات طلب معلق قبل اعتماده.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/requests/{id}/reject`
@@ -8329,6 +9807,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-001 — Employee: View my current salary profile
 
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/salary/me`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -8362,6 +9846,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-002 — HR: View salary profile for specific employee
+
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/salary/employee/{employeeId}`
@@ -8402,6 +9892,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-003 — HR: Set or update employee salary profile (with history versioning)
+
+**بتعمل إيه؟**:
+إدارة مسيرات الرواتب والسلف المالية والاستقطاعات للموظفين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/salary`
@@ -8447,6 +9943,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-004 — HR: View salary modification history for employee
 
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/salary/history/{employeeId}`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -8486,6 +9988,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-005 — Employee: Request a salary advance
+
+**بتعمل إيه؟**:
+تسجيل طلب صرف سلفة مالية على الراتب لموظف مع خطة الأقساط الشهرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances`
@@ -8528,6 +10036,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-006 — HR: List and filter all salary advance requests
+
+**بتعمل إيه؟**:
+استعراض طلبات وسجلات السلف المالية وأرصدتها المتبقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances`
@@ -8573,6 +10087,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-007 — Employee: View my salary advance requests & installment schedule
 
+**بتعمل إيه؟**:
+استعراض طلبات وسجلات السلف المالية وأرصدتها المتبقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/me`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -8616,6 +10136,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-008 — Employee: View my salary advances (alias)
+
+**بتعمل إيه؟**:
+استعراض طلبات وسجلات السلف المالية وأرصدتها المتبقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/my`
@@ -8661,6 +10187,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-009 — View detailed salary advance with installment schedule
 
+**بتعمل إيه؟**:
+استعراض طلبات وسجلات السلف المالية وأرصدتها المتبقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/{id}`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -8700,6 +10232,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-010 — HR: Approve salary advance and generate installment schedule
+
+**بتعمل إيه؟**:
+تسجيل طلب صرف سلفة مالية على الراتب لموظف مع خطة الأقساط الشهرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/{id}/approve`
@@ -8749,6 +10287,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-011 — HR: Reject salary advance with mandatory reason
 
+**بتعمل إيه؟**:
+تسجيل طلب صرف سلفة مالية على الراتب لموظف مع خطة الأقساط الشهرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/{id}/reject`
 - **Controller**: `PayrollController -> Roles()`
@@ -8793,6 +10337,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-012 — HR / Finance: Record payment towards an advance installment
+
+**بتعمل إيه؟**:
+تسجيل طلب صرف سلفة مالية على الراتب لموظف مع خطة الأقساط الشهرية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/advances/installments/{installmentId}/pay`
@@ -8841,6 +10391,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-013 — HR: Create manual financial deduction or penalty
 
+**بتعمل إيه؟**:
+إدارة الخصومات والجزاءات المالية على الموظفين وربطها بمسير الرواتب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/deductions`
 - **Controller**: `PayrollController -> Roles()`
@@ -8883,6 +10439,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-014 — HR: List and filter all financial deductions
+
+**بتعمل إيه؟**:
+إدارة الخصومات والجزاءات المالية على الموظفين وربطها بمسير الرواتب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/deductions`
@@ -8929,6 +10491,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-015 — Employee: View my deductions
 
+**بتعمل إيه؟**:
+إدارة الخصومات والجزاءات المالية على الموظفين وربطها بمسير الرواتب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/deductions/me`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -8973,6 +10541,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-016 — Employee: View my deductions (alias)
+
+**بتعمل إيه؟**:
+إدارة الخصومات والجزاءات المالية على الموظفين وربطها بمسير الرواتب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/deductions/my`
@@ -9019,6 +10593,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-017 — HR: Create a new monthly payroll period
 
+**بتعمل إيه؟**:
+إدارة مسيرات الرواتب والسلف المالية والاستقطاعات للموظفين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/periods`
 - **Controller**: `PayrollController -> Roles()`
@@ -9060,6 +10640,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-018 — HR: List all payroll periods
 
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/periods`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -9099,6 +10685,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-019 — HR: Run calculation engine for payroll period
+
+**بتعمل إيه؟**:
+تشغيل احتساب مسير الرواتب الشهري للموظفين آلياً بناءً على ساعات العمل، الغياب، الإضافي، والسلف.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/periods/{id}/calculate`
@@ -9149,6 +10741,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-020 — HR / Finance: Finalize and lock payroll period
 
+**بتعمل إيه؟**:
+إقفال واعتماد مسير الرواتب النهائي لشهر محدد وتجهيزه للتحويل البنكي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/periods/{id}/finalize`
 - **Controller**: `PayrollController -> Roles()`
@@ -9197,6 +10795,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-021 — Employee: View my monthly payroll payslips
 
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/me`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -9243,6 +10847,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PAY-022 — View detailed payslip with itemized line items
 
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/records/{id}`
 - **Controller**: `PayrollController -> ApiOperation()`
@@ -9282,6 +10892,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-023 — HR: Create post-finalization adjustment for payroll record
+
+**بتعمل إيه؟**:
+إدارة مسيرات الرواتب والسلف المالية والاستقطاعات للموظفين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/payroll/records/{id}/adjust`
@@ -9330,6 +10946,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PAY-024 — HR: List and filter all employee payroll records
+
+**بتعمل إيه؟**:
+جلب كشوف وبيانات الرواتب ودورات الدفع الشهرية للمؤسسة الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/payroll`
@@ -9391,6 +11013,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-001 — Start a new 1-on-1 conversation
 
+**بتعمل إيه؟**:
+إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/messages/conversations`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9433,6 +11061,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-002 — Get current user conversations list with unread badges
 
+**بتعمل إيه؟**:
+جلب المحادثات وقنوات التواصل الخاصة بالموظف الحالي وسجل الرسائل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/messages/conversations`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9465,6 +11099,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MSG-003 — Create a new group conversation with participants
+
+**بتعمل إيه؟**:
+إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/messages/groups`
@@ -9509,6 +11149,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-004 — Get total unread messages count for current user
 
+**بتعمل إيه؟**:
+إدارة المراسلات الداخلية والمحادثات الفورية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/messages/unread-count`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9541,6 +11187,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MSG-005 — Get paginated message history for a conversation
+
+**بتعمل إيه؟**:
+جلب المحادثات وقنوات التواصل الخاصة بالموظف الحالي وسجل الرسائل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/messages/conversations/{id}`
@@ -9589,6 +11241,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-006 — Send a message in a conversation
 
+**بتعمل إيه؟**:
+إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/messages/conversations/{id}/messages`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9636,6 +11294,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-007 — Send a message (with conversationId in body)
 
+**بتعمل إيه؟**:
+إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/messages`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9677,6 +11341,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MSG-008 — Mark all messages in a conversation as read
 
+**بتعمل إيه؟**:
+إرسال رسالة جديدة في محادثة فردية أو جماعية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/messages/conversations/{id}/read`
 - **Controller**: `MessagesController -> ApiOperation()`
@@ -9715,6 +11385,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MSG-009 — Soft delete a message (sender or HR admin)
+
+**بتعمل إيه؟**:
+إدارة المراسلات الداخلية والمحادثات الفورية بين موظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/messages/{id}`
@@ -9778,6 +11454,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-001 — HR Dashboard summary KPIs, today attendance, pending items
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/dashboard`
 - **Controller**: `ReportsController -> Roles()`
@@ -9811,6 +11493,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-002 — Employee self-report (own attendance rate, late minutes, absences, requests, advances, payroll)
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/me`
@@ -9857,6 +11545,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-003 — Comprehensive attendance analytics with rates & date ranges
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/attendance`
@@ -9909,6 +11603,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-004 — Late arrival analytics, top offenders, and distribution
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/attendance/late`
 - **Controller**: `ReportsController -> Roles()`
@@ -9959,6 +11659,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-005 — Absence analytics (approved vs unapproved, rates, distribution)
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/attendance/absence`
@@ -10011,6 +11717,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-006 — Attendance security telemetry (geofence breaches, GPS accuracy, suspicious device signals)
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/attendance/security`
 - **Controller**: `ReportsController -> Roles()`
@@ -10056,6 +11768,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-007 — Export filtered attendance reports with formula injection protection (CSV)
+
+**بتعمل إيه؟**:
+تصدير وطباعة التقرير بصيغة PDF أو Excel للتحليل والمراجعة الإدارية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/attendance/export`
@@ -10109,6 +11827,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-008 — Request analytics, approval/rejection rates & processing duration
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/requests`
 - **Controller**: `ReportsController -> Roles()`
@@ -10160,6 +11884,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-009 — Payroll analytics, gross/net trends, departmental payroll
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/payroll`
 - **Controller**: `ReportsController -> Roles()`
@@ -10210,6 +11940,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-010 — Deduction analytics grouped by type and department
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/deductions`
 - **Controller**: `ReportsController -> Roles()`
@@ -10259,6 +11995,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-011 — Salary advance analytics, active balances, repayment stats
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/advances`
 - **Controller**: `ReportsController -> Roles()`
@@ -10307,6 +12049,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-012 — Employee distribution by department, workplace, and job title
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/employees`
 - **Controller**: `ReportsController -> Roles()`
@@ -10353,6 +12101,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-013 — Department performance metrics and headcount stats
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/departments`
 - **Controller**: `ReportsController -> Roles()`
@@ -10387,6 +12141,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-014 — Workplace operational metrics, geofence breaches, manual edits
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/workplaces`
@@ -10433,6 +12193,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-015 — Comprehensive task KPIs, completion/overdue rates & status breakdown
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/tasks`
@@ -10486,6 +12252,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### REP-016 — Employee task productivity, completion rates & performance ratings
 
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/tasks/employees`
 - **Controller**: `ReportsController -> Roles()`
@@ -10537,6 +12309,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-017 — Departmental task load, active bottlenecks & completion rates
+
+**بتعمل إيه؟**:
+استخراج وعرض التقارير التحليلية والإحصائية لعمليات الفندق والقوى العاملة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/tasks/departments`
@@ -10590,6 +12368,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### REP-018 — Export tasks report with CSV injection protection
+
+**بتعمل إيه؟**:
+تصدير وطباعة التقرير بصيغة PDF أو Excel للتحليل والمراجعة الإدارية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/reports/tasks/export`
@@ -10648,6 +12432,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 | **AUD-001** | `GET` | `/api/v1/audit-logs` | JWT Bearer | SUPER_ADMIN, HR_ADMIN | List all system audit logs |
 
 ### AUD-001 — List all system audit logs
+
+**بتعمل إيه؟**:
+استعراض سجل الرقابة والتدقيق الأمني (Audit Trail) لجميع العمليات الحساسة لمعرفة من قام بأي إجراء ومتى بالتفصيل.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/audit-logs`
@@ -10714,6 +12504,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-001 — Create a new task and optionally assign to an employee
 
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks`
 - **Controller**: `TasksController -> Roles()`
@@ -10761,6 +12557,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-002 — List tasks with pagination, filters and search
+
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks`
@@ -10812,6 +12614,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-003 — Get current employee assigned and created tasks
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/my`
 - **Controller**: `TasksController -> ApiOperation()`
@@ -10862,6 +12670,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-004 — Get task details including checklist, comments, and attachments
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}`
 - **Controller**: `TasksController -> ApiOperation()`
@@ -10901,6 +12715,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-005 — Update task metadata, priority, due date, or progress
+
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}`
@@ -10957,6 +12777,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-006 — Delete or cancel task
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}`
 - **Controller**: `TasksController -> UseGuards()`
@@ -10996,6 +12822,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-007 — Assign or reassign task to an employee
+
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/assign`
@@ -11043,6 +12875,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-008 — Assigned employee accepts task (TODO -> ACCEPTED)
 
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/accept`
 - **Controller**: `TasksController -> Roles()`
@@ -11082,6 +12920,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-009 — Update task lifecycle status (IN_PROGRESS, BLOCKED, etc.)
+
+**بتعمل إيه؟**:
+تحديث حالة المهمة (جارية، معلقة، مكتملة) وتوثيق نسبة الإنجاز.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/status`
@@ -11129,6 +12973,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-010 — Add checklist item to task
 
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/checklist`
 - **Controller**: `TasksController -> Roles()`
@@ -11174,6 +13024,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-011 — Toggle or update checklist item (auto-updates progress %)
+
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/checklist/{itemId}`
@@ -11223,6 +13079,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-012 — Delete checklist item from task
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/checklist/{itemId}`
 - **Controller**: `TasksController -> UseGuards()`
@@ -11263,6 +13125,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-013 — Add comment to task
+
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/comments`
@@ -11310,6 +13178,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-014 — Get all comments for a task
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/comments`
 - **Controller**: `TasksController -> ApiOperation()`
@@ -11349,6 +13223,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-015 — Attach file metadata to task
+
+**بتعمل إيه؟**:
+إنشاء مهمة عمل جديدة وتكليف موظف أو فريق بإنجازها مع تحديد الموعد النهائي والأولوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/attachments`
@@ -11398,6 +13278,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TSK-016 — List task attachments
 
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/attachments`
 - **Controller**: `TasksController -> ApiOperation()`
@@ -11437,6 +13323,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TSK-017 — Get chronological audit history for a task
+
+**بتعمل إيه؟**:
+متابعة وإدارة المهام التشغيلية ومستوى إنجاز فرق العمل داخل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/tasks/{id}/history`
@@ -11487,6 +13379,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 | **WKM-005** | `POST` | `/api/v1/work-management/check-overdue` | JWT Bearer | SUPER_ADMIN, HR_ADMIN +2 | Trigger low-resource scan to flag overdue tasks |
 
 ### WKM-001 — Employee submits task execution report upon finishing work (Transitions task to PENDING_REVIEW)
+
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/work-management/tasks/{id}/report`
@@ -11542,6 +13440,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WKM-002 — Manager reviews task report: APPROVE (completes task) or REJECT (returns to IN_PROGRESS)
 
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/work-management/tasks/{id}/review`
 - **Controller**: `WorkManagementController -> ApiOperation()`
@@ -11589,6 +13493,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### WKM-003 — Get queue of pending task reviews for manager
 
+**بتعمل إيه؟**:
+جلب قائمة الطلبات المعلقة التي تنتظر موافقة أو توقيع المستخدم الحالي.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/work-management/pending-reviews`
 - **Controller**: `WorkManagementController -> Roles()`
@@ -11628,6 +13538,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WKM-004 — Get team/department workload breakdown, task distribution & capacity
+
+**بتعمل إيه؟**:
+استعراض سجل الموافقات والاعتمادات السابقة وحالاتها وملاحظات المديرين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/work-management/department-workload`
@@ -11670,6 +13586,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### WKM-005 — Trigger low-resource scan to flag overdue tasks
+
+**بتعمل إيه؟**:
+إدارة عمليات مراجعة واعتماد طلبات الموظفين والأعمال الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/work-management/check-overdue`
@@ -11721,6 +13643,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-001 — Create a new service request
 
+**بتعمل إيه؟**:
+إنشاء طلب خدمة فندقية جديد من النزيل أو القسم وتوجيهه للجهة المختصة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests`
 - **Controller**: `ServiceRequestsController -> ApiOperation()`
@@ -11765,6 +13693,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SRV-002 — List service requests with filters and pagination
+
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests`
@@ -11814,6 +13748,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-003 — Get service request details by ID
 
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}`
 - **Controller**: `ServiceRequestsController -> ApiOperation()`
@@ -11852,6 +13792,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SRV-004 — Assign service request to an employee / technician
+
+**بتعمل إيه؟**:
+إسناد طلب خدمة فندقية (مثل تنظيف، خدمة غرف، حقائب) إلى موظف التنفيذ المتاح.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/assign`
@@ -11899,6 +13845,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-005 — Start working on a service request (status -> IN_PROGRESS)
 
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/start`
 - **Controller**: `ServiceRequestsController -> UseGuards()`
@@ -11937,6 +13889,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SRV-006 — Mark service request as COMPLETED with resolution notes
+
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/complete`
@@ -11985,6 +13943,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-007 — Customer/Requester review and sign-off (ACCEPT or REVISION)
 
+**بتعمل إيه؟**:
+إنشاء طلب خدمة فندقية جديد من النزيل أو القسم وتوجيهه للجهة المختصة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/review`
 - **Controller**: `ServiceRequestsController -> ApiOperation()`
@@ -12031,6 +13995,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-008 — Directly close a service request
 
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/close`
 - **Controller**: `ServiceRequestsController -> UseGuards()`
@@ -12069,6 +14039,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SRV-009 — Cancel a service request (by requester or admin)
+
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/cancel`
@@ -12109,6 +14085,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SRV-010 — Reject a service request (by department supervisor or admin)
 
+**بتعمل إيه؟**:
+إدارة ومتابعة طلبات الخدمات الفندقية ومعدل سرعة الاستجابة وخدمة النزلاء.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/reject`
 - **Controller**: `ServiceRequestsController -> UseGuards()`
@@ -12147,6 +14129,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SRV-011 — Add a comment or internal note to the service request
+
+**بتعمل إيه؟**:
+إنشاء طلب خدمة فندقية جديد من النزيل أو القسم وتوجيهه للجهة المختصة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/service-requests/{id}/comments`
@@ -12204,6 +14192,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HND-001 — Create a new shift handover with notes & open tasks
 
+**بتعمل إيه؟**:
+تسجيل محضر تسليم واستلام الوردية (Handover) وتدوين الملاحظات والمهام المعلقة للوردية القادمة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/handover`
 - **Controller**: `HandoverController -> ApiOperation()`
@@ -12251,6 +14245,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HND-002 — List shift handovers with filters and pagination
+
+**بتعمل إيه؟**:
+استعراض سجلات تسليم الورديات بين موظفي الأقسام الفندقية للتحقق من استمرارية التشغيل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/handover`
@@ -12300,6 +14300,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### HND-003 — Get shift handover details by ID
 
+**بتعمل إيه؟**:
+استعراض سجلات تسليم الورديات بين موظفي الأقسام الفندقية للتحقق من استمرارية التشغيل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/handover/{id}`
 - **Controller**: `HandoverController -> ApiOperation()`
@@ -12338,6 +14344,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HND-004 — Acknowledge, flag or reject a shift handover
+
+**بتعمل إيه؟**:
+استعراض سجلات تسليم الورديات بين موظفي الأقسام الفندقية للتحقق من استمرارية التشغيل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/handover/{id}/acknowledge`
@@ -12384,6 +14396,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### HND-005 — Add an item, task, or incident to the shift handover
+
+**بتعمل إيه؟**:
+تسجيل محضر تسليم واستلام الوردية (Handover) وتدوين الملاحظات والمهام المعلقة للوردية القادمة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/handover/{id}/items`
@@ -12443,6 +14461,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### DPT-001 — Get real-time operational telemetry and dashboard for a department
 
+**بتعمل إيه؟**:
+إدارة ومتابعة العمليات التشغيلية واللوجستية الداخلية للأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/department-operations/overview`
 - **Controller**: `DepartmentOperationsController -> ApiOperation()`
@@ -12482,6 +14506,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### DPT-002 — Triage and assign a service request with priority & deadline
+
+**بتعمل إيه؟**:
+إدارة ومتابعة العمليات التشغيلية واللوجستية الداخلية للأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/department-operations/triage`
@@ -12524,6 +14554,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### DPT-003 — Get operational KPI report (completion rates, resolution SLA, workload)
+
+**بتعمل إيه؟**:
+إدارة ومتابعة العمليات التشغيلية واللوجستية الداخلية للأقسام الفندقية.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/department-operations/reports`
@@ -12579,6 +14615,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AST-001 — Create an asset category
 
+**بتعمل إيه؟**:
+تسجيل أصل أو جهاز فندقي جديد في العهدة (مثل تكييفات، أثاث غرف، أجهزة مطبخ) وتحديد الباركود وقيمة الشراء.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/assets/categories`
 - **Controller**: `AssetsController -> Roles()`
@@ -12622,6 +14664,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AST-002 — List all asset categories
 
+**بتعمل إيه؟**:
+استعراض سجل الأصول والمعدات الفندقية وتوزيعها على الفروع والأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/assets/categories`
 - **Controller**: `AssetsController -> ApiOperation()`
@@ -12655,6 +14703,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AST-003 — Register a new asset
+
+**بتعمل إيه؟**:
+تسجيل أصل أو جهاز فندقي جديد في العهدة (مثل تكييفات، أثاث غرف، أجهزة مطبخ) وتحديد الباركود وقيمة الشراء.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/assets`
@@ -12711,6 +14765,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AST-004 — List assets with pagination and filters
 
+**بتعمل إيه؟**:
+استعراض سجل الأصول والمعدات الفندقية وتوزيعها على الفروع والأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/assets`
 - **Controller**: `AssetsController -> ApiOperation()`
@@ -12756,6 +14816,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AST-005 — Get asset details by ID
 
+**بتعمل إيه؟**:
+استعراض سجل الأصول والمعدات الفندقية وتوزيعها على الفروع والأقسام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/assets/{id}`
 - **Controller**: `AssetsController -> ApiOperation()`
@@ -12795,6 +14861,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AST-006 — Update asset metadata, status, location, or assignment
+
+**بتعمل إيه؟**:
+تحديث بيانات الأصل الفندقي (الموقع، الحالة التشغيلية، المسؤول عنه).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/assets/{id}`
@@ -12857,6 +14929,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### AST-007 — Delete an asset
 
+**بتعمل إيه؟**:
+إدارة أصول ومعدات الفندق الثابتة وجردها وتتبع إهلاكها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/assets/{id}`
 - **Controller**: `AssetsController -> Roles()`
@@ -12896,6 +14974,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### AST-008 — Calculate straight-line depreciation for an asset
+
+**بتعمل إيه؟**:
+تسجيل أصل أو جهاز فندقي جديد في العهدة (مثل تكييفات، أثاث غرف، أجهزة مطبخ) وتحديد الباركود وقيمة الشراء.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/assets/{id}/calculate-depreciation`
@@ -12953,6 +15037,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-001 — Create a maintenance request
 
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/requests`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -12998,6 +15088,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MNT-002 — List maintenance requests with pagination and filters
+
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/requests`
@@ -13046,6 +15142,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-003 — Get maintenance request details
 
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/requests/{id}`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13086,6 +15188,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MNT-004 — Update maintenance request status or resolution
+
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/requests/{id}`
@@ -13136,6 +15244,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-005 — Create a maintenance work order
 
+**بتعمل إيه؟**:
+إصدار أمر شغل صيانة جديد (Work Order) لعطل في غرفة أو مرفق بالفندق مع تحديد درجة الأهمية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/work-orders`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13183,6 +15297,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-006 — List work orders with pagination and filters
 
+**بتعمل إيه؟**:
+متابعة وإدارة أوامر شغل الصيانة المفتوحة والجارية والمنتهية في الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/work-orders`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13228,6 +15348,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-007 — Get work order details including spare parts and technicians
 
+**بتعمل إيه؟**:
+متابعة وإدارة أوامر شغل الصيانة المفتوحة والجارية والمنتهية في الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/work-orders/{id}`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13268,6 +15394,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### MNT-008 — Update work order status, technician, or hours
+
+**بتعمل إيه؟**:
+متابعة وإدارة أوامر شغل الصيانة المفتوحة والجارية والمنتهية في الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/work-orders/{id}`
@@ -13320,6 +15452,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-009 — Consume spare parts on a work order and decrement inventory
 
+**بتعمل إيه؟**:
+إصدار أمر شغل صيانة جديد (Work Order) لعطل في غرفة أو مرفق بالفندق مع تحديد درجة الأهمية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/work-orders/{id}/spare-parts`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13367,6 +15505,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-010 — Register a new spare part in catalog
 
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/spare-parts`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13413,6 +15557,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### MNT-011 — List all spare parts catalog
 
+**بتعمل إيه؟**:
+استعراض وإدارة بلاغات وأوامر الصيانة الفندقية ومؤشرات سرعة الإصلاح.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/maintenance/spare-parts`
 - **Controller**: `MaintenanceController -> ApiOperation()`
@@ -13458,6 +15608,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### KEY-001 — Register a new physical key
 
+**بتعمل إيه؟**:
+تسجيل مفتاح مادي أو بطاقة دخول إلكترونية جديدة في نظام الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/keys`
 - **Controller**: `KeysController -> Roles()`
@@ -13502,6 +15658,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### KEY-002 — List physical keys with pagination and filters
 
+**بتعمل إيه؟**:
+إدارة ومتابعة حركة مفاتيح وكروت الغرف والمرافق الحيوية في الفندق لضمان الأمان.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/keys`
 - **Controller**: `KeysController -> ApiOperation()`
@@ -13545,6 +15707,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### KEY-003 — Get key details including active assignment and access history
 
+**بتعمل إيه؟**:
+إدارة ومتابعة حركة مفاتيح وكروت الغرف والمرافق الحيوية في الفندق لضمان الأمان.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/keys/{id}`
 - **Controller**: `KeysController -> ApiOperation()`
@@ -13584,6 +15752,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### KEY-004 — Assign a key to an employee
+
+**بتعمل إيه؟**:
+إصدار وتسليم مفتاح أو بطاقة غرفة/جناح فندقي لنزيل أو موظف مع تسجيل وقت التسليم.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/keys/{id}/assign`
@@ -13632,6 +15806,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### KEY-005 — Return an assigned key and increment available copies
 
+**بتعمل إيه؟**:
+إصدار وتسليم مفتاح أو بطاقة غرفة/جناح فندقي لنزيل أو موظف مع تسجيل وقت التسليم.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/keys/assignments/{assignmentId}/return`
 - **Controller**: `KeysController -> Roles()`
@@ -13676,6 +15856,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### KEY-006 — Log a physical access event for this key
+
+**بتعمل إيه؟**:
+تسجيل مفتاح مادي أو بطاقة دخول إلكترونية جديدة في نظام الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/keys/{id}/access-log`
@@ -13741,6 +15927,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-001 — Create a new warehouse or storage location
 
+**بتعمل إيه؟**:
+إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/warehouses`
 - **Controller**: `InventoryController -> Roles()`
@@ -13784,6 +15976,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-002 — List all warehouses
 
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/warehouses`
 - **Controller**: `InventoryController -> ApiOperation()`
@@ -13817,6 +16015,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INV-003 — Create a stock category
+
+**بتعمل إيه؟**:
+إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/categories`
@@ -13859,6 +16063,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-004 — List stock categories
 
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/categories`
 - **Controller**: `InventoryController -> ApiOperation()`
@@ -13892,6 +16102,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INV-005 — Create a new stock item with SKU, thresholds, and initial balance
+
+**بتعمل إيه؟**:
+إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/items`
@@ -13945,6 +16161,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-006 — List stock items with search, warehouse filter, and low-stock indicator
 
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/items`
 - **Controller**: `InventoryController -> ApiOperation()`
@@ -13989,6 +16211,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-007 — Get stock item details
 
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/items/{id}`
 - **Controller**: `InventoryController -> ApiOperation()`
@@ -14028,6 +16256,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INV-008 — Update stock item metadata, thresholds, or pricing
+
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/items/{id}`
@@ -14087,6 +16321,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-009 — Execute a stock movement (RECEIVE, ISSUE, TRANSFER, ADJUST)
 
+**بتعمل إيه؟**:
+إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/movements`
 - **Controller**: `InventoryController -> Roles()`
@@ -14133,6 +16373,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-010 — List stock movement history with filters
 
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/movements`
 - **Controller**: `InventoryController -> ApiOperation()`
@@ -14175,6 +16421,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INV-011 — Initiate a physical inventory count audit session
 
+**بتعمل إيه؟**:
+إضافة صنف استهلاكي أو تشغيلي جديد إلى دليل أصناف المخازن الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/counts`
 - **Controller**: `InventoryController -> Roles()`
@@ -14214,6 +16466,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INV-012 — List stock count audit sessions
+
+**بتعمل إيه؟**:
+متابعة وإدارة أرصدة المخازن والمستودعات الفندقية وحركات الأصناف ومستويات إعادة الطلب.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/inventory/counts`
@@ -14274,6 +16532,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-001 — Register a new supplier
 
+**بتعمل إيه؟**:
+تسجيل مورد تجاري جديد للفندق وتوثيق بيانات الاتصال وشروط الدفع والتعاقد.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/suppliers`
 - **Controller**: `ProcurementController -> Roles()`
@@ -14321,6 +16585,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-002 — List suppliers with search and pagination
 
+**بتعمل إيه؟**:
+إدارة قائمة الموردين المعتمدين وسجل التعاملات والتقييم الدوري لكل مورد.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/suppliers`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14362,6 +16632,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-003 — Get supplier details by ID
 
+**بتعمل إيه؟**:
+إدارة قائمة الموردين المعتمدين وسجل التعاملات والتقييم الدوري لكل مورد.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/suppliers/{id}`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14401,6 +16677,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRC-004 — Update supplier details or rating
+
+**بتعمل إيه؟**:
+إدارة قائمة الموردين المعتمدين وسجل التعاملات والتقييم الدوري لكل مورد.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/suppliers/{id}`
@@ -14455,6 +16737,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-005 — Create a purchase request (PR)
 
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/requests`
 - **Controller**: `ProcurementController -> Roles()`
@@ -14499,6 +16787,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-006 — List purchase requests with filters
 
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/requests`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14542,6 +16836,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-007 — Get purchase request details
 
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/requests/{id}`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14583,6 +16883,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-008 — Approve a purchase request
 
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/requests/{id}/approve`
 - **Controller**: `ProcurementController -> Roles()`
@@ -14623,6 +16929,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRC-009 — Create a purchase order (PO) from scratch or from approved PR
+
+**بتعمل إيه؟**:
+إنشاء أمر شراء رسمي (Purchase Order) وتوجيهه للمورد لتوريد مستلزمات الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/orders`
@@ -14670,6 +16982,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-010 — List purchase orders with filters
 
+**بتعمل إيه؟**:
+إدارة ومتابعة أوامر الشراء وحالات استلام البضائع من الموردين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/orders`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14713,6 +17031,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-011 — Get purchase order details and items
 
+**بتعمل إيه؟**:
+إدارة ومتابعة أوامر الشراء وحالات استلام البضائع من الموردين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/orders/{id}`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14754,6 +17078,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-012 — Update purchase order status (SENT, PARTIALLY_RECEIVED, RECEIVED, etc.)
 
+**بتعمل إيه؟**:
+إدارة ومتابعة أوامر الشراء وحالات استلام البضائع من الموردين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/orders/{id}/status`
 - **Controller**: `ProcurementController -> Roles()`
@@ -14794,6 +17124,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRC-013 — Register a supplier invoice matched with PO
+
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/invoices`
@@ -14841,6 +17177,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRC-014 — List supplier invoices with status filters
 
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/invoices`
 - **Controller**: `ProcurementController -> ApiOperation()`
@@ -14882,6 +17224,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRC-015 — Get supplier invoice details
+
+**بتعمل إيه؟**:
+إدارة عمليات المشتريات والتوريد وعروض الأسعار لمستلزمات وتشغيل الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/procurement/invoices/{id}`
@@ -14941,6 +17289,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-001 — Create a chart of accounts entry
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/accounts`
 - **Controller**: `FinanceController -> Roles()`
@@ -14985,6 +17339,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-002 — Get chart of accounts tree
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/accounts`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15018,6 +17378,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### FIN-003 — Create a balanced double-entry journal entry
+
+**بتعمل إيه؟**:
+تسجيل أو استعراض قيود اليومية المحاسبية المزدوجة وضبط توازن الدائن والمدين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/journal-entries`
@@ -15061,6 +17427,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-004 — List journal entries with pagination and filters
 
+**بتعمل إيه؟**:
+تسجيل أو استعراض قيود اليومية المحاسبية المزدوجة وضبط توازن الدائن والمدين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/journal-entries`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15103,6 +17475,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-005 — Get journal entry details including debit/credit lines
 
+**بتعمل إيه؟**:
+تسجيل أو استعراض قيود اليومية المحاسبية المزدوجة وضبط توازن الدائن والمدين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/journal-entries/{id}`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15143,6 +17521,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-006 — Post a journal entry to the general ledger
 
+**بتعمل إيه؟**:
+تسجيل أو استعراض قيود اليومية المحاسبية المزدوجة وضبط توازن الدائن والمدين.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/journal-entries/{id}/post`
 - **Controller**: `FinanceController -> Roles()`
@@ -15182,6 +17566,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### FIN-007 — Record a financial expense
+
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/expenses`
@@ -15230,6 +17620,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-008 — List financial expenses with filters
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/expenses`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15273,6 +17669,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-009 — Update expense status (APPROVED, PAID, REJECTED)
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/finance/expenses/{id}/status`
 - **Controller**: `FinanceController -> Roles()`
@@ -15312,6 +17714,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### FIN-010 — Record a financial revenue or income
+
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/revenues`
@@ -15360,6 +17768,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-011 — List financial revenues with filters
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/revenues`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15401,6 +17815,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### FIN-012 — Register a bank account
+
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/finance/bank-accounts`
@@ -15446,6 +17866,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### FIN-013 — List active bank accounts
 
+**بتعمل إيه؟**:
+إدارة الحسابات المالية العامة، قيود اليومية، والدورات المحاسبية للفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/finance/bank-accounts`
 - **Controller**: `FinanceController -> ApiOperation()`
@@ -15489,6 +17915,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 | **BDG-005** | `POST` | `/api/v1/budget/spend` | JWT Bearer | SUPER_ADMIN, HR_ADMIN +1 | Record spending against a specific budget line |
 
 ### BDG-001 — Create a budget plan with category allocation lines
+
+**بتعمل إيه؟**:
+إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/budget`
@@ -15538,6 +17970,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BDG-002 — List budgets with filters
 
+**بتعمل إيه؟**:
+إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/budget`
 - **Controller**: `BudgetController -> ApiOperation()`
@@ -15581,6 +18019,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BDG-003 — Get budget details and lines
 
+**بتعمل إيه؟**:
+إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/budget/{id}`
 - **Controller**: `BudgetController -> ApiOperation()`
@@ -15621,6 +18065,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BDG-004 — Update budget status (APPROVED, ACTIVE, CLOSED)
 
+**بتعمل إيه؟**:
+إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/budget/{id}/status`
 - **Controller**: `BudgetController -> Roles()`
@@ -15660,6 +18110,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### BDG-005 — Record spending against a specific budget line
+
+**بتعمل إيه؟**:
+إدارة وضبط الموازنات التقديرية التشغيلية لأقسام الفندق ومقارنتها بالمصروفات الفعلية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/budget/spend`
@@ -15713,6 +18169,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INC-001 — Report an incident (safety, security, guest, employee)
 
+**بتعمل إيه؟**:
+تسجيل بلاغ حادث أمني أو مهني جديد داخل الفندق وتوثيق التفاصيل والمصابين إن وجدوا.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/incidents`
 - **Controller**: `IncidentsController -> ApiOperation()`
@@ -15761,6 +18223,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INC-002 — List incidents with filters and search
 
+**بتعمل إيه؟**:
+متابعة والتحقيق في حوادث الأمن والسلامة المهنية وإجراءات تصحيح المسار بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/incidents`
 - **Controller**: `IncidentsController -> ApiOperation()`
@@ -15806,6 +18274,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INC-003 — Get incident details, investigations, and corrective actions
 
+**بتعمل إيه؟**:
+متابعة والتحقيق في حوادث الأمن والسلامة المهنية وإجراءات تصحيح المسار بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/incidents/{id}`
 - **Controller**: `IncidentsController -> ApiOperation()`
@@ -15845,6 +18319,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INC-004 — Update incident status or severity
+
+**بتعمل إيه؟**:
+متابعة والتحقيق في حوادث الأمن والسلامة المهنية وإجراءات تصحيح المسار بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/incidents/{id}`
@@ -15891,6 +18371,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INC-005 — Add an investigation finding and root cause analysis
+
+**بتعمل إيه؟**:
+تسجيل بلاغ حادث أمني أو مهني جديد داخل الفندق وتوثيق التفاصيل والمصابين إن وجدوا.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/incidents/{id}/investigation`
@@ -15939,6 +18425,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INC-006 — Assign a corrective action for an incident
 
+**بتعمل إيه؟**:
+تسجيل بلاغ حادث أمني أو مهني جديد داخل الفندق وتوثيق التفاصيل والمصابين إن وجدوا.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/incidents/{id}/corrective-actions`
 - **Controller**: `IncidentsController -> ApiOperation()`
@@ -15986,6 +18478,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INC-007 — Resolve and close a corrective action
+
+**بتعمل إيه؟**:
+متابعة والتحقيق في حوادث الأمن والسلامة المهنية وإجراءات تصحيح المسار بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/incidents/corrective-actions/{actionId}/resolve`
@@ -16036,6 +18534,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 | **DOC-005** | `PATCH` | `/api/v1/documents/{id}/archive` | JWT Bearer | SUPER_ADMIN, HR_ADMIN +1 | Archive an obsolete document |
 
 ### DOC-001 — Upload and register a document in central archive
+
+**بتعمل إيه؟**:
+أرشفة ورفع مستند أو عقد رسمي جديد في نظام إدارة الوثائق الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/documents`
@@ -16088,6 +18592,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### DOC-002 — List accessible documents based on user role
 
+**بتعمل إيه؟**:
+استعراض وإدارة المستندات والعقود والوثائق الرسمية المصنفة في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/documents`
 - **Controller**: `DocumentsController -> ApiOperation()`
@@ -16132,6 +18642,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### DOC-003 — Get document details and version history
 
+**بتعمل إيه؟**:
+استعراض وإدارة المستندات والعقود والوثائق الرسمية المصنفة في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/documents/{id}`
 - **Controller**: `DocumentsController -> ApiOperation()`
@@ -16171,6 +18687,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### DOC-004 — Upload a new version of an existing document
+
+**بتعمل إيه؟**:
+أرشفة ورفع مستند أو عقد رسمي جديد في نظام إدارة الوثائق الفندقية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/documents/{id}/versions`
@@ -16218,6 +18740,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### DOC-005 — Archive an obsolete document
+
+**بتعمل إيه؟**:
+استعراض وإدارة المستندات والعقود والوثائق الرسمية المصنفة في النظام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/documents/{id}/archive`
@@ -16269,6 +18797,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### LNF-001 — Register a found item
 
+**بتعمل إيه؟**:
+تسجيل أمانة أو مقتنيات مفقودة تم العثور عليها في غرف أو مرافق الفندق مع وصفها وصورتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/lost-found`
 - **Controller**: `LostFoundController -> ApiOperation()`
@@ -16316,6 +18850,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### LNF-002 — List lost and found items with filters and search
 
+**بتعمل إيه؟**:
+استعراض وإدارة سجل المفقودات والأمانات الخاصة بالنزلاء وأماكن حفظها بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/lost-found`
 - **Controller**: `LostFoundController -> ApiOperation()`
@@ -16359,6 +18899,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### LNF-003 — Get details of a lost & found item
 
+**بتعمل إيه؟**:
+استعراض وإدارة سجل المفقودات والأمانات الخاصة بالنزلاء وأماكن حفظها بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/lost-found/{id}`
 - **Controller**: `LostFoundController -> ApiOperation()`
@@ -16398,6 +18944,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### LNF-004 — Process owner claim and return of item
+
+**بتعمل إيه؟**:
+توثيق تسليم الأمانة أو المفقودات لنزيل الفندق والتوقيع على الاستلام.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/lost-found/{id}/claim`
@@ -16445,6 +18997,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### LNF-005 — Update item status (DISPOSED, AUCTIONED, EXPIRED)
+
+**بتعمل إيه؟**:
+استعراض وإدارة سجل المفقودات والأمانات الخاصة بالنزلاء وأماكن حفظها بالفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/lost-found/{id}/status`
@@ -16495,6 +19053,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### VIS-001 — Check in a visitor and notify host employee
 
+**بتعمل إيه؟**:
+تسجيل دخول زائر جديد للفندق أو الإدارة وإصدار تصريح زيارة مؤقت.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/visitors/check-in`
 - **Controller**: `VisitorsController -> ApiOperation()`
@@ -16540,6 +19104,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### VIS-002 — Check out a visitor
 
+**بتعمل إيه؟**:
+تسجيل وقت مغادرة الزائر وتسليم بطاقة الدخول.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/visitors/{id}/check-out`
 - **Controller**: `VisitorsController -> ApiOperation()`
@@ -16584,6 +19154,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### VIS-003 — List visitors with filters and search
 
+**بتعمل إيه؟**:
+استعراض وإدارة سجل الزوار ومواعيد الدخول والخروج والجهة المقصودة بالزيارة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/visitors`
 - **Controller**: `VisitorsController -> ApiOperation()`
@@ -16625,6 +19201,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### VIS-004 — Get visitor details by ID
+
+**بتعمل إيه؟**:
+استعراض وإدارة سجل الزوار ومواعيد الدخول والخروج والجهة المقصودة بالزيارة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/visitors/{id}`
@@ -16679,6 +19261,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-001 — Define an employee KPI
 
+**بتعمل إيه؟**:
+إنشاء وتوثيق تقييم أداء دوري لموظف وربطه بمؤشرات الأداء (KPIs) والأهداف المحددة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/performance/kpis`
 - **Controller**: `PerformanceController -> Roles()`
@@ -16724,6 +19312,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-002 — List employee KPIs
 
+**بتعمل إيه؟**:
+متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/performance/kpis`
 - **Controller**: `PerformanceController -> ApiOperation()`
@@ -16762,6 +19356,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRF-003 — Assign a performance goal to an employee
+
+**بتعمل إيه؟**:
+إنشاء وتوثيق تقييم أداء دوري لموظف وربطه بمؤشرات الأداء (KPIs) والأهداف المحددة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/performance/goals`
@@ -16808,6 +19408,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-004 — List performance goals with filters
 
+**بتعمل إيه؟**:
+متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/performance/goals`
 - **Controller**: `PerformanceController -> ApiOperation()`
@@ -16849,6 +19455,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRF-005 — Update goal progress value and trigger auto-achievement
+
+**بتعمل إيه؟**:
+متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/performance/goals/{id}/progress`
@@ -16896,6 +19508,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-006 — Submit a performance review for an employee
 
+**بتعمل إيه؟**:
+إنشاء وتوثيق تقييم أداء دوري لموظف وربطه بمؤشرات الأداء (KPIs) والأهداف المحددة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/performance/reviews`
 - **Controller**: `PerformanceController -> Roles()`
@@ -16942,6 +19560,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-007 — List performance reviews with filters
 
+**بتعمل إيه؟**:
+متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/performance/reviews`
 - **Controller**: `PerformanceController -> ApiOperation()`
@@ -16984,6 +19608,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### PRF-008 — Get review details including strengths and improvement areas
 
+**بتعمل إيه؟**:
+متابعة مؤشرات أداء الموظفين ونتائج التقييمات الدورية السنوية ونصف السنوية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/performance/reviews/{id}`
 - **Controller**: `PerformanceController -> ApiOperation()`
@@ -17023,6 +19653,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### PRF-009 — Employee acknowledges receipt and discussion of performance review
+
+**بتعمل إيه؟**:
+إنشاء وتوثيق تقييم أداء دوري لموظف وربطه بمؤشرات الأداء (KPIs) والأهداف المحددة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/performance/reviews/{id}/acknowledge`
@@ -17079,6 +19715,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-001 — Create a training course
 
+**بتعمل إيه؟**:
+إضافة برنامج أو دورة تدريبية جديدة وتحديد مدتها ومحتواها والمدرب المسؤول.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/training/courses`
 - **Controller**: `TrainingController -> Roles()`
@@ -17124,6 +19766,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-002 — List training courses
 
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/training/courses`
 - **Controller**: `TrainingController -> ApiOperation()`
@@ -17166,6 +19814,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-003 — Get course details and upcoming sessions
 
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/training/courses/{id}`
 - **Controller**: `TrainingController -> ApiOperation()`
@@ -17205,6 +19859,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TRN-004 — Schedule a training session
+
+**بتعمل إيه؟**:
+إضافة برنامج أو دورة تدريبية جديدة وتحديد مدتها ومحتواها والمدرب المسؤول.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/training/sessions`
@@ -17250,6 +19910,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-005 — List training sessions with filters
 
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/training/sessions`
 - **Controller**: `TrainingController -> ApiOperation()`
@@ -17292,6 +19958,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-006 — Get session details and enrolled participants
 
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/training/sessions/{id}`
 - **Controller**: `TrainingController -> ApiOperation()`
@@ -17331,6 +20003,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TRN-007 — Enroll an employee into a training session
+
+**بتعمل إيه؟**:
+تسجيل وإلحاق موظف بدورة تدريبية متخصصة في الضيافة أو السلامة.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/training/sessions/{id}/enroll`
@@ -17376,6 +20054,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TRN-008 — Update enrollment status and score (e.g. COMPLETED, FAILED)
+
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/training/enrollments/{id}`
@@ -17423,6 +20107,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### TRN-009 — Issue a training certificate to an employee
 
+**بتعمل إيه؟**:
+إضافة برنامج أو دورة تدريبية جديدة وتحديد مدتها ومحتواها والمدرب المسؤول.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/training/certificates`
 - **Controller**: `TrainingController -> Roles()`
@@ -17465,6 +20155,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### TRN-010 — List employee certificates
+
+**بتعمل إيه؟**:
+إدارة خطط التدريب والتطوير المهني لكوادر وموظفي الفندق.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/training/certificates`
@@ -17514,6 +20210,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SES-001 — Register or refresh device session (FCM token, hardware ID)
 
+**بتعمل إيه؟**:
+عرض قائمة الأجهزة والجلسات النشطة حالياً للمستخدم لضمان الأمان والرقابة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/sessions/register`
 - **Controller**: `SessionsController -> ApiOperation()`
@@ -17558,6 +20260,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SES-002 — List currently active device sessions for current user
 
+**بتعمل إيه؟**:
+عرض قائمة الأجهزة والجلسات النشطة حالياً للمستخدم لضمان الأمان والرقابة.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/sessions/my-devices`
 - **Controller**: `SessionsController -> ApiOperation()`
@@ -17590,6 +20298,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SES-003 — Remotely revoke and terminate a specific device session
+
+**بتعمل إيه؟**:
+إنهاء وإلغاء جلسة نشطة على جهاز محدد وتسجيل خروجه إجبارياً من النظام.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/sessions/{id}`
@@ -17629,6 +20343,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SES-004 — Revoke and terminate all other devices except the current session
+
+**بتعمل إيه؟**:
+إنهاء وإلغاء جلسة نشطة على جهاز محدد وتسجيل خروجه إجبارياً من النظام.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/sessions/other/{currentSessionId}`
@@ -17681,6 +20401,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INT-001 — Generate a new scoped API key (SHA-256 hashed)
 
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/api-keys`
 - **Controller**: `IntegrationsController -> ApiOperation()`
@@ -17725,6 +20451,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INT-002 — List active API keys with prefixes and scopes
 
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/api-keys`
 - **Controller**: `IntegrationsController -> ApiOperation()`
@@ -17758,6 +20490,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INT-003 — Revoke an API key
+
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/api-keys/{id}`
@@ -17798,6 +20536,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INT-004 — Register an outgoing webhook subscription
+
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/webhooks`
@@ -17845,6 +20589,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### INT-005 — List configured webhooks
 
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/webhooks`
 - **Controller**: `IntegrationsController -> ApiOperation()`
@@ -17878,6 +20628,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INT-006 — Enable or disable a webhook configuration
+
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `PATCH`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/webhooks/{id}/status`
@@ -17918,6 +20674,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### INT-007 — Audit integration request logs
+
+**بتعمل إيه؟**:
+إدارة وضبط واجهات الربط البرمجي (Webhooks/Integrations) مع الأنظمة الفندقية الخارجية (PMS/OTA).
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/integrations/logs`
@@ -17971,6 +20733,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SNC-001 — Standard mobile client sync endpoint (POST /api/v1/sync)
 
+**بتعمل إيه؟**:
+إرسال ومزامنة العمليات التي تم تنفيذها دون اتصال (Offline Data) من تطبيق الموبايل للسيرفر.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/sync`
 - **Controller**: `OfflineSyncController -> ApiOperation()`
@@ -18010,6 +20778,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SNC-002 — Push batch of offline actions recorded on mobile client
+
+**بتعمل إيه؟**:
+إرسال ومزامنة العمليات التي تم تنفيذها دون اتصال (Offline Data) من تطبيق الموبايل للسيرفر.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/sync/batch`
@@ -18051,6 +20825,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SNC-003 — Retrieve server delta changes since client cursor (FR-SYNC-001)
 
+**بتعمل إيه؟**:
+سحب آخر تحديثات البيانات من السيرفر لتحديث قاعدة البيانات المحلية في تطبيق الموبايل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/sync/changes`
 - **Controller**: `OfflineSyncController -> ApiOperation()`
@@ -18088,6 +20868,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SNC-004 — Check status of previously submitted sync items
+
+**بتعمل إيه؟**:
+سحب آخر تحديثات البيانات من السيرفر لتحديث قاعدة البيانات المحلية في تطبيق الموبايل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/sync/queue`
@@ -18129,6 +20915,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SNC-005 — Retry a failed or pending sync item (FR-SYNC-006)
 
+**بتعمل إيه؟**:
+إرسال ومزامنة العمليات التي تم تنفيذها دون اتصال (Offline Data) من تطبيق الموبايل للسيرفر.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/sync/retry/{id}`
 - **Controller**: `OfflineSyncController -> ApiOperation()`
@@ -18167,6 +20959,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SNC-006 — Resolve a synchronization conflict item using specified strategy (FR-SYNC-007)
+
+**بتعمل إيه؟**:
+إرسال ومزامنة العمليات التي تم تنفيذها دون اتصال (Offline Data) من تطبيق الموبايل للسيرفر.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/sync/resolve-conflict/{id}`
@@ -18216,6 +21014,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SNC-007 — Query operational synchronization audit logs (FR-SYNC-008)
 
+**بتعمل إيه؟**:
+سحب آخر تحديثات البيانات من السيرفر لتحديث قاعدة البيانات المحلية في تطبيق الموبايل.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/sync/logs`
 - **Controller**: `OfflineSyncController -> ApiOperation()`
@@ -18263,6 +21067,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### DSH-001 — Get unified real-time executive dashboard KPIs across all ERP domains
 
+**بتعمل إيه؟**:
+جلب مؤشرات الأداء الرئيسية (KPIs) ولوحة التحكم التنفيذية لنسب الإشغال والعمالة والإيرادات للإدارة العليا.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN, HR_MANAGER
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/dashboard/executive-kpis`
 - **Controller**: `DashboardController -> Roles()`
@@ -18305,6 +21115,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### STR-001 — Upload file (Image, PDF, Document, Attachment)
 
+**بتعمل إيه؟**:
+رفع ملف أو مستند أو صورة جديدة إلى خادم التخزين والحصول على رابط الوصول الآمن.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/storage/upload`
 - **Controller**: `StorageController -> ApiOperation()`
@@ -18346,6 +21162,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### STR-002 — Get metadata for a stored file
 
+**بتعمل إيه؟**:
+تحميل أو استعراض ملف مخزن في النظام عبر معرفه أو مساره.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/storage/metadata/{folder}/{filename}`
 - **Controller**: `StorageController -> ApiOperation()`
@@ -18385,6 +21207,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### STR-003 — Delete a stored file
+
+**بتعمل إيه؟**:
+إدارة التخزين السحابي والمحلي للمستندات والملفات المرفقة في النظام.
+
+**مين يقدر يستخدمها؟**:
+Any Authenticated Role (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, SUPERVISOR, EMPLOYEE)
 
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/storage/{folder}/{filename}`
@@ -18433,6 +21261,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### SCHD-001 — List all background scheduled jobs and their execution states
 
+**بتعمل إيه؟**:
+إدارة وتشغيل ومراقبة المهام المجدولة في الخلفية (Cron Jobs) للعمليات الآلية اليومية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/scheduler/jobs`
 - **Controller**: `SchedulerController -> Roles()`
@@ -18466,6 +21300,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### SCHD-002 — Trigger immediate on-demand execution of a background job
+
+**بتعمل إيه؟**:
+إدارة وتشغيل ومراقبة المهام المجدولة في الخلفية (Cron Jobs) للعمليات الآلية اليومية.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN, HR_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/scheduler/jobs/{name}/run`
@@ -18518,6 +21358,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BKP-001 — Create immediate database & system state backup (OPS-006)
 
+**بتعمل إيه؟**:
+بدء تشغيل نسخة احتياطية فورية وشاملة لقاعدة بيانات وملفات النظام وتخزينها بأمان.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/backup/create`
 - **Controller**: `BackupController -> Roles()`
@@ -18558,6 +21404,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BKP-002 — List all existing system backups with checksums
 
+**بتعمل إيه؟**:
+إدارة ومتابعة عمليات النسخ الاحتياطي الدوري وتاريخها والتحقق من سلامتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/backup/list`
 - **Controller**: `BackupController -> Roles()`
@@ -18592,6 +21444,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BKP-003 — Backup readiness, storage, and retention health check
 
+**بتعمل إيه؟**:
+إدارة ومتابعة عمليات النسخ الاحتياطي الدوري وتاريخها والتحقق من سلامتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/backup/health`
 - **Controller**: `BackupController -> Roles()`
@@ -18625,6 +21483,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### BKP-004 — Get single backup details by ID or Number
+
+**بتعمل إيه؟**:
+إدارة ومتابعة عمليات النسخ الاحتياطي الدوري وتاريخها والتحقق من سلامتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `GET`
 - **Full URL**: `http://localhost:3000/api/v1/backup/{id}`
@@ -18666,6 +21530,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 
 ### BKP-005 — Delete backup according to retention policy (OPS-008)
 
+**بتعمل إيه؟**:
+إدارة ومتابعة عمليات النسخ الاحتياطي الدوري وتاريخها والتحقق من سلامتها.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
+
 - **Method**: `DELETE`
 - **Full URL**: `http://localhost:3000/api/v1/backup/{id}`
 - **Controller**: `BackupController -> Roles()`
@@ -18705,6 +21575,12 @@ X-Request-Id: <UUID_CORRELATION_ID>
 ---
 
 ### BKP-006 — Test restore simulation or execute restore (OPS-007)
+
+**بتعمل إيه؟**:
+استعادة النظام وقاعدة البيانات من نسخة احتياطية سابقة في حالات الطوارئ.
+
+**مين يقدر يستخدمها؟**:
+SUPER_ADMIN
 
 - **Method**: `POST`
 - **Full URL**: `http://localhost:3000/api/v1/backup/{id}/restore`
