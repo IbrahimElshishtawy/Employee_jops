@@ -458,7 +458,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return TaskDetailsScreen(taskId: id);
+          final extra = state.extra is TaskItem ? state.extra as TaskItem : null;
+          return TaskDetailsScreen(taskId: id, initialTask: extra);
         },
       ),
 
@@ -477,8 +478,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.payslipDetails,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
+          final extra = state.extra is PayslipRecord ? state.extra as PayslipRecord : null;
           final id = state.pathParameters['id'] ?? '';
-          return PayslipDetailsScreen(recordId: id);
+          return PayslipDetailsScreen(
+            payslip: extra ??
+                PayslipRecord(
+                  id: id,
+                  month: 'Current',
+                  year: DateTime.now().year,
+                  grossSalary: 0,
+                  netSalary: 0,
+                  totalAllowances: 0,
+                  totalDeductions: 0,
+                  paymentDate: DateTime.now(),
+                  status: 'GENERATED',
+                ),
+          );
         },
       ),
 

@@ -1,7 +1,7 @@
+import 'package:employee_setup/features/performance/data/repositories/performance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/performance_models.dart';
-import '../repositories/performance_repository.dart';
 
 class PerformanceScreen extends ConsumerStatefulWidget {
   const PerformanceScreen({super.key});

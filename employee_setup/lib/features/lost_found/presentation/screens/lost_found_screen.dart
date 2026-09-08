@@ -1,7 +1,7 @@
+import 'package:employee_setup/features/lost_found/data/repositories/lost_found_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/lost_found_item.dart';
-import '../repositories/lost_found_repository.dart';
 
 class LostFoundScreen extends ConsumerStatefulWidget {
   const LostFoundScreen({super.key});

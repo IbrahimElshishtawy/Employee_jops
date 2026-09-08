@@ -19,7 +19,7 @@ class RealAdvancesRepository implements AdvancesRepository {
     if (remoteAdvances.isNotEmpty) {
       return remoteAdvances;
     }
-    return db.advances.where((a) => a.employeeId == employeeId).toList();
+    return db.snapshot.advances.where((a) => a.employeeId == employeeId).toList();
   }
 
   @override
@@ -28,7 +28,7 @@ class RealAdvancesRepository implements AdvancesRepository {
     if (remoteAdvance != null) {
       return remoteAdvance;
     }
-    return db.advances.where((a) => a.id == id).firstOrNull;
+    return db.snapshot.advances.where((a) => a.id == id).firstOrNull;
   }
 
   @override
@@ -71,7 +71,7 @@ class RealAdvancesRepository implements AdvancesRepository {
 
   @override
   Future<ExpenseReport?> getExpenseReport(String advanceId) async {
-    return db.expenseReports.where((r) => r.advanceId == advanceId).firstOrNull;
+    return db.snapshot.expenseReports.where((r) => r.advanceId == advanceId).firstOrNull;
   }
 
   @override

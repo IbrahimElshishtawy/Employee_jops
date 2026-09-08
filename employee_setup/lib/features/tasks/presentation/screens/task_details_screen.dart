@@ -8,9 +8,10 @@ import '../../domain/models/task_model.dart';
 import '../controllers/tasks_provider.dart';
 
 class TaskDetailsScreen extends ConsumerStatefulWidget {
-  final TaskItem initialTask;
+  final TaskItem? initialTask;
+  final String? taskId;
 
-  const TaskDetailsScreen({super.key, required this.initialTask});
+  const TaskDetailsScreen({super.key, this.initialTask, this.taskId});
 
   @override
   ConsumerState<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
@@ -25,7 +26,16 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _task = widget.initialTask;
+    _task = widget.initialTask ??
+        TaskItem(
+          id: widget.taskId ?? '',
+          title: 'Task Details',
+          description: '',
+          priority: TaskPriority.medium,
+          status: TaskStatus.todo,
+          dueDate: DateTime.now(),
+          createdAt: DateTime.now(),
+        );
   }
 
   @override
@@ -56,7 +66,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
 
     final repo = ref.read(tasksRepositoryProvider);
     await repo.toggleChecklistItem(_task.id, item.id, updatedCompleted);
-    await repo.updateTaskProgress(_task.id, newProgress);
   }
 
   Future<void> _addComment() async {

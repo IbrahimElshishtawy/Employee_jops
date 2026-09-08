@@ -26,7 +26,6 @@ import '../features/attendance/data/api/mock_attendance_api.dart';
 import '../features/attendance/data/api/real_attendance_api.dart';
 import '../features/attendance/data/datasources/attendance_remote_data_source.dart';
 import '../features/attendance/data/repositories/mock_attendance_repository.dart';
-import '../features/attendance/data/repositories/real_attendance_repository.dart';
 import '../features/attendance/data/services/device_integrity_service_impl.dart';
 import '../features/attendance/data/services/mock_biometric_service.dart';
 import '../features/attendance/data/services/mock_location_detector_impl.dart';
@@ -102,13 +101,15 @@ final localStorageProvider = Provider<LocalStorage>((ref) {
   return SecureSessionStorage();
 });
 
-final apiClientProvider = Provider<ApiClient>((ref) {
+final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final storage = ref.watch(localStorageProvider);
   return ApiClient(
     storage: storage,
     config: AppConfig.current,
     onSessionExpired: () {
-      ref.read(authProvider.notifier).signOut();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.container.read(authProvider.notifier).signOut();
+      });
     },
   );
 });
@@ -338,16 +339,8 @@ final attendanceRemoteDataSourceProvider =
 });
 
 final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final remoteDs = ref.watch(attendanceRemoteDataSourceProvider);
-  final db = ref.watch(mockDatabaseProvider.notifier);
-  final demo = ref.watch(demoControlsProvider);
-  if (!demo.useRealDeviceSensors) {
-    return MockAttendanceRepository(db);
-  }
-  return RealAttendanceRepository(
-    remoteDataSource: remoteDs,
-    db: db,
-  );
+  final api = ref.watch(attendanceApiProvider);
+  return MockAttendanceRepository(ref, api);
 });
 
 // ══════════════════════════════════════════════════════════════════
@@ -359,13 +352,15 @@ final authDataSourceProvider = Provider<MockAuthDataSource>((ref) {
   return MockAuthDataSource(storage);
 });
 
-final realAuthDataSourceProvider = Provider<RealAuthDataSource>((ref) {
+final Provider<RealAuthDataSource> realAuthDataSourceProvider =
+    Provider<RealAuthDataSource>((ref) {
   final storage = ref.watch(localStorageProvider);
   final apiClient = ref.watch(apiClientProvider);
   return RealAuthDataSource(storage, apiClient: apiClient);
 });
 
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
+final Provider<AuthRepository> authRepositoryProvider =
+    Provider<AuthRepository>((ref) {
   final ds = ref.watch(realAuthDataSourceProvider);
   return RealAuthRepository(ds, ref);
 });
@@ -473,7 +468,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final StateNotifierProvider<AuthNotifier, AuthState> authProvider =
+    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return AuthNotifier(repo, ref);
 });
@@ -497,11 +493,6 @@ final workScheduleShiftStatusProvider = Provider<WorkScheduleShiftStatus>((ref) 
   final scheduleService = ref.watch(workScheduleServiceProvider);
   final schedule = ref.watch(workScheduleProvider);
   return scheduleService.evaluateScheduleStatus(schedule);
-});
-
-final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final api = ref.watch(attendanceApiProvider);
-  return MockAttendanceRepository(ref, api);
 });
 
 /// Today's check-in / check-out summary — auto-updates when MockDatabase changes.

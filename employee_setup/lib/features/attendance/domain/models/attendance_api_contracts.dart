@@ -82,8 +82,6 @@ class AttendanceSubmissionRequest {
     'requestId': clientRequestId,
     'method': 'GPS',
     'biometricVerified': biometricVerified,
-    if (integrityResult?.isMockLocationDetected != null)
-      'isMockLocation': integrityResult!.isMockLocationDetected,
     if (networkRisk?.isVpnActive != null)
       'isVpn': networkRisk!.isVpnActive,
     if (integrityResult?.isRootedOrJailbroken != null)
@@ -161,14 +159,20 @@ class AttendanceVerificationResponse {
       record = Attendance(
         id: data['id'] as String? ?? 'ATT-${now.millisecondsSinceEpoch}',
         employeeId: data['employeeId'] as String? ?? employeeId ?? 'EMP-001',
+        workLocationId: data['workplaceId'] as String? ?? 'LOC-CAIRO-HQ',
         date: data['date'] != null ? DateTime.tryParse(data['date'] as String) ?? now : now,
-        checkInTime: checkInTime,
-        checkOutTime: checkOutTime,
-        status: (type == AttendanceType.checkIn && checkOutTime == null)
-            ? AttendanceStateType.checkedIn
-            : AttendanceStateType.checkedOut,
-        verificationMethod: 'GPS',
-        verificationStatus: 'VERIFIED',
+        type: type,
+        timestamp: checkInTime ?? now,
+        latitude: (data['latitude'] as num?)?.toDouble() ?? 0.0,
+        longitude: (data['longitude'] as num?)?.toDouble() ?? 0.0,
+        accuracy: (data['accuracy'] as num?)?.toDouble() ?? 3.0,
+        distanceFromOffice: 0.0,
+        biometricVerified: true,
+        isOffline: false,
+        status: AttendanceStatus.success,
+        method: AttendanceMethod.biometric,
+        syncStatus: AttendanceSyncStatus.synced,
+        checkOutAt: checkOutTime,
       );
     }
 

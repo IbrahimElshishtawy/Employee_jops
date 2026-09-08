@@ -1,6 +1,6 @@
+import 'package:employee_setup/features/reports/data/repositories/reports_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../repositories/reports_repository.dart';
 
 class EmployeeReportsScreen extends ConsumerWidget {
   const EmployeeReportsScreen({super.key});

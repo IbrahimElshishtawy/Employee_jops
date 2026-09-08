@@ -16,48 +16,54 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
   const RealCommunicationRemoteDataSource(this.apiClient);
 
   @override
-  Future<List<DepartmentModel>> getDepartments() async {
+  Future<List<Department>> getDepartments() async {
     return const [
-      DepartmentModel(
+      Department(
         id: 'dept-hr',
         nameAr: 'الموارد البشرية',
         nameEn: 'Human Resources',
         iconName: 'people',
-        isAvailable: true,
+        availableEmployeesCount: 3,
+        totalEmployeesCount: 5,
       ),
-      DepartmentModel(
+      Department(
         id: 'dept-it',
         nameAr: 'تقنية المعلومات',
         nameEn: 'IT Support',
         iconName: 'computer',
-        isAvailable: true,
+        availableEmployeesCount: 2,
+        totalEmployeesCount: 4,
       ),
-      DepartmentModel(
+      Department(
         id: 'dept-finance',
         nameAr: 'الحسابات والمالية',
         nameEn: 'Finance & Payroll',
         iconName: 'payments',
-        isAvailable: true,
+        availableEmployeesCount: 2,
+        totalEmployeesCount: 3,
       ),
     ];
   }
 
   @override
-  Future<DepartmentModel?> getDepartmentById(String departmentId) async {
+  Future<Department?> getDepartmentById(String departmentId) async {
     final depts = await getDepartments();
     return depts.where((d) => d.id == departmentId).firstOrNull;
   }
 
   @override
-  Future<List<EmployeeContactModel>> getAllowedContacts({required String departmentId}) async {
+  Future<List<EmployeeContact>> getAllowedContacts({required String departmentId}) async {
     return [
-      EmployeeContactModel(
+      EmployeeContact(
         id: 'contact-1',
-        name: 'مسؤول الموارد البشرية',
-        jobTitle: 'HR Specialist',
+        fullName: 'مسؤول الموارد البشرية',
+        jobTitleAr: 'أخصائي موارد بشرية',
+        jobTitleEn: 'HR Specialist',
         departmentId: departmentId,
-        departmentName: 'HR',
-        isAvailable: true,
+        departmentNameAr: 'الموارد البشرية',
+        departmentNameEn: 'HR',
+        isOnline: true,
+        availability: EmployeeAvailability.available,
       ),
     ];
   }
