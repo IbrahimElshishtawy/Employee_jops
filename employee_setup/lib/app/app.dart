@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,8 @@ class EmployeeApp extends ConsumerStatefulWidget {
 
 class _EmployeeAppState extends ConsumerState<EmployeeApp>
     with WidgetsBindingObserver {
+  bool _isInBackground = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +37,7 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
         // Send welcoming notification to confirm background capability
         await notifService.showNotification(
           id: 9901,
-          title: 'تطبيق الموظف الذكي ',
+          title: 'تطبيق الموظف الذكي',
           body: 'تم تفعيل الإشعارات وتأمين تتبع الدوام في الخلفية بنجاح.',
         );
       }
@@ -61,11 +64,17 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
     ref.read(locationTrackingProvider.notifier).handleAppLifecycle(state);
 
     if (state == AppLifecycleState.resumed) {
+      if (_isInBackground) {
+        setState(() => _isInBackground = false);
+      }
       // Refresh location, network status, and check for updates
       ref.read(attendanceFlowProvider.notifier).refreshLocation();
       ref.read(updateStateProvider.notifier).checkForUpdate(isManual: false);
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
+      if (!_isInBackground) {
+        setState(() => _isInBackground = true);
+      }
       // Invalidate transient pending states if app is backgrounded
       final flowState = ref.read(attendanceFlowProvider);
       if (flowState.isLoading) {
@@ -106,7 +115,26 @@ class _EmployeeAppState extends ConsumerState<EmployeeApp>
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
-        return child ?? const SizedBox.shrink();
+        return Stack(
+          children: [
+            child ?? const SizedBox.shrink(),
+            if (_isInBackground)
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.35),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.lock_outline,
+                      size: 64,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
       },
     );
   }

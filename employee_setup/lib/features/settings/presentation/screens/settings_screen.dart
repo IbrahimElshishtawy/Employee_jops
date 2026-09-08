@@ -163,6 +163,41 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                   onTap: () => context.push(AppRoutes.chatSettings),
                 ),
+                ListTile(
+                  title: Text(
+                    context.isArabic ? 'الأجهزة والجلسات النشطة' : 'Active Device Sessions',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.isArabic
+                        ? 'إدارة الأجهزة المتصلة بحسابك وتسجيل الخروج عن بعد'
+                        : 'Manage logged-in devices and remote sign-out',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.devices_rounded,
+                      color: Color(0xFF10B981),
+                      size: 20,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.sessions),
+                ),
               ],
             ),
             const SizedBox(height: 20),

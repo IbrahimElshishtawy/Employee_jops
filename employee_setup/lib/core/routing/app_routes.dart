@@ -61,4 +61,28 @@ class AppRoutes {
   static const String privacyPolicy = '/settings/privacy';
   static const String helpCenter = '/settings/help';
   static const String support = '/settings/support';
+  static const String sessions = '/settings/sessions';
+
+  // Tasks
+  static const String tasks = '/tasks';
+  static const String taskDetails = '/tasks/:id';
+
+  // Payroll & Payslips
+  static const String salaryStructure = '/payroll/salary';
+  static const String payslips = '/payroll/payslips';
+  static const String payslipDetails = '/payroll/payslips/:id';
+
+  // Announcements
+  static const String announcements = '/announcements';
+
+  // Operations
+  static const String handover = '/handover';
+  static const String incidents = '/incidents';
+  static const String maintenance = '/maintenance';
+  static const String lostFound = '/lost-found';
+
+  // HR & Development
+  static const String performance = '/performance';
+  static const String training = '/training';
+  static const String employeeReports = '/reports/me';
 }

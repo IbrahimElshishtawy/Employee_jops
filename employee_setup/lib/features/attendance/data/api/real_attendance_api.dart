@@ -76,37 +76,24 @@ class RealAttendanceApi implements AttendanceApi {
             ? data['data'] as Map<String, dynamic>
             : data;
 
-        if (payload.isNotEmpty) {
-          final checkIn = payload['checkIn'] != null
-              ? DateTime.tryParse(payload['checkIn'] as String)
-              : null;
-          final checkOut = payload['checkOut'] != null
-              ? DateTime.tryParse(payload['checkOut'] as String)
-              : null;
+        Attendance? checkIn;
+        Attendance? checkOut;
 
-          AttendanceStateType state = AttendanceStateType.notCheckedIn;
-          if (checkIn != null && checkOut == null) {
-            state = AttendanceStateType.checkedIn;
-          } else if (checkOut != null) {
-            state = AttendanceStateType.checkedOut;
-          }
-
-          return TodayAttendanceSummary(
-            employeeId: employeeId,
-            date: DateTime.now(),
-            state: state,
-            checkInTime: checkIn,
-            checkOutTime: checkOut,
-          );
+        if (payload['checkIn'] is Map<String, dynamic>) {
+          checkIn = Attendance.fromJson(payload['checkIn'] as Map<String, dynamic>);
         }
+        if (payload['checkOut'] is Map<String, dynamic>) {
+          checkOut = Attendance.fromJson(payload['checkOut'] as Map<String, dynamic>);
+        }
+
+        return TodayAttendanceSummary(
+          checkIn: checkIn,
+          checkOut: checkOut,
+        );
       }
     } catch (_) {}
 
-    return TodayAttendanceSummary(
-      employeeId: employeeId,
-      date: DateTime.now(),
-      state: AttendanceStateType.notCheckedIn,
-    );
+    return const TodayAttendanceSummary();
   }
 
   @override

@@ -48,6 +48,79 @@ class QuickActionsGrid extends StatelessWidget {
       ),
     ];
 
+    final operationsActions = [
+      _QuickActionItem(
+        title: isRtl ? 'مهام العمل وقوائم الفحص' : 'Tasks & Checklists',
+        icon: Icons.checklist_rounded,
+        color: const Color(0xFF0EA5E9),
+        gradientColors: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+        route: '/tasks',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'التعميمات الإدارية' : 'Announcements',
+        icon: Icons.campaign_rounded,
+        color: const Color(0xFFEC4899),
+        gradientColors: const [Color(0xFFEC4899), Color(0xFFBE185D)],
+        route: '/announcements',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'مسير الرواتب وقسائم القبض' : 'Salary & Payslips',
+        icon: Icons.receipt_long_rounded,
+        color: const Color(0xFF14B8A6),
+        gradientColors: const [Color(0xFF14B8A6), Color(0xFF0F766E)],
+        route: '/payroll/payslips',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'تسليم واستلام الوردية' : 'Shift Handover',
+        icon: Icons.swap_horiz_rounded,
+        color: const Color(0xFF8B5CF6),
+        gradientColors: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+        route: '/handover',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'بلاغات السلامة والحوادث' : 'Safety Incidents',
+        icon: Icons.warning_amber_rounded,
+        color: const Color(0xFFEF4444),
+        gradientColors: const [Color(0xFFEF4444), Color(0xFFB91C1C)],
+        route: '/incidents',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'أوامر وبلاغات الصيانة' : 'Maintenance Orders',
+        icon: Icons.build_rounded,
+        color: const Color(0xFFF97316),
+        gradientColors: const [Color(0xFFF97316), Color(0xFFC2410C)],
+        route: '/maintenance',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'الأمانات والمفقودات' : 'Lost & Found',
+        icon: Icons.inventory_2_rounded,
+        color: const Color(0xFF6366F1),
+        gradientColors: const [Color(0xFF6366F1), Color(0xFF4338CA)],
+        route: '/lost-found',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'الأهداف وتقييم الأداء' : 'Performance Goals',
+        icon: Icons.track_changes_rounded,
+        color: const Color(0xFF10B981),
+        gradientColors: const [Color(0xFF10B981), Color(0xFF047857)],
+        route: '/performance',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'التدريب والشهادات المهنية' : 'Training & Certs',
+        icon: Icons.school_rounded,
+        color: const Color(0xFF3B82F6),
+        gradientColors: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+        route: '/training',
+      ),
+      _QuickActionItem(
+        title: isRtl ? 'تقرير الأداء والحضور' : 'Performance Report',
+        icon: Icons.analytics_rounded,
+        color: const Color(0xFFA855F7),
+        gradientColors: const [Color(0xFFA855F7), Color(0xFF7E22CE)],
+        route: '/reports/me',
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,6 +145,34 @@ class QuickActionsGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             return _QuickActionTile(
               item: actions[index],
+              isDark: isDark,
+              isRtl: isRtl,
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        // ── Operations & Hotel Services ───────────────────────
+        _SectionTitle(
+          label: isRtl ? 'العمليات والخدمات الفندقية' : 'Enterprise & Operations',
+          isDark: isDark,
+        ),
+        const SizedBox(height: 12),
+
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.85,
+          ),
+          itemCount: operationsActions.length,
+          itemBuilder: (context, index) {
+            return _QuickActionTile(
+              item: operationsActions[index],
               isDark: isDark,
               isRtl: isRtl,
             );

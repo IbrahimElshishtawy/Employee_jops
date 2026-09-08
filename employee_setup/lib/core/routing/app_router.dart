@@ -46,6 +46,20 @@ import '../../features/communication/presentation/screens/departments_screen.dar
 import '../../features/communication/presentation/screens/conversations_screen.dart';
 import '../../features/communication/presentation/screens/chat_settings_screen.dart';
 import '../../features/communication/presentation/screens/conversation_info_screen.dart';
+import '../../features/tasks/presentation/screens/tasks_list_screen.dart';
+import '../../features/tasks/presentation/screens/task_details_screen.dart';
+import '../../features/payroll/presentation/screens/salary_structure_screen.dart';
+import '../../features/payroll/presentation/screens/payslips_list_screen.dart';
+import '../../features/payroll/presentation/screens/payslip_details_screen.dart';
+import '../../features/announcements/presentation/screens/announcements_screen.dart';
+import '../../features/handover/presentation/screens/handover_list_screen.dart';
+import '../../features/incidents/presentation/screens/incidents_screen.dart';
+import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
+import '../../features/lost_found/presentation/screens/lost_found_screen.dart';
+import '../../features/performance/presentation/screens/performance_screen.dart';
+import '../../features/training/presentation/screens/training_screen.dart';
+import '../../features/settings/presentation/screens/device_sessions_screen.dart';
+import '../../features/reports/presentation/screens/employee_reports_screen.dart';
 import '../services/notification_router.dart';
 import 'app_routes.dart';
 import 'main_shell_screen.dart';
@@ -431,6 +445,92 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.myDepartmentRequests,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MyRequestsScreen(),
+      ),
+
+      // Tasks
+      GoRoute(
+        path: AppRoutes.tasks,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TasksListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.taskDetails,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return TaskDetailsScreen(taskId: id);
+        },
+      ),
+
+      // Payroll
+      GoRoute(
+        path: AppRoutes.salaryStructure,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SalaryStructureScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.payslips,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PayslipsListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.payslipDetails,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return PayslipDetailsScreen(recordId: id);
+        },
+      ),
+
+      // Announcements
+      GoRoute(
+        path: AppRoutes.announcements,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AnnouncementsScreen(),
+      ),
+
+      // Operations
+      GoRoute(
+        path: AppRoutes.handover,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HandoverListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.incidents,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const IncidentsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.maintenance,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MaintenanceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.lostFound,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LostFoundScreen(),
+      ),
+
+      // HR & Development
+      GoRoute(
+        path: AppRoutes.performance,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PerformanceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.training,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TrainingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.employeeReports,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const EmployeeReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sessions,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DeviceSessionsScreen(),
       ),
     ],
   );
