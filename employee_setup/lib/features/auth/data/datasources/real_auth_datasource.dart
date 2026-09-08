@@ -253,6 +253,11 @@ class RealAuthDataSource {
 
   /// Fetches current employee profile directly from GET /api/v1/employees/me
   Future<Employee?> fetchCurrentEmployee() async {
+    final token = storage.getString(AppConstants.keyAuthToken);
+    if (token == null || token.isEmpty) {
+      return getCachedEmployee();
+    }
+
     if (apiClient != null) {
       try {
         final response = await apiClient!.get(

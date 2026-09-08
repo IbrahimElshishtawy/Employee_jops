@@ -101,23 +101,28 @@ class ApiClient {
       } catch (_) {}
     }
 
-    final future = () async {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-      if (cacheDuration != null &&
-          response.statusCode != null &&
-          response.statusCode! >= 200 &&
-          response.statusCode! < 300) {
-        _cache[cacheKey] =
-            _CacheEntry(response.data, DateTime.now().add(cacheDuration));
+    Future<dynamic> execute() async {
+      try {
+        final response = await _dio.get(
+          path,
+          queryParameters: queryParameters,
+          options: options,
+          cancelToken: cancelToken,
+        );
+        if (cacheDuration != null &&
+            response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300) {
+          _cache[cacheKey] =
+              _CacheEntry(response.data, DateTime.now().add(cacheDuration));
+        }
+        return response.data;
+      } finally {
+        _inFlightRequests.remove(cacheKey);
       }
-      return response.data;
-    }();
+    }
 
+    final future = execute();
     _inFlightRequests[cacheKey] = future;
 
     try {
@@ -129,8 +134,6 @@ class ApiClient {
       );
     } on DioException catch (e) {
       throw ApiExceptionMapper.fromDioException(e);
-    } finally {
-      _inFlightRequests.remove(cacheKey);
     }
   }
 
