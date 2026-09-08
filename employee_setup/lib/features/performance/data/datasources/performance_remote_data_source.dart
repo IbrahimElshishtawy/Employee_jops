@@ -3,13 +3,12 @@ import '../../../../core/network/api_endpoints.dart';
 import '../../domain/models/performance_models.dart';
 
 class PerformanceRemoteDataSource {
-  final ApiClient _apiClient;
+  final ApiClient apiClient;
 
-  PerformanceRemoteDataSource({required ApiClient apiClient})
-      : _apiClient = apiClient;
+  PerformanceRemoteDataSource({required this.apiClient});
 
   Future<List<PerformanceGoal>> getGoals() async {
-    final response = await _apiClient.get(ApiEndpoints.performanceGoals);
+    final response = await apiClient.get(ApiEndpoints.performanceGoals);
     final data = response.data;
     if (data is List) {
       return data
@@ -21,7 +20,7 @@ class PerformanceRemoteDataSource {
 
   Future<PerformanceGoal> updateGoalProgress(
       String id, double currentValue, String? notes) async {
-    final response = await _apiClient.patch(
+    final response = await apiClient.patch(
       ApiEndpoints.updateGoalProgress(id),
       data: {
         'currentValue': currentValue,
@@ -32,7 +31,7 @@ class PerformanceRemoteDataSource {
   }
 
   Future<List<PerformanceReview>> getReviews() async {
-    final response = await _apiClient.get(ApiEndpoints.performanceReviews);
+    final response = await apiClient.get(ApiEndpoints.performanceReviews);
     final data = response.data;
     if (data is List) {
       return data
@@ -43,6 +42,6 @@ class PerformanceRemoteDataSource {
   }
 
   Future<void> acknowledgeReview(String id) async {
-    await _apiClient.post(ApiEndpoints.acknowledgeReview(id));
+    await apiClient.post(ApiEndpoints.acknowledgeReview(id));
   }
 }

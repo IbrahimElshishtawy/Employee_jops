@@ -80,7 +80,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
                     itemBuilder: (ctx, index) {
                       final task = filtered[index];
                       return _buildTaskCard(task, isDark, isRtl);

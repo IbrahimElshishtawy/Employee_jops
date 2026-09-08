@@ -21,15 +21,14 @@ final lostFoundItemsProvider =
 });
 
 class LostFoundRepository {
-  final LostFoundRemoteDataSource _dataSource;
+  final LostFoundRemoteDataSource dataSource;
 
-  LostFoundRepository({required LostFoundRemoteDataSource dataSource})
-      : _dataSource = dataSource;
+  LostFoundRepository({required this.dataSource});
 
-  Future<List<LostFoundItem>> getItems() => _dataSource.getItems();
+  Future<List<LostFoundItem>> getItems() => dataSource.getItems();
 
   Future<LostFoundItem> registerItem(LostFoundItem item) {
-    return _dataSource.registerItem(item.toCreateDto());
+    return dataSource.registerItem(item.toCreateDto());
   }
 }
 

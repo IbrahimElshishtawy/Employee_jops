@@ -167,7 +167,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (ctx, idx) {
                 final item = items[idx];
                 return Card(

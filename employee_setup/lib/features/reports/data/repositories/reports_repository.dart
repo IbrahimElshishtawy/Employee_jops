@@ -32,13 +32,12 @@ final employeeReportProvider =
 });
 
 class ReportsRepository {
-  final ReportsRemoteDataSource _dataSource;
+  final ReportsRemoteDataSource dataSource;
 
-  ReportsRepository({required ReportsRemoteDataSource dataSource})
-      : _dataSource = dataSource;
+  ReportsRepository({required this.dataSource});
 
   Future<EmployeeReport> getMyReport({String? startDate, String? endDate}) =>
-      _dataSource.getMyReport(startDate: startDate, endDate: endDate);
+      dataSource.getMyReport(startDate: startDate, endDate: endDate);
 }
 
 final reportsRepositoryProvider = Provider<ReportsRepository>((ref) {

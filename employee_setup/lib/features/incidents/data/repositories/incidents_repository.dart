@@ -42,7 +42,7 @@ class IncidentsRepository {
           'description': description,
           'severity': severity,
           'location': location,
-          if (photoUrl != null) 'photoUrl': photoUrl,
+          'photoUrl': ?photoUrl,
         },
         fromData: (data) => IncidentReport.fromJson(data as Map<String, dynamic>),
       );

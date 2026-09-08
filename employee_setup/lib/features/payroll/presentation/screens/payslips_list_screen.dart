@@ -50,7 +50,7 @@ class PayslipsListScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: payslips.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (ctx, index) {
                 final slip = payslips[index];
                 final isPaid = slip.paymentStatus.toUpperCase() == 'PAID';

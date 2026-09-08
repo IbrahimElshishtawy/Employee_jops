@@ -30,16 +30,15 @@ final performanceReviewsProvider =
 });
 
 class PerformanceRepository {
-  final PerformanceRemoteDataSource _dataSource;
+  final PerformanceRemoteDataSource dataSource;
 
-  PerformanceRepository({required PerformanceRemoteDataSource dataSource})
-      : _dataSource = dataSource;
+  PerformanceRepository({required this.dataSource});
 
-  Future<List<PerformanceGoal>> getGoals() => _dataSource.getGoals();
+  Future<List<PerformanceGoal>> getGoals() => dataSource.getGoals();
 
   Future<PerformanceGoal> updateGoalProgress(
           String id, double currentValue, String? notes) =>
-      _dataSource.updateGoalProgress(id, currentValue, notes);
+      dataSource.updateGoalProgress(id, currentValue, notes);
 
   Future<List<PerformanceReview>> getReviews() => _dataSource.getReviews();
 

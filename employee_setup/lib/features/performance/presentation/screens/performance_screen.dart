@@ -148,7 +148,7 @@ class _PerformanceScreenState extends ConsumerState<PerformanceScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: goals.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (ctx, idx) {
               final goal = goals[idx];
               return Card(
@@ -263,7 +263,7 @@ class _PerformanceScreenState extends ConsumerState<PerformanceScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: reviews.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (ctx, idx) {
               final review = reviews[idx];
               return Card(

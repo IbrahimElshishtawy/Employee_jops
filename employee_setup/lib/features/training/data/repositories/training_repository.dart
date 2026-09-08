@@ -30,14 +30,13 @@ final trainingCertificatesProvider =
 });
 
 class TrainingRepository {
-  final TrainingRemoteDataSource _dataSource;
+  final TrainingRemoteDataSource dataSource;
 
-  TrainingRepository({required TrainingRemoteDataSource dataSource})
-      : _dataSource = dataSource;
+  TrainingRepository({required this.dataSource});
 
-  Future<List<TrainingCourse>> getCourses() => _dataSource.getCourses();
+  Future<List<TrainingCourse>> getCourses() => dataSource.getCourses();
   Future<List<TrainingCertificate>> getCertificates() =>
-      _dataSource.getCertificates();
+      dataSource.getCertificates();
 }
 
 final trainingRepositoryProvider = Provider<TrainingRepository>((ref) {

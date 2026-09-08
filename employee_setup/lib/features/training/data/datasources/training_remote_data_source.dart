@@ -3,13 +3,12 @@ import '../../../../core/network/api_endpoints.dart';
 import '../../domain/models/training_models.dart';
 
 class TrainingRemoteDataSource {
-  final ApiClient _apiClient;
+  final ApiClient apiClient;
 
-  TrainingRemoteDataSource({required ApiClient apiClient})
-      : _apiClient = apiClient;
+  TrainingRemoteDataSource({required this.apiClient});
 
   Future<List<TrainingCourse>> getCourses() async {
-    final response = await _apiClient.get(ApiEndpoints.trainingCourses);
+    final response = await apiClient.get(ApiEndpoints.trainingCourses);
     final data = response.data;
     if (data is List) {
       return data
@@ -20,7 +19,7 @@ class TrainingRemoteDataSource {
   }
 
   Future<List<TrainingCertificate>> getCertificates() async {
-    final response = await _apiClient.get(ApiEndpoints.trainingCertificates);
+    final response = await apiClient.get(ApiEndpoints.trainingCertificates);
     final data = response.data;
     if (data is List) {
       return data
