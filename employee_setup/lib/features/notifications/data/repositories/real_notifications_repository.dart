@@ -10,17 +10,17 @@ import '../../domain/repositories/notifications_repository.dart';
 
 class RealNotificationsRepository implements NotificationsRepository {
   final ApiClient apiClient;
-  final Ref? _ref;
+  final Ref? ref;
 
   RealNotificationsRepository({
     required this.apiClient,
-    Ref? ref,
-  }) : _ref = ref;
+    this.ref,
+  });
 
   MockDatabaseNotifier get _db =>
-      _ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
+      ref?.read(mockDatabaseProvider.notifier) ?? fallbackMockDatabaseNotifier;
   MockDatabase get _state =>
-      _ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
+      ref?.read(mockDatabaseProvider) ?? fallbackMockDatabaseNotifier.snapshot;
 
   @override
   Future<List<AppNotification>> getNotifications(String employeeId) async {
@@ -91,7 +91,7 @@ class RealNotificationsRepository implements NotificationsRepository {
   Future<void> addNotification(AppNotification notification) async {
     _db.addNotification(notification);
     try {
-      final notifService = _ref?.read(notificationServiceProvider);
+      final notifService = ref?.read(notificationServiceProvider);
       if (notifService != null) {
         await notifService.showNotification(
           id: notification.id.hashCode,

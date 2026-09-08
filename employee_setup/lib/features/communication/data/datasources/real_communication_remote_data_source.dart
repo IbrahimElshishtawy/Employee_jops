@@ -21,6 +21,38 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
   Future<List<DepartmentModel>> getDepartments() async {
     return const [
       DepartmentModel(
+        id: 'SECURITY',
+        nameAr: 'الأمن والحراسة',
+        nameEn: 'Security & Safety',
+        iconName: 'security',
+        availableEmployeesCount: 4,
+        totalEmployeesCount: 6,
+      ),
+      DepartmentModel(
+        id: 'HOUSEKEEPING',
+        nameAr: 'خدمة الغرف والنظافة',
+        nameEn: 'Housekeeping',
+        iconName: 'cleaning_services',
+        availableEmployeesCount: 8,
+        totalEmployeesCount: 12,
+      ),
+      DepartmentModel(
+        id: 'ENGINEERING',
+        nameAr: 'الهندسة والصيانة',
+        nameEn: 'Engineering & Maintenance',
+        iconName: 'engineering',
+        availableEmployeesCount: 3,
+        totalEmployeesCount: 5,
+      ),
+      DepartmentModel(
+        id: 'FRONT_OFFICE',
+        nameAr: 'المكاتب الأمامية والاستقبال',
+        nameEn: 'Front Office & Reception',
+        iconName: 'room_service',
+        availableEmployeesCount: 5,
+        totalEmployeesCount: 7,
+      ),
+      DepartmentModel(
         id: 'dept-hr',
         nameAr: 'الموارد البشرية',
         nameEn: 'Human Resources',
