@@ -33,7 +33,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: category,
+                  initialValue: category,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: const [
                     DropdownMenuItem(value: 'JEWELRY', child: Text('Jewelry')),

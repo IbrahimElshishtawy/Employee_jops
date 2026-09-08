@@ -28,7 +28,6 @@ class SalaryStructureScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = context.isDark;
     final isRtl = context.isRtl;
     final salaryAsync = ref.watch(salaryStructureProvider);
 

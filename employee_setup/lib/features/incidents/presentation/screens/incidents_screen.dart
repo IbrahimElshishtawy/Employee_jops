@@ -31,7 +31,6 @@ class IncidentsScreen extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
-      isScrollDimsEnabled: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),

@@ -34,7 +34,6 @@ class _TaskDetailsScreenState extends ConsumerState<TaskDetailsScreen> {
           priority: TaskPriority.medium,
           status: TaskStatus.todo,
           dueDate: DateTime.now(),
-          createdAt: DateTime.now(),
         );
   }
 

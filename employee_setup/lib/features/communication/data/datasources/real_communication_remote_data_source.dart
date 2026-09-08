@@ -8,6 +8,8 @@ import '../models/department_request_model.dart';
 import '../models/employee_contact_model.dart';
 import '../models/message_model.dart';
 import '../models/request_type_model.dart';
+import '../../domain/entities/message.dart';
+import '../../domain/entities/employee_contact.dart';
 import 'communication_remote_data_source.dart';
 
 class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource {
@@ -16,9 +18,9 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
   const RealCommunicationRemoteDataSource(this.apiClient);
 
   @override
-  Future<List<Department>> getDepartments() async {
+  Future<List<DepartmentModel>> getDepartments() async {
     return const [
-      Department(
+      DepartmentModel(
         id: 'dept-hr',
         nameAr: 'الموارد البشرية',
         nameEn: 'Human Resources',
@@ -26,7 +28,7 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
         availableEmployeesCount: 3,
         totalEmployeesCount: 5,
       ),
-      Department(
+      DepartmentModel(
         id: 'dept-it',
         nameAr: 'تقنية المعلومات',
         nameEn: 'IT Support',
@@ -34,27 +36,19 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
         availableEmployeesCount: 2,
         totalEmployeesCount: 4,
       ),
-      Department(
-        id: 'dept-finance',
-        nameAr: 'الحسابات والمالية',
-        nameEn: 'Finance & Payroll',
-        iconName: 'payments',
-        availableEmployeesCount: 2,
-        totalEmployeesCount: 3,
-      ),
     ];
   }
 
   @override
-  Future<Department?> getDepartmentById(String departmentId) async {
+  Future<DepartmentModel?> getDepartmentById(String departmentId) async {
     final depts = await getDepartments();
     return depts.where((d) => d.id == departmentId).firstOrNull;
   }
 
   @override
-  Future<List<EmployeeContact>> getAllowedContacts({required String departmentId}) async {
+  Future<List<EmployeeContactModel>> getAllowedContacts({required String departmentId}) async {
     return [
-      EmployeeContact(
+      EmployeeContactModel(
         id: 'contact-1',
         fullName: 'مسؤول الموارد البشرية',
         jobTitleAr: 'أخصائي موارد بشرية',
@@ -70,14 +64,8 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
 
   @override
   Future<EmployeeContactModel?> getContactById(String contactId) async {
-    return EmployeeContactModel(
-      id: contactId,
-      name: 'مسؤول التواصل',
-      jobTitle: 'Representative',
-      departmentId: 'dept-hr',
-      departmentName: 'HR',
-      isAvailable: true,
-    );
+    final contacts = await getAllowedContacts(departmentId: 'dept-hr');
+    return contacts.where((c) => c.id == contactId).firstOrNull;
   }
 
   @override
@@ -114,15 +102,10 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
     } catch (_) {}
 
     return ConversationModel(
-      id: 'conv-$recipientId',
-      participantId: recipientId,
-      participantName: 'زميل العمل',
-      participantJobTitle: 'موظف',
+      id: 'conv-${DateTime.now().millisecondsSinceEpoch}',
+      participantIds: [recipientId],
       departmentId: departmentId,
-      departmentName: 'Department',
-      lastMessageTime: DateTime.now(),
       unreadCount: 0,
-      isOnline: true,
     );
   }
 
@@ -163,9 +146,10 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
       id: 'msg-${DateTime.now().millisecondsSinceEpoch}',
       conversationId: conversationId,
       senderId: 'ME',
+      senderName: 'Me',
       receiverId: receiverId,
       content: content,
-      timestamp: DateTime.now(),
+      createdAt: DateTime.now(),
       status: MessageStatus.sent,
     );
   }
@@ -185,7 +169,8 @@ class RealCommunicationRemoteDataSource implements CommunicationRemoteDataSource
         nameAr: 'طلب تعريف بالراتب',
         nameEn: 'Salary Certificate',
         departmentId: 'dept-hr',
-        description: 'شهادة إثبات راتب رسمية موجهة لجهة محددة',
+        descriptionAr: 'شهادة إثبات راتب رسمية موجهة لجهة محددة',
+        descriptionEn: 'Official salary certificate',
       ),
     ];
   }

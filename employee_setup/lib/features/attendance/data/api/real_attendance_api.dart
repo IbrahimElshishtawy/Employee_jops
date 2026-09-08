@@ -4,7 +4,6 @@ import '../../../../core/network/api_exception.dart';
 import '../../../auth/domain/models/employee.dart';
 import '../../domain/models/attendance.dart';
 import '../../domain/models/attendance_api_contracts.dart';
-import '../../domain/models/attendance_state_type.dart';
 import 'attendance_api.dart';
 
 class RealAttendanceApi implements AttendanceApi {

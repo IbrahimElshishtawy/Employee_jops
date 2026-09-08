@@ -66,6 +66,22 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Employee> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    return signInWithGoogle(email: email);
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    // Mock change password completes successfully
+  }
+
+  @override
   Future<void> signOut() async {
     await _dataSource.clearSession();
     _db.clearSession();

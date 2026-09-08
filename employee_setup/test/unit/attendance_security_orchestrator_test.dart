@@ -32,6 +32,19 @@ class TestMockAuthRepository implements AuthRepository {
   Future<Employee> signInWithGoogle({String? email}) async => currentUser!;
 
   @override
+  Future<Employee> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async =>
+      currentUser!;
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
   Future<void> signOut() async {}
 
   @override

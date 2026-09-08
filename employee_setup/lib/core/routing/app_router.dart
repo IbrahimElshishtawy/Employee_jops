@@ -48,9 +48,11 @@ import '../../features/communication/presentation/screens/chat_settings_screen.d
 import '../../features/communication/presentation/screens/conversation_info_screen.dart';
 import '../../features/tasks/presentation/screens/tasks_list_screen.dart';
 import '../../features/tasks/presentation/screens/task_details_screen.dart';
+import '../../features/tasks/domain/models/task_model.dart';
 import '../../features/payroll/presentation/screens/salary_structure_screen.dart';
 import '../../features/payroll/presentation/screens/payslips_list_screen.dart';
 import '../../features/payroll/presentation/screens/payslip_details_screen.dart';
+import '../../features/payroll/domain/models/payslip_record.dart';
 import '../../features/announcements/presentation/screens/announcements_screen.dart';
 import '../../features/handover/presentation/screens/handover_list_screen.dart';
 import '../../features/incidents/presentation/screens/incidents_screen.dart';
@@ -485,13 +487,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 PayslipRecord(
                   id: id,
                   month: 'Current',
-                  year: DateTime.now().year,
-                  grossSalary: 0,
-                  netSalary: 0,
+                  basicSalary: 0,
                   totalAllowances: 0,
                   totalDeductions: 0,
+                  netSalary: 0,
+                  paymentStatus: 'PAID',
                   paymentDate: DateTime.now(),
-                  status: 'GENERATED',
                 ),
           );
         },
