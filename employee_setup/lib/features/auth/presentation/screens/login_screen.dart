@@ -18,8 +18,57 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController(text: 'employee@example.com');
+  final _passwordController = TextEditingController(text: 'Password123!');
+  final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
   bool _isSigningIn = false;
   String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleEmailSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSigningIn = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final success = await ref.read(authProvider.notifier).signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+
+      setState(() => _isSigningIn = false);
+
+      if (success) {
+        final employee = ref.read(authProvider).employee;
+        if (employee != null && employee.profileCompleted) {
+          context.go('/home');
+        } else {
+          context.go('/onboarding/personal');
+        }
+      } else {
+        setState(() {
+          _errorMessage = ref.read(authProvider).errorMessage ?? context.tr('auth.error_generic');
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isSigningIn = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() {
@@ -242,14 +291,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ],
                               ),
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Text(
-                                    isRtl
-                                        ? 'تسجيل الدخول بحساب جوجل'
-                                        : 'Sign in with Google Account',
+                                    isRtl ? 'تسجيل الدخول' : 'Sign In',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w800,
                                       color: isDark
                                           ? Colors.white
@@ -259,8 +307,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   const SizedBox(height: 6),
                                   Text(
                                     isRtl
-                                        ? 'استخدم حساب جوجل الخاص بك للوصول إلى التطبيق'
-                                        : 'Use your Google account to access the app',
+                                        ? 'أدخل بيانات حساب الموظف للوصول إلى النظام'
+                                        : 'Enter your employee credentials to continue',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 12,
@@ -270,20 +318,115 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           : const Color(0xFF64748B),
                                     ),
                                   ),
-                                  const SizedBox(height: 22),
-
-                                  // Google Button
-                                  GoogleSignInButton(
-                                    isLoading: _isSigningIn,
-                                    isFilled: true,
-                                    label: isRtl
-                                        ? 'متابعة باستخدام Google'
-                                        : 'Continue with Google',
-                                    onPressed: _isSigningIn
-                                        ? null
-                                        : _handleGoogleSignIn,
-                                  ),
                                   const SizedBox(height: 20),
+
+                                  // Email & Password Form
+                                  Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      children: [
+                                        TextFormField(
+                                          controller: _emailController,
+                                          keyboardType: TextInputType.emailAddress,
+                                          textInputAction: TextInputAction.next,
+                                          decoration: InputDecoration(
+                                            labelText: isRtl ? 'البريد الإلكتروني' : 'Email Address',
+                                            hintText: 'name@cyberwise.hotel',
+                                            prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                                            filled: true,
+                                            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(14),
+                                              borderSide: BorderSide(
+                                                color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                                              ),
+                                            ),
+                                          ),
+                                          validator: (val) {
+                                            if (val == null || val.trim().isEmpty) {
+                                              return isRtl ? 'يرجى إدخال البريد الإلكتروني' : 'Please enter your email';
+                                            }
+                                            if (!val.contains('@')) {
+                                              return isRtl ? 'بريد إلكتروني غير صالح' : 'Invalid email format';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 14),
+                                        TextFormField(
+                                          controller: _passwordController,
+                                          obscureText: _obscurePassword,
+                                          textInputAction: TextInputAction.done,
+                                          onFieldSubmitted: (_) => _handleEmailSignIn(),
+                                          decoration: InputDecoration(
+                                            labelText: isRtl ? 'كلمة المرور' : 'Password',
+                                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                            suffixIcon: IconButton(
+                                              icon: Icon(
+                                                _obscurePassword
+                                                    ? Icons.visibility_off_outlined
+                                                    : Icons.visibility_outlined,
+                                                size: 20,
+                                              ),
+                                              onPressed: () {
+                                                setState(() => _obscurePassword = !_obscurePassword);
+                                              },
+                                            ),
+                                            filled: true,
+                                            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(14),
+                                              borderSide: BorderSide(
+                                                color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                                              ),
+                                            ),
+                                          ),
+                                          validator: (val) {
+                                            if (val == null || val.isEmpty) {
+                                              return isRtl ? 'يرجى إدخال كلمة المرور' : 'Please enter password';
+                                            }
+                                            if (val.length < 6) {
+                                              return isRtl ? 'كلمة المرور 6 أحرف على الأقل' : 'Minimum 6 characters';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 18),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 48,
+                                          child: ElevatedButton(
+                                            onPressed: _isSigningIn ? null : _handleEmailSignIn,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppColors.primary,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(14),
+                                              ),
+                                              elevation: 0,
+                                            ),
+                                            child: _isSigningIn
+                                                ? const SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.white,
+                                                    ),
+                                                  )
+                                                : Text(
+                                                    isRtl ? 'دخول' : 'Sign In',
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
 
                                   // OR Divider Line
                                   Row(
@@ -321,7 +464,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: 18),
+
+                                  // Google Button
+                                  GoogleSignInButton(
+                                    isLoading: _isSigningIn,
+                                    isFilled: false,
+                                    label: isRtl
+                                        ? 'متابعة باستخدام Google'
+                                        : 'Continue with Google',
+                                    onPressed: _isSigningIn
+                                        ? null
+                                        : _handleGoogleSignIn,
+                                  ),
+                                  const SizedBox(height: 18),
 
                                   // Security Info Banner
                                   const LoginSecurityBanner(),

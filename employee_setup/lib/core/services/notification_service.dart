@@ -209,6 +209,37 @@ class NotificationService {
     return token;
   }
 
+  /// Registers device token with backend API (POST /api/v1/notifications/device-token)
+  Future<bool> registerWithBackend(dynamic apiClient) async {
+    try {
+      final token = await getDevicePushToken();
+      if (apiClient != null) {
+        await apiClient.post(
+          '/notifications/device-token',
+          data: {
+            'fcmToken': token,
+            'deviceType': 'MOBILE',
+          },
+        );
+        SecureLogger.info('NotificationService', 'Device token registered with backend');
+        return true;
+      }
+    } catch (e) {
+      SecureLogger.error('NotificationService', 'Failed to register token with backend', e);
+    }
+    return false;
+  }
+
+  /// Unregisters device token on logout (DELETE /api/v1/notifications/device-token/:token)
+  Future<void> unregisterWithBackend(dynamic apiClient) async {
+    try {
+      if (_cachedPushToken != null && apiClient != null) {
+        await apiClient.delete('/notifications/device-token/$_cachedPushToken');
+        _cachedPushToken = null;
+      }
+    } catch (_) {}
+  }
+
   /// Displays a localized notification with structured payload for deep linking
   Future<void> showNotification({
     required int id,

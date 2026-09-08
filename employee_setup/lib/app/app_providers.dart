@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/config/app_config.dart';
+import '../core/network/api_client.dart';
 import '../core/mock/mock_database.dart';
 import '../core/mock/models/app_session.dart';
 import '../core/mock/models/deduction.dart';
@@ -21,7 +23,10 @@ import '../features/advances/domain/repositories/advances_repository.dart';
 
 import '../features/attendance/data/api/attendance_api.dart';
 import '../features/attendance/data/api/mock_attendance_api.dart';
+import '../features/attendance/data/api/real_attendance_api.dart';
+import '../features/attendance/data/datasources/attendance_remote_data_source.dart';
 import '../features/attendance/data/repositories/mock_attendance_repository.dart';
+import '../features/attendance/data/repositories/real_attendance_repository.dart';
 import '../features/attendance/data/services/device_integrity_service_impl.dart';
 import '../features/attendance/data/services/mock_biometric_service.dart';
 import '../features/attendance/data/services/mock_location_detector_impl.dart';
@@ -95,6 +100,17 @@ export '../features/location_tracking/presentation/providers/location_tracking_p
 
 final localStorageProvider = Provider<LocalStorage>((ref) {
   return SecureSessionStorage();
+});
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final storage = ref.watch(localStorageProvider);
+  return ApiClient(
+    storage: storage,
+    config: AppConfig.current,
+    onSessionExpired: () {
+      ref.read(authProvider.notifier).signOut();
+    },
+  );
 });
 
 final deviceInfoServiceProvider = Provider<DeviceInfoService>((ref) {
@@ -280,8 +296,20 @@ final biometricServiceProvider = Provider<BiometricService>((ref) {
   return ref.watch(realBiometricServiceProvider);
 });
 
+final realAttendanceApiProvider = Provider<RealAttendanceApi>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return RealAttendanceApi(
+    apiClient: apiClient,
+    getEmployee: () => ref.watch(employeeProvider),
+  );
+});
+
 final attendanceApiProvider = Provider<AttendanceApi>((ref) {
-  return MockAttendanceApi(getEmployee: () => ref.watch(employeeProvider));
+  final demo = ref.watch(demoControlsProvider);
+  if (!demo.useRealDeviceSensors) {
+    return MockAttendanceApi(getEmployee: () => ref.watch(employeeProvider));
+  }
+  return ref.watch(realAttendanceApiProvider);
 });
 
 final screenOverlayDetectorProvider = Provider<ScreenOverlayDetector>((ref) {
@@ -303,6 +331,25 @@ final attendanceVerificationServiceProvider =
       );
     });
 
+final attendanceRemoteDataSourceProvider =
+    Provider<AttendanceRemoteDataSource>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return AttendanceRemoteDataSource(client);
+});
+
+final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
+  final remoteDs = ref.watch(attendanceRemoteDataSourceProvider);
+  final db = ref.watch(mockDatabaseProvider.notifier);
+  final demo = ref.watch(demoControlsProvider);
+  if (!demo.useRealDeviceSensors) {
+    return MockAttendanceRepository(db);
+  }
+  return RealAttendanceRepository(
+    remoteDataSource: remoteDs,
+    db: db,
+  );
+});
+
 // ══════════════════════════════════════════════════════════════════
 // 4. Auth & Employee Providers
 // ══════════════════════════════════════════════════════════════════
@@ -314,7 +361,8 @@ final authDataSourceProvider = Provider<MockAuthDataSource>((ref) {
 
 final realAuthDataSourceProvider = Provider<RealAuthDataSource>((ref) {
   final storage = ref.watch(localStorageProvider);
-  return RealAuthDataSource(storage);
+  final apiClient = ref.watch(apiClientProvider);
+  return RealAuthDataSource(storage, apiClient: apiClient);
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -376,6 +424,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _initialize() async {
     final user = await _repo.getCurrentUser();
     state = state.copyWith(employee: user, isInitialized: true);
+  }
+
+  Future<bool> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repo.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      state = state.copyWith(employee: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
   }
 
   Future<bool> signInWithGoogle() async {

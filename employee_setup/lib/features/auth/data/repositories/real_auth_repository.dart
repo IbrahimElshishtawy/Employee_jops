@@ -35,6 +35,30 @@ class RealAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Employee> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    final user = await _dataSource.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final session = await _dataSource.getCachedSession() ??
+        AppSession.create(
+          employeeId: user.id,
+          email: user.email,
+          profileCompleted: user.profileCompleted,
+          provider: LoginProvider.email,
+        );
+
+    _db.setSession(session);
+    _db.setEmployee(user);
+    _authStreamController.add(user);
+    return user;
+  }
+
+  @override
   Future<Employee> signInWithGoogle({String? email}) async {
     final user = await _dataSource.signInWithGoogle(fallbackEmail: email);
 
@@ -50,6 +74,17 @@ class RealAuthRepository implements AuthRepository {
     _db.setEmployee(user);
     _authStreamController.add(user);
     return user;
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _dataSource.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
   }
 
   @override

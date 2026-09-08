@@ -74,21 +74,39 @@ class AttendanceSubmissionRequest {
     'isOfflineSubmission': isOfflineSubmission,
   };
 
+  /// Serializes into exact backend CheckInDto / CheckOutDto for NestJS Fastify validation
+  Map<String, dynamic> toBackendDto() => {
+    'latitude': latitude,
+    'longitude': longitude,
+    'accuracy': accuracy,
+    'requestId': clientRequestId,
+    'method': 'GPS',
+    'biometricVerified': biometricVerified,
+    if (integrityResult?.isMockLocationDetected != null)
+      'isMockLocation': integrityResult!.isMockLocationDetected,
+    if (networkRisk?.isVpnActive != null)
+      'isVpn': networkRisk!.isVpnActive,
+    if (integrityResult?.isRootedOrJailbroken != null)
+      'isJailbroken': integrityResult!.isRootedOrJailbroken,
+  };
+
   factory AttendanceSubmissionRequest.fromJson(Map<String, dynamic> json) =>
       AttendanceSubmissionRequest(
-        clientRequestId: json['clientRequestId'] as String,
-        employeeId: json['employeeId'] as String,
-        attendanceType: AttendanceType.values.byName(
-          json['attendanceType'] as String,
-        ),
+        clientRequestId: json['clientRequestId'] as String? ?? json['requestId'] as String? ?? '',
+        employeeId: json['employeeId'] as String? ?? '',
+        attendanceType: json['attendanceType'] != null
+            ? AttendanceType.values.byName(json['attendanceType'] as String)
+            : AttendanceType.checkIn,
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         accuracy: (json['accuracy'] as num).toDouble(),
-        clientTimestamp: DateTime.parse(json['clientTimestamp'] as String),
-        workplaceId: json['workplaceId'] as String,
+        clientTimestamp: json['clientTimestamp'] != null
+            ? DateTime.parse(json['clientTimestamp'] as String)
+            : DateTime.now(),
+        workplaceId: json['workplaceId'] as String? ?? '',
         distanceFromWorkplace:
-            (json['distanceFromWorkplace'] as num).toDouble(),
-        biometricVerified: json['biometricVerified'] as bool,
+            (json['distanceFromWorkplace'] as num?)?.toDouble() ?? 0.0,
+        biometricVerified: json['biometricVerified'] as bool? ?? false,
         biometricProofToken: json['biometricProofToken'] as String?,
         integrityResult: json['integrityResult'] != null
             ? DeviceIntegrityResult.fromJson(
@@ -118,13 +136,52 @@ class AttendanceVerificationResponse {
   const AttendanceVerificationResponse({
     required this.success,
     required this.decision,
-    this.rejectionReason = RejectionReason.none,
+    required this.rejectionReason,
     this.message,
     this.auditId,
     this.serverCalculatedDistance,
     required this.serverTimestamp,
     this.attendanceRecord,
   });
+
+  factory AttendanceVerificationResponse.fromBackendJson(
+    Map<String, dynamic> json, {
+    AttendanceType type = AttendanceType.checkIn,
+    String? employeeId,
+  }) {
+    final success = json['success'] as bool? ?? true;
+    final data = json['data'] is Map<String, dynamic> ? json['data'] as Map<String, dynamic> : json;
+
+    Attendance? record;
+    if (data.isNotEmpty) {
+      final now = DateTime.now();
+      final checkInTime = data['checkIn'] != null ? DateTime.tryParse(data['checkIn'] as String) : now;
+      final checkOutTime = data['checkOut'] != null ? DateTime.tryParse(data['checkOut'] as String) : null;
+
+      record = Attendance(
+        id: data['id'] as String? ?? 'ATT-${now.millisecondsSinceEpoch}',
+        employeeId: data['employeeId'] as String? ?? employeeId ?? 'EMP-001',
+        date: data['date'] != null ? DateTime.tryParse(data['date'] as String) ?? now : now,
+        checkInTime: checkInTime,
+        checkOutTime: checkOutTime,
+        status: (type == AttendanceType.checkIn && checkOutTime == null)
+            ? AttendanceStateType.checkedIn
+            : AttendanceStateType.checkedOut,
+        verificationMethod: 'GPS',
+        verificationStatus: 'VERIFIED',
+      );
+    }
+
+    return AttendanceVerificationResponse(
+      success: success,
+      decision: success ? AttendanceDecision.approved : AttendanceDecision.rejected,
+      rejectionReason: success ? RejectionReason.none : RejectionReason.serverInternalError,
+      message: json['message'] as String? ?? (success ? 'Punch recorded successfully' : 'Punch rejected'),
+      auditId: data['id'] as String?,
+      serverTimestamp: DateTime.now(),
+      attendanceRecord: record,
+    );
+  }
 
   bool get isApproved => decision == AttendanceDecision.approved;
   bool get isPendingHr => decision == AttendanceDecision.pendingHrVerification;

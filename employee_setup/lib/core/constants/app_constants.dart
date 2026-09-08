@@ -23,6 +23,7 @@ class AppConstants {
 
   // Storage Keys
   static const String keyAuthToken = 'auth_token';
+  static const String keyRefreshToken = 'refresh_token';
   static const String keyUserData = 'user_data';
   static const String keyThemeMode = 'theme_mode';
   static const String keyLocale = 'locale';
