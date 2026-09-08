@@ -81,7 +81,7 @@ class _TrainingScreenState extends ConsumerState<TrainingScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: courses.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (ctx, idx) {
               final course = courses[idx];
               return Card(
@@ -188,7 +188,7 @@ class _TrainingScreenState extends ConsumerState<TrainingScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: certs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (ctx, idx) {
               final cert = certs[idx];
               return Card(

@@ -35,6 +35,7 @@ class ApiEndpoints {
   static const String attendanceCheckOut = '/attendance/check-out';
   static const String attendanceToday = '/attendance/today';
   static const String attendanceMe = '/attendance/me';
+  static const String attendanceHistory = '/attendance/me';
 
   // 07. Requests & Leaves
   static const String requests = '/requests';

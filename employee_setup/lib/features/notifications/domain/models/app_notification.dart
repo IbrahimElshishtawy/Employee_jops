@@ -61,14 +61,30 @@ class AppNotification {
         'actionRoute': actionRoute,
       };
 
-  factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        message: json['message'] as String,
-        category: NotificationCategory.values.byName(json['category'] as String),
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        isRead: json['isRead'] as bool? ?? false,
-        relatedEntityId: json['relatedEntityId'] as String?,
-        actionRoute: json['actionRoute'] as String?,
-      );
+  factory AppNotification.fromJson(Map<String, dynamic> json) {
+    NotificationCategory cat = NotificationCategory.system;
+    final catRaw = (json['category'] as String? ?? '').toLowerCase().replaceAll('_', '');
+    for (final v in NotificationCategory.values) {
+      if (v.name.toLowerCase() == catRaw) {
+        cat = v;
+        break;
+      }
+    }
+
+    final createdAtRaw = json['createdAt'] as String?;
+    final date = createdAtRaw != null
+        ? DateTime.tryParse(createdAtRaw) ?? DateTime.now()
+        : DateTime.now();
+
+    return AppNotification(
+      id: json['id'] as String? ?? 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',
+      title: json['title'] as String? ?? '',
+      message: json['message'] as String? ?? '',
+      category: cat,
+      createdAt: date,
+      isRead: json['isRead'] as bool? ?? false,
+      relatedEntityId: json['relatedEntityId'] as String?,
+      actionRoute: json['actionRoute'] as String?,
+    );
+  }
 }

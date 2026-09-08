@@ -17,7 +17,8 @@ import '../core/network/mock_connectivity_service.dart';
 import '../core/storage/local_storage.dart';
 
 import '../core/services/time_service.dart';
-import '../features/advances/data/repositories/mock_advances_repository.dart';
+import '../features/advances/data/datasources/advances_remote_data_source.dart';
+import '../features/advances/data/repositories/real_advances_repository.dart';
 import '../features/advances/domain/models/advance_request.dart';
 import '../features/advances/domain/repositories/advances_repository.dart';
 
@@ -58,7 +59,7 @@ import '../features/auth/data/datasources/mock_auth_datasource.dart';
 import '../features/auth/domain/models/employee.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 
-import '../features/notifications/data/repositories/mock_notifications_repository.dart';
+import '../features/notifications/data/repositories/real_notifications_repository.dart';
 import '../features/notifications/domain/models/app_notification.dart';
 import '../features/notifications/domain/repositories/notifications_repository.dart';
 
@@ -66,6 +67,7 @@ import '../features/permissions/data/repositories/mock_permissions_repository.da
 import '../features/permissions/domain/models/permission_request.dart';
 import '../features/permissions/domain/repositories/permissions_repository.dart';
 
+import '../features/requests/data/datasources/requests_remote_data_source.dart';
 import '../features/requests/domain/models/unified_request.dart';
 import '../features/requests/domain/repositories/requests_repository.dart';
 
@@ -991,8 +993,19 @@ final attendanceStateProvider = Provider<AttendanceStateType>((ref) {
 // 6. Requests (Advances / Permissions / Vacations)
 // ══════════════════════════════════════════════════════════════════
 
+final advancesRemoteDataSourceProvider =
+    Provider<AdvancesRemoteDataSource>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return AdvancesRemoteDataSource(client);
+});
+
 final advancesRepositoryProvider = Provider<AdvancesRepository>((ref) {
-  return MockAdvancesRepository(ref);
+  final ds = ref.watch(advancesRemoteDataSourceProvider);
+  final dbNotifier = ref.watch(mockDatabaseProvider.notifier);
+  return RealAdvancesRepository(
+    remoteDataSource: ds,
+    db: dbNotifier,
+  );
 });
 
 /// Advances — reactive: rebuilds when MockDatabase.advances changes.
@@ -1027,11 +1040,19 @@ final vacationsListProvider = Provider<List<VacationRequest>>((ref) {
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
+final requestsRemoteDataSourceProvider =
+    Provider<RequestsRemoteDataSource>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return RequestsRemoteDataSource(client);
+});
+
 final requestsRepositoryProvider = Provider<RequestsRepository>((ref) {
+  final remoteDs = ref.watch(requestsRemoteDataSourceProvider);
   final adv = ref.watch(advancesRepositoryProvider);
   final perm = ref.watch(permissionsRepositoryProvider);
   final vac = ref.watch(vacationsRepositoryProvider);
-  return MockRequestsRepository(
+  return RealRequestsRepository(
+    remoteDataSource: remoteDs,
     advancesRepo: adv,
     permissionsRepo: perm,
     vacationsRepo: vac,
@@ -1063,10 +1084,13 @@ final allRequestsProvider = Provider<List<UnifiedRequestItem>>((ref) {
 // 7. Notifications — reactive, direct from MockDatabase
 // ══════════════════════════════════════════════════════════════════
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((
-  ref,
-) {
-  return MockNotificationsRepository(ref);
+final notificationsRepositoryProvider =
+    Provider<NotificationsRepository>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return RealNotificationsRepository(
+    apiClient: client,
+    ref: ref,
+  );
 });
 
 /// All notifications sorted newest first.

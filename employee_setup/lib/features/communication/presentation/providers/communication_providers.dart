@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/app_providers.dart';
-import '../../data/datasources/communication_mock_data_source.dart';
 import '../../data/datasources/communication_remote_data_source.dart';
 import '../../data/repositories/communication_repository_impl.dart';
 import '../../domain/repositories/communication_repository.dart';
@@ -18,22 +17,23 @@ import '../../domain/usecases/reject_request.dart';
 import '../../domain/usecases/start_request.dart';
 import '../../domain/usecases/complete_request.dart';
 
-// Single source data source instance to maintain state across screens during demo/runtime
-final communicationMockDataSourceProvider = Provider<CommunicationRemoteDataSource>((ref) {
-  final employee = ref.watch(employeeProvider);
-  return CommunicationMockDataSource(
-    currentUserId: employee.id.isNotEmpty ? employee.id : 'EMP-001',
-    currentUserName: employee.name.isNotEmpty ? employee.name : 'Ibrahim Elshishtawy',
-  );
+import '../../data/datasources/real_communication_remote_data_source.dart';
+
+final communicationRemoteDataSourceProvider =
+    Provider<CommunicationRemoteDataSource>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return RealCommunicationRemoteDataSource(apiClient);
 });
 
-final communicationRepositoryProvider = Provider<CommunicationRepository>((ref) {
-  final ds = ref.watch(communicationMockDataSourceProvider);
+final communicationRepositoryProvider =
+    Provider<CommunicationRepository>((ref) {
+  final ds = ref.watch(communicationRemoteDataSourceProvider);
   final employee = ref.watch(employeeProvider);
   return CommunicationRepositoryImpl(
     remoteDataSource: ds,
     currentUserId: employee.id.isNotEmpty ? employee.id : 'EMP-001',
-    currentUserName: employee.name.isNotEmpty ? employee.name : 'Ibrahim Elshishtawy',
+    currentUserName:
+        employee.name.isNotEmpty ? employee.name : 'Ibrahim Elshishtawy',
   );
 });
 

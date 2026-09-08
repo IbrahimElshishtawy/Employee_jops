@@ -101,4 +101,20 @@ class RealAttendanceApi implements AttendanceApi {
   ) {
     return submitAttendance(request);
   }
+
+  Future<List<Attendance>> getHistory(String employeeId) async {
+    try {
+      final response = await apiClient.get(
+        ApiEndpoints.attendanceHistory,
+        cacheDuration: const Duration(seconds: 30),
+      );
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((e) => Attendance.fromJson(e))
+            .toList();
+      }
+    } catch (_) {}
+    return [];
+  }
 }

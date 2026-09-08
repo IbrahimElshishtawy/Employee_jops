@@ -40,10 +40,10 @@ class PerformanceRepository {
           String id, double currentValue, String? notes) =>
       dataSource.updateGoalProgress(id, currentValue, notes);
 
-  Future<List<PerformanceReview>> getReviews() => _dataSource.getReviews();
+  Future<List<PerformanceReview>> getReviews() => dataSource.getReviews();
 
   Future<void> acknowledgeReview(String id) =>
-      _dataSource.acknowledgeReview(id);
+      dataSource.acknowledgeReview(id);
 }
 
 final performanceRepositoryProvider = Provider<PerformanceRepository>((ref) {

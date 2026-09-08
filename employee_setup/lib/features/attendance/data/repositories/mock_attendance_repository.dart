@@ -8,6 +8,7 @@ import '../../domain/models/network_risk_info.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../api/attendance_api.dart';
 import '../api/mock_attendance_api.dart';
+import '../api/real_attendance_api.dart';
 
 class MockAttendanceRepository implements AttendanceRepository {
   final Ref? _ref;
@@ -34,11 +35,26 @@ class MockAttendanceRepository implements AttendanceRepository {
 
   @override
   Future<TodayAttendanceSummary> getTodayStatus(String employeeId) async {
+    try {
+      final status = await _apiClient.getTodayStatus(employeeId);
+      if (status.checkIn != null || status.checkOut != null) {
+        return status;
+      }
+    } catch (_) {}
     return _state.todaySummary;
   }
 
   @override
   Future<List<Attendance>> getHistory(String employeeId) async {
+    if (_apiClient is RealAttendanceApi) {
+      try {
+        final remoteHistory =
+            await (_apiClient as RealAttendanceApi).getHistory(employeeId);
+        if (remoteHistory.isNotEmpty) {
+          return remoteHistory;
+        }
+      } catch (_) {}
+    }
     return _state.attendance.where((a) => a.employeeId == employeeId).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }

@@ -22,7 +22,7 @@ class RealAuthRepository implements AuthRepository {
 
   @override
   Future<Employee?> getCurrentUser() async {
-    final employee = await _dataSource.getCachedEmployee();
+    final employee = await _dataSource.fetchCurrentEmployee();
     if (employee != null) {
       final session = await _dataSource.getCachedSession();
       if (session != null) {

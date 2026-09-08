@@ -251,6 +251,30 @@ class RealAuthDataSource {
     return employee;
   }
 
+  /// Fetches current employee profile directly from GET /api/v1/employees/me
+  Future<Employee?> fetchCurrentEmployee() async {
+    if (apiClient != null) {
+      try {
+        final response = await apiClient!.get(
+          ApiEndpoints.employeeMe,
+          cacheDuration: const Duration(seconds: 30),
+        );
+        if (response.data is Map<String, dynamic>) {
+          final data = response.data as Map<String, dynamic>;
+          final empJson = data['data'] is Map<String, dynamic>
+              ? data['data'] as Map<String, dynamic>
+              : data;
+          final employee = Employee.fromJson(empJson);
+          await updateEmployee(employee);
+          return employee;
+        }
+      } catch (e) {
+        SecureLogger.info('RealAuthDataSource', 'Fetch employee profile from server: $e');
+      }
+    }
+    return getCachedEmployee();
+  }
+
   /// Change employee password via POST /api/v1/auth/change-password
   Future<void> changePassword({
     required String currentPassword,

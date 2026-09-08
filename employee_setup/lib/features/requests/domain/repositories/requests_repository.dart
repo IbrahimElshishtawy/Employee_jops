@@ -64,6 +64,17 @@ class RealRequestsRepository implements RequestsRepository {
 
   @override
   Future<List<UnifiedRequestItem>> getAllRequests(String employeeId, [bool isArabic = true]) async {
+    try {
+      final remoteList = await remoteDataSource.getMyRequests();
+      if (remoteList.isNotEmpty) {
+        final items = remoteList
+            .map((e) => UnifiedRequestItem.fromBackendJson(e, isArabic))
+            .toList();
+        items.sort((a, b) => b.date.compareTo(a.date));
+        return items;
+      }
+    } catch (_) {}
+
     final advances = await advancesRepo.getAdvances(employeeId);
     final permissions = await permissionsRepo.getPermissions(employeeId);
     final vacations = await vacationsRepo.getVacations(employeeId);
